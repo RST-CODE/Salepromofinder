@@ -300,6 +300,13 @@ details li{ margin-bottom:3px; }
   }
   main{ padding:0; }
 }
+
+.delta{
+  display:inline-block; font-size:10px; font-weight:700; font-family:'Kanit',sans-serif;
+  padding:1px 5px; border-radius:5px; margin-left:5px; white-space:nowrap;
+}
+.delta-good{ background:#E3F3E6; color:#2E7D32; }
+.delta-bad{ background:#FBE5E3; color:#C8372D; }
 </style>
 </head>
 <body>
@@ -371,6 +378,14 @@ const DATA = {"yanmar": {"models": ["EF393A / EF393T-45th", "YM351R", "YM358R", 
 const LOOKUP_KEYS = DATA.yanmar_lookup_keys;
 const fmt = n => (n===null||n===undefined) ? '—' : n.toLocaleString('th-TH', {maximumFractionDigits:0});
 const fmtPct = n => (n*100).toFixed(2).replace(/\.00$/,'') + '%';
+function deltaBadge(diff, goodIfPositive){
+  if(diff===0) return '';
+  const good = goodIfPositive ? diff>0 : diff<0;
+  const cls = good ? 'delta-good' : 'delta-bad';
+  const sign = diff>0 ? '+' : '';
+  const arrow = diff>0 ? '▲' : '▼';
+  return `<span class="delta ${cls}">${arrow} ${sign}${fmt(diff)}</span>`;
+}
 
 
 const CRITERIA_INFO = {
@@ -535,7 +550,7 @@ function findEntriesForModelYanmar(model, segment, toggles){
 }
 
 // ===== shared card rendering =====
-function cardHtml(r, badge){
+function cardHtml(r, badge, compareTo){
   const e = r.entry;
   const down = e.down || 0;
 
@@ -558,6 +573,16 @@ function cardHtml(r, badge){
   const support = (e.ysp||0)+(e.yct||0)+(e.fire||0)+(e.ysp_topup||0);
   const rst = e.rst ?? 0;
   const totalSupport = down - cust;
+
+  let custDelta = '', supportDelta = '', rstDelta = '';
+  if(compareTo){
+    const bestCust = compareTo.customer_out ?? 0;
+    const bestSupport = (compareTo.down ?? 0) - bestCust;
+    const bestRst = compareTo.rst ?? 0;
+    custDelta = deltaBadge(cust - bestCust, false);
+    supportDelta = deltaBadge(totalSupport - bestSupport, true);
+    rstDelta = deltaBadge(rst - bestRst, false);
+  }
 
   let custPct=0, suppPct=0, rstPct=0;
   if(down>0){
@@ -593,10 +618,10 @@ function cardHtml(r, badge){
         <div class="seg-rst" style="width:${rstPct}%"></div>
       </div>
       <div class="numbers">
-        <div class="num-box cust full"><div class="k">ส่วนสนับสนุนรวม (ลูกค้าได้รับ)</div><div class="v">${fmt(totalSupport)} บาท</div></div>
+        <div class="num-box cust full"><div class="k">ส่วนสนับสนุนรวม (ลูกค้าได้รับ)</div><div class="v">${fmt(totalSupport)} บาท${supportDelta}</div></div>
         <div class="num-box"><div class="k">เงินดาวน์รวม</div><div class="v">${fmt(down)}</div></div>
-        <div class="num-box"><div class="k">ลูกค้าออกเอง</div><div class="v">${fmt(cust)}</div></div>
-        <div class="num-box"><div class="k">ต้นทุน RST (บริษัท)</div><div class="v">${fmt(rst)}</div></div>
+        <div class="num-box"><div class="k">ลูกค้าออกเอง</div><div class="v">${fmt(cust)}${custDelta}</div></div>
+        <div class="num-box"><div class="k">ต้นทุน RST (บริษัท)</div><div class="v">${fmt(rst)}${rstDelta}</div></div>
       </div>
       <div class="breakdown">
         ${e.yct ? `<span class="chip">YCT <b>${fmt(e.yct)}</b></span>`:''}
@@ -611,12 +636,12 @@ function cardHtml(r, badge){
 }
 
 function dedupeWithinSameCustomerOut(rows){
-  // An option is hidden if another option is at least as good on ALL THREE of:
+  // Hide B if another option A is at least as good on ALL THREE of:
   //  - "ลูกค้าออก" (lower is better)
   //  - "ส่วนสนับสนุนรวม" = เงินดาวน์ - ลูกค้าออก (higher is better)
   //  - "RST" (lower is better)
-  // and strictly better on at least one. (Same "ลูกค้าออก" + higher down = higher support,
-  // so this also covers the same-cust-tier case as before.)
+  // and strictly better on at least one. A lower RST alone is enough to keep an option visible
+  // even if another gives more support, since RST is a real factor for the company.
   const pending = rows.filter(r=>r.entry.pending);
   const usable = rows.filter(r=>!r.entry.pending);
   const kept = usable.filter(r=>{
@@ -687,7 +712,7 @@ function renderResultsCommon(rawRows){
   let html = cardHtml(best, 'แนะนำสำหรับกลุ่มนี้');
   if(rest.length>0){
     html += `<details class="more-toggle"><summary class="more-summary">ดูโปรอื่นสำหรับกลุ่มนี้ (${rest.length})</summary>
-      <div class="more-cards">${rest.map(r=>cardHtml(r,null)).join('')}</div>
+      <div class="more-cards">${rest.map(r=>cardHtml(r,null,best.entry)).join('')}</div>
     </details>`;
   }
   results.innerHTML = html;
