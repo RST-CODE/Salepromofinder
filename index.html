@@ -953,7 +953,10 @@ let eqDown = 0;
 
 
 function scrollToEq(){
-  document.getElementById('eqAnchor').scrollIntoView({behavior:'smooth'});
+  const el = document.getElementById('eqAnchor');
+  if(!el) return;
+  const top = el.getBoundingClientRect().top + window.scrollY;
+  window.scrollTo({top: top, behavior:'smooth'});
 }
 function updateEqScrollBtn(){
   const btn = document.getElementById('eqScrollBtn');
