@@ -296,6 +296,37 @@ details li{ margin-bottom:3px; }
     overflow-y:auto;
   }
   main{ padding:0; }
+
+  /* ── Desktop compact: fit left panel in viewport without scrolling ── */
+  .topbar h1{ font-size:13px; margin-bottom:0; }
+  .topbar .sub{ font-size:10px; margin-bottom:4px; }
+  .topbar{ padding:8px 12px 10px; }
+  .brand-toggle{ gap:5px; margin-bottom:4px; }
+  .brand-btn{ font-size:13px; padding:5px 0; border-radius:9px; }
+  .select-row{ margin-bottom:4px; }
+  .select-row label{ font-size:10px; }
+  select#modelSelect{ font-size:13px; padding:6px 8px; }
+  .segment-toggle{ gap:4px; margin-bottom:4px; }
+  .seg-btn{ font-size:12px; padding:5px 2px; border-radius:8px; }
+  .criteria-box{ margin-top:3px; }
+  .criteria-box summary{ font-size:11px; padding:5px 8px; }
+  .toggles{ gap:4px; margin-top:4px; }
+  .toggle-row{ padding:5px 8px; }
+  .toggle-row .tx{ font-size:11px; }
+  .toggle-row .tx b{ font-size:11.5px; }
+  .toggle-row .tx .unlock{ font-size:10px; }
+  .toggle-row input{ width:14px; height:14px; }
+  .price-strip{ margin-top:5px; }
+  .price-strip .label{ font-size:10px; }
+  .price-strip .value{ font-size:14px; }
+  .summary-banner{ margin-top:5px; gap:5px; }
+  .summary-box{ padding:5px 8px; }
+  .summary-box .k{ font-size:9.5px; }
+  .summary-box .v{ font-size:15px; }
+  input[type=number]{ font-size:13px; padding:5px 8px; }
+  input[type=number] + div,
+  .select-row > div{ font-size:9.5px; }
+  .view-promo-btn{ display:none !important; }
 }
 
 .delta{
@@ -1043,15 +1074,11 @@ function renderEquipment(brand, model, finInterest, finYears){
     const downAmt = Math.max(0, eqDown);
     const finTotal = Math.max(0, totalPrice - downAmt);
     const annual = finTotal * (1/finYears + finInterest);
-    const minor = Math.max(0, Number(minorInstallment) || 0);
-    const bigPay = Math.max(0, annual - minor*11);
     const itemsLine = selectedItems.map(i=>`${i.name} (${fmt(i.price)})`).join(', ');
     resultHtml = `<div class="eq-result">
       <div class="eq-r-label">🔧 งวดอุปกรณ์รวม (${selectedItems.length} รายการ)</div>
-      <div class="eq-r-value">${bigPay>0
-        ? `งวดใหญ่ <b>${fmt(Math.round(bigPay))}</b> บาท/ปี + งวดย่อย ${fmt(minor)} × 11 เดือน`
-        : `งวดย่อย ${fmt(minor)} บาท × 11 เดือน (ไม่มีงวดใหญ่)`}</div>
-      <div class="eq-r-detail">รวมราคาอุปกรณ์ ${fmt(totalPrice)} · ดาวน์ ${fmt(downAmt)} · ยอดจัด ${fmt(finTotal)} · ${fmtPct(finInterest)} · ${finYears} ปี</div>
+      <div class="eq-r-value">ผ่อน <b>${fmt(Math.round(annual))}</b> บาท/ปี · ${finYears} ปี @ ${fmtPct(finInterest)}</div>
+      <div class="eq-r-detail">รวมราคาอุปกรณ์ ${fmt(totalPrice)} · ดาวน์ ${fmt(downAmt)} · ยอดจัด ${fmt(finTotal)}</div>
       <div class="eq-r-detail" style="margin-top:3px;color:#6a8a6a">${itemsLine}</div>
     </div>`;
   }
