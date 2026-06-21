@@ -427,18 +427,11 @@ input[type=number]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
   padding:13px; border-radius:12px; cursor:pointer;
   box-shadow:0 3px 12px -3px rgba(0,0,0,.2);
 }
-.back-btn{
-  display:none;
-  background:var(--card); border:1.5px solid var(--line);
-  font-family:'Kanit',sans-serif; font-size:13px; font-weight:600;
-  color:var(--ink-soft); padding:7px 14px; border-radius:9px;
-  cursor:pointer; margin-bottom:10px;
-}
+#backBar{ display:none; margin-bottom:8px; align-items:center; }
 @media (max-width:759px){
   .view-promo-btn{ display:block; }
   .app.step2 .topbar{ display:none; }
-#backBar{ display:none; }
-  .app.step2 #mainPanel #backBar{ display:flex !important; align-items:center; }
+  .app.step2 #backBar{ display:flex !important; }
 }
 
 .eq-scroll-btn{
@@ -456,7 +449,7 @@ input[type=number]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
   background:var(--card); border:1.5px solid var(--line);
   font-family:'Kanit',sans-serif; font-size:13px; font-weight:600;
   color:var(--ink-soft); padding:7px 14px; border-radius:9px;
-  cursor:pointer; margin-bottom:10px;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -512,7 +505,7 @@ input[type=number]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
 </div>
 
 <main id="mainPanel">
-  <div id="backBar" style="margin-bottom:8px"><button class="back-btn" onclick="goToForm()">← แก้ไขการเลือก</button><span id="backSummary" style="font-size:12px;color:var(--ink-soft);margin-left:8px"></span></div>
+  <div id="backBar"><button class="back-btn" onclick="goToForm()">← แก้ไขการเลือก</button><span id="backSummary" style="font-size:12px;color:var(--ink-soft);margin-left:8px"></span></div>
   <div class="legend">
     <span><i style="background:var(--accent)"></i>ลูกค้าจ่ายเอง (ลูกค้าออก)</span>
     <span><i style="background:var(--support)"></i>ส่วนสนับสนุน (YCT/YSP/ไฟไหม้)</span>
