@@ -437,6 +437,7 @@ input[type=number]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
 @media (max-width:759px){
   .view-promo-btn{ display:block; }
   .app.step2 .topbar{ display:none; }
+#backBar{ display:none; }
   .app.step2 #mainPanel #backBar{ display:flex !important; align-items:center; }
 }
 
@@ -511,7 +512,7 @@ input[type=number]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
 </div>
 
 <main id="mainPanel">
-  <div id="backBar" style="display:none; margin-bottom:8px; display:none"><button class="back-btn" onclick="goToForm()">← แก้ไขการเลือก</button><span id="backSummary" style="font-size:12px;color:var(--ink-soft);margin-left:8px"></span></div>
+  <div id="backBar" style="margin-bottom:8px"><button class="back-btn" onclick="goToForm()">← แก้ไขการเลือก</button><span id="backSummary" style="font-size:12px;color:var(--ink-soft);margin-left:8px"></span></div>
   <div class="legend">
     <span><i style="background:var(--accent)"></i>ลูกค้าจ่ายเอง (ลูกค้าออก)</span>
     <span><i style="background:var(--support)"></i>ส่วนสนับสนุน (YCT/YSP/ไฟไหม้)</span>
@@ -943,6 +944,7 @@ function renderToggles(){
     cb.addEventListener('change', ()=>{
       toggleState[cb.dataset.key] = cb.checked;
       renderResults();
+      maybeAutoStep2();
     });
   });
 }
@@ -963,10 +965,13 @@ segmentToggle.querySelectorAll('.seg-btn').forEach(b=>{
     renderCriteria();
     renderToggles();
     renderResults();
+    maybeAutoStep2();
   });
 });
 modelSelect.addEventListener('change', ()=>{
   toggleState = {land50:false, land30:false, baac:false};
+  selectedEqSet = {};
+  eqDown = 0;
   renderToggles();
   renderResults();
 });
