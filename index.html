@@ -1,19 +1,14 @@
-<html>
-
-<head>
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-1G42D485D0"></script>
-<script>
-window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-
-gtag('config', 'G-1G42D485D0');
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1G42D485D0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1G42D485D0');
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RST Promo Finder</title>
@@ -1842,41 +1837,59 @@ function saveGasUrl(){
   loadHistory();
 }
 
-async function saveToHistory(record){
-  if(!gasUrl){ 
-    console.warn('GAS URL not set — skipping save');
-    return null;
-  }
-  try{
-    const res = await fetch(gasUrl, {
-      method:'POST', mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({action:'save', record})
-    });
-    return true;
-  } catch(err){
-    console.error('Save error:', err);
-    return false;
-  }
+// ---- JSONP helper (ใช้แทน fetch เพื่อหลีกเลี่ยง CORS) ----
+function jsonpRequest(url, callback){
+  const cbName = '_gasCallback_' + Date.now();
+  const script = document.createElement('script');
+  window[cbName] = function(data){
+    delete window[cbName];
+    script.remove();
+    callback(null, data);
+  };
+  script.onerror = function(){
+    delete window[cbName];
+    script.remove();
+    callback(new Error('JSONP failed'));
+  };
+  script.src = url + (url.includes('?')?'&':'?') + 'callback=' + cbName;
+  document.head.appendChild(script);
 }
 
-async function loadHistory(){
+function gasPost(action, payload, callback){
+  // POST via fetch (ใช้ได้เมื่อเปิดผ่าน https หรือ localhost)
+  // GAS POST ไม่มี CORS issue เพราะใช้ no-cors mode (fire-and-forget)
+  if(!gasUrl) return callback && callback(new Error('no GAS URL'));
+  fetch(gasUrl, {
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify(payload)
+  }).then(()=> callback && callback(null, {status:'ok'}))
+    .catch(err => callback && callback(err));
+}
+
+function saveToHistory(record){
+  if(!gasUrl){ console.warn('GAS URL not set'); return; }
+  gasPost('save', {action:'save', record}, (err)=>{
+    if(err) console.error('Save failed:', err);
+  });
+}
+
+function loadHistory(){
   const container = document.getElementById('historyListContainer');
   if(!gasUrl){
-    container.innerHTML = `<div class="gas-config" style="margin:16px">
-      <label>⚠️ ยังไม่ได้ตั้งค่า GAS URL กด ⚙️ ด้านบนเพื่อใส่ URL ของ Google Apps Script</label>
+    container.innerHTML = `<div class="gas-config" style="margin:16px 0">
+      <label>⚠️ ยังไม่ได้ตั้งค่า GAS URL — กด ⚙️ ด้านบนเพื่อใส่ URL</label>
     </div>`;
     return;
   }
-  container.innerHTML = '<div class="history-loading">กำลังโหลดประวัติ...</div>';
-  try{
-    const res = await fetch(gasUrl + '?action=list');
-    const data = await res.json();
-    if(data.status !== 'ok') throw new Error(data.message);
+  container.innerHTML = '<div class="history-loading">⏳ กำลังโหลด...</div>';
+  jsonpRequest(gasUrl + '?action=list', function(err, data){
+    if(err || data.status !== 'ok'){
+      container.innerHTML = `<div class="history-empty">⚠️ โหลดไม่ได้<br><small>${err?.message||data?.message||'ไม่ทราบสาเหตุ'}</small><br><small>เช็ค: Deploy → Access: Anyone (anonymous)?</small></div>`;
+      return;
+    }
     renderHistoryList(data.records);
-  } catch(err){
-    container.innerHTML = `<div class="history-empty">⚠️ โหลดไม่ได้: ${err.message}<br><small>เช็ค GAS URL และ permission (Anyone)</small></div>`;
-  }
+  });
 }
 
 function renderHistoryList(records){
@@ -1908,43 +1921,28 @@ function renderHistoryList(records){
   `).join('');
 }
 
-async function reprintRecord(id){
-  try{
-    const res = await fetch(gasUrl + '?action=get&id=' + id);
-    const data = await res.json();
-    if(data.status !== 'ok') throw new Error(data.message);
-    // restore data into globals for print
+function reprintRecord(id){
+  jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
+    if(err || data.status !== 'ok'){ alert('โหลดไม่ได้: ' + (err?.message||data?.message)); return; }
     _printFromRecord(data.record);
-  } catch(err){
-    alert('โหลดไม่ได้: ' + err.message);
-  }
+  });
 }
 
-async function reExportXLSX(id){
-  try{
-    const res = await fetch(gasUrl + '?action=get&id=' + id);
-    const data = await res.json();
-    if(data.status !== 'ok') throw new Error(data.message);
+function reExportXLSX(id){
+  jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
+    if(err || data.status !== 'ok'){ alert('โหลดไม่ได้: ' + (err?.message||data?.message)); return; }
     _xlsxFromRecord(data.record);
-  } catch(err){
-    alert('โหลดไม่ได้: ' + err.message);
-  }
+  });
 }
 
-async function deleteRecord(id){
+function deleteRecord(id){
   if(!confirm('ลบรายการนี้?')) return;
-  try{
-    const res = await fetch(gasUrl, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({action:'delete', id})
-    });
-    const data = await res.json();
-    if(data.status !== 'ok') throw new Error(data.message);
+  gasPost('delete', {action:'delete', id}, function(err){
+    if(err){ alert('ลบไม่ได้: ' + err.message); return; }
     document.getElementById('hc_'+id)?.remove();
-  } catch(err){
-    alert('ลบไม่ได้: ' + err.message);
-  }
+    // reload to confirm
+    setTimeout(loadHistory, 800);
+  });
 }
 
 // Print/XLSX from stored record data (using existing exportPDF/exportXLSX but with override)
