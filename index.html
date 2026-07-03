@@ -4,11 +4,12 @@
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1G42D485D0"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-1G42D485D0');
+window.dataLayer=window.dataLayer||[];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config','G-1G42D485D0');
 </script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RST Promo Finder</title>
@@ -964,6 +965,10 @@ function getAvailablePayments(brand, segment, years){
 const EQUIPMENT = {"yanmar": {"EF393A / EF393T-45th": [{"name": "ใบมีดดันดินหน้า 1.60 ม.", "price": 55000}, {"name": "ผานบุกเบิก 22\"×4 ใบ", "price": 50000, "special": 42000}, {"name": "ผานพรวน 22\"×5 ใบ", "price": 47500, "special": 38000}, {"name": "ผานพรวน 22\"×6 ใบ", "price": 47500, "special": 39000}, {"name": "โรตารี่ 1.60 ม.", "price": 68900}, {"name": "เครื่องตัดหญ้า 1.20 ม.", "price": 31400}, {"name": "บุ้งกี๋ 3.4 ม.", "price": 177300}, {"name": "เครื่องอัดฟาง 1.35 ม.", "price": 500000}], "YM351R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM351R)", "price": 66100}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000, "special": 53000, "special_models": ["YM351R"]}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500, "special": 61000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000, "special": 58000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000, "special": 54000, "special_models": ["YM351R"]}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 182100}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 187300}], "YM358R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM358R)", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}, {"name": "เครื่องคีบอ้อย (YM358)", "price": 250000}], "YM358R-L1": [{"name": "ใบมีดดันดินหน้า 1.80 ม.", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "ผานพรวน 24\"×6 ใบ (กระบอกยันจานยาว 11\")", "price": 60000}, {"name": "โรตารี่ 2.00 ม.", "price": 78000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}, {"name": "เครื่องคีบอ้อย", "price": 250000}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}], "EF725T": [{"name": "ใบมีดดันดินหน้า 2.10 ม.", "price": 69000}, {"name": "ผานบุกเบิก 26\"×3 ใบ รุ่น EF725T", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ รุ่น EF725T", "price": 73600}, {"name": "โรตารี่ 2.20 ม. รุ่น EF725T", "price": 91400}]}, "solis": {"Solis 26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis22": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis30": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis30-45th": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis50-45th": [{"name": "ใบมีดดันดินหน้า 1.90 ม.", "price": 75000}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 64100}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "คีบอ้อย", "price": 250000}], "YM-Solis75": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000}], "YM-Solis75-45th": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000}], "YM-Solis 65": [], "YM-Solis90": [], "YM-Solis105-45th": [{"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (105 แรง)", "price": 95300}, {"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (110 แรง)", "price": 100200}, {"name": "ผานพรวน 26\"×8 ใบ", "price": 85520}, {"name": "ผานพรวนสับใบ", "price": 126400}, {"name": "วิปเปอร์ 3 ขา", "price": 122300}, {"name": "เครื่องปลูกอ้อย 2 แถว", "price": 109900}, {"name": "เครื่องตัดอ้อย", "price": 330000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}]}};
 const fmt = n => (n===null||n===undefined) ? '—' : n.toLocaleString('th-TH', {maximumFractionDigits:0});
 const fmtPct = n => (n*100).toFixed(2).replace(/\.00$/,'') + '%';
+function roundInstallment(n){
+  const floor = Math.floor(n);
+  return (n - floor) >= 0.6 ? floor + 1 : floor;
+}
 const STANDARD9_GIFTS = [
   'กล่องเครื่องมือ 1 ชุด','กระบอกอัดจาระบี 1 อัน',
   'แม่แรงกระปุก 2 ตัน 1 ชุด','ชุดประแจ 1 ชุด',
@@ -1200,14 +1205,14 @@ function cardHtml(r, badge, compareTo, editable){
   const totalChip = `<span class="chip">ยอดจัด <b>${fmt(Math.round(finTotal))}</b></span>`;
   const payFreqLabel = PAYMENT_LABELS[tractorPayment] || 'รายปี';
   const minorNote = minor > 0 ? ` + งวดย่อย <b>${fmt(minor)}</b> บาท × 11 เดือน` : '';
-  const paymentChip = `<span class="chip">ผ่อน <b>${finYears} ปี</b> · ${payFreqLabel} @ <b>${fmtPct(finInterest)}</b>${minor===0 ? ` · <b>${fmt(Math.round(finAnnual))}</b> บาท/งวด` : ` · งวดใหญ่ <b>${fmt(Math.round(bigPayment))}</b> บาท${minorNote}`}</span>`;
+  const paymentChip = `<span class="chip">ผ่อน <b>${finYears} ปี</b> · ${payFreqLabel} @ <b>${fmtPct(finInterest)}</b>${minor===0 ? ` · <b>${fmt(roundInstallment(finAnnual))}</b> บาท/งวด` : ` · งวดใหญ่ <b>${fmt(roundInstallment(bigPayment))}</b> บาท${minorNote}`}</span>`;
 
   let savingsChip = '';
   if(extra>0){
     const finAnnualBase = finTotalBase * (1/finYears + finInterest);
     const bigPaymentBase = Math.max(0, finAnnualBase - getMinorFromPayment(tractorPayment)*11);
     const saved = bigPaymentBase - bigPayment;
-    savingsChip = `<span class="chip">วางเพิ่ม <b>${fmt(extra)}</b> บาท → งวดใหญ่ลดลง <b>${fmt(Math.round(saved))}</b> บาท/ปี (จากเดิม ${fmt(Math.round(bigPaymentBase))} บาท/ปี)</span>`;
+    savingsChip = `<span class="chip">วางเพิ่ม <b>${fmt(extra)}</b> บาท → งวดใหญ่ลดลง <b>${fmt(roundInstallment(saved))}</b> บาท/ปี (จากเดิม ${fmt(roundInstallment(bigPaymentBase))} บาท/ปี)</span>`;
   }
 
   return `
@@ -1321,14 +1326,43 @@ function renderResultsCommon(rawRows, model){
     summaryCust.textContent = '-';
   }
 
-  let html = cardHtml(best, 'แนะนำสำหรับกลุ่มนี้', null, true);
+  // โปรที่เลือก: default = best, แต่ให้ user เลือกได้
+  const allCards = [best, ...rest];
+  const selIdx = (typeof selectedPromoIdx!=='undefined' && selectedPromoIdx < allCards.length) ? selectedPromoIdx : 0;
+  const chosen = allCards[selIdx] || best;
+  const chosenIsRest = selIdx > 0;
+
+  const bestSelectBtn = `<div style="text-align:right;margin-bottom:4px">
+    <button onclick="selectPromo(0)" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:7px;border:1.5px solid ${selIdx===0?'var(--accent)':'#ccc'};background:${selIdx===0?'var(--accent)':'#fff'};color:${selIdx===0?'#fff':'#888'};cursor:pointer">
+      ${selIdx===0?'✓ ใช้โปรนี้ (แนะนำ)':'เลือกโปรนี้ (แนะนำ)'}
+    </button>
+  </div>`;
+  let html = bestSelectBtn + cardHtml(chosen===best?chosen:best, selIdx===0?'แนะนำสำหรับกลุ่มนี้':'', null, selIdx===0);
+  if(selIdx > 0){
+    html = bestSelectBtn + cardHtml(best, '', null, false);
+  } else {
+    html = bestSelectBtn + cardHtml(chosen, 'แนะนำสำหรับกลุ่มนี้', null, true);
+  }
   if(rest.length>0){
     const _mid = 'mc_' + Date.now();
-    html += `<button class="more-summary" id="moreBtn_${_mid}" onclick="toggleMore('${_mid}')">ดูโปรอื่นสำหรับกลุ่มนี้ (${rest.length}) ▾</button><div class="more-cards" id="${_mid}" style="display:none">${rest.map(r=>cardHtml(r,null,best.entry)).join('')}</div>`;
+    const restHtml = rest.map((r,i)=>{
+      const rIdx = i+1;
+      const isChosen = selIdx === rIdx;
+      return `<div style="position:relative">
+        <div style="position:absolute;top:8px;left:8px;z-index:1">
+          <button onclick="selectPromo(${rIdx})" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:7px;border:1.5px solid ${isChosen?'var(--accent)':'#ccc'};background:${isChosen?'var(--accent)':'#fff'};color:${isChosen?'#fff':'#888'};cursor:pointer">
+            ${isChosen?'✓ เลือกโปรนี้':'เลือกโปรนี้'}
+          </button>
+        </div>
+        ${cardHtml(r, null, best.entry)}
+      </div>`;
+    }).join('');
+    html += `<button class="more-summary" id="moreBtn_${_mid}" onclick="toggleMore('${_mid}')">ดูโปรอื่นสำหรับกลุ่มนี้ (${rest.length}) ▾</button><div class="more-cards" id="${_mid}" style="display:none">${restHtml}</div>`;
   }
   results.innerHTML = html;
   renderTractorSelectors();
   selectedSpecialGifts = {};
+  selectedPromoIdx = 0;
   refreshExportSummary();
   // render equipment with params from best card
   const _fi = getCurrentFinParams();
@@ -1436,7 +1470,8 @@ minorInstallmentInput.addEventListener('input', ()=>{
 // ===== Equipment Section =====
 
 let tractorYears = null;   // null = use entry default
-let selectedSpecialGifts = {}; // {giftName: true} for special gifts selected
+let selectedSpecialGifts = {};
+let selectedPromoIdx = 0; // {giftName: true} for special gifts selected
 let tractorPayment = 'annual';
 let eqYears = null;
 let eqPayment = 'annual';
@@ -1502,6 +1537,17 @@ function getMinorFromPayment(paymentType){
   return 2000; // annual
 }
 
+function selectPromo(idx){
+  selectedPromoIdx = idx;
+  selectedSpecialGifts = {};
+  renderResults();
+  refreshExportSummary();
+  if(idx > 0){
+    // Auto-open more section
+    const btn = document.querySelector('.more-summary');
+    if(btn && document.querySelector('.more-cards')?.style.display==='none') btn.click();
+  }
+}
 function renderTractorSelectors(){
   const yearsRow = document.getElementById('tractorYearsRow');
   const payRow = document.getElementById('tractorPaymentRow');
@@ -1534,7 +1580,7 @@ function renderTractorSelectors(){
     const finTotal = Math.max(0, (entry.total ?? (entry.price - entry.down)) - extra);
     const annual = finTotal * (1/y + interest);
     const bigPay = Math.max(0, annual - minor*11);
-    return {bigPay, minor, interest};
+    return {bigPay: roundInstallment(bigPay), minor, interest};
   }
 
   yearsRow.innerHTML = years.map(y=>{
@@ -1651,9 +1697,11 @@ function collectExportData(){
   // Get best card entry
   const rows = findEntries(currentBrand, model, currentSegment, toggleState);
   const deduped = dedupeWithinSameCustomerOut(rows, model);
-  const {best} = pickBestAndRest(deduped);
-  const e = best?.entry || {};
-  const progName = best?.program?.name || '-';
+  const {best, rest} = pickBestAndRest(deduped);
+  const allForExport = [best, ...rest];
+  const chosen = allForExport[selectedPromoIdx] || best;
+  const e = chosen?.entry || {};
+  const progName = chosen?.program?.name || '-';
 
   const price     = e.price || 0;
   const down      = (e.down || 0) + Math.max(0, extraDown);
@@ -1686,7 +1734,7 @@ function collectExportData(){
   const eqAnnual   = eqFinTotal > 0 ? Math.round(eqFinTotal * (1/eqFinYears + eqFinRate)) : 0;
 
   // Gifts
-  const allGifts = best?.program?.gifts || [];
+  const allGifts = chosen?.program?.gifts || [];
   const standardGifts = allGifts.filter(g => isCommonGift(g));
   const specialGifts  = allGifts.filter(g => !isCommonGift(g));
   const checkedSpecial = specialGifts.filter(g => selectedSpecialGifts[g] !== false);
@@ -1708,7 +1756,13 @@ function collectExportData(){
 
 function renderGiftSelector(){
   const d = collectExportData();
-  const gifts = d.gifts;
+  // Use raw program gifts (before filtering) so unchecked items still show
+  const rows = findEntries(currentBrand, modelSelect.value, currentSegment, toggleState);
+  const deduped = dedupeWithinSameCustomerOut(rows, modelSelect.value);
+  const {best: rb, rest: rr} = pickBestAndRest(deduped);
+  const allCards2 = [rb, ...rr];
+  const chosenCard = allCards2[selectedPromoIdx] || rb;
+  const gifts = chosenCard?.program?.gifts || [];
   if(!gifts || gifts.length === 0){
     ['giftSelectorBox','giftSelectorBoxM'].forEach(id=>{
       const el = document.getElementById(id);
@@ -1736,8 +1790,10 @@ function renderGiftSelector(){
         const icon = checked
           ? `<svg width="18" height="18" viewBox="0 0 18 18"><rect width="18" height="18" rx="4" fill="var(--accent)"/><path d="M4 9l4 4 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
           : `<svg width="18" height="18" viewBox="0 0 18 18"><rect x=".5" y=".5" width="17" height="17" rx="3.5" stroke="var(--line)"/></svg>`;
-        return `<div class="gift-check-row${checked?' checked':''}" onclick="toggleSpecialGift('${g.replace(/'/g,"\'")}')">
-          ${icon}<span style="${checked?'':'opacity:.4;text-decoration:line-through'}">${g}</span>
+        return `<div class="gift-check-row${checked?' checked':''}" onclick="toggleSpecialGift(encodeURIComponent('${g.replace(/'/g,'APOS')}'))">
+          ${icon}
+          <span style="flex:1;${checked?'':'color:#bbb;text-decoration:line-through'}">${g}</span>
+          <span style="font-size:10px;font-weight:600;color:${checked?'var(--accent)':'#ccc'}">${checked?'ได้รับ':'— ไม่รับ'}</span>
         </div>`;
       }).join('')}
     </div>` : '';
@@ -1754,8 +1810,10 @@ function renderGiftSelector(){
   });
 }
 
-function toggleSpecialGift(name){
-  selectedSpecialGifts[name] = !selectedSpecialGifts[name];
+function toggleSpecialGift(encoded){
+  const name = decodeURIComponent(encoded).replace(/APOS/g,"'");
+  if(name in selectedSpecialGifts) selectedSpecialGifts[name] = !selectedSpecialGifts[name];
+  else selectedSpecialGifts[name] = false;
   renderGiftSelector();
 }
 
@@ -1867,7 +1925,7 @@ function exportPDF(){
           </tr>`).join('')}
           <tr style="background:#f0ede8;font-weight:bold">
             <td colspan="2" style="padding:2px 5px;border:0.5px solid #bbb">ราคารวมทั้งสิ้น</td>
-            <td style="padding:4px 6px;text-align:right;border:0.5px solid #bbb">${fmt(totalRacarom)}</td>
+            <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(totalRacarom)}</td>
           </tr>
         </tbody>
       </table>
@@ -1888,6 +1946,10 @@ function exportPDF(){
         ${d.eqItems.length>0 ? `<tr>
           <td style="padding:2px 0">ยอดจัด (อุปกรณ์) <b>${fmt(d.eqFinTotal)}</b></td>
           <td style="padding:2px 0">ดาวน์อุปกรณ์ <b>${fmt(d.eqDown)}</b></td>
+        </tr>
+        <tr>
+          <td style="padding:2px 0">งวดอุปกรณ์ <b>${fmt(d.eqAnnual)}</b> บาท/${PAYMENT_LABELS[d.eqPayment]||'ปี'}</td>
+          <td style="padding:2px 0">ระยะเวลา <b>${d.eqFinYears}</b> ปี @ <b>${(d.eqFinRate*100).toFixed(2)}%</b></td>
         </tr>` : ''}
       </table>
 
