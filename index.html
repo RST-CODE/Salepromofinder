@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+<head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1G42D485D0"></script>
 <script>
@@ -7,8 +8,9 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-1G42D485D0');
-
 </script>
+
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RST Promo Finder</title>
@@ -2098,19 +2100,48 @@ async function loadThaiGeo(){
     const wait = setInterval(()=>{ if(thaiGeoData||!thaiGeoLoading){ clearInterval(wait); resolve(thaiGeoData); }}, 200);
   });
   thaiGeoLoading = true;
-  try{
-    const res = await fetch('https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json');
-    thaiGeoData = await res.json();
-    thaiGeoLoading = false;
-    return thaiGeoData;
-  } catch(e){
-    thaiGeoLoading = false;
-    ['','M'].forEach(s=>{
-      const el = document.getElementById('addrProvince'+s);
-      if(el) el.placeholder='⚠️ โหลดไม่ได้ (เช็คอินเทอร์เน็ต)';
-    });
-    return null;
+
+  // Try multiple sources in order
+  const SOURCES = [
+    'thailand_geo.json',  // same repo — fastest, works offline after first load
+    'https://cdn.jsdelivr.net/gh/bamaticha/rst-code@main/thailand_geo.json',
+    'https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest/province_with_district_and_sub_district.json',
+  ];
+
+  for(const url of SOURCES){
+    try{
+      const controller = new AbortController();
+      const timer = setTimeout(()=>controller.abort(), 15000);
+      const res = await fetch(url, {signal: controller.signal});
+      clearTimeout(timer);
+      if(!res.ok) continue;
+      const raw = await res.json();
+      // Normalize: compact format {id,n,a:[{id,n,t:[{id,n}]}]} or full format with districts/amphure
+      if(raw[0]?.n !== undefined){
+        // Already compact
+        thaiGeoData = raw;
+      } else {
+        // Full format — normalize to compact
+        thaiGeoData = raw.map(p=>({
+          id:p.id, n:p.name_th,
+          a:(p.districts||p.amphure||[]).map(a=>({
+            id:a.id, n:a.name_th,
+            t:(a.sub_districts||a.tambon||[]).map(t=>({id:t.id,n:t.name_th}))
+          }))
+        }));
+      }
+      thaiGeoLoading = false;
+      return thaiGeoData;
+    } catch(e){ continue; }
   }
+
+  // All failed
+  thaiGeoLoading = false;
+  ['','M'].forEach(s=>{
+    const el = document.getElementById('addrProvince'+s);
+    if(el) el.placeholder='⚠️ โหลดไม่ได้ — กรอกเองได้เลย';
+  });
+  return null;
 }
 
 async function initAddrDropdowns(){
@@ -2170,16 +2201,19 @@ function addrShowDrop(level, query, suffix){
 
   let items = [];
   if(level==='province'){
-    items = data.map(p=>({id:p.id, name:p.name_th}));
+    items = data.map(p=>({id:p.id, name:p.n||p.name_th}));
   } else if(level==='amphure'){
     if(!addrState.provinceId) return;
     const prov = data.find(p=>p.id===addrState.provinceId);
-    items = prov ? prov.amphure.map(a=>({id:a.id, name:a.name_th})) : [];
+    const amps = prov?.a || prov?.amphure || [];
+    items = amps.map(a=>({id:a.id, name:a.n||a.name_th}));
   } else {
     if(!addrState.amphureId) return;
     const prov = data.find(p=>p.id===addrState.provinceId);
-    const amph = prov?.amphure.find(a=>a.id===addrState.amphureId);
-    items = amph ? amph.tambon.map(t=>({id:t.id, name:t.name_th})) : [];
+    const amps = prov?.a || prov?.amphure || [];
+    const amph = amps.find(a=>a.id===addrState.amphureId);
+    const tams = amph?.t || amph?.tambon || [];
+    items = tams.map(t=>({id:t.id, name:t.n||t.name_th}));
   }
 
   const q = query.trim();
