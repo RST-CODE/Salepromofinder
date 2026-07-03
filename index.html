@@ -8,7 +8,7 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-1G42D485D0');
-  
+
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -524,17 +524,22 @@ input[type=number]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
 }
 
 /* Mobile: show export button in results */
+/* Export panel visibility */
+#exportPanelMobile{ display:none; }
+#showExportBtn{ display:none; }
+#historyPage{ display:none; }
+
 @media (max-width:759px){
   .app.step2 .export-panel{ display:none; }
-  .app.step3 .topbar{ display:none; }
+  .app.step3 > .topbar{ display:none; }
   .app.step3 #mainPanel #backBar{ display:none !important; }
   .app.step3 #mainPanel{ display:none; }
-  .app.step3 #exportPanelMobile{ display:block; }
-  #exportPanelMobile{ display:none; }
+  .app.step3 #historyPage{ display:none !important; }
+  .app.step3 #exportPanelMobile{ display:block !important; }
   #showExportBtn{ display:block; }
 }
 @media (min-width:760px){
-  #showExportBtn{ display:none; }
+  #showExportBtn{ display:none !important; }
   #exportPanelMobile{ display:none !important; }
 }
 
@@ -552,9 +557,8 @@ body.printing > *:not(#printArea){ display:none !important; }
 body.printing #printArea{ display:block !important; }
 
 /* ===== History Page ===== */
-#historyPage{ display:none; }
-.app.history #historyPage{ display:block; }
-.app.history .topbar, .app.history #mainPanel,
+.app.history #historyPage{ display:block !important; }
+.app.history > .topbar, .app.history #mainPanel,
 .app.history #exportPanelMobile{ display:none !important; }
 
 .history-topbar{
@@ -623,6 +627,46 @@ body.printing #printArea{ display:block !important; }
   background:#fff; color:var(--ink-soft); cursor:pointer; white-space:nowrap;
 }
 .history-tab-btn.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+
+/* ===== Address Dropdowns ===== */
+.addr-group{ margin-bottom:8px; position:relative; }
+.addr-group label{ font-size:11px; color:var(--ink-soft); display:block; margin-bottom:3px; }
+.addr-search{
+  width:100%; font-family:'Kanit',sans-serif; font-size:14px; font-weight:500;
+  padding:8px 10px; border-radius:9px; border:1.5px solid var(--line);
+  background:#fff; color:var(--ink); box-sizing:border-box;
+}
+.addr-search:focus{ outline:2px solid var(--accent); border-color:var(--accent); }
+.addr-dropdown{
+  position:absolute; top:100%; left:0; right:0; z-index:200;
+  background:#fff; border:1.5px solid var(--accent); border-radius:10px;
+  max-height:220px; overflow-y:auto; box-shadow:0 4px 16px -4px rgba(0,0,0,.18);
+  margin-top:2px;
+}
+.addr-opt{
+  padding:9px 12px; font-size:13px; cursor:pointer; border-bottom:1px solid #f0ede8;
+}
+.addr-opt:last-child{ border-bottom:none; }
+.addr-opt:hover, .addr-opt.focused{ background:#fdf0e8; color:var(--accent); }
+.addr-opt b{ color:var(--accent); }
+.addr-loading{ padding:10px 12px; font-size:12px; color:var(--ink-soft); }
+.addr-priority{ border-bottom:2px solid var(--accent); margin-bottom:2px; }
+.addr-priority .addr-opt{ background:#fdf8f5; }
+
+/* ===== A4 Print Fix ===== */
+@media print {
+  @page{ size:A4; margin:10mm; }
+  #printArea{
+    display:block !important;
+    width:190mm; margin:0 auto;
+    font-family:'Sarabun','Kanit',sans-serif;
+    font-size:9.5pt; color:#000;
+  }
+  #printArea table{ page-break-inside:auto; }
+  #printArea tr{ page-break-inside:avoid; }
+  body.printing > *:not(#printArea){ display:none !important; }
+  body.printing #printArea{ display:block !important; }
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
@@ -702,9 +746,25 @@ body.printing #printArea{ display:block !important; }
       <input type="text" id="custName" placeholder="เช่น นายสมชาย ใจดี">
     </div>
     <div class="field-group">
-      <label>ที่อยู่</label>
-      <textarea id="custAddr" placeholder="บ้านเลขที่ / หมู่บ้าน / ตำบล / อำเภอ / จังหวัด"></textarea>
+      <label>บ้านเลขที่ / ซอย / หมู่</label>
+      <input type="text" id="custAddrLine" placeholder="เช่น 49 ม.10 ซ.3">
     </div>
+    <div class="addr-group">
+      <label>จังหวัด</label>
+      <input type="text" class="addr-search" id="addrProvince" placeholder="พิมพ์เพื่อค้นหาจังหวัด..." autocomplete="off" oninput="addrInput('province',this.value,'')" onfocus="addrFocus('province','')">
+      <div class="addr-dropdown" id="addrDropProvince" style="display:none"></div>
+    </div>
+    <div class="addr-group">
+      <label>อำเภอ / เขต</label>
+      <input type="text" class="addr-search" id="addrAmphure" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addrInput('amphure',this.value,'')" onfocus="addrFocus('amphure','')" disabled>
+      <div class="addr-dropdown" id="addrDropAmphure" style="display:none"></div>
+    </div>
+    <div class="addr-group">
+      <label>ตำบล / แขวง</label>
+      <input type="text" class="addr-search" id="addrTambon" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addrInput('tambon',this.value,'')" onfocus="addrFocus('tambon','')" disabled>
+      <div class="addr-dropdown" id="addrDropTambon" style="display:none"></div>
+    </div>
+    <input type="hidden" id="custAddr">
     <div class="field-group">
       <label>เบอร์โทร</label>
       <input type="text" id="custPhone" placeholder="0xx-xxx-xxxx" inputmode="tel">
@@ -724,7 +784,6 @@ body.printing #printArea{ display:block !important; }
   </div>
   <button id="eqScrollBtn" class="eq-scroll-btn" onclick="scrollToEq()" style="display:none">🔧 อุปกรณ์ ▼</button>
 </main>
-
 <div id="historyPage">
   <div class="history-topbar">
     <button class="back-btn" onclick="closeHistory()" style="display:block">← กลับ</button>
@@ -741,7 +800,6 @@ body.printing #printArea{ display:block !important; }
     <div class="history-loading">กำลังโหลด...</div>
   </div>
 </div>
-
 <div id="exportPanelMobile">
   <div class="topbar" style="border-radius:0;border-top:none">
     <button class="btn-export-back" onclick="goToResults()" style="margin-bottom:10px">← กลับ</button>
@@ -751,8 +809,23 @@ body.printing #printArea{ display:block !important; }
       <input type="text" id="custNameM" placeholder="เช่น นายสมชาย ใจดี" oninput="syncCustomer(this,'custName')">
     </div>
     <div class="field-group">
-      <label>ที่อยู่</label>
-      <textarea id="custAddrM" placeholder="บ้านเลขที่ / หมู่บ้าน / ตำบล / อำเภอ / จังหวัด" oninput="syncCustomer(this,'custAddr')"></textarea>
+      <label>บ้านเลขที่ / ซอย / หมู่</label>
+      <input type="text" id="custAddrLineM" placeholder="เช่น 49 ม.10 ซ.3" oninput="syncAddrLine(this)">
+    </div>
+    <div class="addr-group">
+      <label>จังหวัด</label>
+      <input type="text" class="addr-search" id="addrProvinceM" placeholder="พิมพ์เพื่อค้นหาจังหวัด..." autocomplete="off" oninput="addrInput('province',this.value,'M')" onfocus="addrFocus('province','M')">
+      <div class="addr-dropdown" id="addrDropProvinceM" style="display:none"></div>
+    </div>
+    <div class="addr-group">
+      <label>อำเภอ / เขต</label>
+      <input type="text" class="addr-search" id="addrAmphureM" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addrInput('amphure',this.value,'M')" onfocus="addrFocus('amphure','M')" disabled>
+      <div class="addr-dropdown" id="addrDropAmphureM" style="display:none"></div>
+    </div>
+    <div class="addr-group">
+      <label>ตำบล / แขวง</label>
+      <input type="text" class="addr-search" id="addrTambonM" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addrInput('tambon',this.value,'M')" onfocus="addrFocus('tambon','M')" disabled>
+      <div class="addr-dropdown" id="addrDropTambonM" style="display:none"></div>
     </div>
     <div class="field-group">
       <label>เบอร์โทร</label>
@@ -1367,6 +1440,7 @@ function toggleMore(id){
 function goToResults(){
   document.querySelector('.app').classList.remove('step3');
   document.querySelector('.app').classList.add('step2');
+  initAddrDropdowns();
   const model = document.getElementById('modelSelect').value;
   const seg = currentSegment;
   const brand = currentBrand === 'yanmar' ? 'Yanmar' : 'Solis';
@@ -1514,8 +1588,12 @@ function setEqPayment(p){
 
 // ===== Export System =====
 function goToExport(){
-  document.querySelector('.app').classList.add('step3');
+  const app = document.querySelector('.app');
+  app.classList.remove('step2');
+  app.classList.add('step3');
   refreshExportSummary();
+  // Trigger data load if not started
+  loadThaiGeo();
   window.scrollTo(0,0);
 }
 function syncCustomer(el, targetId){
@@ -1527,7 +1605,8 @@ function syncCustomer(el, targetId){
 function collectExportData(){
   if(_recordOverride) return _recordOverride;
   const custName  = (document.getElementById('custNameM')?.value || document.getElementById('custName')?.value || '').trim();
-  const custAddr  = (document.getElementById('custAddrM')?.value || document.getElementById('custAddr')?.value || '').trim();
+  updateCustAddr();
+  const custAddr  = (document.getElementById('custAddr')?.value || '').trim();
   const custPhone = (document.getElementById('custPhoneM')?.value || document.getElementById('custPhone')?.value || '').trim();
   const branch    = (document.getElementById('branchNameM')?.value || document.getElementById('branchName')?.value || '').trim();
 
@@ -1647,7 +1726,7 @@ function exportPDF(){
   }
 
   const printHtml = `
-    <div style="font-family:'Sarabun',sans-serif;font-size:10pt;color:#111;max-width:720px;margin:0 auto;padding:12px 16px">
+    <div style="font-family:'Sarabun',sans-serif;font-size:9.5pt;color:#000;width:190mm;margin:0 auto;padding:0">
       <div style="text-align:center;margin-bottom:6px">
         <div style="font-size:13pt;font-weight:bold">สินไทยแทรกเตอร์ ${d.branch ? '— '+d.branch : ''}</div>
         <div style="font-size:9pt;color:#555">ใบสรุปเช่าซื้อ วันที่ ${d.date}</div>
@@ -1839,21 +1918,68 @@ function saveGasUrl(){
 }
 
 // ---- JSONP helper (ใช้แทน fetch เพื่อหลีกเลี่ยง CORS) ----
-function jsonpRequest(url, callback){
+// ---- Unified GAS request: JSONP ก่อน, fallback fetch ถ้าเปิดผ่าน https ----
+function gasGet(url, params, callback){
+  const sep = url.includes('?') ? '&' : '?';
+  const qs = Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+  const fullUrl = url + sep + qs;
+
+  // Try JSONP first (works from file:// too)
   const cbName = '_gasCallback_' + Date.now();
   const script = document.createElement('script');
-  window[cbName] = function(data){
+  let done = false;
+
+  const finish = (err, data) => {
+    if(done) return; done = true;
+    clearTimeout(timer);
     delete window[cbName];
     script.remove();
-    callback(null, data);
+    callback(err, data);
   };
-  script.onerror = function(){
-    delete window[cbName];
-    script.remove();
-    callback(new Error('JSONP failed'));
+
+  const timer = setTimeout(()=>{
+    if(done) return;
+    // JSONP timed out — try plain fetch (works on https)
+    if(location.protocol === 'https:' || location.hostname === 'localhost'){
+      fetch(fullUrl + '&_t2=' + Date.now())
+        .then(r=>r.json())
+        .then(data=>finish(null,data))
+        .catch(err=>finish(new Error('โหลดไม่ได้: ' + err.message)));
+    } else {
+      finish(new Error('JSONP timeout — ต้องเปิดผ่าน https (GitHub Pages) หรือ localhost'));
+    }
+  }, 6000);
+
+  window[cbName] = (data) => finish(null, data);
+  script.onerror = () => {
+    if(done) return;
+    clearTimeout(timer);
+    // fallback to fetch immediately on script error
+    if(location.protocol === 'https:' || location.hostname === 'localhost'){
+      done = true;
+      delete window[cbName];
+      script.remove();
+      fetch(fullUrl)
+        .then(r=>r.json())
+        .then(data=>callback(null,data))
+        .catch(err=>callback(new Error('fetch failed: ' + err.message)));
+    } else {
+      finish(new Error('ไม่สามารถโหลด GAS — ลองเปิดผ่าน GitHub Pages หรือ localhost'));
+    }
   };
-  script.src = url + (url.includes('?')?'&':'?') + 'callback=' + cbName;
+
+  script.src = fullUrl + '&callback=' + cbName + '&_t=' + Date.now();
   document.head.appendChild(script);
+}
+
+// legacy wrapper
+function jsonpRequest(url, callback){
+  const sep = url.includes('?') ? '&' : '?';
+  // extract existing params
+  const [base, qs] = url.split('?');
+  const params = {};
+  if(qs) qs.split('&').forEach(p=>{ const [k,v]=p.split('='); if(k) params[k]=decodeURIComponent(v||''); });
+  gasGet(base, params, callback);
 }
 
 function gasPost(action, payload, callback){
@@ -1958,6 +2084,205 @@ function _xlsxFromRecord(rec){
   exportXLSX();
   _recordOverride = null;
 }
+
+
+// ===== Thai Address Cascading Dropdowns =====
+const PRIORITY_PROVINCES = ['ศรีสะเกษ','อุบลราชธานี','อำนาจเจริญ','ยโสธร','ร้อยเอ็ด','กาฬสินธุ์'];
+let thaiGeoData = null;
+let thaiGeoLoading = false;
+let addrState = { province:null, provinceId:null, amphure:null, amphureId:null, tambon:null, tambonId:null };
+let addrDropOpen = null; // currently open dropdown id
+
+async function loadThaiGeo(){
+  if(thaiGeoData) return thaiGeoData;
+  if(thaiGeoLoading) return new Promise(resolve=>{
+    const wait = setInterval(()=>{ if(thaiGeoData||!thaiGeoLoading){ clearInterval(wait); resolve(thaiGeoData); }}, 200);
+  });
+  thaiGeoLoading = true;
+  try{
+    const res = await fetch('https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json');
+    thaiGeoData = await res.json();
+    thaiGeoLoading = false;
+    return thaiGeoData;
+  } catch(e){
+    thaiGeoLoading = false;
+    ['','M'].forEach(s=>{
+      const el = document.getElementById('addrProvince'+s);
+      if(el) el.placeholder='⚠️ โหลดไม่ได้ (เช็คอินเทอร์เน็ต)';
+    });
+    return null;
+  }
+}
+
+async function initAddrDropdowns(){
+  // Start loading in background — enable inputs after done
+  loadThaiGeo();
+}
+
+// Close all dropdowns when tapping elsewhere
+document.addEventListener('touchstart', function(e){
+  if(!e.target.closest('.addr-group')){ closeAllDropdowns(); }
+}, {passive:true});
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.addr-group')){ closeAllDropdowns(); }
+});
+
+function closeAllDropdowns(){
+  document.querySelectorAll('.addr-dropdown').forEach(d=>d.style.display='none');
+  addrDropOpen = null;
+}
+
+function highlightMatch(text, query){
+  if(!query) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return text.replace(new RegExp('('+escaped+')','gi'),'<b>$1</b>');
+}
+
+function addrFocus(level, suffix=''){
+  const el = document.getElementById('addr'+cap(level)+suffix);
+  const val = el?.value||'';
+  if(!thaiGeoData){
+    if(el) el.placeholder = '⏳ กำลังโหลด...';
+    loadThaiGeo().then(d=>{
+      if(d && el){ el.placeholder = level==='province'?'พิมพ์หรือกดเพื่อเลือกจังหวัด':''; }
+      addrShowDrop(level, val, suffix);
+    });
+    return;
+  }
+  addrShowDrop(level, val, suffix);
+}
+
+function addrInput(level, query, suffix=''){
+  if(!thaiGeoData){ loadThaiGeo().then(()=>addrShowDrop(level,query,suffix)); return; }
+  addrShowDrop(level, query, suffix);
+}
+
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+function addrShowDrop(level, query, suffix){
+  const data = thaiGeoData;
+  if(!data) return;
+  const dropId = 'addrDrop'+cap(level)+suffix;
+  const drop = document.getElementById(dropId);
+  if(!drop) return;
+
+  // Close other open dropdowns
+  document.querySelectorAll('.addr-dropdown').forEach(d=>{ if(d.id!==dropId) d.style.display='none'; });
+
+  let items = [];
+  if(level==='province'){
+    items = data.map(p=>({id:p.id, name:p.name_th}));
+  } else if(level==='amphure'){
+    if(!addrState.provinceId) return;
+    const prov = data.find(p=>p.id===addrState.provinceId);
+    items = prov ? prov.amphure.map(a=>({id:a.id, name:a.name_th})) : [];
+  } else {
+    if(!addrState.amphureId) return;
+    const prov = data.find(p=>p.id===addrState.provinceId);
+    const amph = prov?.amphure.find(a=>a.id===addrState.amphureId);
+    items = amph ? amph.tambon.map(t=>({id:t.id, name:t.name_th})) : [];
+  }
+
+  const q = query.trim();
+  const filtered = q ? items.filter(i=>i.name.includes(q)) : items;
+  if(!filtered.length){ drop.style.display='none'; return; }
+
+  // Build option HTML — use ontouchend+onclick for iOS compatibility
+  function optHtml(id, name){
+    const hl = highlightMatch(name, q);
+    const fn = `addrPick('${level}',${id},'${name}','${suffix}')`;
+    return `<div class="addr-opt" ontouchend="${fn}" onclick="${fn}">${hl}</div>`;
+  }
+
+  let inner = '';
+  if(level==='province'){
+    const pri = filtered.filter(i=>PRIORITY_PROVINCES.includes(i.name));
+    const rest = filtered.filter(i=>!PRIORITY_PROVINCES.includes(i.name));
+    if(pri.length && !q){ inner += `<div class="addr-priority">${pri.map(i=>optHtml(i.id,i.name)).join('')}</div>`; }
+    inner += rest.map(i=>optHtml(i.id,i.name)).join('');
+  } else {
+    inner = filtered.slice(0,100).map(i=>optHtml(i.id,i.name)).join('');
+  }
+
+  drop.innerHTML = inner;
+  drop.style.display = 'block';
+  addrDropOpen = dropId;
+}
+
+function addrSelect(level, id, name, suffix=''){
+  const inputEl = document.getElementById('addr' + level.charAt(0).toUpperCase() + level.slice(1) + suffix);
+  const dropEl = document.getElementById('addrDrop' + level.charAt(0).toUpperCase() + level.slice(1) + suffix);
+  if(inputEl) inputEl.value = name;
+  if(dropEl) dropEl.style.display = 'none';
+
+  if(level === 'province'){
+    addrState.province = name; addrState.provinceId = id;
+    addrState.amphure = null; addrState.amphureId = null;
+    addrState.tambon = null; addrState.tambonId = null;
+    ['','M'].forEach(s=>{
+      const a = document.getElementById('addrAmphure'+s);
+      const t = document.getElementById('addrTambon'+s);
+      if(a){ a.disabled=false; a.value=''; a.placeholder='พิมพ์เพื่อค้นหาอำเภอ...'; }
+      if(t){ t.disabled=true; t.value=''; t.placeholder='เลือกอำเภอก่อน'; }
+      const da = document.getElementById('addrDropAmphure'+s);
+      const dt = document.getElementById('addrDropTambon'+s);
+      if(da) da.style.display='none';
+      if(dt) dt.style.display='none';
+      // sync to other panel
+      if(suffix==='' && s==='M' && document.getElementById('addrProvince'+s))
+        document.getElementById('addrProvince'+s).value = name;
+      if(suffix==='M' && s==='' && document.getElementById('addrProvince'+s))
+        document.getElementById('addrProvince'+s).value = name;
+    });
+  } else if(level === 'amphure'){
+    addrState.amphure = name; addrState.amphureId = id;
+    addrState.tambon = null; addrState.tambonId = null;
+    ['','M'].forEach(s=>{
+      const t = document.getElementById('addrTambon'+s);
+      if(t){ t.disabled=false; t.value=''; t.placeholder='พิมพ์เพื่อค้นหาตำบล...'; }
+      const dt = document.getElementById('addrDropTambon'+s);
+      if(dt) dt.style.display='none';
+      if(suffix==='' && document.getElementById('addrAmphure'+s) && s==='M')
+        document.getElementById('addrAmphure'+s).value = name;
+      if(suffix==='M' && document.getElementById('addrAmphure'+s) && s==='')
+        document.getElementById('addrAmphure'+s).value = name;
+    });
+  } else if(level === 'tambon'){
+    addrState.tambon = name; addrState.tambonId = id;
+    ['','M'].forEach(s=>{
+      if(suffix==='' && document.getElementById('addrTambon'+s) && s==='M')
+        document.getElementById('addrTambon'+s).value = name;
+      if(suffix==='M' && document.getElementById('addrTambon'+s) && s==='')
+        document.getElementById('addrTambon'+s).value = name;
+    });
+  }
+  updateCustAddr();
+  refreshExportSummary();
+}
+
+// addrBlur removed — using document-level touch/click handler instead
+function addrBlur(level, suffix=''){ /* no-op — handled by document listener */ }
+
+function addrPick(level, id, name, suffix=''){
+  addrSelect(level, id, name, suffix);
+}
+
+function updateCustAddr(){
+  const line = document.getElementById('custAddrLine')?.value || document.getElementById('custAddrLineM')?.value || '';
+  const parts = [line, addrState.tambon ? 'ต.'+addrState.tambon : '', addrState.amphure ? 'อ.'+addrState.amphure : '', addrState.province ? 'จ.'+addrState.province : ''];
+  const addr = parts.filter(Boolean).join(' ');
+  const hidden = document.getElementById('custAddr');
+  if(hidden) hidden.value = addr;
+}
+
+function syncAddrLine(el){
+  const other = document.getElementById(el.id === 'custAddrLine' ? 'custAddrLineM' : 'custAddrLine');
+  if(other) other.value = el.value;
+  updateCustAddr();
+}
+
+// init when export panel shows
+const _origGoToResults = goToResults;
 
 function getEquipmentForModel(brand, model){
   const map = EQUIPMENT[brand];
