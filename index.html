@@ -10,6 +10,7 @@ function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config','G-1G42D485D0');
 </script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RST Promo Finder</title>
@@ -800,8 +801,8 @@ body.printing #printArea{ display:block !important; }
     <div id="exportSummaryBox"></div>
     <div id="giftSelectorBox"></div>
     <div class="export-btns">
-      <button class="btn-save" onclick="saveAndPrint()">💾 บันทึก + พิมพ์</button><button class="btn-pdf" onclick="exportPDF()">🖨 พิมพ์อย่างเดียว</button>
-      <button class="btn-xlsx" onclick="exportXLSX()">📊 Excel</button>
+      <button class="btn-pdf" onclick="exportPDF()">🔍 ดูตัวอย่าง</button>
+      <button class="btn-save" onclick="saveAndPrint()">💾 บันทึก & พิมพ์ PDF</button>
     </div>
   </div>
   <div class="footer-note">
@@ -863,8 +864,8 @@ body.printing #printArea{ display:block !important; }
     <div id="exportSummaryBoxM"></div>
     <div id="giftSelectorBoxM"></div>
     <div class="export-btns">
-      <button class="btn-save" onclick="saveAndPrint()">💾 บันทึก + พิมพ์</button><button class="btn-pdf" onclick="exportPDF()">🖨 พิมพ์อย่างเดียว</button>
-      <button class="btn-xlsx" onclick="exportXLSX()">📊 Excel</button>
+      <button class="btn-pdf" onclick="exportPDF()">🔍 ดูตัวอย่าง</button>
+      <button class="btn-save" onclick="saveAndPrint()">💾 บันทึก & พิมพ์ PDF</button>
     </div>
   </div>
 </div>
@@ -1347,7 +1348,10 @@ function renderResultsCommon(rawRows, model){
 
   let html = '';
   // โปรที่แสดงบนสุด = โปรที่เลือก
-  html += makeSelectBtn(selIdx, selIdx===0?'':'ใช้โปรแนะนำแทน', selIdx===0);
+  // ปุ่มบนสุด: ถ้าเลือกโปรแนะนำอยู่ = "กำลังใช้", ถ้าไม่ใช่ = "ใช้โปรแนะนำแทน" → selectPromo(0)
+  html += `<button onclick="selectPromo(${selIdx===0?selIdx:0})" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:7px;border:1.5px solid ${selIdx===0?'var(--accent)':'#e0a800'};background:${selIdx===0?'var(--accent)':'#fff8e1'};color:${selIdx===0?'#fff':'#8a6500'};cursor:pointer;margin-bottom:4px">
+    ${selIdx===0?'✓ กำลังใช้โปรนี้':'↩ ใช้โปรแนะนำแทน'}
+  </button>`;
   const notRecommended = selIdx > 0 ? `<div style="font-size:10px;color:#c97a00;margin-bottom:2px">⚠️ โปรนี้ไม่ใช่โปรแนะนำ — กดปุ่มด้านบนเพื่อกลับไปใช้โปรแนะนำ</div>` : '';
   html += notRecommended + cardHtml(chosen, selIdx===0?'แนะนำสำหรับกลุ่มนี้':'⭐ โปรที่เลือก', null, true);
 
@@ -1367,7 +1371,6 @@ function renderResultsCommon(rawRows, model){
   }
   results.innerHTML = html;
   renderTractorSelectors();
-  selectedSpecialGifts = {};
   refreshExportSummary();
   // render equipment with params from best card
   const _fi = getCurrentFinParams();
@@ -1451,6 +1454,7 @@ segmentToggle.querySelectorAll('.seg-btn').forEach(b=>{
     currentSegment = b.dataset.seg;
     tractorYears = null; tractorPayment = 'annual';
     eqYears = null; eqPayment = 'annual';
+    selectedPromoIdx = 0;
     renderSegmentButtons();
     renderCriteria();
     renderToggles();
@@ -1460,8 +1464,7 @@ segmentToggle.querySelectorAll('.seg-btn').forEach(b=>{
 });
 modelSelect.addEventListener('change', ()=>{
   toggleState = {land50:false, land30:false, baac:false};
-  selectedEqSet = {};
-  eqDown = 0;
+  selectedEqSet = {}; eqDown = 0; selectedPromoIdx = 0;
   renderToggles();
   renderResults();
 });
@@ -1951,11 +1954,16 @@ function exportPDF(){
             <td style="padding:2px 5px;border:0.5px solid #bbb">${d.model}</td>
             <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(d.price)}</td>
           </tr>
-          ${d.eqItems.map(eq=>`<tr>
+          ${(()=>{
+            const specGifts = d.gifts.filter(g=>!isCommonGift(g));
+            if(!specGifts.length) return '';
+            return `<tr style="background:#fffbe6"><td style="padding:2px 5px;border:0.5px solid #e0c060;font-size:7.5pt;color:#8a6500" colspan="3">ของแถมพิเศษ: ${specGifts.join(' · ')}</td></tr>`;
+          })()}
+          ${d.eqItems.length>0 ? d.eqItems.map(eq=>`<tr>
             <td style="padding:2px 5px;border:0.5px solid #bbb">อุปกรณ์</td>
             <td style="padding:2px 5px;border:0.5px solid #bbb">${eq.name}</td>
             <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(eq.price)}</td>
-          </tr>`).join('')}
+          </tr>`).join('') : ''}
           <tr style="background:#f0ede8;font-weight:bold">
             <td colspan="2" style="padding:2px 5px;border:0.5px solid #bbb">ราคารวมทั้งสิ้น</td>
             <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(totalRacarom)}</td>
@@ -1963,27 +1971,34 @@ function exportPDF(){
         </tbody>
       </table>
 
-      <table style="width:100%;border-collapse:collapse;margin-bottom:4px;font-size:8.5pt">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:4px;font-size:8pt">
         <tr>
-          <td style="padding:2px 0;width:50%">ทำสัญญา: <b>รายปี</b> ดอกเบี้ย <b>${(d.finRate*100).toFixed(2)}%</b></td>
-          <td style="padding:2px 0">รูปแบบ: <b>${PAYMENT_LABELS[d.tractorPayment]}</b></td>
+          <td style="width:50%;vertical-align:top;padding-right:6px;border-right:1.5px solid #e8d8c0">
+            <div style="font-weight:bold;color:#c9813a;background:#fff8f0;padding:2px 4px;border-radius:4px;margin-bottom:3px;font-size:8.5pt">🚜 รถแทรกเตอร์</div>
+            <table style="width:100%;font-size:8pt">
+              <tr><td style="color:#888;padding:1px 0">โปร</td><td style="text-align:right;font-weight:bold">${d.progName}</td></tr>
+              <tr><td style="color:#888;padding:1px 0">ราคา</td><td style="text-align:right;font-weight:bold">${fmt(d.price)}</td></tr>
+              <tr><td style="color:#888;padding:1px 0">ดาวน์รวม</td><td style="text-align:right;font-weight:bold">${fmt(d.down)}</td></tr>
+              <tr><td style="color:#888;padding:1px 0">ช่วยดาวน์</td><td style="text-align:right">${fmt(d.support)}</td></tr>
+              <tr><td style="color:#888;padding:1px 0">จ่ายจริง</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.custOut)}</td></tr>
+              <tr><td style="color:#888;padding:1px 0">ยอดจัด</td><td style="text-align:right;font-weight:bold">${fmt(d.finTotal)}</td></tr>
+              <tr style="background:#fff3e0"><td style="color:#666;padding:1px 0;font-weight:bold">งวดใหญ่/ปี</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.bigPay)}</td></tr>
+              <tr><td style="color:#888;padding:1px 0">งวดย่อย/เดือน</td><td style="text-align:right">${fmt(d.minor)} × 11</td></tr>
+              <tr><td style="color:#888;padding:1px 0">${d.finYears} ปี @ ${(d.finRate*100).toFixed(2)}%</td><td></td></tr>
+            </table>
+          </td>
+          <td style="width:50%;vertical-align:top;padding-left:6px">
+            ${d.eqItems.length>0 ? `
+            <div style="font-weight:bold;color:#1e7e34;background:#f0fff4;padding:2px 4px;border-radius:4px;margin-bottom:3px;font-size:8.5pt">🔧 อุปกรณ์</div>
+            <table style="width:100%;font-size:8pt">
+              ${d.eqItems.map(eq=>`<tr><td style="color:#888;padding:1px 0">${eq.name}</td><td style="text-align:right">${fmt(eq.price)}</td></tr>`).join('')}
+              <tr><td style="color:#888;padding:1px 0">ดาวน์อุปกรณ์</td><td style="text-align:right">${fmt(d.eqDown)}</td></tr>
+              <tr><td style="color:#888;padding:1px 0">ยอดจัด</td><td style="text-align:right;font-weight:bold">${fmt(d.eqFinTotal)}</td></tr>
+              <tr style="background:#f0fff4"><td style="color:#1e7e34;padding:1px 0;font-weight:bold">งวด/ปี</td><td style="text-align:right;font-weight:bold;color:#1e7e34">${fmt(d.eqAnnual)}</td></tr>
+              <tr><td style="color:#888;padding:1px 0">${d.eqFinYears} ปี @ ${(d.eqFinRate*100).toFixed(2)}%</td><td></td></tr>
+            </table>` : '<div style="color:#ccc;font-size:8pt;padding-top:8px">— ไม่มีอุปกรณ์ —</div>'}
+          </td>
         </tr>
-        <tr>
-          <td style="padding:2px 0">ดาวน์รวม <b>${fmt(d.down)}</b></td>
-          <td style="padding:2px 0">ช่วยดาวน์ <b>${fmt(d.support)}</b></td>
-        </tr>
-        <tr>
-          <td style="padding:2px 0">ยอดจัด (รถ) <b>${fmt(d.finTotal)}</b></td>
-          <td style="padding:2px 0">จ่ายดาวน์จริง <b>${fmt(d.custOut)}</b></td>
-        </tr>
-        ${d.eqItems.length>0 ? `<tr>
-          <td style="padding:2px 0">ยอดจัด (อุปกรณ์) <b>${fmt(d.eqFinTotal)}</b></td>
-          <td style="padding:2px 0">ดาวน์อุปกรณ์ <b>${fmt(d.eqDown)}</b></td>
-        </tr>
-        <tr>
-          <td style="padding:2px 0">งวดอุปกรณ์ <b>${fmt(d.eqAnnual)}</b> บาท/${PAYMENT_LABELS[d.eqPayment]||'ปี'}</td>
-          <td style="padding:2px 0">ระยะเวลา <b>${d.eqFinYears}</b> ปี @ <b>${(d.eqFinRate*100).toFixed(2)}%</b></td>
-        </tr>` : ''}
       </table>
 
       <div style="font-size:8pt;font-weight:bold;margin-bottom:2px">ตารางงวดชำระ — ${d.finYears} ปี (${d.finYears*12} งวด)${d.eqAnnual>0?` + อุปกรณ์ <span style='color:#1e7e34'>${fmt(d.eqAnnual)}/ปี</span>`:''}</div>
