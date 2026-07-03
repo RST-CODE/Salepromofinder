@@ -745,6 +745,24 @@ body.printing #printArea{ display:block !important; }
   <div class="select-row" style="margin-top:2px;">
     <div style="font-size:10.5px;color:var(--ink-soft);">แก้ไขตัวเลข "ลูกค้าออกเอง" ในการ์ดที่แนะนำได้ ถ้าลูกค้าต้องการวางดาวน์เพิ่ม</div>
   </div>
+  <div class="select-row" style="margin-top:6px;">
+    <label style="font-size:11px;color:var(--ink-soft);margin-bottom:4px;display:block">รูปแบบงวดย่อย</label>
+    <div style="display:flex;flex-direction:column;gap:4px;" id="minorModeRow">
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
+        <input type="radio" name="minorMode" value="normal" checked onchange="setMinorMode(this.value)">
+        <span><b>แบบปกติ</b> — จ่ายงวดย่อยทุกเดือน</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
+        <input type="radio" name="minorMode" value="advance" onchange="setMinorMode(this.value)">
+        <span><b>จ่ายล่วงหน้า</b> — รวมงวดย่อยจ่ายก่อน (คูณจำนวนงวดก่อนงวดใหญ่)</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
+        <input type="radio" name="minorMode" value="with_down" onchange="setMinorMode(this.value)">
+        <span><b>รวมกับดาวน์</b> — งวดย่อยมาพร้อมดาวน์ครั้งเดียว</span>
+      </label>
+    </div>
+    <div id="minorModeDetail" style="font-size:10.5px;color:var(--accent);margin-top:4px;padding:4px 8px;background:#fdf8f5;border-radius:6px;display:none"></div>
+  </div>
   <div class="select-row" style="margin-top:6px;" id="tractorFinRow">
     <label>ระยะเวลาผ่อนชำระ (รถแทรกเตอร์)</label>
     <div style="display:flex;gap:6px;flex-wrap:wrap;" id="tractorYearsRow"></div>
@@ -770,34 +788,44 @@ body.printing #printArea{ display:block !important; }
       <label>ชื่อลูกค้า</label>
       <input type="text" id="custName" placeholder="เช่น นายสมชาย ใจดี">
     </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+      <div class="field-group" style="margin:0">
+        <label>ชื่อลูกค้า</label>
+        <input type="text" id="custName2" placeholder="นาย/นาง..." oninput="document.getElementById('custName').value=this.value;refreshExportSummary()">
+      </div>
+      <div class="field-group" style="margin:0">
+        <label>เบอร์โทร</label>
+        <input type="text" id="custPhone" placeholder="0xx-xxx-xxxx" inputmode="tel">
+      </div>
+    </div>
     <div class="field-group">
       <label>บ้านเลขที่ / ซอย / หมู่</label>
       <input type="text" id="custAddrLine" placeholder="เช่น 49 ม.10 ซ.3">
     </div>
-    <div class="addr-group">
-      <label>จังหวัด</label>
-      <input type="text" class="addr-search" id="addrProvince" placeholder="พิมพ์เพื่อค้นหาจังหวัด..." autocomplete="off" oninput="addrInput('province',this.value,'')" onfocus="addrFocus('province','')">
-      <div class="addr-dropdown" id="addrDropProvince" style="display:none"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+      <div class="addr-group" style="margin:0">
+        <label>จังหวัด</label>
+        <input type="text" class="addr-search" id="addrProvince" placeholder="ค้นหาจังหวัด..." autocomplete="off" oninput="addrInput('province',this.value,'')" onfocus="addrFocus('province','')">
+        <div class="addr-dropdown" id="addrDropProvince" style="display:none"></div>
+      </div>
+      <div class="addr-group" style="margin:0">
+        <label>อำเภอ / เขต</label>
+        <input type="text" class="addr-search" id="addrAmphure" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addrInput('amphure',this.value,'')" onfocus="addrFocus('amphure','')" disabled>
+        <div class="addr-dropdown" id="addrDropAmphure" style="display:none"></div>
+      </div>
     </div>
-    <div class="addr-group">
-      <label>อำเภอ / เขต</label>
-      <input type="text" class="addr-search" id="addrAmphure" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addrInput('amphure',this.value,'')" onfocus="addrFocus('amphure','')" disabled>
-      <div class="addr-dropdown" id="addrDropAmphure" style="display:none"></div>
-    </div>
-    <div class="addr-group">
-      <label>ตำบล / แขวง</label>
-      <input type="text" class="addr-search" id="addrTambon" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addrInput('tambon',this.value,'')" onfocus="addrFocus('tambon','')" disabled>
-      <div class="addr-dropdown" id="addrDropTambon" style="display:none"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+      <div class="addr-group" style="margin:0">
+        <label>ตำบล / แขวง</label>
+        <input type="text" class="addr-search" id="addrTambon" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addrInput('tambon',this.value,'')" onfocus="addrFocus('tambon','')" disabled>
+        <div class="addr-dropdown" id="addrDropTambon" style="display:none"></div>
+      </div>
+      <div class="field-group" style="margin:0">
+        <label>ผู้ปิดการขาย</label>
+        <input type="text" id="branchName" placeholder="ชื่อพนักงาน">
+      </div>
     </div>
     <input type="hidden" id="custAddr">
-    <div class="field-group">
-      <label>เบอร์โทร</label>
-      <input type="text" id="custPhone" placeholder="0xx-xxx-xxxx" inputmode="tel">
-    </div>
-    <div class="field-group">
-      <label>สาขา</label>
-      <input type="text" id="branchName" placeholder="เช่น สาขาศรีสะเกษ">
-    </div>
     <div id="exportSummaryBox"></div>
     <div id="giftSelectorBox"></div>
     <div class="export-btns">
@@ -858,8 +886,8 @@ body.printing #printArea{ display:block !important; }
       <input type="text" id="custPhoneM" placeholder="0xx-xxx-xxxx" inputmode="tel" oninput="syncCustomer(this,'custPhone')">
     </div>
     <div class="field-group">
-      <label>สาขา</label>
-      <input type="text" id="branchNameM" placeholder="เช่น สาขาศรีสะเกษ" oninput="syncCustomer(this,'branchName')">
+      <label>ผู้ปิดการขาย</label>
+      <input type="text" id="branchNameM" placeholder="ชื่อพนักงาน" oninput="syncCustomer(this,'branchName')">
     </div>
     <div id="exportSummaryBoxM"></div>
     <div id="giftSelectorBoxM"></div>
@@ -1030,6 +1058,7 @@ let currentBrand = 'yanmar';
 let currentSegment = 'ทั่วไป';
 let extraDown = 0;
 let minorInstallment = 2000;
+let minorMode = 'normal'; // 'normal' | 'advance' | 'with_down'
 let toggleState = {land50:false, land30:false, baac:false};
 
 const modelSelect = document.getElementById('modelSelect');
@@ -1200,18 +1229,52 @@ function cardHtml(r, badge, compareTo, editable){
     : entryInterest;
   const finAnnual = finTotal * (1/finYears + finInterest);
 
-  const minor = getMinorFromPayment(tractorPayment);
-  const bigPayment = Math.max(0, finAnnual - minor*11);
+  const minorBase = getMinorFromPayment(tractorPayment);
+  const periodsMinor = tractorPayment==='semi' ? 10 : 11;
+  const bigMonthsPerYear = tractorPayment==='semi' ? 2 : 1;
+  // แบบ 1: minor ทุกปี, แบบ 2&3: งวดใหญ่คือ annual เต็ม ไม่หัก minor
+  const minor = (minorMode === 'normal') ? minorBase : 0;
+  const bigPaymentFull = Math.max(0, finAnnual - minor*periodsMinor);
+  const bigPayment = tractorPayment==='semi' ? roundInstallment(bigPaymentFull/2) : bigPaymentFull;
 
   const totalChip = `<span class="chip">ยอดจัด <b>${fmt(Math.round(finTotal))}</b></span>`;
   const payFreqLabel = PAYMENT_LABELS[tractorPayment] || 'รายปี';
-  const minorNote = minor > 0 ? ` + งวดย่อย <b>${fmt(minor)}</b> บาท × 11 เดือน` : '';
-  const paymentChip = `<span class="chip">ผ่อน <b>${finYears} ปี</b> · ${payFreqLabel} @ <b>${fmtPct(finInterest)}</b>${minor===0 ? ` · <b>${fmt(roundInstallment(finAnnual))}</b> บาท/งวด` : ` · งวดใหญ่ <b>${fmt(roundInstallment(bigPayment))}</b> บาท${minorNote}`}</span>`;
+  let minorNote = '';
+  const periodsBeforeBig = tractorPayment==='semi' ? 10 : 11;
+  if(minorMode === 'normal' && minorBase > 0){
+    minorNote = ' + งวดย่อย <b>' + fmt(minorBase) + '</b> × ' + periodsBeforeBig + ' เดือน';
+  } else if(minorMode === 'advance' && minorBase > 0){
+    minorNote = ' <span style="font-size:10px;color:#888">(ปีแรก: งวดย่อย ' + fmt(minorBase) + '×' + periodsBeforeBig + '=' + fmt(minorBase*periodsBeforeBig) + ' + งวดใหญ่ ' + fmt(roundInstallment(bigPayment)) + ' | ปีถัดไป: ' + fmt(roundInstallment(finAnnual)) + '/ปี)</span>';
+  } else if(minorMode === 'with_down' && minorBase > 0){
+    minorNote = ' <span style="font-size:10px;color:#888">(+ดาวน์ ' + fmt(minorBase*periodsBeforeBig) + ' บาท)</span>';
+  }
+
+  let paymentDesc = '';
+  const isSemi = tractorPayment==='semi';
+  const bigLabel = isSemi
+    ? fmt(roundInstallment(bigPayment)) + ' × 2 ครั้ง'
+    : fmt(roundInstallment(bigPayment));
+  if(minorMode === 'normal' && minorBase > 0){
+    paymentDesc = ' · งวดใหญ่ <b>' + bigLabel + '</b> บาท' + minorNote;
+  } else if((minorMode === 'advance' || minorMode === 'with_down') && minorBase > 0){
+    const fullLabel = isSemi
+      ? fmt(roundInstallment(finAnnual/2)) + ' × 2 ครั้ง'
+      : fmt(roundInstallment(finAnnual));
+    paymentDesc = ' · <b>' + fullLabel + '</b> บาท/ปี' + minorNote;
+  } else {
+    const noMinorLabel = isSemi
+      ? fmt(roundInstallment(finAnnual/2)) + ' × 2 ครั้ง'
+      : fmt(roundInstallment(finAnnual));
+    paymentDesc = ' · <b>' + noMinorLabel + '</b> บาท/งวด';
+  }
+  const paymentChip = `<span class="chip">ผ่อน <b>${finYears} ปี</b> · ${payFreqLabel} @ <b>${fmtPct(finInterest)}</b>${paymentDesc}</span>`;
 
   let savingsChip = '';
   if(extra>0){
     const finAnnualBase = finTotalBase * (1/finYears + finInterest);
-    const bigPaymentBase = Math.max(0, finAnnualBase - getMinorFromPayment(tractorPayment)*11);
+    const bigPaymentBase = minorMode==='normal'
+      ? Math.max(0, finAnnualBase - minorBase*11)
+      : finAnnualBase;
     const saved = bigPaymentBase - bigPayment;
     savingsChip = `<span class="chip">วางเพิ่ม <b>${fmt(extra)}</b> บาท → งวดใหญ่ลดลง <b>${fmt(roundInstallment(saved))}</b> บาท/ปี (จากเดิม ${fmt(roundInstallment(bigPaymentBase))} บาท/ปี)</span>`;
   }
@@ -1371,6 +1434,7 @@ function renderResultsCommon(rawRows, model){
   }
   results.innerHTML = html;
   renderTractorSelectors();
+  updateMinorModeDetail();
   refreshExportSummary();
   // render equipment with params from best card
   const _fi = getCurrentFinParams();
@@ -1545,6 +1609,28 @@ function getMinorFromPayment(paymentType){
   return 2000; // annual
 }
 
+function setMinorMode(mode){
+  minorMode = mode;
+  renderResults();
+  updateMinorModeDetail();
+}
+
+function updateMinorModeDetail(){
+  const el = document.getElementById('minorModeDetail');
+  if(!el) return;
+  const minor = getMinorFromPayment(tractorPayment);
+  if(minorMode === 'normal' || minor === 0){ el.style.display='none'; return; }
+  el.style.display = 'block';
+  const periods = tractorPayment==='semi' ? 10 : 11;
+  const totalMinor = minor * periods;
+  const annual = minor * periods + (tractorYears ? 0 : 0); // approximate
+  if(minorMode === 'advance'){
+    el.innerHTML = '<b>ปีแรก:</b> งวดย่อย ' + fmt(minor) + '×' + periods + '=' + fmt(totalMinor) + ' + งวดใหญ่ตามปกติ &nbsp;|&nbsp; <b>ปีที่ 2 เป็นต้นไป:</b> จ่ายงวดใหญ่เต็ม (ไม่มีงวดย่อย)';
+  } else if(minorMode === 'with_down'){
+    el.innerHTML = 'รวม <b>' + fmt(totalMinor) + ' บาท</b> (' + fmt(minor) + '×' + periods + ') เข้ากับดาวน์ → <b>จ่ายจริงเพิ่ม ' + fmt(totalMinor) + ' บาท</b> แต่ทุกปีจ่ายงวดใหญ่เต็ม';
+  }
+}
+
 function selectPromo(idx){
   selectedPromoIdx = idx;
   selectedSpecialGifts = {};
@@ -1692,7 +1778,7 @@ function syncCustomer(el, targetId){
 
 function collectExportData(){
   if(_recordOverride) return _recordOverride;
-  const custName  = (document.getElementById('custNameM')?.value || document.getElementById('custName')?.value || '').trim();
+  const custName  = (document.getElementById('custName2')?.value || document.getElementById('custNameM')?.value || document.getElementById('custName')?.value || '').trim();
   updateCustAddr();
   const custAddr  = (document.getElementById('custAddr')?.value || '').trim();
   const custPhone = (document.getElementById('custPhoneM')?.value || document.getElementById('custPhone')?.value || '').trim();
@@ -1714,7 +1800,12 @@ function collectExportData(){
   const price     = e.price || 0;
   const down      = (e.down || 0) + Math.max(0, extraDown);
   const support   = (e.yct||0) + (e.ysp||0) + (e.fire||0) + (e.ysp_topup||0);
-  const custOut   = Math.max(0, (e.customer_out||0) + Math.max(0, extraDown));
+  const baseMinorCollect = getMinorFromPayment(tractorPayment);
+  const periodsBeforeBigCollect = tractorPayment==='semi' ? 10 : 11;
+  const minorAdvanceTotal = baseMinorCollect * periodsBeforeBigCollect;
+  // แบบ 3: งวดย่อยรวมดาวน์ → บวกเพิ่มใน custOut (จ่ายจริง)
+  const minorWithDown = minorMode === 'with_down' ? minorAdvanceTotal : 0;
+  const custOut = Math.max(0, (e.customer_out||0) + Math.max(0, extraDown) + minorWithDown);
   const rst       = e.rst || 0;
   const finYears  = tractorYears || e.years || (currentBrand==='yanmar'?10:7);
   const finRate   = lookupInterest(currentBrand, currentSegment, finYears, tractorPayment);
@@ -1752,6 +1843,7 @@ function collectExportData(){
     custName, custAddr, custPhone, branch, model, brand, seg, progName,
     price, down, support, custOut, rst,
     finYears, finRate, finTotal: Math.round(finTotal), annualFull: Math.round(annualFull),
+    minorMode, minorAdvanceTotal,
     minor, bigPay: Math.round(bigPay), tractorPayment,
     eqItems: selectedEqList, eqTotalPrice, eqDown: eqDown2,
     eqFinTotal: Math.round(eqFinTotal), eqAnnual, eqFinYears, eqFinRate, eqPayment,
@@ -1858,19 +1950,48 @@ function exportPDF(){
   // Build installment schedule: total periods = finYears*12
   // Payment: months 1-11 = minor, month 12 = bigPay (per year cycle)
   // With minor=0 (monthly_3m): every month = annualFull/12 (simplified)
-  function buildSchedule(finYears, bigPay, minor, paymentType){
+  function buildSchedule(finYears, _bigPayUnused, minor, annualFull, paymentType, mode){
     const rows = [];
     const totalPeriods = finYears * 12;
+    const periodsMinorPerYear = paymentType==='semi' ? 10 : 11;
+    const bigMonthsPerYear = paymentType==='semi' ? 2 : 1;
+    // คำนวณ bigPay จาก annualFull - minor*periods (ให้ผลรวมต่อปีตรงเสมอ)
+    const bigPayPerYear = annualFull - minor * periodsMinorPerYear;
+    const bigHalf = paymentType==='semi' ? roundInstallment(bigPayPerYear/2) : bigPayPerYear;
+    const bigHalfFull = paymentType==='semi' ? roundInstallment(annualFull/2) : annualFull;
+    const annualHalf = bigHalfFull; // สำหรับแบบ 2/3
+
+    function isBigMonth(m){ return m===12 || (paymentType==='semi' && m===6); }
+    function isMinorMonth(m){ return !isBigMonth(m); }
+
     for(let i=1; i<=totalPeriods; i++){
       const monthInYear = ((i-1)%12)+1;
+      const yearNum = Math.ceil(i/12);
       let amt;
-      if(paymentType === 'monthly_3m') amt = Math.round(d.annualFull/12);
-      else amt = (monthInYear===12) ? bigPay : minor;
-      rows.push({period: i, amt});
+      if(paymentType === 'monthly_3m'){
+        amt = roundInstallment(annualFull/12);
+      } else if(mode === 'normal'){
+        // งวดใหญ่ที่เดือน 6,12 (semi) หรือ 12 (annual); งวดย่อยเดือนอื่น
+        amt = isBigMonth(monthInYear) ? bigHalf : minor;
+      } else if(mode === 'advance'){
+        // ปีแรก: ปกติ (minor + bigHalf), ปีถัดไป: annualHalf เดือน 6,12 เท่านั้น
+        if(yearNum === 1){
+          amt = isBigMonth(monthInYear) ? bigHalf : minor;
+        } else {
+          amt = isBigMonth(monthInYear) ? annualHalf : 0;
+        }
+      } else if(mode === 'with_down'){
+        // ทุกปี: annualHalf เดือน 6,12 เท่านั้น ไม่มี minor
+        amt = isBigMonth(monthInYear) ? annualHalf : 0;
+      } else {
+        amt = isBigMonth(monthInYear) ? bigHalf : minor;
+      }
+      rows.push({period: i, amt, yearNum, monthInYear});
     }
     return rows;
   }
-  const schedule = buildSchedule(d.finYears, d.bigPay, d.minor, d.tractorPayment);
+  // annualFull = bigPay + minor*11 (แบบ 1) หรือ finAnnual (แบบ 2/3)
+  const schedule = buildSchedule(d.finYears, d.bigPay, d.minor, d.annualFull, d.tractorPayment, d.minorMode||'normal');
   // eqMonthlyAmt defined after scheduleTableHtml
 
   // Format schedule as 5-column table (match the handwritten form layout)
@@ -1899,8 +2020,10 @@ function exportPDF(){
           const bg = isAnnual ? 'background:#fff3e0;' : (r.period%2===0?'background:#fafafa':'');
           const fw = isAnnual ? 'font-weight:bold;' : '';
           const monthInYear = ((r.period-1)%12)+1;
-          if(isAnnual && eqAnnualAmt > 0){
-            // งวดใหญ่: แสดง รถ + อุปกรณ์ แยกกัน
+          if(r.amt === 0) {
+            // งวดว่าง (แบบ 2/3 เดือนที่ไม่ต้องจ่าย)
+            colsHtml += `<tr><td style="padding:0.5px 2px;color:#ddd;width:18px;font-size:6pt">${monthInYear}</td><td style="padding:0.5px 2px;text-align:right;color:#ddd;font-size:6pt">—</td></tr>`;
+          } else if(isAnnual && eqAnnualAmt > 0){
             colsHtml += `<tr style="${bg}">
               <td style="padding:1px 2px;color:#666;width:18px;${fw}">${monthInYear}</td>
               <td style="padding:1px 2px;text-align:right;${fw}">${fmt(r.amt)}<br><span style="font-size:6.5pt;color:#1e7e34;font-weight:normal">+${fmt(eqAnnualAmt)}</span></td>
@@ -2018,7 +2141,7 @@ function exportPDF(){
       <table style="width:100%">
         <tr>
           <td style="text-align:center;font-size:9pt">ลงชื่อ .................................<br>ผู้แนะนำ</td>
-          <td style="text-align:center;font-size:9pt">ลงชื่อ .................................<br>ผู้ขาย</td>
+          <td style="text-align:center;font-size:9pt">${d.branch ? `<div style="font-weight:bold;margin-bottom:2px">${d.branch}</div><div style="border-bottom:0.5px solid #000;margin:0 10px 2px"></div>` : 'ลงชื่อ ..................................<br>'}<span style="font-size:8.5pt">ผู้ขาย / ผู้ปิดการขาย</span></td>
           <td style="text-align:center;font-size:9pt">ลงชื่อ .................................<br>ลูกค้า</td>
         </tr>
       </table>
