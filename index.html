@@ -4,12 +4,11 @@
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1G42D485D0"></script>
 <script>
-window.dataLayer=window.dataLayer||[];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config','G-1G42D485D0');
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1G42D485D0');
 </script>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RST Promo Finder</title>
@@ -1332,37 +1331,42 @@ function renderResultsCommon(rawRows, model){
   const chosen = allCards[selIdx] || best;
   const chosenIsRest = selIdx > 0;
 
-  const bestSelectBtn = `<div style="text-align:right;margin-bottom:4px">
-    <button onclick="selectPromo(0)" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:7px;border:1.5px solid ${selIdx===0?'var(--accent)':'#ccc'};background:${selIdx===0?'var(--accent)':'#fff'};color:${selIdx===0?'#fff':'#888'};cursor:pointer">
-      ${selIdx===0?'✓ ใช้โปรนี้ (แนะนำ)':'เลือกโปรนี้ (แนะนำ)'}
-    </button>
-  </div>`;
-  let html = bestSelectBtn + cardHtml(chosen===best?chosen:best, selIdx===0?'แนะนำสำหรับกลุ่มนี้':'', null, selIdx===0);
-  if(selIdx > 0){
-    html = bestSelectBtn + cardHtml(best, '', null, false);
-  } else {
-    html = bestSelectBtn + cardHtml(chosen, 'แนะนำสำหรับกลุ่มนี้', null, true);
+  function makeSelectBtn(idx, label, isSelected){
+    return `<button onclick="selectPromo(${idx})" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:7px;border:1.5px solid ${isSelected?'var(--accent)':'#ccc'};background:${isSelected?'var(--accent)':'#fff'};color:${isSelected?'#fff':'#888'};cursor:pointer;margin-bottom:4px">
+      ${isSelected?'✓ กำลังใช้โปรนี้':label}
+    </button>`;
   }
-  if(rest.length>0){
+
+  // แสดง selected promo banner ถ้าไม่ได้ใช้โปรแนะนำ
+  const selectedBanner = selIdx > 0 ? `<div style="background:#fff3e0;border:1.5px solid var(--accent);border-radius:10px;padding:8px 12px;margin-bottom:8px;font-size:12px;display:flex;align-items:center;gap:8px">
+    <span style="font-size:16px">⭐</span>
+    <div><b style="color:var(--accent)">โปรที่เลือก: ${chosen?.program?.name||''}</b><br>
+    <span style="color:#888;font-size:11px">กดปุ่ม "เลือกโปรนี้ (แนะนำ)" ด้านล่างเพื่อกลับไปใช้โปรแนะนำ</span></div>
+  </div>` : '';
+
+  let html = '';
+  // โปรที่แสดงบนสุด = โปรที่เลือก
+  html += makeSelectBtn(selIdx, selIdx===0?'':'ใช้โปรแนะนำแทน', selIdx===0);
+  const notRecommended = selIdx > 0 ? `<div style="font-size:10px;color:#c97a00;margin-bottom:2px">⚠️ โปรนี้ไม่ใช่โปรแนะนำ — กดปุ่มด้านบนเพื่อกลับไปใช้โปรแนะนำ</div>` : '';
+  html += notRecommended + cardHtml(chosen, selIdx===0?'แนะนำสำหรับกลุ่มนี้':'⭐ โปรที่เลือก', null, true);
+
+  // ดูโปรอื่น: แสดงทุกโปรยกเว้นโปรที่เลือกอยู่
+  const otherCards = allCards.filter((_,i)=>i!==selIdx);
+  if(otherCards.length>0){
     const _mid = 'mc_' + Date.now();
-    const restHtml = rest.map((r,i)=>{
-      const rIdx = i+1;
-      const isChosen = selIdx === rIdx;
-      return `<div style="position:relative">
-        <div style="position:absolute;top:8px;left:8px;z-index:1">
-          <button onclick="selectPromo(${rIdx})" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:7px;border:1.5px solid ${isChosen?'var(--accent)':'#ccc'};background:${isChosen?'var(--accent)':'#fff'};color:${isChosen?'#fff':'#888'};cursor:pointer">
-            ${isChosen?'✓ เลือกโปรนี้':'เลือกโปรนี้'}
-          </button>
-        </div>
-        ${cardHtml(r, null, best.entry)}
+    const otherHtml = otherCards.map((r,i)=>{
+      const origIdx = allCards.indexOf(r);
+      const isRecommended = origIdx===0;
+      return `<div>
+        ${makeSelectBtn(origIdx, isRecommended?'ใช้โปรแนะนำ':'เลือกโปรนี้', false)}
+        ${cardHtml(r, isRecommended?'แนะนำสำหรับกลุ่มนี้':null, best.entry)}
       </div>`;
     }).join('');
-    html += `<button class="more-summary" id="moreBtn_${_mid}" onclick="toggleMore('${_mid}')">ดูโปรอื่นสำหรับกลุ่มนี้ (${rest.length}) ▾</button><div class="more-cards" id="${_mid}" style="display:none">${restHtml}</div>`;
+    html += `<button class="more-summary" id="moreBtn_${_mid}" onclick="toggleMore('${_mid}')">ดูโปรอื่นสำหรับกลุ่มนี้ (${otherCards.length}) ▾</button><div class="more-cards" id="${_mid}" style="display:none">${otherHtml}</div>`;
   }
   results.innerHTML = html;
   renderTractorSelectors();
   selectedSpecialGifts = {};
-  selectedPromoIdx = 0;
   refreshExportSummary();
   // render equipment with params from best card
   const _fi = getCurrentFinParams();
@@ -1542,11 +1546,11 @@ function selectPromo(idx){
   selectedSpecialGifts = {};
   renderResults();
   refreshExportSummary();
-  if(idx > 0){
-    // Auto-open more section
-    const btn = document.querySelector('.more-summary');
-    if(btn && document.querySelector('.more-cards')?.style.display==='none') btn.click();
-  }
+  // Scroll chosen card (always top of results) into view
+  setTimeout(()=>{
+    const el = document.getElementById('results');
+    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 80);
 }
 function renderTractorSelectors(){
   const yearsRow = document.getElementById('tractorYearsRow');
@@ -1863,25 +1867,53 @@ function exportPDF(){
     return rows;
   }
   const schedule = buildSchedule(d.finYears, d.bigPay, d.minor, d.tractorPayment);
+  // eqMonthlyAmt defined after scheduleTableHtml
 
   // Format schedule as 5-column table (match the handwritten form layout)
-  function scheduleTableHtml(rows){
-    // Use 6 columns for 120 rows = 20 rows each → fits A4 at 7pt
-    const cols = 6;
-    const perCol = Math.ceil(rows.length / cols);
-    let colsHtml = '';
-    for(let c=0; c<cols; c++){
-      const slice = rows.slice(c*perCol, (c+1)*perCol);
-      colsHtml += `<td style="vertical-align:top;padding:0 2px;width:16.66%"><table style="width:100%;border-collapse:collapse;font-size:7pt;line-height:1.3">`;
-      slice.forEach(r=>{
-        const isAnnual = (r.period%12===0) || (r.period === rows.length);
-        const bg = isAnnual ? 'background:#fff3e0;' : '';
-        const fw = isAnnual ? 'font-weight:bold;' : '';
-        colsHtml += `<tr style="${bg}"><td style="padding:0.5px 1px;color:#666;width:22px;${fw}">ที่${r.period}</td><td style="padding:0.5px 1px;text-align:right;${fw}">${fmt(r.amt)}</td></tr>`;
-      });
-      colsHtml += `</table></td>`;
+  // eqBigPay = งวดใหญ่อุปกรณ์ต่อปี (ไม่แบ่งเดือน)
+  // eqMinor = งวดย่อยอุปกรณ์ต่อเดือน (ถ้ามี)
+  // แต่ละงวดในตาราง: งวดเล็ก = minor(รถ) | งวดใหญ่ = bigPay(รถ) + eqAnnual(อุปกรณ์รวม)
+  // *** ไม่มี eqMonthly — อุปกรณ์รวมเฉพาะงวดใหญ่ปีละครั้ง ***
+
+  function scheduleTableHtml(rows, eqAnnualAmt){
+    const yearsTotal = Math.ceil(rows.length / 12);
+    // แบ่งเป็น 2 แถว: ปี 1-5 แถวบน, ปี 6-10 แถวล่าง
+    const firstHalf  = Math.min(5, yearsTotal);
+    const secondHalf = Math.max(0, yearsTotal - 5);
+
+    function renderHalf(startYear, count){
+      if(count===0) return '';
+      let colsHtml = '';
+      for(let c=0; c<count; c++){
+        const yearNum = startYear + c;
+        const slice = rows.slice((yearNum-1)*12, yearNum*12);
+        colsHtml += `<td style="vertical-align:top;padding:0 2px;width:${100/count}%">
+          <div style="text-align:center;font-size:7pt;font-weight:bold;color:#c9813a;background:#fff3e0;padding:1.5px 0;border-radius:4px 4px 0 0;border:0.5px solid #e0c090;border-bottom:none">ปีที่ ${yearNum}</div>
+          <table style="width:100%;border-collapse:collapse;font-size:7.5pt;line-height:1.4;border:0.5px solid #e8e0d5">`;
+        slice.forEach(r=>{
+          const isAnnual = (r.period%12===0) || (r.period===rows.length);
+          const bg = isAnnual ? 'background:#fff3e0;' : (r.period%2===0?'background:#fafafa':'');
+          const fw = isAnnual ? 'font-weight:bold;' : '';
+          const monthInYear = ((r.period-1)%12)+1;
+          if(isAnnual && eqAnnualAmt > 0){
+            // งวดใหญ่: แสดง รถ + อุปกรณ์ แยกกัน
+            colsHtml += `<tr style="${bg}">
+              <td style="padding:1px 2px;color:#666;width:18px;${fw}">${monthInYear}</td>
+              <td style="padding:1px 2px;text-align:right;${fw}">${fmt(r.amt)}<br><span style="font-size:6.5pt;color:#1e7e34;font-weight:normal">+${fmt(eqAnnualAmt)}</span></td>
+            </tr>`;
+          } else {
+            colsHtml += `<tr style="${bg}">
+              <td style="padding:1px 2px;color:#666;width:18px;${fw}">${monthInYear}</td>
+              <td style="padding:1px 2px;text-align:right;${fw}">${fmt(r.amt)}</td>
+            </tr>`;
+          }
+        });
+        colsHtml += `</table></td>`;
+      }
+      return `<table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:6px"><tr>${colsHtml}</tr></table>`;
     }
-    return `<table style="width:100%;border-collapse:collapse;table-layout:fixed"><tr>${colsHtml}</tr></table>`;
+
+    return renderHalf(1, firstHalf) + (secondHalf>0 ? renderHalf(6, secondHalf) : '');
   }
 
   const printHtml = `
@@ -1953,8 +1985,8 @@ function exportPDF(){
         </tr>` : ''}
       </table>
 
-      <div style="font-size:8pt;font-weight:bold;margin-bottom:2px">ตารางงวดชำระ (รถแทรกเตอร์) — ${d.finYears} ปี × 12 เดือน = ${d.finYears*12} งวด</div>
-      ${scheduleTableHtml(schedule)}
+      <div style="font-size:8pt;font-weight:bold;margin-bottom:2px">ตารางงวดชำระ — ${d.finYears} ปี (${d.finYears*12} งวด)${d.eqAnnual>0?` + อุปกรณ์ <span style='color:#1e7e34'>${fmt(d.eqAnnual)}/ปี</span>`:''}</div>
+      ${scheduleTableHtml(schedule, d.eqAnnual>0 ? d.eqAnnual : 0)}
 
       ${d.eqAnnual > 0 ? `<div style="margin-top:8px;font-size:9.5pt">
         <b>งวดอุปกรณ์รวม:</b> ${fmt(d.eqAnnual)} บาท/${PAYMENT_LABELS[d.eqPayment]} × ${d.eqFinYears} ปี
