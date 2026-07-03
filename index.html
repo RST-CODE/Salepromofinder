@@ -10,7 +10,6 @@
   gtag('config', 'G-1G42D485D0');
 </script>
 
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RST Promo Finder</title>
@@ -668,6 +667,30 @@ body.printing #printArea{ display:block !important; }
   body.printing > *:not(#printArea){ display:none !important; }
   body.printing #printArea{ display:block !important; }
 }
+
+.btn-save{
+  flex:1; background:#2d6a4f; color:#fff; border:none;
+  font-family:'Kanit',sans-serif; font-size:14px; font-weight:700;
+  padding:11px 0; border-radius:11px; cursor:pointer; min-width:120px;
+}
+
+/* ===== Gift Selector ===== */
+.gift-selector{ margin:8px 0; }
+.gift-selector .gs-title{ font-size:11px; color:var(--ink-soft); margin-bottom:5px; font-weight:600; }
+.gift-standard{ 
+  background:#f7f3ee; border-radius:8px; padding:8px 10px; 
+  margin-bottom:6px; font-size:11px; color:var(--ink-soft);
+}
+.gift-standard b{ color:var(--ink); }
+.gift-special-list{ display:flex; flex-direction:column; gap:4px; }
+.gift-check-row{
+  display:flex; align-items:center; gap:8px; padding:6px 10px;
+  border:1.5px solid var(--line); border-radius:8px; background:#fff;
+  cursor:pointer; font-size:13px; user-select:none;
+}
+.gift-check-row:hover{ border-color:var(--accent); background:#fdf8f5; }
+.gift-check-row.checked{ border-color:var(--accent); background:#fdf0e8; }
+.gift-check-row svg{ flex:0 0 18px; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
@@ -775,8 +798,9 @@ body.printing #printArea{ display:block !important; }
       <input type="text" id="branchName" placeholder="เช่น สาขาศรีสะเกษ">
     </div>
     <div id="exportSummaryBox"></div>
+    <div id="giftSelectorBox"></div>
     <div class="export-btns">
-      <button class="btn-pdf" onclick="exportPDF()">🖨 พิมพ์ / PDF</button>
+      <button class="btn-save" onclick="saveAndPrint()">💾 บันทึก + พิมพ์</button><button class="btn-pdf" onclick="exportPDF()">🖨 พิมพ์อย่างเดียว</button>
       <button class="btn-xlsx" onclick="exportXLSX()">📊 Excel</button>
     </div>
   </div>
@@ -837,8 +861,9 @@ body.printing #printArea{ display:block !important; }
       <input type="text" id="branchNameM" placeholder="เช่น สาขาศรีสะเกษ" oninput="syncCustomer(this,'branchName')">
     </div>
     <div id="exportSummaryBoxM"></div>
+    <div id="giftSelectorBoxM"></div>
     <div class="export-btns">
-      <button class="btn-pdf" onclick="exportPDF()">🖨 พิมพ์ / PDF</button>
+      <button class="btn-save" onclick="saveAndPrint()">💾 บันทึก + พิมพ์</button><button class="btn-pdf" onclick="exportPDF()">🖨 พิมพ์อย่างเดียว</button>
       <button class="btn-xlsx" onclick="exportXLSX()">📊 Excel</button>
     </div>
   </div>
@@ -940,10 +965,17 @@ function getAvailablePayments(brand, segment, years){
 const EQUIPMENT = {"yanmar": {"EF393A / EF393T-45th": [{"name": "ใบมีดดันดินหน้า 1.60 ม.", "price": 55000}, {"name": "ผานบุกเบิก 22\"×4 ใบ", "price": 50000, "special": 42000}, {"name": "ผานพรวน 22\"×5 ใบ", "price": 47500, "special": 38000}, {"name": "ผานพรวน 22\"×6 ใบ", "price": 47500, "special": 39000}, {"name": "โรตารี่ 1.60 ม.", "price": 68900}, {"name": "เครื่องตัดหญ้า 1.20 ม.", "price": 31400}, {"name": "บุ้งกี๋ 3.4 ม.", "price": 177300}, {"name": "เครื่องอัดฟาง 1.35 ม.", "price": 500000}], "YM351R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM351R)", "price": 66100}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000, "special": 53000, "special_models": ["YM351R"]}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500, "special": 61000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000, "special": 58000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000, "special": 54000, "special_models": ["YM351R"]}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 182100}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 187300}], "YM358R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM358R)", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}, {"name": "เครื่องคีบอ้อย (YM358)", "price": 250000}], "YM358R-L1": [{"name": "ใบมีดดันดินหน้า 1.80 ม.", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "ผานพรวน 24\"×6 ใบ (กระบอกยันจานยาว 11\")", "price": 60000}, {"name": "โรตารี่ 2.00 ม.", "price": 78000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}, {"name": "เครื่องคีบอ้อย", "price": 250000}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}], "EF725T": [{"name": "ใบมีดดันดินหน้า 2.10 ม.", "price": 69000}, {"name": "ผานบุกเบิก 26\"×3 ใบ รุ่น EF725T", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ รุ่น EF725T", "price": 73600}, {"name": "โรตารี่ 2.20 ม. รุ่น EF725T", "price": 91400}]}, "solis": {"Solis 26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis22": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis30": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis30-45th": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis50-45th": [{"name": "ใบมีดดันดินหน้า 1.90 ม.", "price": 75000}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 64100}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "คีบอ้อย", "price": 250000}], "YM-Solis75": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000}], "YM-Solis75-45th": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000}], "YM-Solis 65": [], "YM-Solis90": [], "YM-Solis105-45th": [{"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (105 แรง)", "price": 95300}, {"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (110 แรง)", "price": 100200}, {"name": "ผานพรวน 26\"×8 ใบ", "price": 85520}, {"name": "ผานพรวนสับใบ", "price": 126400}, {"name": "วิปเปอร์ 3 ขา", "price": 122300}, {"name": "เครื่องปลูกอ้อย 2 แถว", "price": 109900}, {"name": "เครื่องตัดอ้อย", "price": 330000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}]}};
 const fmt = n => (n===null||n===undefined) ? '—' : n.toLocaleString('th-TH', {maximumFractionDigits:0});
 const fmtPct = n => (n*100).toFixed(2).replace(/\.00$/,'') + '%';
-const STANDARD9_GIFTS = ['กล่องเครื่องมือ 1 ชุด','กระบอกอัดจาระบี 1 อัน','แม่แรงกระปุก 2 ตัน 1 ชุด','ชุดประแจ 1 ชุด','ด้ามบ็อก + ลูกบ็อก 1 ชุด','สายอ่อนไนล่อนอัดจารบี 12 นิ้ว 1 ชิ้น','เสื้อยืดแขนยาว 1 ตัว','เสื้อคอโปโล 1 ตัว','น้ำมันเครื่อง 1L 1 แกลลอน'];
+const STANDARD9_GIFTS = [
+  'กล่องเครื่องมือ 1 ชุด','กระบอกอัดจาระบี 1 อัน',
+  'แม่แรงกระปุก 2 ตัน 1 ชุด','ชุดประแจ 1 ชุด',
+  'ด้ามบ็อก + ลูกบ็อก 1 ชุด','สายอ่อนไนล่อนอัดจารบี 12 นิ้ว 1 ชิ้น',
+  'เสื้อยืดแขนยาว 1 ตัว','เสื้อคอโปโล 1 ตัว','น้ำมันเครื่อง 1L 1 แกลลอน'
+];
+// Special gifts = ทอง, เบียร์, น้ำอัดลม, กระจังหน้า/ปลายท่อ → checkbox
 function isCommonGift(g){
   return STANDARD9_GIFTS.includes(g);
 }
+function isSpecialGift(g){ return !isCommonGift(g); }
 function deltaBadge(diff, goodIfPositive){
   if(diff===0) return '';
   const good = goodIfPositive ? diff>0 : diff<0;
@@ -1297,6 +1329,7 @@ function renderResultsCommon(rawRows, model){
   }
   results.innerHTML = html;
   renderTractorSelectors();
+  selectedSpecialGifts = {};
   refreshExportSummary();
   // render equipment with params from best card
   const _fi = getCurrentFinParams();
@@ -1404,6 +1437,7 @@ minorInstallmentInput.addEventListener('input', ()=>{
 // ===== Equipment Section =====
 
 let tractorYears = null;   // null = use entry default
+let selectedSpecialGifts = {}; // {giftName: true} for special gifts selected
 let tractorPayment = 'annual';
 let eqYears = null;
 let eqPayment = 'annual';
@@ -1653,7 +1687,11 @@ function collectExportData(){
   const eqAnnual   = eqFinTotal > 0 ? Math.round(eqFinTotal * (1/eqFinYears + eqFinRate)) : 0;
 
   // Gifts
-  const gifts = best?.program?.gifts || [];
+  const allGifts = best?.program?.gifts || [];
+  const standardGifts = allGifts.filter(g => isCommonGift(g));
+  const specialGifts  = allGifts.filter(g => !isCommonGift(g));
+  const checkedSpecial = specialGifts.filter(g => selectedSpecialGifts[g] !== false);
+  const gifts = [...checkedSpecial, ...standardGifts];
 
   return {
     custName, custAddr, custPhone, branch, model, brand, seg, progName,
@@ -1666,6 +1704,60 @@ function collectExportData(){
     yct: e.yct||0, ysp: e.ysp||0, fire: e.fire||0,
     totalDown: down, date: new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}),
   };
+}
+
+
+function renderGiftSelector(){
+  const d = collectExportData();
+  const gifts = d.gifts;
+  if(!gifts || gifts.length === 0){
+    ['giftSelectorBox','giftSelectorBoxM'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.innerHTML = '';
+    });
+    return;
+  }
+
+  const standardGifts = gifts.filter(isCommonGift);
+  const specialGifts  = gifts.filter(g=>!isCommonGift(g));
+
+  // init selectedSpecialGifts ถ้ายังไม่มี
+  specialGifts.forEach(g=>{ if(!(g in selectedSpecialGifts)) selectedSpecialGifts[g] = true; });
+
+  const standardHtml = standardGifts.length ? `
+    <div class="gift-standard">
+      <b>✅ ของแถมมาตรฐาน 9 รายการ</b> (ทุกคันได้เหมือนกัน)<br>
+      <span style="color:#888">${standardGifts.join(' · ')}</span>
+    </div>` : '';
+
+  const specialHtml = specialGifts.length ? `
+    <div class="gift-special-list">
+      ${specialGifts.map(g=>{
+        const checked = selectedSpecialGifts[g] !== false;
+        const icon = checked
+          ? `<svg width="18" height="18" viewBox="0 0 18 18"><rect width="18" height="18" rx="4" fill="var(--accent)"/><path d="M4 9l4 4 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+          : `<svg width="18" height="18" viewBox="0 0 18 18"><rect x=".5" y=".5" width="17" height="17" rx="3.5" stroke="var(--line)"/></svg>`;
+        return `<div class="gift-check-row${checked?' checked':''}" onclick="toggleSpecialGift('${g.replace(/'/g,"\'")}')">
+          ${icon}<span style="${checked?'':'opacity:.4;text-decoration:line-through'}">${g}</span>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+  const html = `<div class="gift-selector">
+    <div class="gs-title">🎁 ของแถม — เลือกรายการที่ลูกค้าได้รับ</div>
+    ${standardHtml}
+    ${specialHtml}
+  </div>`;
+
+  ['giftSelectorBox','giftSelectorBoxM'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = html;
+  });
+}
+
+function toggleSpecialGift(name){
+  selectedSpecialGifts[name] = !selectedSpecialGifts[name];
+  renderGiftSelector();
 }
 
 function refreshExportSummary(){
@@ -1684,12 +1776,18 @@ function refreshExportSummary(){
     const el = document.getElementById(id);
     if(el) el.innerHTML = html;
   });
+  renderGiftSelector();
 }
 
 // ===== PDF / Print =====
+function saveAndPrint(){
+  const d = collectExportData();
+  saveToHistory(d);
+  setTimeout(()=> exportPDF(), 400);
+}
+
 function exportPDF(){
   const d = collectExportData();
-  if(!_recordOverride) saveToHistory(d);
   const totalRacarom = d.price + d.eqTotalPrice;
 
   // Build installment schedule: total periods = finYears*12
@@ -1711,30 +1809,33 @@ function exportPDF(){
 
   // Format schedule as 5-column table (match the handwritten form layout)
   function scheduleTableHtml(rows){
-    const cols = 5;
+    // Use 6 columns for 120 rows = 20 rows each → fits A4 at 7pt
+    const cols = 6;
     const perCol = Math.ceil(rows.length / cols);
     let colsHtml = '';
     for(let c=0; c<cols; c++){
       const slice = rows.slice(c*perCol, (c+1)*perCol);
-      colsHtml += `<td style="vertical-align:top;padding:0 4px;width:20%"><table style="width:100%;border-collapse:collapse;font-size:8.5pt">`;
+      colsHtml += `<td style="vertical-align:top;padding:0 2px;width:16.66%"><table style="width:100%;border-collapse:collapse;font-size:7pt;line-height:1.3">`;
       slice.forEach(r=>{
-        const bold = (r.period%12===0) || (r.period === rows.length);
-        colsHtml += `<tr><td style="padding:1px 0;color:#555;width:28px">ที่ ${r.period}</td><td style="padding:1px 0;text-align:right;font-weight:${bold?'bold':'normal'}">${fmt(r.amt)}</td></tr>`;
+        const isAnnual = (r.period%12===0) || (r.period === rows.length);
+        const bg = isAnnual ? 'background:#fff3e0;' : '';
+        const fw = isAnnual ? 'font-weight:bold;' : '';
+        colsHtml += `<tr style="${bg}"><td style="padding:0.5px 1px;color:#666;width:22px;${fw}">ที่${r.period}</td><td style="padding:0.5px 1px;text-align:right;${fw}">${fmt(r.amt)}</td></tr>`;
       });
       colsHtml += `</table></td>`;
     }
-    return `<table style="width:100%;border-collapse:collapse"><tr>${colsHtml}</tr></table>`;
+    return `<table style="width:100%;border-collapse:collapse;table-layout:fixed"><tr>${colsHtml}</tr></table>`;
   }
 
   const printHtml = `
-    <div style="font-family:'Sarabun',sans-serif;font-size:9.5pt;color:#000;width:190mm;margin:0 auto;padding:0">
-      <div style="text-align:center;margin-bottom:6px">
+    <div style="font-family:'Sarabun',sans-serif;font-size:8.5pt;color:#000;width:190mm;margin:0 auto;padding:0">
+      <div style="text-align:center;margin-bottom:3px">
         <div style="font-size:13pt;font-weight:bold">สินไทยแทรกเตอร์ ${d.branch ? '— '+d.branch : ''}</div>
         <div style="font-size:9pt;color:#555">ใบสรุปเช่าซื้อ วันที่ ${d.date}</div>
       </div>
-      <hr style="border:0.5px solid #ccc;margin:6px 0">
+      <hr style="border:0.5px solid #ccc;margin:3px 0">
 
-      <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:4px">
         <tr>
           <td style="width:50%;padding:2px 0"><b>ชื่อลูกค้า:</b> ${d.custName||'....................................'}</td>
           <td style="width:50%;padding:2px 0"><b>กลุ่มลูกค้า:</b> ${d.seg} (${d.brand})</td>
@@ -1748,31 +1849,31 @@ function exportPDF(){
         </tr>
       </table>
 
-      <table style="width:100%;border-collapse:collapse;border:0.5px solid #bbb;margin-bottom:8px">
+      <table style="width:100%;border-collapse:collapse;border:0.5px solid #bbb;margin-bottom:4px">
         <thead><tr style="background:#f0ede8">
-          <th style="padding:4px 6px;text-align:left;font-size:9.5pt;border:0.5px solid #bbb">ประเภทสินค้า</th>
-          <th style="padding:4px 6px;text-align:left;font-size:9.5pt;border:0.5px solid #bbb">รุ่น</th>
-          <th style="padding:4px 6px;text-align:right;font-size:9.5pt;border:0.5px solid #bbb">ราคา</th>
+          <th style="padding:2px 5px;text-align:left;font-size:9.5pt;border:0.5px solid #bbb">ประเภทสินค้า</th>
+          <th style="padding:2px 5px;text-align:left;font-size:9.5pt;border:0.5px solid #bbb">รุ่น</th>
+          <th style="padding:2px 5px;text-align:right;font-size:9.5pt;border:0.5px solid #bbb">ราคา</th>
         </tr></thead>
         <tbody>
           <tr>
-            <td style="padding:4px 6px;border:0.5px solid #bbb">รถแทรกเตอร์</td>
-            <td style="padding:4px 6px;border:0.5px solid #bbb">${d.model}</td>
-            <td style="padding:4px 6px;text-align:right;border:0.5px solid #bbb">${fmt(d.price)}</td>
+            <td style="padding:2px 5px;border:0.5px solid #bbb">รถแทรกเตอร์</td>
+            <td style="padding:2px 5px;border:0.5px solid #bbb">${d.model}</td>
+            <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(d.price)}</td>
           </tr>
           ${d.eqItems.map(eq=>`<tr>
-            <td style="padding:4px 6px;border:0.5px solid #bbb">อุปกรณ์</td>
-            <td style="padding:4px 6px;border:0.5px solid #bbb">${eq.name}</td>
-            <td style="padding:4px 6px;text-align:right;border:0.5px solid #bbb">${fmt(eq.price)}</td>
+            <td style="padding:2px 5px;border:0.5px solid #bbb">อุปกรณ์</td>
+            <td style="padding:2px 5px;border:0.5px solid #bbb">${eq.name}</td>
+            <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(eq.price)}</td>
           </tr>`).join('')}
           <tr style="background:#f0ede8;font-weight:bold">
-            <td colspan="2" style="padding:4px 6px;border:0.5px solid #bbb">ราคารวมทั้งสิ้น</td>
+            <td colspan="2" style="padding:2px 5px;border:0.5px solid #bbb">ราคารวมทั้งสิ้น</td>
             <td style="padding:4px 6px;text-align:right;border:0.5px solid #bbb">${fmt(totalRacarom)}</td>
           </tr>
         </tbody>
       </table>
 
-      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:9.5pt">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:4px;font-size:8.5pt">
         <tr>
           <td style="padding:2px 0;width:50%">ทำสัญญา: <b>รายปี</b> ดอกเบี้ย <b>${(d.finRate*100).toFixed(2)}%</b></td>
           <td style="padding:2px 0">รูปแบบ: <b>${PAYMENT_LABELS[d.tractorPayment]}</b></td>
@@ -1791,7 +1892,7 @@ function exportPDF(){
         </tr>` : ''}
       </table>
 
-      <div style="font-size:9pt;font-weight:bold;margin-bottom:3px">ตารางงวดชำระ (รถแทรกเตอร์) — ${d.finYears} ปี × 12 เดือน = ${d.finYears*12} งวด</div>
+      <div style="font-size:8pt;font-weight:bold;margin-bottom:2px">ตารางงวดชำระ (รถแทรกเตอร์) — ${d.finYears} ปี × 12 เดือน = ${d.finYears*12} งวด</div>
       ${scheduleTableHtml(schedule)}
 
       ${d.eqAnnual > 0 ? `<div style="margin-top:8px;font-size:9.5pt">
@@ -1799,11 +1900,12 @@ function exportPDF(){
         (ดอกเบี้ย ${(d.eqFinRate*100).toFixed(2)}%)
       </div>` : ''}
 
-      ${d.gifts.length>0 ? `<div style="margin-top:8px;font-size:9pt">
-        <b>ของแถม ${d.gifts.length} รายการ:</b> ${d.gifts.slice(0,6).join(' · ')}${d.gifts.length>6?` · (+${d.gifts.length-6} รายการ)`:''}
+      ${d.gifts.length>0 ? `<div style="margin-top:4px;font-size:8pt">
+        <b>ของแถม:</b>
+        <span style="color:#555">${d.gifts.join(' · ')}</span>
       </div>` : ''}
 
-      <hr style="border:0.5px solid #ccc;margin:10px 0">
+      <hr style="border:0.5px solid #ccc;margin:5px 0">
       <table style="width:100%">
         <tr>
           <td style="text-align:center;font-size:9pt">ลงชื่อ .................................<br>ผู้แนะนำ</td>
@@ -1894,7 +1996,8 @@ function exportXLSX(){
 
 // ===== History System =====
 const GAS_URL_KEY = 'rst_promo_gas_url';
-let gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxnthS6N5IT4i0XjUt_ru9yv-jeoqNM0_oxkS9r8t1NlqNw9FjF43Q0PwOBlcUzfeU1/exec';
+let gasUrl = localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL;
 
 function openHistory(){
   document.querySelector('.app').classList.add('history');
