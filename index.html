@@ -9,6 +9,7 @@
   gtag('js', new Date());
   gtag('config', 'G-1G42D485D0');
 </script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RST Promo Finder</title>
@@ -438,9 +439,9 @@ input[type=number]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
 @media (max-width:759px){
   .view-promo-btn{ display:block; }
   /* ซ่อน tractorFinRow และ minorModeSection ใน step1 บนมือถือ */
-  #tractorFinRow, #minorModeSection{ display:none; }
-  .app.step2 #tractorFinRow, .app.step2 #minorModeSection{ display:block; }
-  .app.step2 .topbar{ display:none; }
+  #tractorFinRow, #minorModeSection{ display:none !important; }
+  .app.step2 #tractorFinRow, .app.step2 #minorModeSection{ display:block !important; }
+  .app.step2 > .topbar{ display:none; }
   .app.step2 #backBar{ display:flex !important; }
 }
 
@@ -543,6 +544,8 @@ input[type=number]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
 @media (min-width:760px){
   #showExportBtn{ display:none !important; }
   #exportPanelMobile{ display:none !important; }
+  /* desktop: tractorFinRow และ minorModeSection ใน mainPanel โชว์เสมอ */
+  #tractorFinRow, #minorModeSection{ display:block !important; }
 }
 
 /* ===== Print Styles ===== */
@@ -751,6 +754,10 @@ body.printing #printArea{ display:block !important; }
     <div style="font-size:10.5px;color:var(--ink-soft);">แก้ไขตัวเลข "ลูกค้าออกเอง" ในการ์ดที่แนะนำได้ ถ้าลูกค้าต้องการวางดาวน์เพิ่ม</div>
   </div>
   <button id="viewPromoBtn" class="view-promo-btn" onclick="goToResults()">ดูโปร ▶</button>
+</div>
+
+<main id="mainPanel">
+  <div id="backBar"><button class="back-btn" onclick="goToForm()">← แก้ไขการเลือก</button><span id="backSummary" style="font-size:12px;color:var(--ink-soft);margin-left:8px"></span></div>
   <div class="select-row" style="margin-top:6px;" id="tractorFinRow">
     <label>ระยะเวลาผ่อนชำระ (รถแทรกเตอร์)</label>
     <div style="display:flex;gap:6px;flex-wrap:wrap;" id="tractorYearsRow"></div>
@@ -774,10 +781,6 @@ body.printing #printArea{ display:block !important; }
     </div>
     <div id="minorModeDetail" style="font-size:10.5px;color:var(--accent);margin-top:4px;padding:4px 8px;background:#fdf8f5;border-radius:6px;display:none"></div>
   </div>
-</div>
-
-<main id="mainPanel">
-  <div id="backBar"><button class="back-btn" onclick="goToForm()">← แก้ไขการเลือก</button><span id="backSummary" style="font-size:12px;color:var(--ink-soft);margin-left:8px"></span></div>
   <div class="legend">
     <span><i style="background:var(--accent)"></i>ลูกค้าจ่ายเอง (ลูกค้าออก)</span>
     <span><i style="background:var(--support)"></i>ส่วนสนับสนุน (YCT/YSP/ไฟไหม้)</span>
