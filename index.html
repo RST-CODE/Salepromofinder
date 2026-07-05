@@ -9,7 +9,8 @@ window.dataLayer=window.dataLayer||[];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config','G-1G42D485D0');
-</script>
+<script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RST Promo Finder</title>
@@ -439,8 +440,8 @@ input[type=number]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
 @media (max-width:759px){
   .view-promo-btn{ display:block; }
   /* ซ่อน tractorFinRow และ minorModeSection ใน step1 บนมือถือ */
-  #tractorFinRow{ display:none; }
-  .app.step2 #tractorFinRow{ display:block; }
+  #tractorFinRow, #minorModeSection{ display:none; }
+  .app.step2 #tractorFinRow, .app.step2 #minorModeSection{ display:block; }
   .app.step2 .topbar{ display:none; }
   .app.step2 #backBar{ display:flex !important; }
 }
@@ -2923,4 +2924,3 @@ setBrand('yanmar');
 <div id="printArea"></div>
 </body>
 </html>
-
