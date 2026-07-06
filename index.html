@@ -1007,6 +1007,8 @@ function getAvailablePayments(brand, segment, years){
   return PAYMENT_OPTIONS[brand]?.[group]?.[years] || ['annual'];
 }
 
+const USED_EQUIPMENT = {"yanmar": {"EF393A / EF393T-45th": [{"name": "ชุดใบมีด 1.60 ม. รุ่น EF39 (มือสอง)", "price": 35000}, {"name": "ผานบุกเบิก 4×22\" รุ่น EF39 (มือสอง)", "price": 28500}, {"name": "ผานพรวน 5×22\" รุ่น EF39 (มือสอง)", "price": 28500}, {"name": "ผานพรวน 6×22\" รุ่น EF39 (มือสอง)", "price": 29500}, {"name": "โรตารี่ 1.60 ม. รุ่น EF39 (มือสอง)", "price": 49000}, {"name": "เฉพาะใบดันดินหน้า 1.60 ม. (มือสอง)", "price": 7500}], "YM351R": [{"name": "ชุดใบมีด 1.80 ม. รุ่น YM351 (มือสอง)", "price": 45000}, {"name": "ผานพรวน 5×24\" รุ่น YM (มือสอง)", "price": 36500}, {"name": "ผานพรวน 6×24\" รุ่น YM (มือสอง)", "price": 37500}, {"name": "โรตารี่ 1.80 ม. รุ่น YM (มือสอง)", "price": 52500}, {"name": "เฉพาะใบดันดินหน้า 1.80 ม. (มือสอง)", "price": 8500}], "YM358R": [{"name": "ชุดใบมีด 1.80 ม. รุ่น YM358 (มือสอง)", "price": 45000}, {"name": "ผานพรวน 5×24\" รุ่น YM ยกเว้นล้อโต (มือสอง)", "price": 36500}, {"name": "ผานพรวน 6×24\" รุ่น YM ยกเว้นล้อโต (มือสอง)", "price": 37500}, {"name": "โรตารี่ 1.80 ม. รุ่น YM ยกเว้นล้อโต (มือสอง)", "price": 52500}, {"name": "เฉพาะใบดันดินหน้า 1.80 ม. (มือสอง)", "price": 8500}], "YM358R-L1": [{"name": "ชุดใบมีด 1.80 ม. รุ่น YM358 (มือสอง)", "price": 45000}, {"name": "เฉพาะใบดันดินหน้า 1.80 ม. (มือสอง)", "price": 8500}], "EF725T": []}, "solis": {}};
+
 const EQUIPMENT = {"yanmar": {"EF393A / EF393T-45th": [{"name": "ใบมีดดันดินหน้า 1.60 ม.", "price": 55000}, {"name": "ผานบุกเบิก 22\"×4 ใบ", "price": 50000, "special": 42000}, {"name": "ผานพรวน 22\"×5 ใบ", "price": 47500, "special": 38000}, {"name": "ผานพรวน 22\"×6 ใบ", "price": 47500, "special": 39000}, {"name": "โรตารี่ 1.60 ม.", "price": 68900}, {"name": "เครื่องตัดหญ้า 1.20 ม.", "price": 31400}, {"name": "บุ้งกี๋ 3.4 ม.", "price": 177300}, {"name": "เครื่องอัดฟาง 1.35 ม.", "price": 500000}], "YM351R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM351R)", "price": 66100}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000, "special": 53000, "special_models": ["YM351R"]}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500, "special": 61000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000, "special": 58000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000, "special": 54000, "special_models": ["YM351R"]}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 182100}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 187300}], "YM358R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM358R)", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}, {"name": "เครื่องคีบอ้อย (YM358)", "price": 250000}], "YM358R-L1": [{"name": "ใบมีดดันดินหน้า 1.80 ม.", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "ผานพรวน 24\"×6 ใบ (กระบอกยันจานยาว 11\")", "price": 60000}, {"name": "โรตารี่ 2.00 ม.", "price": 78000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}, {"name": "เครื่องคีบอ้อย", "price": 250000}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}], "EF725T": [{"name": "ใบมีดดันดินหน้า 2.10 ม.", "price": 69000}, {"name": "ผานบุกเบิก 26\"×3 ใบ รุ่น EF725T", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ รุ่น EF725T", "price": 73600}, {"name": "โรตารี่ 2.20 ม. รุ่น EF725T", "price": 91400}]}, "solis": {"Solis 26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis22": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis30": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis30-45th": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis50-45th": [{"name": "ใบมีดดันดินหน้า 1.90 ม.", "price": 75000}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 64100}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "คีบอ้อย", "price": 250000}], "YM-Solis75": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000}], "YM-Solis75-45th": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000}], "YM-Solis 65": [], "YM-Solis90": [], "YM-Solis105-45th": [{"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (105 แรง)", "price": 95300}, {"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (110 แรง)", "price": 100200}, {"name": "ผานพรวน 26\"×8 ใบ", "price": 85520}, {"name": "ผานพรวนสับใบ", "price": 126400}, {"name": "วิปเปอร์ 3 ขา", "price": 122300}, {"name": "เครื่องปลูกอ้อย 2 แถว", "price": 109900}, {"name": "เครื่องตัดอ้อย", "price": 330000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}]}};
 const fmt = n => (n===null||n===undefined) ? '—' : n.toLocaleString('th-TH', {maximumFractionDigits:0});
 const fmtPct = n => (n*100).toFixed(2).replace(/\.00$/,'') + '%';
@@ -1580,6 +1582,7 @@ modelSelect.addEventListener('change', ()=>{
   toggleState = {land50:false, land30:false, baac:false};
   selectedEqSet = {}; eqDown = 0; selectedPromoIdx = 0;
   eqFinanceType = {};
+  eqMode = 'new';
   eqPaymentUserSet = false;
   renderToggles();
   renderResults();
@@ -1605,6 +1608,7 @@ let eqMinorMode = 'normal'; // sync กับ minorMode ของรถ
 let eqMinorModeUserSet = false;
 
 let selectedEqSet = {}; // {idx: useSpecial}
+let eqMode = 'new'; // 'new' | 'used'
 let eqFinanceType = {}; // {idx: 'F'|'R'} default R
 let eqDown = 0;
 
@@ -1653,9 +1657,8 @@ function goToForm(){
   window.scrollTo(0,0);
 }
 function maybeAutoStep2(){
-  if(window.innerWidth < 760){
-    goToResults();
-  }
+  // ไม่ auto-jump บนมือถือ — ให้กดปุ่ม "ดูโปร" เอง
+  // desktop ก็ไม่ต้อง jump เพราะโชว์ทั้งสองฝั่งพร้อมกันอยู่แล้ว
 }
 
 
@@ -1836,6 +1839,12 @@ function buildEqSelectorHtml(brand, segment){
   </div>`;
 }
 
+function setEqMode(mode){
+  eqMode = mode;
+  selectedEqSet = {};
+  eqFinanceType = {};
+  rerenderEq();
+}
 function setEqMinorMode(m){
   eqMinorMode = m;
   eqMinorModeUserSet = true;
@@ -2793,6 +2802,10 @@ function syncAddrLine(el){
 const _origGoToResults = goToResults;
 
 function getEquipmentForModel(brand, model){
+  if(eqMode === 'used'){
+    const usedItems = (USED_EQUIPMENT[brand]||{})[model] || [];
+    return usedItems;
+  }
   const map = EQUIPMENT[brand];
   if(!map) return [];
   return map[model] || [];
@@ -2801,7 +2814,25 @@ function getEquipmentForModel(brand, model){
 function renderEquipment(brand, model, finInterest, finYears){
   const items = getEquipmentForModel(brand, model);
   const eqSection = document.getElementById('equipmentSection');
-  if(!items || items.length === 0){ eqSection.innerHTML = ''; return; }
+  if(!items || items.length === 0){
+    if(eqMode === 'used'){
+      // โชว์ข้อความแทน ไม่ซ่อน section
+      eqSection.innerHTML = `<div class="eq-section">
+        <h4>🔧 อุปกรณ์ต่อพ่วง
+          <span style="margin-left:8px;display:inline-flex;gap:4px;vertical-align:middle">
+            <button class="fin-btn${eqMode==='new'?' active':''}" style="font-size:11px;padding:3px 10px" onclick="setEqMode('new')">✨ ใหม่</button>
+            <button class="fin-btn active" style="font-size:11px;padding:3px 10px;background:#555;border-color:#555;color:#fff" onclick="setEqMode('used')">🔧 มือสอง</button>
+          </span>
+        </h4>
+        <div style="padding:16px;text-align:center;color:var(--ink-soft);font-size:13px;border:1.5px dashed var(--line);border-radius:10px;margin-top:8px">
+          ไม่มีข้อมูลอุปกรณ์มือสองสำหรับรุ่นนี้
+        </div>
+      </div>`;
+    } else {
+      eqSection.innerHTML = '';
+    }
+    return;
+  }
 
   const anySelected = Object.keys(selectedEqSet).length > 0;
 
@@ -2870,6 +2901,10 @@ function renderEquipment(brand, model, finInterest, finYears){
 
   eqSection.innerHTML = `<div class="eq-section">
     <h4>🔧 อุปกรณ์ต่อพ่วง <span style="font-weight:400;font-size:12px;color:var(--ink-soft)">เลือกได้หลายรายการ</span>
+      <span style="margin-left:8px;display:inline-flex;gap:4px;vertical-align:middle">
+        <button class="fin-btn${eqMode==='new'?' active':''}" style="font-size:11px;padding:3px 10px" onclick="setEqMode('new')">✨ ใหม่</button>
+        <button class="fin-btn${eqMode==='used'?' active':''}" style="font-size:11px;padding:3px 10px;border-color:#888;${eqMode==='used'?'background:#555;color:#fff':''}" onclick="setEqMode('used')">🔧 มือสอง</button>
+      </span>
       ${anySelected ? `<span style="font-size:11px;color:var(--accent);margin-left:auto;cursor:pointer" onclick="clearEq()">ล้างทั้งหมด ✕</span>` : ''}
     </h4>
     <div class="eq-list">${listHtml}</div>
