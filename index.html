@@ -1,14 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-1G42D485D0"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-1G42D485D0');
-</script>
+<script src="ga.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RST Promo Finder</title>
@@ -294,6 +287,7 @@ details li{ margin-bottom:3px; }
     max-width:1200px;
     margin:0 auto;
   }
+  #historyPage{ grid-column: 1 / -1; }
   .topbar{
     position:sticky; top:16px;
     border:1.5px solid var(--line);
@@ -572,7 +566,42 @@ body.printing #printArea{ display:block !important; }
 }
 .history-topbar h2{ font-size:15px; font-weight:700; margin:0; flex:1; }
 
-.history-list{ padding:12px 16px; }
+/* 2-col layout on desktop */
+#historyPage{ display:none; height:100vh; flex-direction:column; }
+.app.history #historyPage{ display:flex !important; }
+.history-body{
+  display:flex; flex:1; overflow:hidden;
+}
+.history-left{
+  display:flex; flex-direction:column;
+  width:360px; flex-shrink:0;
+  border-right:1.5px solid var(--line);
+  overflow:hidden;
+}
+.history-right{
+  flex:1; overflow-y:auto; padding:16px;
+  background:#fafafa;
+}
+@media(max-width:759px){
+  .history-left{ width:100%; border-right:none; }
+  .history-right{ display:none; }
+  .history-right.active{ display:block; position:fixed; inset:0; z-index:50; background:#fff; overflow-y:auto; }
+}
+.history-list{ padding:8px 12px; overflow-y:auto; flex:1; }
+
+/* filter แนวนอนเต็มความกว้าง left col */
+.hist-filter{ padding:8px 12px 6px; }
+.hist-filter-scroll{
+  display:flex; flex-wrap:wrap; gap:6px;
+}
+.hist-filter-group{ display:flex; flex-direction:column; flex:1 1 120px; min-width:100px; }
+.hist-filter-group.wide{ flex:1 1 160px; }
+.hist-filter-group.narrow{ flex:1 1 110px; }
+.hist-filter-group.med{ flex:1 1 130px; }
+
+/* detail panel ใน right col */
+.hist-detail-panel{ background:var(--card); border-radius:12px; padding:16px; }
+.hist-detail-empty{ color:var(--ink-soft); text-align:center; padding:60px 20px; font-size:14px; }
 .history-card{
   background:var(--card); border:1.5px solid var(--line); border-radius:12px;
   padding:12px 14px; margin-bottom:10px; cursor:pointer;
@@ -721,10 +750,17 @@ body.printing #printArea{ display:block !important; }
 /* ===== History Filter Panel ===== */
 .hist-filter{
   background:#f7f3ee; border-bottom:1.5px solid var(--line);
-  padding:10px 16px; display:flex; flex-direction:column; gap:6px;
+  padding:10px 12px 8px;
 }
-.hist-filter-row{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-.hist-filter-row.three{ grid-template-columns:1fr 1fr 1fr; }
+.hist-filter-scroll{
+  display:flex; gap:8px; overflow-x:auto; padding-bottom:6px;
+  -webkit-overflow-scrolling:touch; scrollbar-width:none;
+}
+.hist-filter-scroll::-webkit-scrollbar{ display:none; }
+.hist-filter-group{ display:flex; flex-direction:column; flex:0 0 auto; }
+.hist-filter-group.wide{ flex:0 0 160px; }
+.hist-filter-group.narrow{ flex:0 0 130px; }
+.hist-filter-group.med{ flex:0 0 145px; }
 .hist-filter input, .hist-filter select{
   font-family:'Kanit',sans-serif; font-size:12px;
   padding:7px 10px; border-radius:8px; border:1.5px solid var(--line);
@@ -733,15 +769,47 @@ body.printing #printArea{ display:block !important; }
 .hist-filter input:focus, .hist-filter select:focus{
   outline:none; border-color:var(--accent);
 }
-.hist-filter label{ font-size:10px; color:var(--ink-soft); margin-bottom:2px; display:block; }
-.hist-filter-group{ display:flex; flex-direction:column; }
+.hist-filter label{ font-size:10px; color:var(--ink-soft); margin-bottom:2px; display:block; white-space:nowrap; }
+.hist-filter-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
 .hist-filter-clear{
-  font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
-  padding:7px 14px; border-radius:8px; border:1.5px solid #ccc;
-  background:#fff; color:#888; cursor:pointer; white-space:nowrap; align-self:flex-end;
+  font-family:'Kanit',sans-serif; font-size:11px; font-weight:600;
+  padding:5px 12px; border-radius:8px; border:1.5px solid #ccc;
+  background:#fff; color:#888; cursor:pointer; white-space:nowrap;
 }
 .hist-filter-clear:hover{ border-color:var(--accent); color:var(--accent); }
-.hist-count{ font-size:11px; color:var(--ink-soft); padding:4px 16px 0; }
+.hist-count{ font-size:11px; color:var(--ink-soft); }
+
+/* ===== Quick Search (CRM) ===== */
+.hist-quicksearch{ flex:1 1 220px; min-width:180px; }
+.hist-quicksearch-input-wrap{ position:relative; }
+.hist-quicksearch-input-wrap input{ padding-left:28px; }
+.hist-quicksearch-input-wrap::before{
+  content:'🔍'; position:absolute; left:9px; top:50%; transform:translateY(-50%);
+  font-size:12px; pointer-events:none;
+}
+.hist-sort-group{ display:flex; flex-direction:column; flex:0 0 140px; }
+@media (min-width:760px){
+  .hist-filter{ padding:10px 16px 8px; }
+  .hist-filter-scroll{ flex-wrap:wrap; overflow-x:visible; }
+  .hist-filter-group{ flex:0 0 auto; }
+  .hist-quicksearch{ flex:1 1 260px; }
+  .history-left{ width:320px; }
+}
+
+/* ===== Sales Summary Card (Detail) ===== */
+.sales-summary-card{
+  background:var(--gold-bg); border:1.5px solid var(--gold); border-radius:12px;
+  padding:12px 14px; margin-bottom:14px;
+}
+.ssc-head{
+  font-family:'Kanit',sans-serif; font-size:13px; font-weight:700; color:#7a5b0f;
+  margin-bottom:8px; display:flex; align-items:center; gap:6px;
+}
+.ssc-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px 10px; }
+.ssc-item .k{ font-size:10px; color:#8a7548; font-weight:600; margin-bottom:1px; }
+.ssc-item .v{ font-family:'Kanit',sans-serif; font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.3; }
+.ssc-item .v.accent{ color:var(--accent); font-size:15px; }
+.ssc-item.full{ grid-column:1 / -1; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
@@ -899,62 +967,89 @@ body.printing #printArea{ display:block !important; }
     <button class="history-tab-btn" onclick="openGasConfig()" title="ตั้งค่า GAS">⚙️</button>
   </div>
   <div class="gas-config" id="gasConfigBox" style="display:none">
-    <label>Google Apps Script URL (Web App URL หลัง Deploy)</label>
+    <label>Google Apps Script URL</label>
     <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/xxxxxx/exec">
     <br>
     <button class="btn-save-gas" onclick="saveGasUrl()">บันทึก URL</button>
   </div>
   <div class="hist-filter">
-    <div class="hist-filter-row">
-      <div class="hist-filter-group">
+    <div class="hist-filter-scroll">
+      <div class="hist-filter-group hist-quicksearch">
+        <label>ค้นหาด่วน</label>
+        <div class="hist-quicksearch-input-wrap">
+          <input type="text" id="hf_quick" placeholder="ชื่อ, เบอร์, ที่อยู่, รุ่น, โปร, สาขา..." oninput="filterHistory()">
+        </div>
+      </div>
+      <div class="hist-filter-group wide">
         <label>ชื่อลูกค้า</label>
         <input type="text" id="hf_name" placeholder="ชื่อ-นามสกุล" oninput="filterHistory()">
       </div>
-      <div class="hist-filter-group">
+      <div class="hist-filter-group narrow">
         <label>เบอร์โทร</label>
-        <input type="text" id="hf_phone" placeholder="0xx-xxx-xxxx" inputmode="tel" oninput="filterHistory()">
+        <input type="text" id="hf_phone" placeholder="0xx-xxx" inputmode="tel" oninput="filterHistory()">
       </div>
-    </div>
-    <div class="hist-filter-row three">
-      <div class="hist-filter-group">
+      <div class="hist-filter-group narrow">
         <label>จังหวัด</label>
-        <input type="text" id="hf_province" placeholder="จังหวัด" oninput="filterHistory()">
+        <select id="hf_province" onchange="hfProvinceChange()">
+          <option value="">— ทุกจังหวัด —</option>
+        </select>
       </div>
-      <div class="hist-filter-group">
+      <div class="hist-filter-group narrow">
         <label>อำเภอ</label>
-        <input type="text" id="hf_amphure" placeholder="อำเภอ" oninput="filterHistory()">
+        <select id="hf_amphure" onchange="hfAmphureChange()" disabled>
+          <option value="">— อำเภอ —</option>
+        </select>
       </div>
-      <div class="hist-filter-group">
+      <div class="hist-filter-group narrow">
         <label>ตำบล</label>
-        <input type="text" id="hf_tambon" placeholder="ตำบล" oninput="filterHistory()">
+        <select id="hf_tambon" onchange="filterHistory()" disabled>
+          <option value="">— ตำบล —</option>
+        </select>
       </div>
-    </div>
-    <div class="hist-filter-row">
-      <div class="hist-filter-group">
+      <div class="hist-filter-group med">
         <label>รุ่นรถ</label>
         <select id="hf_model" onchange="filterHistory()">
           <option value="">— ทุกรุ่น —</option>
         </select>
       </div>
-      <div class="hist-filter-group">
+      <div class="hist-filter-group med">
         <label>โปร</label>
         <select id="hf_prog" onchange="filterHistory()">
           <option value="">— ทุกโปร —</option>
         </select>
       </div>
+      <div class="hist-filter-group hist-sort-group">
+        <label>เรียงลำดับ</label>
+        <select id="hf_sort" onchange="filterHistory()">
+          <option value="date_desc">ล่าสุดก่อน</option>
+          <option value="date_asc">เก่าสุดก่อน</option>
+          <option value="name_asc">ชื่อ ก-ฮ</option>
+          <option value="amount_desc">ยอดจัดมาก-น้อย</option>
+          <option value="amount_asc">ยอดจัดน้อย-มาก</option>
+        </select>
+      </div>
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center">
+    <div class="hist-filter-footer">
       <span id="histFilterCount" class="hist-count"></span>
-      <button class="hist-filter-clear" onclick="clearHistoryFilter()">✕ ล้างตัวกรอง</button>
+      <button class="hist-filter-clear" onclick="clearHistoryFilter()">✕ ล้าง</button>
     </div>
   </div>
+  <div class="history-body">
+  <div class="history-left">
   <div id="historyListContainer" class="history-list">
     <div class="history-loading">กำลังโหลด...</div>
   </div>
+  </div><!-- end .history-left -->
+  <div class="history-right" id="historyRight">
+    <div class="hist-detail-empty" id="histDetailEmpty">
+      <div style="font-size:32px;margin-bottom:8px">📋</div>
+      เลือกรายการจากด้านซ้าย<br>เพื่อดูรายละเอียด
+    </div>
+    <div id="historyDetailContent" style="display:none"></div>
+  </div>
+  </div><!-- end .history-body -->
 </div>
-<div id="historyDetailModal" style="display:none" class="hd-modal-bg" onclick="if(event.target===this)closeHistoryDetail()">
-  <div class="hd-modal" id="historyDetailContent"></div>
-</div>
+
 <div id="exportPanelMobile">
   <div class="topbar" style="border-radius:0;border-top:none">
     <button class="btn-export-back" onclick="goToResults()" style="margin-bottom:10px">← กลับ</button>
@@ -2628,25 +2723,34 @@ function loadHistory(){
 let _allHistoryRecords = [];
 
 function filterHistory(){
+  const fQuick   = (document.getElementById('hf_quick')?.value||'').trim().toLowerCase();
   const fName    = (document.getElementById('hf_name')?.value||'').trim().toLowerCase();
   const fPhone   = (document.getElementById('hf_phone')?.value||'').trim();
-  const fProv    = (document.getElementById('hf_province')?.value||'').trim().toLowerCase();
-  const fAmph    = (document.getElementById('hf_amphure')?.value||'').trim().toLowerCase();
-  const fTambon  = (document.getElementById('hf_tambon')?.value||'').trim().toLowerCase();
+  const fProv    = (document.getElementById('hf_province')?.value||'').trim();
+  const fAmph    = (document.getElementById('hf_amphure')?.value||'').trim();
+  const fTambon  = (document.getElementById('hf_tambon')?.value||'').trim();
   const fModel   = (document.getElementById('hf_model')?.value||'');
   const fProg    = (document.getElementById('hf_prog')?.value||'');
+  const fSort    = (document.getElementById('hf_sort')?.value||'date_desc');
 
-  const filtered = _allHistoryRecords.filter(r=>{
+  let filtered = _allHistoryRecords.filter(r=>{
     const addr = (r.custAddr||'').toLowerCase();
+    if(fQuick){
+      const haystack = [r.custName, r.custPhone, r.custAddr, r.brand, r.model, r.seg, r.progName, r.branch]
+        .filter(Boolean).join(' ').toLowerCase();
+      if(!haystack.includes(fQuick)) return false;
+    }
     if(fName   && !(r.custName||'').toLowerCase().includes(fName)) return false;
     if(fPhone  && !(r.custPhone||'').includes(fPhone)) return false;
-    if(fProv   && !addr.includes(fProv)) return false;
-    if(fAmph   && !addr.includes(fAmph)) return false;
-    if(fTambon && !addr.includes(fTambon)) return false;
+    if(fProv   && !addr.includes('จ.'+fProv)) return false;
+    if(fAmph   && !addr.includes('อ.'+fAmph)) return false;
+    if(fTambon && !addr.includes('ต.'+fTambon)) return false;
     if(fModel  && (r.model||'') !== fModel) return false;
     if(fProg   && (r.progName||'') !== fProg) return false;
     return true;
   });
+
+  filtered = sortHistoryRecords(filtered, fSort);
 
   const countEl = document.getElementById('histFilterCount');
   if(countEl) countEl.textContent = filtered.length < _allHistoryRecords.length
@@ -2656,23 +2760,91 @@ function filterHistory(){
   renderHistoryCards(filtered);
 }
 
+function sortHistoryRecords(records, sortKey){
+  const arr = records.slice();
+  switch(sortKey){
+    case 'date_asc':
+      arr.sort((a,b)=> (a.savedAt||'').localeCompare(b.savedAt||''));
+      break;
+    case 'name_asc':
+      arr.sort((a,b)=> (a.custName||'').localeCompare(b.custName||'', 'th'));
+      break;
+    case 'amount_desc':
+      arr.sort((a,b)=> (Number(b.finTotal)||0) - (Number(a.finTotal)||0));
+      break;
+    case 'amount_asc':
+      arr.sort((a,b)=> (Number(a.finTotal)||0) - (Number(b.finTotal)||0));
+      break;
+    case 'date_desc':
+    default:
+      arr.sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
+      break;
+  }
+  return arr;
+}
+
 function clearHistoryFilter(){
-  ['hf_name','hf_phone','hf_province','hf_amphure','hf_tambon'].forEach(id=>{
-    const el = document.getElementById(id); if(el) el.value='';
-  });
-  ['hf_model','hf_prog'].forEach(id=>{
-    const el = document.getElementById(id); if(el) el.value='';
-  });
+  ['hf_name','hf_phone','hf_quick'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['hf_model','hf_prog','hf_province'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const sortEl=document.getElementById('hf_sort'); if(sortEl) sortEl.value='date_desc';
+  const amphEl=document.getElementById('hf_amphure'), tambonEl=document.getElementById('hf_tambon');
+  if(amphEl){ amphEl.innerHTML='<option value="">— อำเภอ —</option>'; amphEl.disabled=true; }
+  if(tambonEl){ tambonEl.innerHTML='<option value="">— ตำบล —</option>'; tambonEl.disabled=true; }
   filterHistory();
 }
+
 
 function populateFilterDropdowns(){
   const models = [...new Set(_allHistoryRecords.map(r=>r.model).filter(Boolean))].sort();
   const progs  = [...new Set(_allHistoryRecords.map(r=>r.progName).filter(Boolean))].sort();
+  // จังหวัด: parse จาก custAddr "จ.xxx"
+  const provinces = [...new Set(_allHistoryRecords.map(r=>{
+    const m = (r.custAddr||'').match(/จ\.([^\s,]+)/); return m?m[1]:null;
+  }).filter(Boolean))].sort();
+
   const mSel = document.getElementById('hf_model');
   const pSel = document.getElementById('hf_prog');
-  if(mSel){ mSel.innerHTML = '<option value="">— ทุกรุ่น —</option>' + models.map(m=>`<option>${m}</option>`).join(''); }
-  if(pSel){ pSel.innerHTML = '<option value="">— ทุกโปร —</option>' + progs.map(p=>`<option>${p}</option>`).join(''); }
+  const provSel = document.getElementById('hf_province');
+  if(mSel) mSel.innerHTML = '<option value="">— ทุกรุ่น —</option>' + models.map(m=>`<option>${m}</option>`).join('');
+  if(pSel) pSel.innerHTML = '<option value="">— ทุกโปร —</option>' + progs.map(p=>`<option>${p}</option>`).join('');
+  if(provSel) provSel.innerHTML = '<option value="">— ทุกจังหวัด —</option>' + provinces.map(p=>`<option>${p}</option>`).join('');
+}
+
+function hfProvinceChange(){
+  const prov = document.getElementById('hf_province')?.value || '';
+  const amphSel = document.getElementById('hf_amphure');
+  const tambonSel = document.getElementById('hf_tambon');
+  // กรอง amphure จาก records ที่ตรงจังหวัด
+  const filteredRec = prov ? _allHistoryRecords.filter(r=>(r.custAddr||'').includes('จ.'+prov)) : _allHistoryRecords;
+  const amphures = [...new Set(filteredRec.map(r=>{
+    const m = (r.custAddr||'').match(/อ\.([^\s,]+)/); return m?m[1]:null;
+  }).filter(Boolean))].sort();
+  if(amphSel){
+    amphSel.innerHTML = '<option value="">— อำเภอ —</option>' + amphures.map(a=>`<option>${a}</option>`).join('');
+    amphSel.disabled = !prov;
+    amphSel.value = '';
+  }
+  if(tambonSel){ tambonSel.innerHTML = '<option value="">— ตำบล —</option>'; tambonSel.disabled = true; tambonSel.value=''; }
+  filterHistory();
+}
+
+function hfAmphureChange(){
+  const prov = document.getElementById('hf_province')?.value || '';
+  const amph = document.getElementById('hf_amphure')?.value || '';
+  const tambonSel = document.getElementById('hf_tambon');
+  const filteredRec = _allHistoryRecords.filter(r=>{
+    const addr = r.custAddr||'';
+    return (!prov||addr.includes('จ.'+prov)) && (!amph||addr.includes('อ.'+amph));
+  });
+  const tambons = [...new Set(filteredRec.map(r=>{
+    const m = (r.custAddr||'').match(/ต\.([^\s,]+)/); return m?m[1]:null;
+  }).filter(Boolean))].sort();
+  if(tambonSel){
+    tambonSel.innerHTML = '<option value="">— ตำบล —</option>' + tambons.map(t=>`<option>${t}</option>`).join('');
+    tambonSel.disabled = !amph;
+    tambonSel.value='';
+  }
+  filterHistory();
 }
 
 function renderHistoryList(records){
@@ -2685,7 +2857,7 @@ function renderHistoryList(records){
     container.innerHTML = '<div class="history-empty">ยังไม่มีประวัติ<br><small>Export ครั้งแรกแล้วจะโชว์ที่นี่</small></div>';
     return;
   }
-  renderHistoryCards(records);
+  renderHistoryCards(sortHistoryRecords(records, 'date_desc'));
 }
 
 function renderHistoryCards(records){
@@ -2718,10 +2890,13 @@ function renderHistoryCards(records){
 }
 
 function viewHistoryDetail(id){
+  // highlight selected card
+  document.querySelectorAll('.history-card').forEach(c=>c.style.borderColor='');
+  const card = document.getElementById('hc_'+id);
+  if(card) card.style.borderColor='var(--accent)';
   jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
     if(err || data.status !== 'ok'){ alert('โหลดไม่ได้: ' + (err?.message||data?.message)); return; }
     const d = data.record;
-    const modal = document.getElementById('historyDetailModal');
     const content = document.getElementById('historyDetailContent');
     const PAYMENT_LABELS_LOCAL = {monthly_3m:'รายเดือน/ราย 3 เดือน', semi:'ราย 6 เดือน', annual:'รายปี'};
     const minorLabels = {normal:'แบบปกติ', advance:'จ่ายล่วงหน้า', with_down:'รวมกับดาวน์'};
@@ -2730,6 +2905,22 @@ function viewHistoryDetail(id){
         <div class="hd-title">📋 ${d.custName||'(ไม่ระบุชื่อ)'}</div>
         <button onclick="closeHistoryDetail()" style="font-family:'Kanit',sans-serif;font-size:20px;background:none;border:none;cursor:pointer;color:#888">✕</button>
       </div>
+
+      <div class="sales-summary-card">
+        <div class="ssc-head">🧾 สรุปการขาย (ดูไวใช้งานต่อได้เลย)</div>
+        <div class="ssc-grid">
+          <div class="ssc-item"><div class="k">ลูกค้า</div><div class="v">${d.custName||'—'}</div></div>
+          <div class="ssc-item"><div class="k">เบอร์โทร</div><div class="v">${d.custPhone||'—'}</div></div>
+          <div class="ssc-item"><div class="k">รุ่นที่ซื้อ</div><div class="v">${d.brand||''} ${d.model||''}</div></div>
+          <div class="ssc-item"><div class="k">โปรที่ใช้</div><div class="v">${d.progName||'—'}</div></div>
+          <div class="ssc-item"><div class="k">ยอดจัดไฟแนนซ์</div><div class="v accent">${fmt(d.finTotal||0)} บาท</div></div>
+          <div class="ssc-item"><div class="k">งวดใหญ่/ปี</div><div class="v accent">${fmt(d.bigPay||0)} บาท</div></div>
+          <div class="ssc-item"><div class="k">ระยะเวลาผ่อน</div><div class="v">${d.finYears||'—'} ปี</div></div>
+          <div class="ssc-item"><div class="k">วันที่ปิดการขาย</div><div class="v">${d.date || (d.savedAt?.slice(0,10)) || '—'}</div></div>
+          <div class="ssc-item full"><div class="k">สาขา/ผู้ปิดการขาย</div><div class="v">${d.branch||'—'}</div></div>
+        </div>
+      </div>
+
       <div class="hd-section">ข้อมูลลูกค้า</div>
       <div class="hd-row"><span class="hd-label">เบอร์โทร</span><span class="hd-val">${d.custPhone||'—'}</span></div>
       <div class="hd-row"><span class="hd-label">ที่อยู่</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${d.custAddr||'—'}</span></div>
@@ -2760,14 +2951,26 @@ function viewHistoryDetail(id){
 
       <div style="display:flex;gap:8px;margin-top:14px">
         <button class="btn-reprint" style="flex:1" onclick="closeHistoryDetail();reprintRecord('${id}')">🖨 พิมพ์ใบสรุป</button>
-        <button class="btn-del" onclick="closeHistoryDetail()">ปิด</button>
+        <button class="btn-del" onclick="closeHistoryDetail()">← รายการ</button>
       </div>
     `;
-    modal.style.display = 'flex';
+    // แสดงใน right panel
+    const emptyEl = document.getElementById('histDetailEmpty');
+    const contentEl = document.getElementById('historyDetailContent');
+    const rightEl = document.getElementById('historyRight');
+    if(emptyEl) emptyEl.style.display = 'none';
+    if(contentEl){ contentEl.style.display = 'block'; }
+    // mobile: show right panel fullscreen
+    if(window.innerWidth < 760 && rightEl) rightEl.classList.add('active');
   });
 }
 function closeHistoryDetail(){
-  document.getElementById('historyDetailModal').style.display = 'none';
+  const emptyEl = document.getElementById('histDetailEmpty');
+  const contentEl = document.getElementById('historyDetailContent');
+  const rightEl = document.getElementById('historyRight');
+  if(emptyEl) emptyEl.style.display = 'block';
+  if(contentEl) contentEl.style.display = 'none';
+  if(rightEl) rightEl.classList.remove('active');
 }
 function reprintRecord(id){
   jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
@@ -3086,9 +3289,11 @@ function renderEquipment(brand, model, finInterest, finYears){
       ? `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect width="18" height="18" rx="4" fill="var(--accent)"/><path d="M4 9l4 4 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
       : `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x=".5" y=".5" width="17" height="17" rx="3.5" stroke="var(--line)"/></svg>`;
     const finType = eqFinanceType[idx] || 'R';
+    // มือสอง: ล็อก R เท่านั้น ไม่มี F
+    const isUsedMode = eqMode === 'used';
     const finHtml = isSelected ? `<span onclick="event.stopPropagation()" style="display:inline-flex;gap:2px;margin-left:4px;vertical-align:middle">
-      <button onclick="setEqFinType(${idx},'F',event)" style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1.5px solid ${finType==='F'?'var(--accent)':'#ccc'};background:${finType==='F'?'var(--accent)':'#fff'};color:${finType==='F'?'#fff':'#999'};cursor:pointer">F</button>
-      <button onclick="setEqFinType(${idx},'R',event)" style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1.5px solid ${finType==='R'?'#1e7e34':'#ccc'};background:${finType==='R'?'#1e7e34':'#fff'};color:${finType==='R'?'#fff':'#999'};cursor:pointer">R</button>
+      ${!isUsedMode ? `<button onclick="setEqFinType(${idx},'F',event)" style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1.5px solid ${finType==='F'?'var(--accent)':'#ccc'};background:${finType==='F'?'var(--accent)':'#fff'};color:${finType==='F'?'#fff':'#999'};cursor:pointer">F</button>` : ''}
+      <button onclick="${!isUsedMode?`setEqFinType(${idx},'R',event)`:''}" style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1.5px solid #1e7e34;background:#1e7e34;color:#fff;cursor:${isUsedMode?'default':'pointer'}">R${isUsedMode?'✓':''}</button>
     </span>` : '';
     return `<div class="eq-item${isSelected ? ' selected' : ''}" onclick="toggleEq(${idx})" style="cursor:pointer">
       <span style="flex:0 0 18px">${checkIcon}</span>
@@ -3152,7 +3357,11 @@ function renderEquipment(brand, model, finInterest, finYears){
 
 function toggleEq(idx){
   if(idx in selectedEqSet){ delete selectedEqSet[idx]; delete eqFinanceType[idx]; }
-  else { selectedEqSet[idx] = false; eqFinanceType[idx] = 'R'; }
+  else {
+    selectedEqSet[idx] = false;
+    // มือสอง = R เท่านั้น, ใหม่ = R default (เปลี่ยนได้)
+    eqFinanceType[idx] = 'R';
+  }
   rerenderEq();
 }
 function setEqFinType(idx, val, event){
