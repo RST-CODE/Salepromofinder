@@ -2276,7 +2276,11 @@ function refreshExportSummary(){
 function saveAndPrint(){
   const d = collectExportData();
   saveToHistory(d);
-  setTimeout(()=> exportPDF(), 400);
+  setTimeout(()=> {
+    exportPDF();
+    // บันทึกเรียบร้อย — รีเซ็ตข้อมูลที่เลือก/กรอกทั้งหมด แล้วกลับไปหน้าเริ่มต้น
+    setTimeout(()=> location.reload(), 300);
+  }, 400);
 }
 
 function exportPDF(){
@@ -2908,21 +2912,30 @@ function viewHistoryDetail(id){
   const card = document.getElementById('hc_'+id);
   if(card) card.classList.add('selected');
 
-  // แสดง loading ทันที เพื่อให้เห็นชัดว่ากำลังโหลดรายการใหม่
   const emptyElNow = document.getElementById('histDetailEmpty');
   const contentElNow = document.getElementById('historyDetailContent');
   const rightElNow = document.getElementById('historyRight');
   if(emptyElNow) emptyElNow.style.display = 'none';
-  if(contentElNow){
-    contentElNow.style.display = 'block';
-    contentElNow.innerHTML = '<div class="history-loading">⏳ กำลังโหลดรายละเอียด...</div>';
-  }
+  if(contentElNow) contentElNow.style.display = 'block';
   if(window.innerWidth < 760 && rightElNow) rightElNow.classList.add('active');
   if(rightElNow) rightElNow.scrollTop = 0;
 
+  // ใช้ข้อมูลที่โหลดมาแล้วในลิสต์ก่อน (ไม่ต้องรอ GAS ซ้ำ — เร็วเกือบทันที)
+  const cached = _allHistoryRecords.find(r => String(r.id) === String(id));
+  if(cached){
+    renderHistoryDetailHtml(id, cached, '');
+    return;
+  }
+
+  // ถ้าไม่เจอในแคช (กรณีหายาก) ค่อย fallback ไปโหลดจาก GAS แบบเดิม
+  if(contentElNow) contentElNow.innerHTML = '<div class="history-loading">⏳ กำลังโหลดรายละเอียด...</div>';
   jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
     if(err || data.status !== 'ok'){ alert('โหลดไม่ได้: ' + (err?.message||data?.message)); return; }
-    const d = data.record;
+    renderHistoryDetailHtml(id, data.record, (data.row||[])[1]||'');
+  });
+}
+
+function renderHistoryDetailHtml(id, d, rowNote){
     const content = document.getElementById('historyDetailContent');
     const PAYMENT_LABELS_LOCAL = {monthly_3m:'รายเดือน/ราย 3 เดือน', semi:'ราย 6 เดือน', annual:'รายปี'};
     const minorLabels = {normal:'แบบปกติ', advance:'จ่ายล่วงหน้า', with_down:'รวมกับดาวน์'};
@@ -2973,7 +2986,7 @@ function viewHistoryDetail(id){
 
       <div class="hd-section">Timeline</div>
       <div class="hd-timeline">
-        <div class="hd-tl-row"><div class="hd-tl-dot"></div><div><b>เซ็นสัญญา</b> — ${d.date||''}<br><span style="color:#888;font-size:11px">บันทึกโดย ${d.branch||'—'} · ${(data.row||[])[1]||''}</span></div></div>
+        <div class="hd-tl-row"><div class="hd-tl-dot"></div><div><b>เซ็นสัญญา</b> — ${d.date||''}<br><span style="color:#888;font-size:11px">บันทึกโดย ${d.branch||'—'} · ${rowNote||''}</span></div></div>
       </div>
 
       <div style="display:flex;gap:8px;margin-top:14px">
@@ -2985,8 +2998,8 @@ function viewHistoryDetail(id){
     // scroll ขึ้นบนสุดของรายละเอียดใหม่ ให้เห็นชัดว่ามีการโหลดข้อมูลใหม่แล้ว
     const rightEl = document.getElementById('historyRight');
     if(rightEl) rightEl.scrollTop = 0;
-  });
 }
+
 function closeHistoryDetail(){
   const emptyEl = document.getElementById('histDetailEmpty');
   const contentEl = document.getElementById('historyDetailContent');
