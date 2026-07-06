@@ -699,6 +699,24 @@ body.printing #printArea{ display:block !important; }
 .gift-check-row:hover{ border-color:var(--accent); background:#fdf8f5; }
 .gift-check-row.checked{ border-color:var(--accent); background:#fdf0e8; }
 .gift-check-row svg{ flex:0 0 18px; }
+
+/* ===== History Detail Modal ===== */
+.hd-modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;
+  display:flex;align-items:flex-end;justify-content:center;
+}
+.hd-modal{
+  background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:520px;
+  max-height:90vh;overflow-y:auto;padding:16px;box-sizing:border-box;
+}
+.hd-title{ font-size:16px;font-weight:700;margin-bottom:8px; }
+.hd-section{ font-size:11px;color:var(--ink-soft);margin:10px 0 4px;font-weight:700;text-transform:uppercase;letter-spacing:.5px; }
+.hd-row{ display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #f0ede8; }
+.hd-row .hd-label{ color:#888; }
+.hd-row .hd-val{ font-weight:600; }
+.hd-timeline{ background:#f7f3ee;border-radius:8px;padding:10px 12px;margin-top:6px;font-size:12px; }
+.hd-tl-row{ display:flex;gap:8px;padding:4px 0; }
+.hd-tl-dot{ width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:4px;flex-shrink:0; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
@@ -861,9 +879,17 @@ body.printing #printArea{ display:block !important; }
     <br>
     <button class="btn-save-gas" onclick="saveGasUrl()">บันทึก URL</button>
   </div>
+  <div style="padding:0 16px 8px">
+    <input type="text" id="historySearch" placeholder="🔍 ค้นหาชื่อ เบอร์ จังหวัด อำเภอ ตำบล..."
+      style="width:100%;font-family:'Kanit',sans-serif;font-size:13px;padding:9px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;box-sizing:border-box"
+      oninput="filterHistory(this.value)">
+  </div>
   <div id="historyListContainer" class="history-list">
     <div class="history-loading">กำลังโหลด...</div>
   </div>
+</div>
+<div id="historyDetailModal" style="display:none" class="hd-modal-bg" onclick="if(event.target===this)closeHistoryDetail()">
+  <div class="hd-modal" id="historyDetailContent"></div>
 </div>
 <div id="exportPanelMobile">
   <div class="topbar" style="border-radius:0;border-top:none">
@@ -2203,21 +2229,21 @@ function exportPDF(){
         });
         colsHtml += `</table></td>`;
       }
-      return `<table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:6px"><tr>${colsHtml}</tr></table>`;
+      return `<table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:3px"><tr>${colsHtml}</tr></table>`;
     }
 
     return renderHalf(1, firstHalf) + (secondHalf>0 ? renderHalf(6, secondHalf) : '');
   }
 
   const printHtml = `
-    <div style="font-family:'Sarabun',sans-serif;font-size:8.5pt;color:#000;width:100%;max-width:194mm;margin:0 auto;padding:0;box-sizing:border-box">
+    <div style="font-family:'Sarabun',sans-serif;font-size:7.5pt;color:#000;width:100%;max-width:194mm;margin:0 auto;padding:0;box-sizing:border-box">
       <div style="text-align:center;margin-bottom:3px">
         <div style="font-size:13pt;font-weight:bold">รวมสินไทยแทรกเตอร์ ${d.branch ? '— '+d.branch : ''}</div>
         <div style="font-size:9pt;color:#555">ใบสรุปเช่าซื้อ วันที่ ${d.date}</div>
       </div>
-      <hr style="border:0.5px solid #ccc;margin:3px 0">
+      <hr style="border:0.5px solid #ccc;margin:2px 0">
 
-      <table style="width:100%;border-collapse:collapse;margin-bottom:4px">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:2px">
         <tr>
           <td style="width:50%;padding:2px 0"><b>ชื่อลูกค้า:</b> ${d.custName||'....................................'}</td>
           <td style="width:50%;padding:2px 0"><b>กลุ่มลูกค้า:</b> ${d.seg} (${d.brand})</td>
@@ -2231,7 +2257,7 @@ function exportPDF(){
         </tr>
       </table>
 
-      <table style="width:100%;border-collapse:collapse;border:0.5px solid #bbb;margin-bottom:4px">
+      <table style="width:100%;border-collapse:collapse;border:0.5px solid #bbb;margin-bottom:3px">
         <thead><tr style="background:#f0ede8">
           <th style="padding:2px 5px;text-align:left;font-size:9.5pt;border:0.5px solid #bbb">ประเภทสินค้า</th>
           <th style="padding:2px 5px;text-align:left;font-size:9.5pt;border:0.5px solid #bbb">รุ่น</th>
@@ -2239,8 +2265,8 @@ function exportPDF(){
         </tr></thead>
         <tbody>
           <tr>
-            <td style="padding:2px 5px;border:0.5px solid #bbb">รถแทรกเตอร์</td>
-            <td style="padding:2px 5px;border:0.5px solid #bbb">${d.model}</td>
+            <td style="padding:1px 4px;border:0.5px solid #bbb">รถแทรกเตอร์</td>
+            <td style="padding:1px 4px;border:0.5px solid #bbb">${d.model}</td>
             <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(d.price)}</td>
           </tr>
           ${(()=>{
@@ -2248,21 +2274,21 @@ function exportPDF(){
             if(!specGifts.length) return '';
             const _cg = (document.getElementById('customGiftInput')?.value || customGiftText || '').trim();
             const extraGift = _cg ? ` · ✏️ ${_cg}` : '';
-            return `<tr style="background:#fffbe6"><td style="padding:2px 5px;border:0.5px solid #e0c060;font-size:7.5pt;color:#8a6500" colspan="3">ของแถมพิเศษ: ${specGifts.join(' · ')}${extraGift}</td></tr>`;
+            return `<tr style="background:#fffbe6"><td style="padding:1px 4px;border:0.5px solid #e0c060;font-size:7.5pt;color:#8a6500" colspan="3">ของแถมพิเศษ: ${specGifts.join(' · ')}${extraGift}</td></tr>`;
           })()}
           ${d.eqItems.length>0 ? d.eqItems.map(eq=>`<tr>
-            <td style="padding:2px 5px;border:0.5px solid #bbb;font-weight:bold;color:${eq.finType==='F'?'#c9813a':'#1e7e34'}">${eq.finType||'R'}</td>
-            <td style="padding:2px 5px;border:0.5px solid #bbb">${eq.name}</td>
+            <td style="padding:1px 4px;border:0.5px solid #bbb;font-weight:bold;color:${eq.finType==='F'?'#c9813a':'#1e7e34'}">${eq.finType||'R'}</td>
+            <td style="padding:1px 4px;border:0.5px solid #bbb">${eq.name}</td>
             <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(eq.price)}</td>
           </tr>`).join('') : ''}
           <tr style="background:#f0ede8;font-weight:bold">
-            <td colspan="2" style="padding:2px 5px;border:0.5px solid #bbb">ราคารวมทั้งสิ้น</td>
+            <td colspan="2" style="padding:1px 4px;border:0.5px solid #bbb">ราคารวมทั้งสิ้น</td>
             <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(totalRacarom)}</td>
           </tr>
         </tbody>
       </table>
 
-      <table style="width:100%;border-collapse:collapse;margin-bottom:4px;font-size:8pt">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:3px;font-size:7.5pt">
         <tr>
           <td style="width:50%;vertical-align:top;padding-right:6px;border-right:1.5px solid #e8d8c0">
             <div style="font-weight:bold;color:#c9813a;background:#fff8f0;padding:2px 4px;border-radius:4px;margin-bottom:3px;font-size:8.5pt">🚜 รถแทรกเตอร์</div>
@@ -2296,7 +2322,7 @@ function exportPDF(){
         </tr>
       </table>
 
-      <div style="font-size:8pt;font-weight:bold;margin-bottom:2px">ตารางงวดชำระ — ${d.finYears} ปี (${d.finYears*12} งวด)${d.eqAnnual>0?(()=>{
+      <div style="font-size:7.5pt;font-weight:bold;margin-bottom:1px">ตารางงวดชำระ — ${d.finYears} ปี (${d.finYears*12} งวด)${d.eqAnnual>0?(()=>{
         const pt=d.tractorPayment;
         const times = pt==='monthly_3m'?12:pt==='semi'?2:1;
         const perTime = Math.round(d.eqAnnual/times);
@@ -2317,7 +2343,7 @@ function exportPDF(){
         return out;
       })()}
 
-      <hr style="border:0.5px solid #ccc;margin:5px 0">
+      <hr style="border:0.5px solid #ccc;margin:3px 0">
       <table style="width:100%">
         <tr>
           <td style="text-align:center;font-size:9pt">ลงชื่อ .................................<br>ผู้แนะนำ</td>
@@ -2535,10 +2561,32 @@ function loadHistory(){
   });
 }
 
+let _allHistoryRecords = [];
+
+function filterHistory(q){
+  const sq = q.trim().toLowerCase();
+  if(!sq){ renderHistoryList(_allHistoryRecords); return; }
+  const filtered = _allHistoryRecords.filter(r=>{
+    const searchable = [r.custName, r.custPhone, r.custAddr, r.branch, r.model, r.progName].join(' ').toLowerCase();
+    return sq.split(/\s+/).every(w => searchable.includes(w));
+  });
+  renderHistoryCards(filtered);
+}
+
 function renderHistoryList(records){
+  _allHistoryRecords = records || [];
   const container = document.getElementById('historyListContainer');
   if(!records || records.length === 0){
     container.innerHTML = '<div class="history-empty">ยังไม่มีประวัติ<br><small>Export ครั้งแรกแล้วจะโชว์ที่นี่</small></div>';
+    return;
+  }
+  renderHistoryCards(records);
+}
+
+function renderHistoryCards(records){
+  const container = document.getElementById('historyListContainer');
+  if(!records || records.length === 0){
+    container.innerHTML = '<div class="history-empty">ไม่พบรายการที่ค้นหา</div>';
     return;
   }
   container.innerHTML = records.map(r => `
@@ -2556,14 +2604,66 @@ function renderHistoryList(records){
       </div>
       ${r.custPhone ? `<div class="hc-nums" style="margin-top:2px">📞 ${r.custPhone} ${r.branch ? '· '+r.branch : ''}</div>` : ''}
       <div class="hc-actions">
+        <button class="btn-reprint" onclick="viewHistoryDetail('${r.id}')">📋 รายละเอียด</button>
         <button class="btn-reprint" onclick="reprintRecord('${r.id}')">🖨 พิมพ์ซ้ำ</button>
-        <button class="btn-rexport" onclick="reExportXLSX('${r.id}')">📊 Excel</button>
         <button class="btn-del" onclick="deleteRecord('${r.id}')">ลบ</button>
       </div>
     </div>
   `).join('');
 }
 
+function viewHistoryDetail(id){
+  jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
+    if(err || data.status !== 'ok'){ alert('โหลดไม่ได้: ' + (err?.message||data?.message)); return; }
+    const d = data.record;
+    const modal = document.getElementById('historyDetailModal');
+    const content = document.getElementById('historyDetailContent');
+    const PAYMENT_LABELS_LOCAL = {monthly_3m:'รายเดือน/ราย 3 เดือน', semi:'ราย 6 เดือน', annual:'รายปี'};
+    const minorLabels = {normal:'แบบปกติ', advance:'จ่ายล่วงหน้า', with_down:'รวมกับดาวน์'};
+    content.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="hd-title">📋 ${d.custName||'(ไม่ระบุชื่อ)'}</div>
+        <button onclick="closeHistoryDetail()" style="font-family:'Kanit',sans-serif;font-size:20px;background:none;border:none;cursor:pointer;color:#888">✕</button>
+      </div>
+      <div class="hd-section">ข้อมูลลูกค้า</div>
+      <div class="hd-row"><span class="hd-label">เบอร์โทร</span><span class="hd-val">${d.custPhone||'—'}</span></div>
+      <div class="hd-row"><span class="hd-label">ที่อยู่</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${d.custAddr||'—'}</span></div>
+      <div class="hd-row"><span class="hd-label">สาขา/ผู้ปิดการขาย</span><span class="hd-val">${d.branch||'—'}</span></div>
+
+      <div class="hd-section">รายละเอียดการซื้อ</div>
+      <div class="hd-row"><span class="hd-label">แบรนด์/รุ่น</span><span class="hd-val">${d.brand} ${d.model}</span></div>
+      <div class="hd-row"><span class="hd-label">กลุ่มลูกค้า</span><span class="hd-val">${d.seg}</span></div>
+      <div class="hd-row"><span class="hd-label">โปร</span><span class="hd-val" style="color:var(--accent)">${d.progName}</span></div>
+      <div class="hd-row"><span class="hd-label">ราคารถ</span><span class="hd-val">${fmt(d.price||0)} บาท</span></div>
+      ${(d.eqItems||[]).length>0 ? (d.eqItems.map(eq=>`<div class="hd-row"><span class="hd-label">อุปกรณ์ (${eq.finType||'R'})</span><span class="hd-val">${eq.name} — ${fmt(eq.price)}</span></div>`).join('')) : ''}
+
+      <div class="hd-section">การเงิน</div>
+      <div class="hd-row"><span class="hd-label">ดาวน์รวม</span><span class="hd-val">${fmt(d.down||0)}</span></div>
+      <div class="hd-row"><span class="hd-label">ช่วยดาวน์</span><span class="hd-val">${fmt(d.support||0)}</span></div>
+      <div class="hd-row"><span class="hd-label">จ่ายจริง</span><span class="hd-val" style="color:var(--accent)">${fmt(d.custOut||0)}</span></div>
+      <div class="hd-row"><span class="hd-label">ยอดจัด</span><span class="hd-val">${fmt(d.finTotal||0)}</span></div>
+      <div class="hd-row"><span class="hd-label">รูปแบบการผ่อน</span><span class="hd-val">${PAYMENT_LABELS_LOCAL[d.tractorPayment]||d.tractorPayment||'—'}</span></div>
+      <div class="hd-row"><span class="hd-label">รูปแบบงวดย่อย</span><span class="hd-val">${minorLabels[d.minorMode]||'แบบปกติ'}</span></div>
+      <div class="hd-row"><span class="hd-label">งวดใหญ่/ปี</span><span class="hd-val" style="color:var(--accent);font-size:15px">${fmt(d.bigPay||0)} บาท</span></div>
+      <div class="hd-row"><span class="hd-label">งวดย่อย/เดือน</span><span class="hd-val">${fmt(d.minor||0)} บาท × ${d.tractorPayment==='semi'?10:11} เดือน</span></div>
+      <div class="hd-row"><span class="hd-label">ระยะเวลา</span><span class="hd-val">${d.finYears} ปี @ ${((d.finRate||0)*100).toFixed(2)}%</span></div>
+
+      <div class="hd-section">Timeline</div>
+      <div class="hd-timeline">
+        <div class="hd-tl-row"><div class="hd-tl-dot"></div><div><b>เซ็นสัญญา</b> — ${d.date||''}<br><span style="color:#888;font-size:11px">บันทึกโดย ${d.branch||'—'} · ${(data.row||[])[1]||''}</span></div></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn-reprint" style="flex:1" onclick="closeHistoryDetail();reprintRecord('${id}')">🖨 พิมพ์ใบสรุป</button>
+        <button class="btn-del" onclick="closeHistoryDetail()">ปิด</button>
+      </div>
+    `;
+    modal.style.display = 'flex';
+  });
+}
+function closeHistoryDetail(){
+  document.getElementById('historyDetailModal').style.display = 'none';
+}
 function reprintRecord(id){
   jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
     if(err || data.status !== 'ok'){ alert('โหลดไม่ได้: ' + (err?.message||data?.message)); return; }
