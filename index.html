@@ -717,6 +717,31 @@ body.printing #printArea{ display:block !important; }
 .hd-timeline{ background:#f7f3ee;border-radius:8px;padding:10px 12px;margin-top:6px;font-size:12px; }
 .hd-tl-row{ display:flex;gap:8px;padding:4px 0; }
 .hd-tl-dot{ width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:4px;flex-shrink:0; }
+
+/* ===== History Filter Panel ===== */
+.hist-filter{
+  background:#f7f3ee; border-bottom:1.5px solid var(--line);
+  padding:10px 16px; display:flex; flex-direction:column; gap:6px;
+}
+.hist-filter-row{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.hist-filter-row.three{ grid-template-columns:1fr 1fr 1fr; }
+.hist-filter input, .hist-filter select{
+  font-family:'Kanit',sans-serif; font-size:12px;
+  padding:7px 10px; border-radius:8px; border:1.5px solid var(--line);
+  background:#fff; width:100%; box-sizing:border-box; color:var(--ink);
+}
+.hist-filter input:focus, .hist-filter select:focus{
+  outline:none; border-color:var(--accent);
+}
+.hist-filter label{ font-size:10px; color:var(--ink-soft); margin-bottom:2px; display:block; }
+.hist-filter-group{ display:flex; flex-direction:column; }
+.hist-filter-clear{
+  font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
+  padding:7px 14px; border-radius:8px; border:1.5px solid #ccc;
+  background:#fff; color:#888; cursor:pointer; white-space:nowrap; align-self:flex-end;
+}
+.hist-filter-clear:hover{ border-color:var(--accent); color:var(--accent); }
+.hist-count{ font-size:11px; color:var(--ink-soft); padding:4px 16px 0; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
@@ -879,10 +904,49 @@ body.printing #printArea{ display:block !important; }
     <br>
     <button class="btn-save-gas" onclick="saveGasUrl()">บันทึก URL</button>
   </div>
-  <div style="padding:0 16px 8px">
-    <input type="text" id="historySearch" placeholder="🔍 ค้นหาชื่อ เบอร์ จังหวัด อำเภอ ตำบล..."
-      style="width:100%;font-family:'Kanit',sans-serif;font-size:13px;padding:9px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;box-sizing:border-box"
-      oninput="filterHistory(this.value)">
+  <div class="hist-filter">
+    <div class="hist-filter-row">
+      <div class="hist-filter-group">
+        <label>ชื่อลูกค้า</label>
+        <input type="text" id="hf_name" placeholder="ชื่อ-นามสกุล" oninput="filterHistory()">
+      </div>
+      <div class="hist-filter-group">
+        <label>เบอร์โทร</label>
+        <input type="text" id="hf_phone" placeholder="0xx-xxx-xxxx" inputmode="tel" oninput="filterHistory()">
+      </div>
+    </div>
+    <div class="hist-filter-row three">
+      <div class="hist-filter-group">
+        <label>จังหวัด</label>
+        <input type="text" id="hf_province" placeholder="จังหวัด" oninput="filterHistory()">
+      </div>
+      <div class="hist-filter-group">
+        <label>อำเภอ</label>
+        <input type="text" id="hf_amphure" placeholder="อำเภอ" oninput="filterHistory()">
+      </div>
+      <div class="hist-filter-group">
+        <label>ตำบล</label>
+        <input type="text" id="hf_tambon" placeholder="ตำบล" oninput="filterHistory()">
+      </div>
+    </div>
+    <div class="hist-filter-row">
+      <div class="hist-filter-group">
+        <label>รุ่นรถ</label>
+        <select id="hf_model" onchange="filterHistory()">
+          <option value="">— ทุกรุ่น —</option>
+        </select>
+      </div>
+      <div class="hist-filter-group">
+        <label>โปร</label>
+        <select id="hf_prog" onchange="filterHistory()">
+          <option value="">— ทุกโปร —</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span id="histFilterCount" class="hist-count"></span>
+      <button class="hist-filter-clear" onclick="clearHistoryFilter()">✕ ล้างตัวกรอง</button>
+    </div>
   </div>
   <div id="historyListContainer" class="history-list">
     <div class="history-loading">กำลังโหลด...</div>
@@ -2563,18 +2627,59 @@ function loadHistory(){
 
 let _allHistoryRecords = [];
 
-function filterHistory(q){
-  const sq = q.trim().toLowerCase();
-  if(!sq){ renderHistoryList(_allHistoryRecords); return; }
+function filterHistory(){
+  const fName    = (document.getElementById('hf_name')?.value||'').trim().toLowerCase();
+  const fPhone   = (document.getElementById('hf_phone')?.value||'').trim();
+  const fProv    = (document.getElementById('hf_province')?.value||'').trim().toLowerCase();
+  const fAmph    = (document.getElementById('hf_amphure')?.value||'').trim().toLowerCase();
+  const fTambon  = (document.getElementById('hf_tambon')?.value||'').trim().toLowerCase();
+  const fModel   = (document.getElementById('hf_model')?.value||'');
+  const fProg    = (document.getElementById('hf_prog')?.value||'');
+
   const filtered = _allHistoryRecords.filter(r=>{
-    const searchable = [r.custName, r.custPhone, r.custAddr, r.branch, r.model, r.progName].join(' ').toLowerCase();
-    return sq.split(/\s+/).every(w => searchable.includes(w));
+    const addr = (r.custAddr||'').toLowerCase();
+    if(fName   && !(r.custName||'').toLowerCase().includes(fName)) return false;
+    if(fPhone  && !(r.custPhone||'').includes(fPhone)) return false;
+    if(fProv   && !addr.includes(fProv)) return false;
+    if(fAmph   && !addr.includes(fAmph)) return false;
+    if(fTambon && !addr.includes(fTambon)) return false;
+    if(fModel  && (r.model||'') !== fModel) return false;
+    if(fProg   && (r.progName||'') !== fProg) return false;
+    return true;
   });
+
+  const countEl = document.getElementById('histFilterCount');
+  if(countEl) countEl.textContent = filtered.length < _allHistoryRecords.length
+    ? `แสดง ${filtered.length} จาก ${_allHistoryRecords.length} รายการ`
+    : `ทั้งหมด ${_allHistoryRecords.length} รายการ`;
+
   renderHistoryCards(filtered);
+}
+
+function clearHistoryFilter(){
+  ['hf_name','hf_phone','hf_province','hf_amphure','hf_tambon'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  ['hf_model','hf_prog'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  filterHistory();
+}
+
+function populateFilterDropdowns(){
+  const models = [...new Set(_allHistoryRecords.map(r=>r.model).filter(Boolean))].sort();
+  const progs  = [...new Set(_allHistoryRecords.map(r=>r.progName).filter(Boolean))].sort();
+  const mSel = document.getElementById('hf_model');
+  const pSel = document.getElementById('hf_prog');
+  if(mSel){ mSel.innerHTML = '<option value="">— ทุกรุ่น —</option>' + models.map(m=>`<option>${m}</option>`).join(''); }
+  if(pSel){ pSel.innerHTML = '<option value="">— ทุกโปร —</option>' + progs.map(p=>`<option>${p}</option>`).join(''); }
 }
 
 function renderHistoryList(records){
   _allHistoryRecords = records || [];
+  populateFilterDropdowns();
+  const countEl = document.getElementById('histFilterCount');
+  if(countEl) countEl.textContent = `ทั้งหมด ${_allHistoryRecords.length} รายการ`;
   const container = document.getElementById('historyListContainer');
   if(!records || records.length === 0){
     container.innerHTML = '<div class="history-empty">ยังไม่มีประวัติ<br><small>Export ครั้งแรกแล้วจะโชว์ที่นี่</small></div>';
