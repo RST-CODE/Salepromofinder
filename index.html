@@ -1292,6 +1292,11 @@ function cardHtml(r, badge, compareTo, editable){
 
   let paymentDesc = '';
   const isSemi = tractorPayment==='semi';
+  // F/R badge สำหรับรถ (แสดงใน chip)
+  const tractorFRHtml = `<span onclick="event.stopPropagation()" style="display:inline-flex;gap:2px;margin-left:6px;vertical-align:middle">
+    <button onclick="tractorFinType='F';renderResults()" style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1.5px solid ${tractorFinType==='F'?'var(--accent)':'#ccc'};background:${tractorFinType==='F'?'var(--accent)':'#fff'};color:${tractorFinType==='F'?'#fff':'#999'};cursor:pointer">F</button>
+    <button onclick="tractorFinType='R';renderResults()" style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1.5px solid ${tractorFinType==='R'?'#1e7e34':'#ccc'};background:${tractorFinType==='R'?'#1e7e34':'#fff'};color:${tractorFinType==='R'?'#fff':'#999'};cursor:pointer">R</button>
+  </span>`;
   const bigLabel = isSemi
     ? fmt(roundInstallment(bigPayment)) + ' × 2 ครั้ง'
     : fmt(roundInstallment(bigPayment));
@@ -1314,7 +1319,7 @@ function cardHtml(r, badge, compareTo, editable){
       : fmt(roundInstallment(finAnnual));
     paymentDesc = ' · <b>' + noMinorLabel + '</b> บาท/งวด';
   }
-  const paymentChip = `<span class="chip">ผ่อน <b>${finYears} ปี</b> · ${payFreqLabel} @ <b>${fmtPct(finInterest)}</b>${paymentDesc}</span>`;
+  const paymentChip = `<span class="chip">ผ่อน <b>${finYears} ปี</b> · ${payFreqLabel} @ <b>${fmtPct(finInterest)}</b>${paymentDesc} ${tractorFRHtml}</span>`;
 
   let savingsChip = '';
   if(extra>0){
@@ -1582,6 +1587,7 @@ modelSelect.addEventListener('change', ()=>{
   selectedEqSet = {}; eqDown = 0; selectedPromoIdx = 0;
   eqFinanceType = {};
   eqMode = 'new';
+  tractorFinType = 'F';
   eqPaymentUserSet = false;
   renderToggles();
   renderResults();
@@ -1609,6 +1615,7 @@ let eqMinorModeUserSet = false;
 let selectedEqSet = {}; // {idx: useSpecial}
 let eqMode = 'new'; // 'new' | 'used'
 let eqFinanceType = {}; // {idx: 'F'|'R'} default R
+let tractorFinType = 'F'; // default F
 let eqDown = 0;
 
 
@@ -1938,10 +1945,19 @@ function collectExportData(){
   const eqFinYears = eqYears || finYears;
   const eqFinRate  = lookupInterest(currentBrand, currentSegment, eqFinYears, eqPayment);
   const eqDown2    = Math.max(0, eqDown);
-  const eqFinTotal = Math.max(0, eqTotalPrice - eqDown2);
+  // แยก F และ R
+  const eqFPrice = selectedEqList.filter(i=>i.finType==='F').reduce((s,i)=>s+i.price, 0);
+  const eqRPrice = selectedEqList.filter(i=>i.finType==='R').reduce((s,i)=>s+i.price, 0);
+  // ดาวน์ตัดจาก R ก่อน ถ้าเกินค่อยตัด F
+  const eqDownR  = Math.min(eqDown2, eqRPrice);
+  const eqDownF  = Math.max(0, eqDown2 - eqDownR);
+  const eqFFinTotal = Math.max(0, eqFPrice - eqDownF);
+  const eqRFinTotal = Math.max(0, eqRPrice - eqDownR);
+  const eqFinTotal  = Math.max(0, eqTotalPrice - eqDown2);
   const eqAnnualFull = eqFinTotal > 0 ? eqFinTotal * (1/eqFinYears + eqFinRate) : 0;
-  // eqMinorMode: ใช้เพื่อคำนวณงวดใหญ่อุปกรณ์
-  // อุปกรณ์ไม่มีงวดย่อย — eqMinorBase = 0 เสมอ
+  const eqFAnnual = eqFFinTotal > 0 ? roundInstallment(eqFFinTotal * (1/eqFinYears + eqFinRate)) : 0;
+  const eqRAnnual = eqRFinTotal > 0 ? roundInstallment(eqRFinTotal * (1/eqFinYears + eqFinRate)) : 0;
+  // อุปกรณ์ไม่มีงวดย่อย
   const eqMinorBase = 0;
   const eqPeriodsMinor = eqPayment==='semi' ? 10 : 11;
   const eqBigPayFull = Math.max(0, eqAnnualFull);
@@ -1963,9 +1979,11 @@ function collectExportData(){
     finYears, finRate, finTotal: Math.round(finTotal), annualFull: Math.round(annualFull),
     minorMode, minorAdvanceTotal,
     minor, bigPay, bigPayFull: tractorPayment==='semi' ? roundInstallment(bigPayFull/2) : roundInstallment(bigPayFull), tractorPayment,
-    eqItems: selectedEqList, eqTotalPrice, eqDown: eqDown2,
+    eqItems: selectedEqList, eqTotalPrice, eqTotalF: eqFPrice, eqTotalR: eqRPrice,
+    eqAnnualF: eqFAnnual, eqAnnualR: eqRAnnual, eqDown: eqDown2, eqDownF, eqDownR,
     eqFinTotal: Math.round(eqFinTotal), eqAnnual, eqAnnualFull: Math.round(eqAnnualFull),
-    eqFinYears, eqFinRate, eqPayment, eqMinorMode, eqMinorBase,
+    eqFAnnual, eqRAnnual, eqFFinTotal: Math.round(eqFFinTotal), eqRFinTotal: Math.round(eqRFinTotal),
+    tractorFinType, eqFinYears, eqFinRate, eqPayment, eqMinorMode, eqMinorBase,
     gifts,
     yct: e.yct||0, ysp: e.ysp||0, fire: e.fire||0,
     totalDown: down, date: new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}),
@@ -2129,8 +2147,8 @@ function exportPDF(){
   // แต่ละงวดในตาราง: งวดเล็ก = minor(รถ) | งวดใหญ่ = bigPay(รถ) + eqAnnual(อุปกรณ์รวม)
   // *** ไม่มี eqMonthly — อุปกรณ์รวมเฉพาะงวดใหญ่ปีละครั้ง ***
 
-  function scheduleTableHtml(rows, eqAnnualAmt){
-    // อุปกรณ์: ใช้ eqPayment และ eqMinorMode ของตัวเอง
+  function scheduleTableHtml(rows, eqFAmt, eqRAmt){
+    const eqAnnualAmt = (eqFAmt||0) + (eqRAmt||0);
     const _pt = d.tractorPayment;   // ใช้แค่เพื่อตาราง schedule งวดรถ
     const _eqPt = d.eqPayment || _pt;
     const isSemiPay = _pt === 'semi';
@@ -2139,8 +2157,10 @@ function exportPDF(){
     const eqMode = d.eqMinorMode || 'normal';
     const eqMinorPerPeriod = d.eqMinorBase || 0;
     // bigPay อุปกรณ์ต่อ period (หักงวดย่อยเฉพาะแบบ normal)
-    const eqBigPerYear = eqAnnualAmt; // อุปกรณ์ไม่มีงวดย่อย จ่ายเต็มทุกงวดใหญ่
+    const eqBigPerYear = eqAnnualAmt;
     const eqPerBigMonth = eqAnnualAmt > 0 ? Math.round(eqBigPerYear / eqTimesPerYear) : 0;
+    const eqFPerBig = eqFAmt > 0 ? Math.round(eqFAmt / eqTimesPerYear) : 0;
+    const eqRPerBig = eqRAmt > 0 ? Math.round(eqRAmt / eqTimesPerYear) : 0;
     const yearsTotal = Math.ceil(rows.length / 12);
     // แบ่งเป็น 2 แถว: ปี 1-5 แถวบน, ปี 6-10 แถวล่าง
     const firstHalf  = Math.min(5, yearsTotal);
@@ -2165,14 +2185,14 @@ function exportPDF(){
               : monthInYear===12;  // annual
           const bg = isBigCell ? 'background:#fff3e0;' : (r.period%2===0?'background:#fafafa':'');
           const fw = isBigCell ? 'font-weight:bold;' : '';
-          const showEq = eqAnnualAmt > 0 && isBigCell && r.amt > 0;
+          const showEq = (eqFAmt > 0 || eqRAmt > 0) && isBigCell && r.amt > 0;
           if(r.amt === 0) {
             // งวดว่าง
             colsHtml += `<tr><td style="padding:0.5px 2px;color:#ddd;width:18px;font-size:6pt">${monthInYear}</td><td style="padding:0.5px 2px;text-align:right;color:#ddd;font-size:6pt">—</td></tr>`;
           } else if(showEq){
             colsHtml += `<tr style="${bg}">
               <td style="padding:1px 2px;color:#666;width:18px;${fw}">${monthInYear}</td>
-              <td style="padding:1px 2px;text-align:right;${fw}">${fmt(r.amt)}<br><span style="font-size:6.5pt;color:#1e7e34;font-weight:normal">+${fmt(eqPerBigMonth)}</span></td>
+              <td style="padding:1px 2px;text-align:right;${fw}">${fmt(r.amt)}${eqFPerBig>0?`<br><span style="font-size:6pt;color:var(--accent);font-weight:normal">F+${fmt(eqFPerBig)}</span>`:''}${eqRPerBig>0?`<br><span style="font-size:6pt;color:#1e7e34;font-weight:normal">R+${fmt(eqRPerBig)}</span>`:''}${eqAnnualAmt>0&&eqFPerBig===0&&eqRPerBig===0?`<br><span style="font-size:6.5pt;color:#1e7e34;font-weight:normal">+${fmt(eqPerBigMonth)}</span>`:''}</td>
             </tr>`;
           } else {
             colsHtml += `<tr style="${bg}">
@@ -2267,7 +2287,9 @@ function exportPDF(){
               <tr><td style="color:#888;padding:1px 0"> </td><td></td></tr>
               <tr><td style="padding:1px 0;font-weight:bold">จ่ายจริง</td><td style="text-align:right;font-weight:bold;color:#1e7e34">${fmt(d.eqDown)}</td></tr>
               <tr><td style="color:#888;padding:1px 0">ยอดจัด</td><td style="text-align:right;color:#888">${fmt(d.eqFinTotal)}</td></tr>
-              <tr style="background:#f0fff4"><td style="padding:1px 0;font-weight:bold">งวดใหญ่/ปี</td><td style="text-align:right;font-weight:bold;color:#1e7e34">${fmt(d.eqAnnual)}</td></tr>
+              ${(d.eqAnnualF||0)>0?`<tr style="background:#fff3e0"><td style="padding:1px 0;font-weight:bold;color:var(--accent)">F งวด/ปี</td><td style="text-align:right;font-weight:bold;color:var(--accent)">${fmt(d.eqAnnualF)}</td></tr>`:''}
+              ${(d.eqAnnualR||0)>0?`<tr style="background:#f0fff4"><td style="padding:1px 0;font-weight:bold;color:#1e7e34">R งวด/ปี</td><td style="text-align:right;font-weight:bold;color:#1e7e34">${fmt(d.eqAnnualR)}</td></tr>`:''}
+              ${!(d.eqAnnualF||0)&&!(d.eqAnnualR||0)?`<tr style="background:#f0fff4"><td style="padding:1px 0;font-weight:bold">งวดใหญ่/ปี</td><td style="text-align:right;font-weight:bold;color:#1e7e34">${fmt(d.eqAnnual)}</td></tr>`:''}
               <tr><td style="color:#888;padding:1px 0">${d.eqFinYears} ปี @ ${(d.eqFinRate*100).toFixed(2)}%</td><td></td></tr>
             </table>` : '<div style="color:#ccc;font-size:8pt;padding-top:8px">— ไม่มีอุปกรณ์ —</div>'}
           </td>
@@ -2281,7 +2303,7 @@ function exportPDF(){
         const suffix = pt==='monthly_3m'?'/เดือน':pt==='semi'?'/ครั้ง × 2':'/ปี';
         return ` + อุปกรณ์ <span style='color:#1e7e34'>${fmt(perTime)}${suffix}</span>`;
       })():''}</div>
-      ${scheduleTableHtml(schedule, d.eqAnnual>0 ? d.eqAnnual : 0)}
+      ${scheduleTableHtml(schedule, d.eqAnnualF||0, d.eqAnnualR||0)}
 
 
       ${(()=>{
