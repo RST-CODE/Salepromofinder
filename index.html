@@ -1942,9 +1942,10 @@ function collectExportData(){
   const eqFinTotal = Math.max(0, eqTotalPrice - eqDown2);
   const eqAnnualFull = eqFinTotal > 0 ? eqFinTotal * (1/eqFinYears + eqFinRate) : 0;
   // eqMinorMode: ใช้เพื่อคำนวณงวดใหญ่อุปกรณ์
-  const eqMinorBase = getMinorFromPayment(eqPayment);
+  // อุปกรณ์ไม่มีงวดย่อย — eqMinorBase = 0 เสมอ
+  const eqMinorBase = 0;
   const eqPeriodsMinor = eqPayment==='semi' ? 10 : 11;
-  const eqBigPayFull = Math.max(0, eqAnnualFull - eqMinorBase * (eqMinorMode==='normal' ? eqPeriodsMinor : 0));
+  const eqBigPayFull = Math.max(0, eqAnnualFull);
   const eqAnnual = roundInstallment(eqAnnualFull);
 
   // Gifts
@@ -1953,6 +1954,9 @@ function collectExportData(){
   const specialGifts  = allGifts.filter(g => !isCommonGift(g));
   const checkedSpecial = specialGifts.filter(g => selectedSpecialGifts[g] !== false);
   const gifts = [...checkedSpecial, ...standardGifts];
+  // เพิ่มของแถมที่พิมพ์เอง
+  const _customGift = (document.getElementById('customGiftInput')?.value || document.getElementById('customGiftInputM')?.value || customGiftText || '').trim();
+  if(_customGift) gifts.unshift('✏️ ' + _customGift);
 
   return {
     custName, custAddr, custPhone, branch, model, brand, seg, progName,
@@ -2136,9 +2140,7 @@ function exportPDF(){
     const eqMode = d.eqMinorMode || 'normal';
     const eqMinorPerPeriod = d.eqMinorBase || 0;
     // bigPay อุปกรณ์ต่อ period (หักงวดย่อยเฉพาะแบบ normal)
-    const eqBigPerYear = eqMode==='normal'
-      ? eqAnnualAmt - eqMinorPerPeriod*(eqIsSemi?10:11)
-      : eqAnnualAmt; // แบบ 2/3: annual เต็ม
+    const eqBigPerYear = eqAnnualAmt; // อุปกรณ์ไม่มีงวดย่อย จ่ายเต็มทุกงวดใหญ่
     const eqPerBigMonth = eqAnnualAmt > 0 ? Math.round(eqBigPerYear / eqTimesPerYear) : 0;
     const yearsTotal = Math.ceil(rows.length / 12);
     // แบ่งเป็น 2 แถว: ปี 1-5 แถวบน, ปี 6-10 แถวล่าง
@@ -2225,7 +2227,9 @@ function exportPDF(){
           ${(()=>{
             const specGifts = d.gifts.filter(g=>!isCommonGift(g));
             if(!specGifts.length) return '';
-            return `<tr style="background:#fffbe6"><td style="padding:2px 5px;border:0.5px solid #e0c060;font-size:7.5pt;color:#8a6500" colspan="3">ของแถมพิเศษ: ${specGifts.join(' · ')}</td></tr>`;
+            const _cg = (document.getElementById('customGiftInput')?.value || customGiftText || '').trim();
+            const extraGift = _cg ? ` · ✏️ ${_cg}` : '';
+            return `<tr style="background:#fffbe6"><td style="padding:2px 5px;border:0.5px solid #e0c060;font-size:7.5pt;color:#8a6500" colspan="3">ของแถมพิเศษ: ${specGifts.join(' · ')}${extraGift}</td></tr>`;
           })()}
           ${d.eqItems.length>0 ? d.eqItems.map(eq=>`<tr>
             <td style="padding:2px 5px;border:0.5px solid #bbb;font-weight:bold;color:${eq.finType==='F'?'#c9813a':'#1e7e34'}">${eq.finType||'R'}</td>
@@ -2281,10 +2285,16 @@ function exportPDF(){
       ${scheduleTableHtml(schedule, d.eqAnnual>0 ? d.eqAnnual : 0)}
 
 
-      ${d.gifts.length>0 ? `<div style="margin-top:4px;font-size:8pt">
-        <b>ของแถม:</b>
-        <span style="color:#555">${d.gifts.join(' · ')}</span>
-      </div>` : ''}
+      ${(()=>{
+        const specials = d.gifts.filter(g => !isCommonGift(g) && !g.startsWith('✏️'));
+        const standard = d.gifts.filter(g => isCommonGift(g));
+        const custom = d.gifts.filter(g => g.startsWith('✏️'));
+        let out = '';
+        if(specials.length) out += `<div style="margin-top:4px;font-size:8pt"><b>ของแถมพิเศษ:</b> <span style="color:#c9813a">${specials.join(' · ')}</span></div>`;
+        if(custom.length) out += `<div style="margin-top:2px;font-size:8pt"><b>ของแถมอื่นๆ:</b> <span style="color:#555">${custom.map(g=>g.replace('✏️ ','')).join(' · ')}</span></div>`;
+        if(standard.length) out += `<div style="margin-top:2px;font-size:8pt"><b>ของแถมมาตรฐาน ${standard.length} รายการ:</b> <span style="color:#888">${standard.join(' · ')}</span></div>`;
+        return out;
+      })()}
 
       <hr style="border:0.5px solid #ccc;margin:5px 0">
       <table style="width:100%">
