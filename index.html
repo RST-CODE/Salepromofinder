@@ -766,6 +766,28 @@ body.printing #printArea{ display:block !important; }
 .hd-tl-dot{ width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:4px;flex-shrink:0; }
 @keyframes hdFadeIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
 .hd-content-fade{ animation: hdFadeIn .3s ease; }
+.finance-extra-launchers{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+.finance-launch-btn{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px 12px; border-radius:10px; border:1.5px dashed #cbb98f;
+  background:#fdf8f0; cursor:pointer; font-family:'Kanit',sans-serif; font-size:12.5px; font-weight:600; color:#8a6500;
+  width:100%; text-align:left;
+}
+.finance-launch-btn:hover{ border-color:var(--accent); }
+.fl-status{ font-size:11px; font-weight:700; color:var(--accent); }
+.modal-form-scroll{
+  flex:1; overflow:auto; padding:16px; background:#f0ede8; -webkit-overflow-scrolling:touch;
+}
+.modal-form-inner{
+  background:#fff; max-width:480px; margin:0 auto; border-radius:12px;
+  padding:16px; box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+.ref-row{
+  border:1.5px solid var(--line); border-radius:10px; padding:10px; margin-bottom:8px; position:relative;
+}
+.ref-row-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.ref-row-head b{ font-family:'Kanit',sans-serif; font-size:12px; color:var(--accent); }
+.ref-row-remove{ background:none; border:none; color:#c0392b; font-size:12px; font-weight:600; cursor:pointer; font-family:'Kanit',sans-serif; }
 .preview-modal-bg{
   position:fixed; inset:0; background:#fff; z-index:600;
   display:flex; flex-direction:column;
@@ -1013,6 +1035,13 @@ body.printing #printArea{ display:block !important; }
       <label>ของแถมอื่นๆ (พิมพ์เพิ่มเอง)</label>
       <input type="text" id="customGiftInput" placeholder="เช่น ถุงมือหนัง 1 คู่" oninput="customGiftText=this.value">
     </div>
+
+    <div class="finance-extra-launchers">
+      <button type="button" class="finance-launch-btn" onclick="openAddressGuarantorModal()">📍 ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน <span class="fl-status" id="addrGtorStatus"></span></button>
+      <button type="button" class="finance-launch-btn" onclick="openReferenceModal()">📇 บุคคลอ้างอิง <span class="fl-status" id="refStatus"></span></button>
+      <div style="text-align:center;font-size:11.5px"><a href="#" onclick="previewGuarantorForm();return false" style="color:var(--accent);font-family:'Kanit',sans-serif;font-weight:600">🔍 ดูตัวอย่างฟอร์มผู้ค้ำ/อ้างอิง</a></div>
+    </div>
+
     <div class="export-btns">
       <button class="btn-pdf" onclick="previewPDF()">🔍 ดูตัวอย่าง</button>
       <button class="btn-save" onclick="saveAndPrint()">💾 บันทึก & พิมพ์ PDF</button>
@@ -1155,6 +1184,13 @@ body.printing #printArea{ display:block !important; }
       <label>ของแถมอื่นๆ (พิมพ์เพิ่มเอง)</label>
       <input type="text" id="customGiftInputM" placeholder="เช่น ถุงมือหนัง 1 คู่" oninput="customGiftText=this.value">
     </div>
+
+    <div class="finance-extra-launchers">
+      <button type="button" class="finance-launch-btn" onclick="openAddressGuarantorModal()">📍 ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน <span class="fl-status" id="addrGtorStatusM"></span></button>
+      <button type="button" class="finance-launch-btn" onclick="openReferenceModal()">📇 บุคคลอ้างอิง <span class="fl-status" id="refStatusM"></span></button>
+      <div style="text-align:center;font-size:11.5px"><a href="#" onclick="previewGuarantorForm();return false" style="color:var(--accent);font-family:'Kanit',sans-serif;font-weight:600">🔍 ดูตัวอย่างฟอร์มผู้ค้ำ/อ้างอิง</a></div>
+    </div>
+
     <div class="export-btns">
       <button class="btn-pdf" onclick="previewPDF()">🔍 ดูตัวอย่าง</button>
       <button class="btn-save" onclick="saveAndPrint()">💾 บันทึก & พิมพ์ PDF</button>
@@ -2142,6 +2178,11 @@ function collectExportData(){
   const custAddr  = (document.getElementById('custAddr')?.value || '').trim();
   const custPhone = (document.getElementById('custPhoneM')?.value || document.getElementById('custPhone')?.value || '').trim();
   const branch    = (document.getElementById('branchNameM')?.value || document.getElementById('branchName')?.value || '').trim();
+  const custCurrentAddr = (document.getElementById('custCurrentAddr')?.value || '').trim();
+  const gtorName    = (document.getElementById('gtorName')?.value || '').trim();
+  const gtorAddr    = (document.getElementById('gtorAddr')?.value || '').trim();
+  const gtorPhone   = (document.getElementById('gtorPhone')?.value || '').trim();
+  const refs = (typeof refList !== 'undefined' ? refList : []).filter(r => r.name || r.phone || r.relation);
 
   const model = modelSelect.value;
   const brand = currentBrand === 'yanmar' ? 'Yanmar' : 'Solis';
@@ -2226,6 +2267,7 @@ function collectExportData(){
 
   return {
     custName, custAddr, custPhone, branch, model, brand, seg, progName,
+    custCurrentAddr, gtorName, gtorAddr, gtorPhone, refs,
     price, down, support, custOut, rst,
     finYears, finRate, finTotal: Math.round(finTotal), annualFull: Math.round(annualFull),
     minorMode, minorAdvanceTotal,
@@ -2597,6 +2639,87 @@ function previewPDF(){
 }
 function closePreviewModal(){
   document.getElementById('previewModalBg').style.display = 'none';
+}
+
+// ===== แบบฟอร์มข้อมูลเพิ่มเติม (ที่อยู่ปัจจุบัน / ผู้ค้ำประกัน / ผู้อ้างอิง) แยกจากใบสรุปค่างวด =====
+function buildGuarantorFormHtml(d){
+  const blank = '........................................................................................................';
+  const blankShort = '....................................';
+  // รองรับเคสเก่าก่อนหน้านี้ที่ยังเป็นฟิลด์เดี่ยว (refName/refPhone/refRelation) ให้แปลงเป็น array เดียวกัน
+  const refs = Array.isArray(d.refs) && d.refs.length ? d.refs
+    : (d.refName ? [{name:d.refName, phone:d.refPhone, relation:d.refRelation}] : []);
+  const refsHtml = refs.length ? refs.map((r,i)=>`
+        <tr><td colspan="2" style="padding:4px 0 0;font-weight:bold;color:#1e7e34">ผู้อ้างอิงคนที่ ${i+1}</td></tr>
+        <tr><td style="width:30%;padding:2px 0"><b>ชื่อ-นามสกุล:</b></td><td style="padding:2px 0">${r.name||blankShort}</td></tr>
+        <tr><td style="padding:2px 0"><b>เบอร์โทร:</b></td><td style="padding:2px 0">${r.phone||blankShort}</td></tr>
+        <tr><td style="padding:2px 0"><b>ความสัมพันธ์กับผู้ซื้อ:</b></td><td style="padding:2px 0">${r.relation||blankShort}</td></tr>
+    `).join('') : `
+        <tr><td style="width:30%;padding:2px 0"><b>ชื่อ-นามสกุล:</b></td><td style="padding:2px 0">${blankShort}</td></tr>
+        <tr><td style="padding:2px 0"><b>เบอร์โทร:</b></td><td style="padding:2px 0">${blankShort}</td></tr>
+        <tr><td style="padding:2px 0"><b>ความสัมพันธ์กับผู้ซื้อ:</b></td><td style="padding:2px 0">${blankShort}</td></tr>
+    `;
+  return `
+    <div style="font-family:'Sarabun',sans-serif;font-size:8pt;color:#000;width:100%;max-width:194mm;margin:0 auto;padding:0;box-sizing:border-box">
+      <div style="text-align:center;margin-bottom:4px">
+        <div style="font-size:13pt;font-weight:bold">รวมสินไทยแทรกเตอร์ ${d.branch ? '— '+d.branch : ''}</div>
+        <div style="font-size:9pt;color:#555">แบบฟอร์มข้อมูลเพิ่มเติม (ที่อยู่ปัจจุบัน / ผู้ค้ำประกัน / ผู้อ้างอิง)</div>
+        <div style="font-size:8pt;color:#888">วันที่ ${d.date||''}</div>
+      </div>
+      <hr style="border:0.5px solid #ccc;margin:4px 0">
+
+      <div style="font-weight:bold;background:#f0ede8;padding:3px 6px;border-radius:4px;margin-bottom:4px">ข้อมูลผู้ซื้อ</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:9pt">
+        <tr><td style="width:30%;padding:2px 0"><b>ชื่อ-นามสกุล:</b></td><td style="padding:2px 0">${d.custName||blankShort}</td></tr>
+        <tr><td style="padding:2px 0"><b>เบอร์โทร:</b></td><td style="padding:2px 0">${d.custPhone||blankShort}</td></tr>
+        <tr><td style="padding:2px 0;vertical-align:top"><b>ที่อยู่ตามทะเบียน:</b></td><td style="padding:2px 0">${d.custAddr||blank}</td></tr>
+        <tr><td style="padding:2px 0;vertical-align:top"><b>ที่อยู่ปัจจุบัน:</b></td><td style="padding:2px 0">${d.custCurrentAddr||blank}</td></tr>
+      </table>
+
+      <div style="font-weight:bold;background:#fff3e0;padding:3px 6px;border-radius:4px;margin-bottom:4px">ข้อมูลผู้ค้ำประกัน</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:9pt">
+        <tr><td style="width:30%;padding:2px 0"><b>ชื่อ-นามสกุล:</b></td><td style="padding:2px 0">${d.gtorName||blankShort}</td></tr>
+        <tr><td style="padding:2px 0"><b>เบอร์โทร:</b></td><td style="padding:2px 0">${d.gtorPhone||blankShort}</td></tr>
+        <tr><td style="padding:2px 0;vertical-align:top"><b>ที่อยู่:</b></td><td style="padding:2px 0">${d.gtorAddr||blank}</td></tr>
+      </table>
+
+      <div style="font-weight:bold;background:#f0fff4;padding:3px 6px;border-radius:4px;margin-bottom:4px">ข้อมูลผู้อ้างอิง</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:9pt">
+        ${refsHtml}
+      </table>
+
+      <hr style="border:0.5px solid #ccc;margin:6px 0">
+      <table style="width:100%">
+        <tr>
+          <td style="text-align:center;font-size:9pt">ลงชื่อ .................................<br>ผู้ค้ำประกัน</td>
+          <td style="text-align:center;font-size:9pt">ลงชื่อ .................................<br>ผู้ซื้อ</td>
+          <td style="text-align:center;font-size:9pt">${d.branch ? `<div style="font-weight:bold;margin-bottom:2px">${d.branch}</div><div style="border-bottom:0.5px solid #000;margin:0 10px 2px"></div>` : 'ลงชื่อ ..................................<br>'}<span style="font-size:8.5pt">ผู้บันทึกข้อมูล</span></td>
+        </tr>
+      </table>
+    </div>`;
+}
+
+function previewGuarantorForm(){
+  const d = collectExportData();
+  document.getElementById('previewModalScroll').innerHTML = buildGuarantorFormHtml(d);
+  document.getElementById('previewModalBg').style.display = 'flex';
+}
+function printGuarantorForm(){
+  const d = collectExportData();
+  document.getElementById('printArea').innerHTML = buildGuarantorFormHtml(d);
+  document.body.classList.add('printing');
+  window.print();
+  document.body.classList.remove('printing');
+}
+function _guarantorFormFromRecord(rec){
+  _recordOverride = rec;
+  printGuarantorForm();
+  _recordOverride = null;
+}
+function reprintGuarantorForm(id){
+  jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
+    if(err || data.status !== 'ok'){ alert('โหลดไม่ได้: ' + (err?.message||data?.message)); return; }
+    _guarantorFormFromRecord(data.record);
+  });
 }
 
 // ===== XLSX Export =====
@@ -3156,6 +3279,11 @@ function fetchAndPatchFullDetail(id){
     const mmEl = document.getElementById('hdMinorMode_'+id);
     if(mmEl && full.minorMode) mmEl.textContent = MINOR_LABELS[full.minorMode] || 'แบบปกติ';
 
+    const gtorWrap = document.getElementById('hdGuarantor_'+id);
+    if(gtorWrap && !gtorWrap.innerHTML.trim()){
+      gtorWrap.innerHTML = renderGuarantorInner(id, full);
+    }
+
     const tlLoading = document.getElementById('hdTimelineLoading_'+id);
     if(tlLoading) tlLoading.outerHTML = renderTimelineEntries(full.updates||[]) || '<div class="hd-tl-row"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">ยังไม่มีการอัปเดตเพิ่มเติม</div></div>';
 
@@ -3168,6 +3296,22 @@ function fetchAndPatchFullDetail(id){
   });
 }
 
+
+function renderGuarantorInner(id, d){
+  const refs = Array.isArray(d.refs) && d.refs.length ? d.refs
+    : (d.refName ? [{name:d.refName, phone:d.refPhone, relation:d.refRelation}] : []);
+  if(!(d.custCurrentAddr || d.gtorName || refs.length)) return '';
+  return `
+    <div class="hd-section">ที่อยู่ปัจจุบัน / ผู้ค้ำ / ผู้อ้างอิง</div>
+    ${d.custCurrentAddr ? `<div class="hd-row"><span class="hd-label">ที่อยู่ปัจจุบัน</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${escapeHtml(d.custCurrentAddr)}</span></div>` : ''}
+    ${d.gtorName ? `<div class="hd-row"><span class="hd-label">ผู้ค้ำ</span><span class="hd-val">${escapeHtml(d.gtorName)}${d.gtorPhone?' · '+escapeHtml(d.gtorPhone):''}</span></div>` : ''}
+    ${refs.map(r=>`<div class="hd-row"><span class="hd-label">ผู้อ้างอิง</span><span class="hd-val">${escapeHtml(r.name||'-')}${r.relation?' ('+escapeHtml(r.relation)+')':''}</span></div>`).join('')}
+    <button class="btn-reprint" style="width:100%;margin-top:6px" onclick="reprintGuarantorForm('${id}')">🖨 พิมพ์ฟอร์มผู้ค้ำ/อ้างอิง</button>
+  `;
+}
+function renderGuarantorSectionWrap(id, d){
+  return `<div id="hdGuarantor_${id}">${renderGuarantorInner(id, d)}</div>`;
+}
 
 function renderHistoryDetailHtml(id, d, rowNote){
     const content = document.getElementById('historyDetailContent');
@@ -3206,6 +3350,8 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div class="hd-row"><span class="hd-label">เบอร์โทร</span><span class="hd-val">${d.custPhone||'—'}</span></div>
       <div class="hd-row"><span class="hd-label">ที่อยู่</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${d.custAddr||'—'}</span></div>
       <div class="hd-row"><span class="hd-label">สาขา/ผู้ปิดการขาย</span><span class="hd-val">${d.branch||'—'}</span></div>
+
+      ${renderGuarantorSectionWrap(id, d)}
 
       <div class="hd-section">รายละเอียดการซื้อ</div>
       <div class="hd-row"><span class="hd-label">แบรนด์/รุ่น</span><span class="hd-val">${d.brand} ${d.model}</span></div>
@@ -3521,6 +3667,181 @@ function syncAddrLine(el){
   updateCustAddr();
 }
 
+// ===== Generalized Address Picker (สำหรับที่อยู่ปัจจุบัน + ผู้ค้ำประกัน) =====
+// ใช้ thaiGeoData/loadThaiGeo/highlightMatch/PRIORITY_PROVINCES ร่วมกับตัวเลือกที่อยู่หลักของผู้ซื้อ
+// แต่แยก state ออกมาต่างหาก (addrState2) เพื่อไม่ให้กระทบที่อยู่ผู้ซื้อเดิม
+let addrState2 = {
+  current: {province:null,provinceId:null,amphure:null,amphureId:null,tambon:null,tambonId:null},
+  gtor:    {province:null,provinceId:null,amphure:null,amphureId:null,tambon:null,tambonId:null}
+};
+
+function addr2Focus(key, level){
+  const el = document.getElementById('addr2_'+key+'_'+level);
+  const val = el?.value || '';
+  if(!thaiGeoData){
+    if(el) el.placeholder = '⏳ กำลังโหลด...';
+    loadThaiGeo().then(d=>{
+      if(d && el){ el.placeholder = level==='province' ? 'พิมพ์หรือกดเพื่อเลือกจังหวัด' : ''; }
+      addr2ShowDrop(key, level, val);
+    });
+    return;
+  }
+  addr2ShowDrop(key, level, val);
+}
+function addr2Input(key, level, query){
+  if(!thaiGeoData){ loadThaiGeo().then(()=>addr2ShowDrop(key, level, query)); return; }
+  addr2ShowDrop(key, level, query);
+}
+function addr2ShowDrop(key, level, query){
+  const data = thaiGeoData;
+  if(!data) return;
+  const st = addrState2[key];
+  const dropId = 'addr2Drop_'+key+'_'+level;
+  const drop = document.getElementById(dropId);
+  if(!drop) return;
+  document.querySelectorAll('.addr-dropdown').forEach(d=>{ if(d.id!==dropId) d.style.display='none'; });
+
+  let items = [];
+  if(level==='province'){
+    items = data.map(p=>({id:p.id, name:p.n||p.name_th}));
+  } else if(level==='amphure'){
+    if(!st.provinceId) return;
+    const prov = data.find(p=>p.id===st.provinceId);
+    const amps = prov?.a || prov?.amphure || [];
+    items = amps.map(a=>({id:a.id, name:a.n||a.name_th}));
+  } else {
+    if(!st.amphureId) return;
+    const prov = data.find(p=>p.id===st.provinceId);
+    const amps = prov?.a || prov?.amphure || [];
+    const amph = amps.find(a=>a.id===st.amphureId);
+    const tams = amph?.t || amph?.tambon || [];
+    items = tams.map(t=>({id:t.id, name:t.n||t.name_th}));
+  }
+
+  const q = query.trim();
+  const filtered = q ? items.filter(i=>i.name.includes(q)) : items;
+  if(!filtered.length){ drop.style.display='none'; return; }
+
+  function optHtml(id, name){
+    const hl = highlightMatch(name, q);
+    const fn = `addr2Pick('${key}','${level}',${id},'${name}')`;
+    return `<div class="addr-opt" ontouchend="${fn}" onclick="${fn}">${hl}</div>`;
+  }
+  let inner = '';
+  if(level==='province'){
+    const pri = filtered.filter(i=>PRIORITY_PROVINCES.includes(i.name));
+    const rest = filtered.filter(i=>!PRIORITY_PROVINCES.includes(i.name));
+    if(pri.length && !q){ inner += `<div class="addr-priority">${pri.map(i=>optHtml(i.id,i.name)).join('')}</div>`; }
+    inner += rest.map(i=>optHtml(i.id,i.name)).join('');
+  } else {
+    inner = filtered.slice(0,100).map(i=>optHtml(i.id,i.name)).join('');
+  }
+  drop.innerHTML = inner;
+  drop.style.display = 'block';
+}
+function addr2Pick(key, level, id, name){
+  const st = addrState2[key];
+  const inputEl = document.getElementById('addr2_'+key+'_'+level);
+  const dropEl = document.getElementById('addr2Drop_'+key+'_'+level);
+  if(inputEl) inputEl.value = name;
+  if(dropEl) dropEl.style.display = 'none';
+
+  if(level === 'province'){
+    st.province = name; st.provinceId = id;
+    st.amphure = null; st.amphureId = null;
+    st.tambon = null; st.tambonId = null;
+    const a = document.getElementById('addr2_'+key+'_amphure');
+    const t = document.getElementById('addr2_'+key+'_tambon');
+    if(a){ a.disabled=false; a.value=''; a.placeholder='พิมพ์เพื่อค้นหาอำเภอ...'; }
+    if(t){ t.disabled=true; t.value=''; t.placeholder='เลือกอำเภอก่อน'; }
+  } else if(level === 'amphure'){
+    st.amphure = name; st.amphureId = id;
+    st.tambon = null; st.tambonId = null;
+    const t = document.getElementById('addr2_'+key+'_tambon');
+    if(t){ t.disabled=false; t.value=''; t.placeholder='พิมพ์เพื่อค้นหาตำบล...'; }
+  } else if(level === 'tambon'){
+    st.tambon = name; st.tambonId = id;
+  }
+  updateAddr2(key);
+}
+function updateAddr2(key){
+  const st = addrState2[key];
+  const line = document.getElementById('addr2_'+key+'_line')?.value || '';
+  const parts = [line, st.tambon ? 'ต.'+st.tambon : '', st.amphure ? 'อ.'+st.amphure : '', st.province ? 'จ.'+st.province : ''];
+  const addr = parts.filter(Boolean).join(' ');
+  const targetId = key === 'current' ? 'custCurrentAddr' : 'gtorAddr';
+  const hidden = document.getElementById(targetId);
+  if(hidden) hidden.value = addr;
+}
+
+// ===== Modal เปิด/ปิด: ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน =====
+function openAddressGuarantorModal(){
+  initAddrDropdowns(); // เผื่อยังไม่เคยโหลด thaiGeoData
+  document.getElementById('addrGtorModalBg').style.display = 'flex';
+}
+function closeAddressGuarantorModal(){
+  document.getElementById('addrGtorModalBg').style.display = 'none';
+  updateAddrGtorStatus();
+}
+function updateAddrGtorStatus(){
+  const hasData = (document.getElementById('custCurrentAddr')?.value || document.getElementById('gtorName')?.value || document.getElementById('gtorPhone')?.value || document.getElementById('gtorAddr')?.value);
+  const txt = hasData ? '✓ กรอกแล้ว' : '';
+  ['addrGtorStatus','addrGtorStatusM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = txt; });
+}
+
+// ===== บุคคลอ้างอิง (เพิ่มได้หลายคน) =====
+let refList = [];
+function refRowHtml(idx, ref){
+  return `
+    <div class="ref-row" data-idx="${idx}">
+      <div class="ref-row-head">
+        <b>ผู้อ้างอิงคนที่ ${idx+1}</b>
+        <button type="button" class="ref-row-remove" onclick="removeReferenceRow(${idx})">✕ ลบ</button>
+      </div>
+      <div class="field-group" style="margin-bottom:6px">
+        <label>ชื่อ-นามสกุล</label>
+        <input type="text" value="${escapeHtml(ref.name||'')}" placeholder="ชื่อ-นามสกุล" oninput="refList[${idx}].name=this.value">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div class="field-group" style="margin:0">
+          <label>เบอร์โทร</label>
+          <input type="text" value="${escapeHtml(ref.phone||'')}" placeholder="0xx-xxx-xxxx" inputmode="tel" oninput="refList[${idx}].phone=this.value">
+        </div>
+        <div class="field-group" style="margin:0">
+          <label>ความสัมพันธ์กับผู้ซื้อ</label>
+          <input type="text" value="${escapeHtml(ref.relation||'')}" placeholder="เช่น พี่น้อง" oninput="refList[${idx}].relation=this.value">
+        </div>
+      </div>
+    </div>`;
+}
+function renderReferenceList(){
+  const c = document.getElementById('referenceListContainer');
+  if(!c) return;
+  if(!refList.length) refList.push({name:'',phone:'',relation:''});
+  c.innerHTML = refList.map((r,i)=>refRowHtml(i,r)).join('');
+}
+function addReferenceRow(){
+  refList.push({name:'',phone:'',relation:''});
+  renderReferenceList();
+}
+function removeReferenceRow(idx){
+  refList.splice(idx,1);
+  renderReferenceList();
+}
+function openReferenceModal(){
+  renderReferenceList();
+  document.getElementById('referenceModalBg').style.display = 'flex';
+}
+function closeReferenceModal(){
+  document.getElementById('referenceModalBg').style.display = 'none';
+  updateRefStatus();
+}
+function updateRefStatus(){
+  const filled = refList.filter(r=>r.name||r.phone||r.relation).length;
+  const txt = filled>0 ? `✓ ${filled} คน` : '';
+  ['refStatus','refStatusM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = txt; });
+}
+
 // init when export panel shows
 const _origGoToResults = goToResults;
 
@@ -3693,6 +4014,89 @@ setBrand('yanmar');
   </div>
   <div class="preview-modal-scroll" id="previewModalScroll"></div>
 </div>
+<div class="preview-modal-bg" id="addrGtorModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>📍 ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน</span>
+    <button onclick="closeAddressGuarantorModal()">✕ ปิด</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner">
+      <div class="finance-extra-subhead" style="margin-top:0">📍 ที่อยู่ปัจจุบันของผู้ซื้อ</div>
+      <div class="field-group">
+        <label>บ้านเลขที่ / ซอย / หมู่</label>
+        <input type="text" id="addr2_current_line" placeholder="เช่น 49 ม.10 ซ.3" oninput="updateAddr2('current')">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div class="addr-group" style="margin:0">
+          <label>จังหวัด</label>
+          <input type="text" class="addr-search" id="addr2_current_province" placeholder="ค้นหาจังหวัด..." autocomplete="off" oninput="addr2Input('current','province',this.value)" onfocus="addr2Focus('current','province')">
+          <div class="addr-dropdown" id="addr2Drop_current_province" style="display:none"></div>
+        </div>
+        <div class="addr-group" style="margin:0">
+          <label>อำเภอ / เขต</label>
+          <input type="text" class="addr-search" id="addr2_current_amphure" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addr2Input('current','amphure',this.value)" onfocus="addr2Focus('current','amphure')" disabled>
+          <div class="addr-dropdown" id="addr2Drop_current_amphure" style="display:none"></div>
+        </div>
+      </div>
+      <div class="addr-group" style="margin-bottom:16px">
+        <label>ตำบล / แขวง</label>
+        <input type="text" class="addr-search" id="addr2_current_tambon" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addr2Input('current','tambon',this.value)" onfocus="addr2Focus('current','tambon')" disabled>
+        <div class="addr-dropdown" id="addr2Drop_current_tambon" style="display:none"></div>
+      </div>
+
+      <div class="finance-extra-subhead">👤 ผู้ค้ำประกัน</div>
+      <div class="field-group">
+        <label>ชื่อผู้ค้ำ</label>
+        <input type="text" id="gtorName" placeholder="ชื่อ-นามสกุล">
+      </div>
+      <div class="field-group">
+        <label>เบอร์โทรผู้ค้ำ</label>
+        <input type="text" id="gtorPhone" placeholder="0xx-xxx-xxxx" inputmode="tel">
+      </div>
+      <div class="field-group">
+        <label>บ้านเลขที่ / ซอย / หมู่ (ผู้ค้ำ)</label>
+        <input type="text" id="addr2_gtor_line" placeholder="เช่น 49 ม.10 ซ.3" oninput="updateAddr2('gtor')">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div class="addr-group" style="margin:0">
+          <label>จังหวัด</label>
+          <input type="text" class="addr-search" id="addr2_gtor_province" placeholder="ค้นหาจังหวัด..." autocomplete="off" oninput="addr2Input('gtor','province',this.value)" onfocus="addr2Focus('gtor','province')">
+          <div class="addr-dropdown" id="addr2Drop_gtor_province" style="display:none"></div>
+        </div>
+        <div class="addr-group" style="margin:0">
+          <label>อำเภอ / เขต</label>
+          <input type="text" class="addr-search" id="addr2_gtor_amphure" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addr2Input('gtor','amphure',this.value)" onfocus="addr2Focus('gtor','amphure')" disabled>
+          <div class="addr-dropdown" id="addr2Drop_gtor_amphure" style="display:none"></div>
+        </div>
+      </div>
+      <div class="addr-group" style="margin-bottom:16px">
+        <label>ตำบล / แขวง</label>
+        <input type="text" class="addr-search" id="addr2_gtor_tambon" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addr2Input('gtor','tambon',this.value)" onfocus="addr2Focus('gtor','tambon')" disabled>
+        <div class="addr-dropdown" id="addr2Drop_gtor_tambon" style="display:none"></div>
+      </div>
+
+      <input type="hidden" id="custCurrentAddr">
+      <input type="hidden" id="gtorAddr">
+
+      <button class="btn-save" style="width:100%" onclick="closeAddressGuarantorModal()">✓ เสร็จแล้ว</button>
+    </div>
+  </div>
+</div>
+
+<div class="preview-modal-bg" id="referenceModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>📇 บุคคลอ้างอิง</span>
+    <button onclick="closeReferenceModal()">✕ ปิด</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner">
+      <div id="referenceListContainer"></div>
+      <button type="button" class="btn-reprint" style="width:100%;margin-top:4px" onclick="addReferenceRow()">➕ เพิ่มผู้อ้างอิงอีกคน</button>
+      <button class="btn-save" style="width:100%;margin-top:10px" onclick="closeReferenceModal()">✓ เสร็จแล้ว</button>
+    </div>
+  </div>
+</div>
+
 <div class="hd-modal-bg" id="identityModalBg" style="display:none">
   <div class="hd-modal">
     <div class="hd-title">👋 ก่อนเริ่มใช้งาน บอกชื่อและบทบาทหน่อย</div>
