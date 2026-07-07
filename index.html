@@ -766,6 +766,36 @@ body.printing #printArea{ display:block !important; }
 .hd-tl-dot{ width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:4px;flex-shrink:0; }
 @keyframes hdFadeIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
 .hd-content-fade{ animation: hdFadeIn .3s ease; }
+.role-btn{
+  flex:1; font-family:'Kanit',sans-serif; font-size:13px; font-weight:600;
+  padding:10px; border-radius:10px; border:1.5px solid var(--line);
+  background:#fff; color:var(--ink); cursor:pointer;
+}
+.role-btn.active{ border-color:var(--accent); background:var(--accent); color:#fff; }
+.case-status-row{ display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
+.case-status-row label{ font-size:11px; color:var(--ink-soft); font-weight:600; }
+.case-status-badge{
+  display:inline-block; padding:3px 12px; border-radius:20px; font-size:12px;
+  font-weight:700; background:#eee; color:#666;
+}
+.case-status-badge.status-good{ background:#e3f7ea; color:#1e7e34; }
+.case-status-badge.status-bad{ background:#fdeaea; color:#c0392b; }
+.case-status-badge.status-wait{ background:#fff4e0; color:#a86400; }
+.case-status-select{
+  font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
+  padding:5px 8px; border-radius:8px; border:1.5px solid var(--line);
+  background:#fff; color:var(--ink);
+}
+.add-update-form{ background:#f7f3ee; border-radius:10px; padding:10px; margin-top:6px; }
+.add-update-form textarea{
+  width:100%; box-sizing:border-box; font-family:'Kanit',sans-serif; font-size:13px;
+  padding:8px; border-radius:8px; border:1.5px solid var(--line); resize:vertical;
+}
+.add-update-form input{
+  width:100%; box-sizing:border-box; font-family:'Kanit',sans-serif; font-size:12px;
+  padding:6px 8px; border-radius:8px; border:1.5px solid var(--line);
+}
+.add-update-form label{ font-size:10px; color:var(--ink-soft); font-weight:600; }
 
 /* ===== History Filter Panel ===== */
 .hist-filter{
@@ -988,6 +1018,7 @@ body.printing #printArea{ display:block !important; }
         <option value="amount_asc">ยอดจัดน้อย-มาก</option>
       </select>
     </div>
+    <button class="history-tab-btn" onclick="openIdentityModal()" title="ชื่อ/บทบาทของฉัน">👤</button>
     <button class="history-tab-btn" onclick="openGasConfig()" title="ตั้งค่า GAS">⚙️</button>
   </div>
   <div class="gas-config" id="gasConfigBox" style="display:none">
@@ -2614,10 +2645,60 @@ const GAS_URL_KEY = 'rst_promo_gas_url';
 const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxnthS6N5IT4i0XjUt_ru9yv-jeoqNM0_oxkS9r8t1NlqNw9FjF43Q0PwOBlcUzfeU1/exec';
 let gasUrl = localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL;
 
+// ===== User Identity (ชื่อ + บทบาท) =====
+const USER_NAME_KEY = 'rst_promo_user_name';
+const USER_ROLE_KEY = 'rst_promo_user_role'; // 'sales' | 'finance'
+let userName = localStorage.getItem(USER_NAME_KEY) || '';
+let userRole = localStorage.getItem(USER_ROLE_KEY) || '';
+let _pendingRole = userRole;
+
+function isFinanceUser(){ return userRole === 'finance'; }
+
+function openIdentityModal(){
+  document.getElementById('identityNameInput').value = userName;
+  _pendingRole = userRole || 'sales';
+  updateRoleButtons();
+  document.getElementById('identityModalBg').style.display = 'flex';
+}
+function closeIdentityModal(){
+  // ต้องมีทั้งชื่อและบทบาทก่อนถึงจะปิดได้ (บังคับตั้งค่าครั้งแรก)
+  if(!userName || !userRole) return;
+  document.getElementById('identityModalBg').style.display = 'none';
+}
+function pickRole(role){
+  _pendingRole = role;
+  updateRoleButtons();
+}
+function updateRoleButtons(){
+  const sb = document.getElementById('roleBtnSales'), fb = document.getElementById('roleBtnFinance');
+  if(sb) sb.classList.toggle('active', _pendingRole==='sales');
+  if(fb) fb.classList.toggle('active', _pendingRole==='finance');
+}
+function saveIdentity(){
+  const name = document.getElementById('identityNameInput').value.trim();
+  if(!name || !_pendingRole){ alert('กรุณากรอกชื่อและเลือกบทบาทให้ครบ'); return; }
+  userName = name; userRole = _pendingRole;
+  localStorage.setItem(USER_NAME_KEY, userName);
+  localStorage.setItem(USER_ROLE_KEY, userRole);
+  document.getElementById('identityModalBg').style.display = 'none';
+  // auto-fill ชื่อผู้ปิดการขายให้เซลล์ (ถ้ายังว่างอยู่) จะได้ไม่ต้องพิมพ์ซ้ำทุกเคส
+  if(userRole === 'sales'){
+    const bn = document.getElementById('branchName'); if(bn && !bn.value) bn.value = userName;
+    const bnM = document.getElementById('branchNameM'); if(bnM && !bnM.value) bnM.value = userName;
+  }
+  // ถ้ากำลังดูรายละเอียดเคสอยู่ ให้รีเฟรชสิทธิ์การมองเห็นปุ่ม/dropdown ทันที
+  if(document.querySelector('.app').classList.contains('history')) loadHistory();
+}
+
+function escapeHtml(str){
+  return String(str==null?'':str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
 function openHistory(){
   document.querySelector('.app').classList.add('history');
   document.querySelector('.app').classList.remove('step2','step3');
   window.scrollTo(0,0);
+  if(!userName || !userRole) openIdentityModal();
   loadHistory();
 }
 function closeHistory(){
@@ -2924,6 +3005,8 @@ function viewHistoryDetail(id){
   const cached = _allHistoryRecords.find(r => String(r.id) === String(id));
   if(cached){
     renderHistoryDetailHtml(id, cached, '');
+    // summary ไม่มี eqItems ละเอียด/updates เต็ม — ดึงมาเติมแบบเงียบๆ เบื้องหลัง
+    fetchAndPatchFullDetail(id);
     return;
   }
 
@@ -2935,10 +3018,130 @@ function viewHistoryDetail(id){
   });
 }
 
+// ===== สถานะเคส (ไฟแนนซ์เท่านั้นที่เปลี่ยนได้) =====
+// แก้ไข/เพิ่มรายการสถานะได้ตรงนี้ที่เดียว
+const CASE_STATUSES = [
+  'รอดำเนินการ','รอเอกสารลูกค้า','ส่งไฟแนนซ์แล้ว','รออนุมัติ',
+  'อนุมัติแล้ว','ไม่อนุมัติ','รอลูกค้าตัดสินใจใหม่','ยกเลิกเคส','ส่งมอบแล้ว/ปิดเคส'
+];
+function statusSlug(s){
+  if(['อนุมัติแล้ว','ส่งมอบแล้ว/ปิดเคส'].includes(s)) return 'good';
+  if(['ไม่อนุมัติ','ยกเลิกเคส'].includes(s)) return 'bad';
+  return 'wait';
+}
+const MINOR_LABELS = {normal:'แบบปกติ', advance:'จ่ายล่วงหน้า', with_down:'รวมกับดาวน์'};
+
+function renderTimelineEntries(updates){
+  if(!updates || !updates.length) return '';
+  return updates.slice().reverse().map(u => `
+    <div class="hd-tl-row">
+      <div class="hd-tl-dot"></div>
+      <div>
+        <b>${u.type==='status' ? 'เปลี่ยนสถานะ' : 'บันทึกการคุย'}</b> — ${escapeHtml(u.ts||'')}<br>
+        <span style="font-size:12px">${escapeHtml(u.note||'')}</span>
+        ${u.newDown!=null ? `<br><span style="font-size:11px;color:var(--accent)">ดาวน์ใหม่: ${fmt(u.newDown)} บาท</span>` : ''}
+        ${u.newYears!=null ? `<br><span style="font-size:11px;color:var(--accent)">งวดใหม่: ${u.newYears} ปี</span>` : ''}
+        ${u.nextFollowUp ? `<br><span style="font-size:11px;color:#888">นัดครั้งถัดไป: ${escapeHtml(u.nextFollowUp)}</span>` : ''}
+        <br><span style="color:#888;font-size:11px">โดย ${escapeHtml(u.byName||'-')} (${u.byRole==='finance'?'ไฟแนนซ์':'เซลล์'})</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function changeCaseStatus(id, status){
+  const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
+  if(rec) rec.caseStatus = status;
+  gasPost('updateStatus', {action:'updateStatus', id, status, byName:userName, byRole:userRole}, (err)=>{
+    if(err) alert('บันทึกสถานะไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
+  });
+  const tlEl = document.getElementById('hdTimeline_'+id);
+  if(tlEl){
+    const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
+    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([{ts:nowStr, byName:userName, byRole:userRole, type:'status', status, note:'เปลี่ยนสถานะเป็น "'+status+'"'}]));
+  }
+}
+
+function showAddUpdateForm(id){
+  const area = document.getElementById('hdAddUpdateArea_'+id);
+  if(!area) return;
+  area.innerHTML = `
+    <div class="add-update-form">
+      <label>บันทึกที่คุยกับลูกค้า</label>
+      <textarea id="auNote_${id}" rows="3" placeholder="เช่น ลูกค้าขอเลื่อนนัดโอนเงิน..."></textarea>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+        <div><label>ดาวน์ใหม่ (ถ้ามี)</label><input type="number" id="auDown_${id}" placeholder="บาท"></div>
+        <div><label>งวดใหม่ (ปี, ถ้ามี)</label><input type="number" id="auYears_${id}" placeholder="ปี"></div>
+      </div>
+      <label style="margin-top:6px;display:block">นัดครั้งถัดไป (ถ้ามี)</label>
+      <input type="date" id="auFollow_${id}">
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn-reprint" style="flex:1" onclick="submitUpdateNote('${id}')">บันทึก</button>
+        <button class="btn-del" onclick="cancelAddUpdateForm('${id}')">ยกเลิก</button>
+      </div>
+    </div>`;
+}
+function cancelAddUpdateForm(id){
+  const area = document.getElementById('hdAddUpdateArea_'+id);
+  if(area) area.innerHTML = `<button class="btn-reprint" style="width:100%" onclick="showAddUpdateForm('${id}')">📝 เพิ่มบันทึกคุยกับลูกค้า</button>`;
+}
+function submitUpdateNote(id){
+  const noteEl = document.getElementById('auNote_'+id);
+  const note = (noteEl?.value || '').trim();
+  if(!note){ alert('กรุณากรอกบันทึกก่อน'); return; }
+  const newDownVal  = document.getElementById('auDown_'+id)?.value ?? '';
+  const newYearsVal = document.getElementById('auYears_'+id)?.value ?? '';
+  const nextFollowUp = document.getElementById('auFollow_'+id)?.value || '';
+  const entry = {
+    byName:userName, byRole:userRole, note,
+    newDown: newDownVal!=='' ? Number(newDownVal) : null,
+    newYears: newYearsVal!=='' ? Number(newYearsVal) : null,
+    nextFollowUp
+  };
+  const tlEl = document.getElementById('hdTimeline_'+id);
+  if(tlEl){
+    const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
+    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([Object.assign({ts:nowStr, type:'note'}, entry)]));
+  }
+  cancelAddUpdateForm(id);
+  gasPost('addUpdate', {action:'addUpdate', id, entry}, (err)=>{
+    if(err) alert('บันทึกไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
+  });
+}
+
+let _detailFetchToken = 0;
+function fetchAndPatchFullDetail(id){
+  const myToken = ++_detailFetchToken;
+  jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
+    if(err || !data || data.status !== 'ok') return; // เงียบไว้ — summary ที่โชว์ไปแล้วยังใช้ได้
+    if(myToken !== _detailFetchToken) return; // ผู้ใช้เปลี่ยนไปดูเคสอื่นแล้ว
+    const full = data.record;
+    const idx = _allHistoryRecords.findIndex(r => String(r.id) === String(id));
+    if(idx > -1) _allHistoryRecords[idx] = Object.assign({}, _allHistoryRecords[idx], full);
+
+    if(Array.isArray(full.eqItems) && full.eqItems.length){
+      const eqBlock = document.getElementById('hdEqItems_'+id);
+      if(eqBlock) eqBlock.innerHTML = full.eqItems.map(eq=>`<div class="hd-row"><span class="hd-label">อุปกรณ์ (${eq.finType||'R'})</span><span class="hd-val">${eq.name} — ${fmt(eq.price)}</span></div>`).join('');
+    }
+    const mmEl = document.getElementById('hdMinorMode_'+id);
+    if(mmEl && full.minorMode) mmEl.textContent = MINOR_LABELS[full.minorMode] || 'แบบปกติ';
+
+    const tlLoading = document.getElementById('hdTimelineLoading_'+id);
+    if(tlLoading) tlLoading.outerHTML = renderTimelineEntries(full.updates||[]) || '<div class="hd-tl-row"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">ยังไม่มีการอัปเดตเพิ่มเติม</div></div>';
+
+    if(full.caseStatus){
+      const badgeEl = document.getElementById('hdStatusBadge_'+id);
+      const selectEl = document.getElementById('hdStatusSelect_'+id);
+      if(badgeEl){ badgeEl.textContent = full.caseStatus; badgeEl.className = 'case-status-badge status-'+statusSlug(full.caseStatus); }
+      if(selectEl) selectEl.value = full.caseStatus;
+    }
+  });
+}
+
+
 function renderHistoryDetailHtml(id, d, rowNote){
     const content = document.getElementById('historyDetailContent');
-    const PAYMENT_LABELS_LOCAL = {monthly_3m:'รายเดือน/ราย 3 เดือน', semi:'ราย 6 เดือน', annual:'รายปี'};
-    const minorLabels = {normal:'แบบปกติ', advance:'จ่ายล่วงหน้า', with_down:'รวมกับดาวน์'};
+    const PAYMENT_LABELS_LOCAL = PAYMENT_LABELS;
+    const minorLabels = MINOR_LABELS;
     content.innerHTML = `
       <div class="hd-content-fade">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -2959,6 +3162,13 @@ function renderHistoryDetailHtml(id, d, rowNote){
           <div class="ssc-item"><div class="k">วันที่ปิดการขาย</div><div class="v">${d.date || (d.savedAt?.slice(0,10)) || '—'}</div></div>
           <div class="ssc-item full"><div class="k">สาขา/ผู้ปิดการขาย</div><div class="v">${d.branch||'—'}</div></div>
         </div>
+        <div class="case-status-row">
+          <label>สถานะเคส</label>
+          ${isFinanceUser()
+            ? `<select class="case-status-select" id="hdStatusSelect_${id}" onchange="changeCaseStatus('${id}', this.value)">${CASE_STATUSES.map(s=>`<option value="${escapeHtml(s)}" ${((d.caseStatus||'รอดำเนินการ')===s)?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select>`
+            : `<span class="case-status-badge status-${statusSlug(d.caseStatus||'รอดำเนินการ')}" id="hdStatusBadge_${id}">${escapeHtml(d.caseStatus||'รอดำเนินการ')}</span>`
+          }
+        </div>
       </div>
 
       <div class="hd-section">ข้อมูลลูกค้า</div>
@@ -2971,7 +3181,7 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div class="hd-row"><span class="hd-label">กลุ่มลูกค้า</span><span class="hd-val">${d.seg}</span></div>
       <div class="hd-row"><span class="hd-label">โปร</span><span class="hd-val" style="color:var(--accent)">${d.progName}</span></div>
       <div class="hd-row"><span class="hd-label">ราคารถ</span><span class="hd-val">${fmt(d.price||0)} บาท</span></div>
-      ${(d.eqItems||[]).length>0 ? (d.eqItems.map(eq=>`<div class="hd-row"><span class="hd-label">อุปกรณ์ (${eq.finType||'R'})</span><span class="hd-val">${eq.name} — ${fmt(eq.price)}</span></div>`).join('')) : ''}
+      <div id="hdEqItems_${id}">${(d.eqItems||[]).length>0 ? (d.eqItems.map(eq=>`<div class="hd-row"><span class="hd-label">อุปกรณ์ (${eq.finType||'R'})</span><span class="hd-val">${eq.name} — ${fmt(eq.price)}</span></div>`).join('')) : ''}</div>
 
       <div class="hd-section">การเงิน</div>
       <div class="hd-row"><span class="hd-label">ดาวน์รวม</span><span class="hd-val">${fmt(d.down||0)}</span></div>
@@ -2979,14 +3189,21 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div class="hd-row"><span class="hd-label">จ่ายจริง</span><span class="hd-val" style="color:var(--accent)">${fmt(d.custOut||0)}</span></div>
       <div class="hd-row"><span class="hd-label">ยอดจัด</span><span class="hd-val">${fmt(d.finTotal||0)}</span></div>
       <div class="hd-row"><span class="hd-label">รูปแบบการผ่อน</span><span class="hd-val">${PAYMENT_LABELS_LOCAL[d.tractorPayment]||d.tractorPayment||'—'}</span></div>
-      <div class="hd-row"><span class="hd-label">รูปแบบงวดย่อย</span><span class="hd-val">${minorLabels[d.minorMode]||'แบบปกติ'}</span></div>
+      <div class="hd-row"><span class="hd-label">รูปแบบงวดย่อย</span><span class="hd-val" id="hdMinorMode_${id}">${minorLabels[d.minorMode]||'แบบปกติ'}</span></div>
       <div class="hd-row"><span class="hd-label">งวดใหญ่/ปี</span><span class="hd-val" style="color:var(--accent);font-size:15px">${fmt(d.bigPay||0)} บาท</span></div>
       <div class="hd-row"><span class="hd-label">งวดย่อย/เดือน</span><span class="hd-val">${fmt(d.minor||0)} บาท × ${d.tractorPayment==='semi'?10:11} เดือน</span></div>
       <div class="hd-row"><span class="hd-label">ระยะเวลา</span><span class="hd-val">${d.finYears} ปี @ ${((d.finRate||0)*100).toFixed(2)}%</span></div>
 
       <div class="hd-section">Timeline</div>
-      <div class="hd-timeline">
+      <div class="hd-timeline" id="hdTimeline_${id}">
         <div class="hd-tl-row"><div class="hd-tl-dot"></div><div><b>เซ็นสัญญา</b> — ${d.date||''}<br><span style="color:#888;font-size:11px">บันทึกโดย ${d.branch||'—'} · ${rowNote||''}</span></div></div>
+        ${Array.isArray(d.updates)
+          ? (renderTimelineEntries(d.updates) || '<div class="hd-tl-row"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">ยังไม่มีการอัปเดตเพิ่มเติม</div></div>')
+          : `<div class="hd-tl-row" id="hdTimelineLoading_${id}"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">⏳ กำลังโหลดบันทึกเพิ่มเติม...</div></div>`
+        }
+      </div>
+      <div id="hdAddUpdateArea_${id}" style="margin-top:8px">
+        <button class="btn-reprint" style="width:100%" onclick="showAddUpdateForm('${id}')">📝 เพิ่มบันทึกคุยกับลูกค้า</button>
       </div>
 
       <div style="display:flex;gap:8px;margin-top:14px">
@@ -3438,6 +3655,23 @@ function getCurrentFinParams(){
 
 setBrand('yanmar');
 </script>
+<div class="hd-modal-bg" id="identityModalBg" style="display:none">
+  <div class="hd-modal">
+    <div class="hd-title">👋 ก่อนเริ่มใช้งาน บอกชื่อและบทบาทหน่อย</div>
+    <div class="field-group">
+      <label>ชื่อของคุณ</label>
+      <input type="text" id="identityNameInput" placeholder="เช่น สมชาย">
+    </div>
+    <div class="field-group">
+      <label>บทบาท</label>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="role-btn" id="roleBtnSales" onclick="pickRole('sales')">🧑‍💼 เซลล์</button>
+        <button type="button" class="role-btn" id="roleBtnFinance" onclick="pickRole('finance')">🏦 ไฟแนนซ์</button>
+      </div>
+    </div>
+    <button class="btn-save" style="width:100%;margin-top:14px" onclick="saveIdentity()">บันทึก & เริ่มใช้งาน</button>
+  </div>
+</div>
 <div id="printArea"></div>
 </body>
 </html>
