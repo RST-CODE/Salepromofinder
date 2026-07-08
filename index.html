@@ -2867,16 +2867,13 @@ function onSignatureFileSelected(event){
   const file = event.target.files[0];
   if(!file) return;
   const prev = document.getElementById('docSignaturePreview');
-  prev.textContent = '⏳ กำลังเตรียมรูปลายเซ็น...';
-  compressImageFile(file, 1200, 0.85).then(compressed => {
-    prev.textContent = '';
-    openCropModal(compressed.dataUrl, '✂️ ตัดกรอบลายเซ็น', 'ลากให้ชิดตัวลายเซ็นที่สุด ตัดพื้นที่กระดาษว่างรอบๆ ออกให้หมด', function(croppedDataUrl){
-      signatureDataUrl = croppedDataUrl;
-      sigSignatureImgEl = new Image();
-      sigSignatureImgEl.src = signatureDataUrl;
-      prev.innerHTML = `<div style="font-size:11px;color:#1e7e34;margin-bottom:4px">✓ ตัดลายเซ็นแล้ว</div><img src="${signatureDataUrl}" style="max-width:150px;border:1px solid var(--line);border-radius:6px;display:block"><button type="button" onclick="document.getElementById('docSignatureInput').click()" style="margin-top:4px;font-size:11px;background:none;border:none;color:var(--accent);cursor:pointer;text-decoration:underline">เลือกรูปใหม่</button>`;
-    });
-  }).catch(()=>{ prev.textContent = '❌ อ่านรูปลายเซ็นไม่ได้ ลองใหม่'; });
+  prev.textContent = '⏳ กำลังเตรียมรูป...';
+  compressImageFile(file, 1600, 0.85).then(compressed => {
+    signatureDataUrl = compressed.dataUrl;
+    sigSignatureImgEl = new Image();
+    sigSignatureImgEl.src = signatureDataUrl;
+    prev.innerHTML = `<div style="font-size:11px;color:#1e7e34;margin-bottom:4px">✓ ใช้รูปนี้เป็นพื้นหลังทั้งหน้า</div><img src="${signatureDataUrl}" style="max-width:150px;border:1px solid var(--line);border-radius:6px;display:block"><button type="button" onclick="document.getElementById('docSignatureInput').click()" style="margin-top:4px;font-size:11px;background:none;border:none;color:var(--accent);cursor:pointer;text-decoration:underline">เลือกรูปใหม่</button>`;
+  }).catch(()=>{ prev.textContent = '❌ อ่านรูปไม่ได้ ลองใหม่'; });
 }
 // เก็บรูปแต่ละหน้าที่ตัดกรอบแล้วไว้ก่อน รอครบทุกหน้าของหมวดนั้นแล้วค่อยรวม+แปะลายเซ็นทีเดียว
 let docPageStore = {};
@@ -2929,20 +2926,20 @@ function sampleEdgeColor(canvas){
   const ctx = canvas.getContext('2d');
   const w = canvas.width, h = canvas.height;
   const t = Math.max(3, Math.round(Math.min(w,h)*0.02));
-  function avgOf(x,y,ww,hh){
-    if(ww<=0||hh<=0) return null;
-    const d = ctx.getImageData(x,y,ww,hh).data;
-    let r=0,g=0,b=0,n=0;
-    for(let i=0;i<d.length;i+=4){ r+=d[i]; g+=d[i+1]; b+=d[i+2]; n++; }
-    return n ? {r:r/n, g:g/n, b:b/n} : null;
-  }
-  const regions = [avgOf(0,0,w,t), avgOf(0,h-t,w,t), avgOf(0,0,t,h), avgOf(w-t,0,t,h)].filter(Boolean);
+  const regions = [avgColorOfRegion(ctx,0,0,w,t), avgColorOfRegion(ctx,0,h-t,w,t), avgColorOfRegion(ctx,0,0,t,h), avgColorOfRegion(ctx,w-t,0,t,h)].filter(Boolean);
   if(!regions.length) return {r:255,g:255,b:255};
   return {
     r: regions.reduce((s,c)=>s+c.r,0)/regions.length,
     g: regions.reduce((s,c)=>s+c.g,0)/regions.length,
     b: regions.reduce((s,c)=>s+c.b,0)/regions.length
   };
+}
+function avgColorOfRegion(ctx, x, y, w, h){
+  if(w<=0 || h<=0) return null;
+  const d = ctx.getImageData(x, y, w, h).data;
+  let r=0,g=0,b=0,n=0;
+  for(let i=0; i<d.length; i+=4){ r+=d[i]; g+=d[i+1]; b+=d[i+2]; n++; }
+  return n ? {r:r/n, g:g/n, b:b/n} : null;
 }
 // ขยับโทนสีทั้งภาพเข้าหาสีเป้าหมาย (ใช้ปรับให้พื้นหลังของแต่ละรูปเข้ากับโทนสีที่เลือกไว้ ไม่ใช่ปรับให้ขาวจ้า)
 function shiftColorTone(canvas, fromColor, toColor, strength){
@@ -2968,25 +2965,45 @@ function canvasFromImage(img){
   return c;
 }
 
-// วางหน้าเอกสารทั้งหมด (1 หรือหลายหน้า) เรียงต่อกันในหน้าเดียว แล้วแปะลายเซ็นไว้ใต้สุดครั้งเดียว
-// ใช้สีกระดาษของรูปลายเซ็นตามจริงเป็นพื้นหลังของทั้งหน้า (ไม่ปรับแต่งกระดาษเพิ่ม) แล้วปรับให้บัตร/เอกสารสว่างขึ้นให้กลืนไปกับกระดาษนั้น
-function stackPagesOnWhiteCanvas(pageCanvases, sigCanvas){
-  let targetBg;
-  if(sigCanvas){
-    // ใช้สีกระดาษของรูปลายเซ็นตามจริงเลย ไม่ต้องปรับแต่งเพิ่ม
-    targetBg = sampleEdgeColor(sigCanvas);
-  } else {
-    // ไม่มีลายเซ็นให้ยึด ใช้สีเฉลี่ยของหน้าเอกสารเองแทน
-    const pageBgColors = pageCanvases.map(sampleEdgeColor);
-    targetBg = {
-      r: pageBgColors.reduce((s,c)=>s+c.r,0)/pageBgColors.length,
-      g: pageBgColors.reduce((s,c)=>s+c.g,0)/pageBgColors.length,
-      b: pageBgColors.reduce((s,c)=>s+c.b,0)/pageBgColors.length
-    };
-  }
-  // ปรับโทนของบัตร/เอกสารแต่ละหน้าให้ "สว่างขึ้น" เข้าหาโทนกระดาษเป้าหมาย ให้ดูกลืนไปกับกระดาษลายเซ็น
-  pageCanvases.forEach(c => shiftColorTone(c, sampleEdgeColor(c), targetBg, 0.85));
+// วางรูปเอกสาร (ที่ตัดกรอบแล้ว) ลงบนรูปกระดาษลายเซ็นตัวจริงเลย (ไม่ตัด ไม่แต่งพื้นหลังกระดาษ)
+// เอกสารถูกวางไว้ค่อนไปทางบนของหน้า เหลือพื้นที่ด้านล่างที่มีลายเซ็นจริงติดอยู่แล้วให้เห็น
+// ปรับให้ตัวเอกสารสว่างขึ้นเล็กน้อยให้กลืนไปกับโทนกระดาษจริงตรงจุดที่วาง
+function placeDocsOnSignaturePage(pageCanvases, sigImg){
+  const canvas = document.createElement('canvas');
+  canvas.width = sigImg.width;
+  canvas.height = sigImg.height;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(sigImg, 0, 0);
 
+  // ดูโทนสีกระดาษจริงตรงบริเวณด้านบนของหน้า (จุดที่จะวางเอกสาร) เพื่อปรับให้เอกสารกลืนกับกระดาษตรงนั้น
+  const topColor = avgColorOfRegion(ctx, 0, 0, canvas.width, Math.round(canvas.height*0.45)) || {r:255,g:255,b:255};
+
+  const margin = Math.round(canvas.width * 0.08);
+  const docWidth = Math.round((canvas.width - margin*2) * 0.9);
+  const gap = Math.round(canvas.width * 0.025);
+  let y = Math.round(canvas.height * 0.04);
+
+  pageCanvases.forEach(pageCanvas => {
+    shiftColorTone(pageCanvas, sampleEdgeColor(pageCanvas), topColor, 0.85);
+    const scale = docWidth / pageCanvas.width;
+    const docHeight = Math.round(pageCanvas.height * scale);
+    const x = Math.round((canvas.width - docWidth) / 2);
+    ctx.drawImage(pageCanvas, x, y, docWidth, docHeight);
+    y += docHeight + gap;
+  });
+
+  return canvas.toDataURL('image/jpeg', 0.9);
+}
+
+// สำหรับหมวดที่ไม่มีลายเซ็น (โฉนด/เอกสารแปลงเกษตร ฯลฯ) — วางบนพื้นสีเดียวกับโทนของเอกสารเอง
+function stackPagesOnPlainCanvas(pageCanvases){
+  const bgColors = pageCanvases.map(sampleEdgeColor);
+  const targetBg = {
+    r: bgColors.reduce((s,c)=>s+c.r,0)/bgColors.length,
+    g: bgColors.reduce((s,c)=>s+c.g,0)/bgColors.length,
+    b: bgColors.reduce((s,c)=>s+c.b,0)/bgColors.length
+  };
+  pageCanvases.forEach(c => shiftColorTone(c, sampleEdgeColor(c), targetBg, 0.5));
   const margin = Math.round(pageCanvases[0].width * 0.05);
   const gap = Math.max(16, Math.round(pageCanvases[0].width * 0.03));
   const maxW = Math.max.apply(null, pageCanvases.map(c=>c.width));
@@ -2994,36 +3011,25 @@ function stackPagesOnWhiteCanvas(pageCanvases, sigCanvas){
     const scale = maxW / c.width;
     return { canvas:c, w:maxW, h:Math.round(c.height*scale) };
   });
-  let sigW=0, sigH=0;
-  if(sigCanvas){
-    sigW = Math.round(maxW * 0.3);
-    sigH = Math.round(sigW * ((sigCanvas.height/sigCanvas.width) || 0.35));
-  }
-  const totalPagesHeight = scaledPages.reduce((s,p)=>s+p.h,0) + gap*(scaledPages.length-1);
+  const totalH = scaledPages.reduce((s,p)=>s+p.h,0) + gap*(scaledPages.length-1);
   const canvas = document.createElement('canvas');
   canvas.width = maxW + margin*2;
-  canvas.height = margin*2 + totalPagesHeight + (sigCanvas ? gap + sigH : 0);
+  canvas.height = margin*2 + totalH;
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = `rgb(${Math.round(targetBg.r)},${Math.round(targetBg.g)},${Math.round(targetBg.b)})`;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   let y = margin;
-  scaledPages.forEach(p=>{
-    ctx.drawImage(p.canvas, margin, y, p.w, p.h);
-    y += p.h + gap;
-  });
-  if(sigCanvas){
-    const sigX = Math.round((canvas.width - sigW) / 2);
-    ctx.drawImage(sigCanvas, sigX, y, sigW, sigH);
-  }
+  scaledPages.forEach(p=>{ ctx.drawImage(p.canvas, margin, y, p.w, p.h); y += p.h + gap; });
   return canvas.toDataURL('image/jpeg', 0.9);
 }
 
-// เมื่อครบทุกหน้าของหมวดนั้นแล้ว รวมเป็นไฟล์เดียว + แปะลายเซ็น (ถ้าหมวดนี้ต้องมี) แล้วอัปโหลดทีเดียว
+// เมื่อครบทุกหน้าของหมวดนั้นแล้ว รวมเป็นไฟล์เดียว + แปะบนกระดาษลายเซ็น (ถ้าหมวดนี้ต้องมี) แล้วอัปโหลดทีเดียว
 function combineAndUploadCategory(catKey, cat){
   const pages = docPageStore[catKey];
-  const sigCanvas = (cat.needsSignature && sigSignatureImgEl && sigSignatureImgEl.complete)
-    ? canvasFromImage(sigSignatureImgEl) : null;
-  const finalDataUrl = stackPagesOnWhiteCanvas(pages, sigCanvas);
+  const useSigPage = cat.needsSignature && sigSignatureImgEl && sigSignatureImgEl.complete;
+  const finalDataUrl = useSigPage
+    ? placeDocsOnSignaturePage(pages, sigSignatureImgEl)
+    : stackPagesOnPlainCanvas(pages);
   const isMulti = (cat.count || 1) > 1;
   const primarySlot = isMulti ? (catKey + '_1') : catKey;
   uploadDocToServer(primarySlot, cat.label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg');
@@ -4527,7 +4533,7 @@ setBrand('yanmar');
   <div class="modal-form-scroll">
     <div class="modal-form-inner">
       <div class="field-group">
-        <label>1) อัปโหลดรูปลายเซ็นลูกค้า (เขียนบนกระดาษเปล่า) — ใช้ประกบกับบัตร/ทะเบียนบ้านอัตโนมัติ</label>
+        <label>1) อัปโหลดรูปกระดาษที่มีลายเซ็นลูกค้า (ไม่ต้องตัดกรอบ ใช้ทั้งรูปเป็นพื้นหลัง) — เอกสารจะถูกแปะไว้ด้านบนของกระดาษแผ่นนี้อัตโนมัติ</label>
         <input type="file" id="docSignatureInput" accept="image/*" capture="environment" onchange="onSignatureFileSelected(event)">
         <div id="docSignaturePreview" style="margin-top:6px"></div>
       </div>
