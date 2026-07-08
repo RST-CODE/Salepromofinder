@@ -2878,13 +2878,17 @@ function onSignatureFileSelected(event){
     });
   }).catch(()=>{ prev.textContent = '❌ อ่านรูปลายเซ็นไม่ได้ ลองใหม่'; });
 }
+// เก็บรูปแต่ละหน้าที่ตัดกรอบแล้วไว้ก่อน รอครบทุกหน้าของหมวดนั้นแล้วค่อยรวม+แปะลายเซ็นทีเดียว
+let docPageStore = {};
+
 async function onDocFileSelected(slotKey, catKey){
   const input = document.getElementById('docFile_'+slotKey);
   const file = input.files[0];
   if(!file) return;
   const cat = DOC_CATEGORIES.find(c=>c.key===catKey);
   const isMulti = (cat.count || 1) > 1;
-  const label = isMulti ? (cat.label + ' หน้า ' + slotKey.split('_').pop()) : cat.label;
+  const pageIndex = isMulti ? parseInt(slotKey.split('_').pop(), 10) : 1;
+  const label = isMulti ? (cat.label + ' หน้า ' + pageIndex) : cat.label;
   const statusEl = document.getElementById('docStatus_'+slotKey);
   statusEl.className = 'doc-cat-status';
   statusEl.textContent = '⏳ กำลังเตรียมรูป...';
@@ -2894,10 +2898,19 @@ async function onDocFileSelected(slotKey, catKey){
       statusEl.textContent = '⏳ กำลังเตรียมรูป...';
       const cropImgEl = new Image();
       cropImgEl.onload = function(){
-        const finalDataUrl = (cat.needsSignature && signatureDataUrl && sigSignatureImgEl)
-          ? compositeDocWithSignature(cropImgEl, sigSignatureImgEl)
-          : placeOnWhitePage(cropImgEl);
-        uploadDocToServer(slotKey, label, finalDataUrl.split(',')[1], 'image/jpeg', slotKey + '.jpg');
+        const normCanvas = canvasFromImage(cropImgEl);
+        if(!docPageStore[catKey]) docPageStore[catKey] = [];
+        docPageStore[catKey][pageIndex-1] = normCanvas;
+        const filled = docPageStore[catKey].filter(Boolean).length;
+        const needed = cat.count || 1;
+        if(filled >= needed){
+          statusEl.className = 'doc-cat-status ok';
+          statusEl.textContent = '✓ ตัดแล้ว';
+          combineAndUploadCategory(catKey, cat);
+        } else {
+          statusEl.className = 'doc-cat-status ok';
+          statusEl.textContent = '✓ ตัดแล้ว (รออีก ' + (needed-filled) + ' หน้า)';
+        }
       };
       cropImgEl.onerror = function(){
         statusEl.className = 'doc-cat-status err';
@@ -2911,73 +2924,111 @@ async function onDocFileSelected(slotKey, catKey){
   }
 }
 
-// ปรับสมดุลแสง/สีของรูปให้จุดที่สว่างที่สุด (ปกติคือพื้นกระดาษ/พื้นหลัง) กลายเป็นสีขาวจริง
-// ทำแยกทีละรูป (เอกสาร กับ ลายเซ็น คนละรอบ) ก่อนเอามาวางบนพื้นขาวเดียวกัน
-// เพื่อให้แสง/โทนสีของทั้งสองรูปเข้ากัน ไม่เห็นรอยต่อพื้นหลังคนละสีคนละแสง
-function normalizeWhiteBalance(canvas){
+// สุ่มดูสีพื้นหลัง/ขอบกระดาษของรูป (แถบบางๆ รอบขอบภาพ) เพื่อเอาไว้เทียบสี/ใช้เป็นสีพื้นหลังของหน้ารวม
+function sampleEdgeColor(canvas){
   const ctx = canvas.getContext('2d');
   const w = canvas.width, h = canvas.height;
-  if(w*h === 0) return;
+  const t = Math.max(3, Math.round(Math.min(w,h)*0.02));
+  function avgOf(x,y,ww,hh){
+    if(ww<=0||hh<=0) return null;
+    const d = ctx.getImageData(x,y,ww,hh).data;
+    let r=0,g=0,b=0,n=0;
+    for(let i=0;i<d.length;i+=4){ r+=d[i]; g+=d[i+1]; b+=d[i+2]; n++; }
+    return n ? {r:r/n, g:g/n, b:b/n} : null;
+  }
+  const regions = [avgOf(0,0,w,t), avgOf(0,h-t,w,t), avgOf(0,0,t,h), avgOf(w-t,0,t,h)].filter(Boolean);
+  if(!regions.length) return {r:255,g:255,b:255};
+  return {
+    r: regions.reduce((s,c)=>s+c.r,0)/regions.length,
+    g: regions.reduce((s,c)=>s+c.g,0)/regions.length,
+    b: regions.reduce((s,c)=>s+c.b,0)/regions.length
+  };
+}
+// ขยับโทนสีทั้งภาพเข้าหาสีเป้าหมาย (ใช้ปรับให้พื้นหลังของแต่ละรูปเข้ากับโทนสีที่เลือกไว้ ไม่ใช่ปรับให้ขาวจ้า)
+function shiftColorTone(canvas, fromColor, toColor, strength){
+  strength = strength == null ? 0.8 : strength;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
   const imgData = ctx.getImageData(0, 0, w, h);
   const data = imgData.data;
-  const totalPixels = data.length / 4;
-  const step = Math.max(4, Math.floor(totalPixels / 40000) * 4);
-  const rVals=[], gVals=[], bVals=[];
-  for(let i=0; i<data.length; i+=step){
-    rVals.push(data[i]); gVals.push(data[i+1]); bVals.push(data[i+2]);
-  }
-  rVals.sort((a,b)=>a-b); gVals.sort((a,b)=>a-b); bVals.sort((a,b)=>a-b);
-  const pct = 0.98;
-  const pick = arr => arr[Math.min(arr.length-1, Math.floor(arr.length*pct))];
-  const capScale = 1.4;
-  const scaleR = Math.min(capScale, 255 / Math.max(120, pick(rVals)));
-  const scaleG = Math.min(capScale, 255 / Math.max(120, pick(gVals)));
-  const scaleB = Math.min(capScale, 255 / Math.max(120, pick(bVals)));
+  const dr = (toColor.r - fromColor.r) * strength;
+  const dg = (toColor.g - fromColor.g) * strength;
+  const db = (toColor.b - fromColor.b) * strength;
   for(let i=0; i<data.length; i+=4){
-    data[i]   = Math.min(255, data[i]   * scaleR);
-    data[i+1] = Math.min(255, data[i+1] * scaleG);
-    data[i+2] = Math.min(255, data[i+2] * scaleB);
+    data[i]   = Math.min(255, Math.max(0, data[i]   + dr));
+    data[i+1] = Math.min(255, Math.max(0, data[i+1] + dg));
+    data[i+2] = Math.min(255, Math.max(0, data[i+2] + db));
   }
   ctx.putImageData(imgData, 0, 0);
 }
-function normalizedCanvasFromImage(img){
+function canvasFromImage(img){
   const c = document.createElement('canvas');
   c.width = img.width; c.height = img.height;
   c.getContext('2d').drawImage(img, 0, 0);
-  normalizeWhiteBalance(c);
   return c;
 }
-function placeOnWhitePage(img){
-  const norm = normalizedCanvasFromImage(img);
-  const margin = Math.round(img.width * 0.05);
+
+// วางหน้าเอกสารทั้งหมด (1 หรือหลายหน้า) เรียงต่อกันในหน้าเดียว แล้วแปะลายเซ็นไว้ใต้สุดครั้งเดียว
+// พื้นหลังของหน้ารวมใช้สีเดียวกับโทนกระดาษ/พื้นหลังของเอกสารเอง (ไม่ใช่สีขาวล้วน) แล้วปรับสีของลายเซ็นให้เข้ากับโทนนั้นด้วย
+function stackPagesOnWhiteCanvas(pageCanvases, sigCanvas){
+  // หาสีพื้นหลังของแต่ละหน้าเอกสาร แล้วเฉลี่ยเป็นโทนสีเป้าหมายของทั้งหน้ารวม
+  const pageBgColors = pageCanvases.map(sampleEdgeColor);
+  const targetBg = {
+    r: pageBgColors.reduce((s,c)=>s+c.r,0)/pageBgColors.length,
+    g: pageBgColors.reduce((s,c)=>s+c.g,0)/pageBgColors.length,
+    b: pageBgColors.reduce((s,c)=>s+c.b,0)/pageBgColors.length
+  };
+  // ปรับโทนแต่ละหน้าให้เข้าใกล้โทนเป้าหมายเดียวกัน (กันแสง/สีต่างกันระหว่างหน้า)
+  pageCanvases.forEach((c,i)=> shiftColorTone(c, pageBgColors[i], targetBg, 0.6));
+
+  const margin = Math.round(pageCanvases[0].width * 0.05);
+  const gap = Math.max(16, Math.round(pageCanvases[0].width * 0.03));
+  const maxW = Math.max.apply(null, pageCanvases.map(c=>c.width));
+  const scaledPages = pageCanvases.map(c=>{
+    const scale = maxW / c.width;
+    return { canvas:c, w:maxW, h:Math.round(c.height*scale) };
+  });
+  let sigW=0, sigH=0;
+  if(sigCanvas){
+    sigW = Math.round(maxW * 0.3);
+    sigH = Math.round(sigW * ((sigCanvas.height/sigCanvas.width) || 0.35));
+    // ปรับโทนลายเซ็น (ปกติเป็นกระดาษขาว) ให้เข้ากับโทนพื้นหลังของเอกสารด้วย จะได้ดูเหมือนอยู่หน้าเดียวกัน
+    shiftColorTone(sigCanvas, sampleEdgeColor(sigCanvas), targetBg, 0.5);
+  }
+  const totalPagesHeight = scaledPages.reduce((s,p)=>s+p.h,0) + gap*(scaledPages.length-1);
   const canvas = document.createElement('canvas');
-  canvas.width = img.width + margin * 2;
-  canvas.height = img.height + margin * 2;
+  canvas.width = maxW + margin*2;
+  canvas.height = margin*2 + totalPagesHeight + (sigCanvas ? gap + sigH : 0);
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = `rgb(${Math.round(targetBg.r)},${Math.round(targetBg.g)},${Math.round(targetBg.b)})`;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(norm, margin, margin);
+  let y = margin;
+  scaledPages.forEach(p=>{
+    ctx.drawImage(p.canvas, margin, y, p.w, p.h);
+    y += p.h + gap;
+  });
+  if(sigCanvas){
+    const sigX = Math.round((canvas.width - sigW) / 2);
+    ctx.drawImage(sigCanvas, sigX, y, sigW, sigH);
+  }
   return canvas.toDataURL('image/jpeg', 0.9);
 }
-// วางลายเซ็นไว้ใต้รูปเอกสารเสมอ (ไม่ทับตัวเอกสาร) เหมือนที่ไฟแนนซ์ทำด้วยมือปกติ — ปรับแสงทั้งคู่ให้เข้ากันก่อนวางบนพื้นขาวเดียวกัน
-function compositeDocWithSignature(docImg, sigImg){
-  const docNorm = normalizedCanvasFromImage(docImg);
-  const sigNorm = normalizedCanvasFromImage(sigImg);
-  const margin = Math.round(docImg.width * 0.05);
-  const gap = Math.max(14, Math.round(docImg.width * 0.03));
-  const sigW = Math.round(docImg.width * 0.3);
-  const sigH = Math.round(sigW * ((sigImg.height / sigImg.width) || 0.35));
-  const canvas = document.createElement('canvas');
-  canvas.width = docImg.width + margin * 2;
-  canvas.height = docImg.height + margin * 2 + gap + sigH;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(docNorm, margin, margin, docImg.width, docImg.height);
-  const sigX = Math.round((canvas.width - sigW) / 2);
-  const sigY = margin + docImg.height + gap;
-  ctx.drawImage(sigNorm, sigX, sigY, sigW, sigH);
-  return canvas.toDataURL('image/jpeg', 0.9);
+
+// เมื่อครบทุกหน้าของหมวดนั้นแล้ว รวมเป็นไฟล์เดียว + แปะลายเซ็น (ถ้าหมวดนี้ต้องมี) แล้วอัปโหลดทีเดียว
+function combineAndUploadCategory(catKey, cat){
+  const pages = docPageStore[catKey];
+  const sigCanvas = (cat.needsSignature && sigSignatureImgEl && sigSignatureImgEl.complete)
+    ? canvasFromImage(sigSignatureImgEl) : null;
+  const finalDataUrl = stackPagesOnWhiteCanvas(pages, sigCanvas);
+  const isMulti = (cat.count || 1) > 1;
+  const primarySlot = isMulti ? (catKey + '_1') : catKey;
+  uploadDocToServer(primarySlot, cat.label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg');
+  if(isMulti){
+    for(let i=2; i<=cat.count; i++){
+      const el = document.getElementById('docStatus_'+catKey+'_'+i);
+      if(el) el.textContent = 'รวมกับหน้า 1 แล้ว';
+    }
+  }
 }
 
 function uploadDocToServer(slotKey, label, base64, mimeType, fileName){
