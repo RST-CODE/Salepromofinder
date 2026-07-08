@@ -2779,17 +2779,80 @@ function renderDocCategoryList(){
     </div>
   `).join('');
 }
+let sigCropImg = null;
+let sigCropRect = null;
+let sigCropDragging = false;
+let sigCropStart = null;
+
 function onSignatureFileSelected(event){
   const file = event.target.files[0];
   if(!file) return;
   const prev = document.getElementById('docSignaturePreview');
   prev.textContent = '⏳ กำลังเตรียมรูปลายเซ็น...';
-  compressImageFile(file, 600, 0.85).then(compressed => {
-    signatureDataUrl = compressed.dataUrl;
-    sigSignatureImgEl = new Image();
-    sigSignatureImgEl.src = signatureDataUrl;
-    prev.innerHTML = `<img src="${signatureDataUrl}" style="max-width:150px;border:1px solid var(--line);border-radius:6px;display:block">`;
+  compressImageFile(file, 1200, 0.85).then(compressed => {
+    sigCropImg = new Image();
+    sigCropImg.onload = function(){
+      const canvas = document.getElementById('sigCropCanvas');
+      canvas.width = sigCropImg.width;
+      canvas.height = sigCropImg.height;
+      sigCropRect = null;
+      drawSigCropCanvas();
+      document.getElementById('sigCropArea').style.display = 'block';
+      setupSigCropDrag(canvas);
+      prev.innerHTML = '';
+    };
+    sigCropImg.src = compressed.dataUrl;
   }).catch(()=>{ prev.textContent = '❌ อ่านรูปลายเซ็นไม่ได้ ลองใหม่'; });
+}
+function drawSigCropCanvas(){
+  const canvas = document.getElementById('sigCropCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(sigCropImg, 0, 0, canvas.width, canvas.height);
+  if(sigCropRect){
+    ctx.strokeStyle = '#D85A30';
+    ctx.lineWidth = Math.max(2, canvas.width*0.004);
+    ctx.strokeRect(sigCropRect.x, sigCropRect.y, sigCropRect.w, sigCropRect.h);
+    ctx.fillStyle = 'rgba(216,90,48,0.15)';
+    ctx.fillRect(sigCropRect.x, sigCropRect.y, sigCropRect.w, sigCropRect.h);
+  }
+}
+function setupSigCropDrag(canvas){
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    return { x: cx*scaleX, y: cy*scaleY };
+  }
+  function start(e){ e.preventDefault(); sigCropDragging = true; sigCropStart = getPos(e); sigCropRect = { x:sigCropStart.x, y:sigCropStart.y, w:0, h:0 }; }
+  function move(e){
+    if(!sigCropDragging) return;
+    e.preventDefault();
+    const p = getPos(e);
+    sigCropRect = { x:Math.min(sigCropStart.x,p.x), y:Math.min(sigCropStart.y,p.y), w:Math.abs(p.x-sigCropStart.x), h:Math.abs(p.y-sigCropStart.y) };
+    drawSigCropCanvas();
+  }
+  function end(){ sigCropDragging = false; }
+  canvas.onmousedown = start; canvas.onmousemove = move; canvas.onmouseup = end; canvas.onmouseleave = end;
+  canvas.ontouchstart = start; canvas.ontouchmove = move; canvas.ontouchend = end;
+}
+function confirmSigCrop(){
+  if(!sigCropRect || sigCropRect.w < 10 || sigCropRect.h < 10){
+    alert('กรุณาลากเลือกกรอบเฉพาะส่วนลายเซ็นก่อน (ลากจากมุมหนึ่งไปอีกมุม ให้เหลือแค่ตัวลายเซ็น)');
+    return;
+  }
+  const out = document.createElement('canvas');
+  out.width = Math.round(sigCropRect.w);
+  out.height = Math.round(sigCropRect.h);
+  out.getContext('2d').drawImage(sigCropImg, sigCropRect.x, sigCropRect.y, sigCropRect.w, sigCropRect.h, 0, 0, out.width, out.height);
+  signatureDataUrl = out.toDataURL('image/jpeg', 0.9);
+  sigSignatureImgEl = new Image();
+  sigSignatureImgEl.src = signatureDataUrl;
+  document.getElementById('sigCropArea').style.display = 'none';
+  const prev = document.getElementById('docSignaturePreview');
+  prev.innerHTML = `<div style="font-size:11px;color:#1e7e34;margin-bottom:4px">✓ ตัดลายเซ็นแล้ว</div><img src="${signatureDataUrl}" style="max-width:150px;border:1px solid var(--line);border-radius:6px;display:block"><button type="button" onclick="document.getElementById('sigCropArea').style.display='block'" style="margin-top:4px;font-size:11px;background:none;border:none;color:var(--accent);cursor:pointer;text-decoration:underline">ตัดใหม่</button>`;
 }
 async function onDocFileSelected(catKey){
   const input = document.getElementById('docFile_'+catKey);
@@ -2801,9 +2864,18 @@ async function onDocFileSelected(catKey){
   statusEl.textContent = '⏳ กำลังเตรียมรูป...';
   try{
     const compressed = await compressImageFile(file, 1600, 0.72);
-    if(cat.needsSignature && signatureDataUrl){
-      openSigPlaceModal(catKey, compressed.dataUrl);
-      statusEl.textContent = 'กำลังประกบลายเซ็น...';
+    if(cat.needsSignature && signatureDataUrl && sigSignatureImgEl){
+      statusEl.textContent = '⏳ กำลังประกบลายเซ็น...';
+      const docImg = new Image();
+      docImg.onload = function(){
+        const finalDataUrl = compositeDocWithSignature(docImg, sigSignatureImgEl);
+        uploadDocToServer(catKey, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '_signed.jpg');
+      };
+      docImg.onerror = function(){
+        statusEl.className = 'doc-cat-status err';
+        statusEl.textContent = '❌ เตรียมรูปไม่สำเร็จ ลองใหม่';
+      };
+      docImg.src = compressed.dataUrl;
     } else {
       uploadDocToServer(catKey, compressed.base64, compressed.mimeType, file.name);
     }
@@ -2812,11 +2884,44 @@ async function onDocFileSelected(catKey){
     statusEl.textContent = '❌ อ่านรูปไม่ได้ ลองใหม่';
   }
 }
+
+// วางลายเซ็นไว้ใต้รูปเอกสารเสมอ (ไม่ทับตัวเอกสาร) เหมือนที่ไฟแนนซ์ทำด้วยมือปกติ — ไม่ต้องแตะตำแหน่งเอง
+function compositeDocWithSignature(docImg, sigImg){
+  const gap = Math.max(10, Math.round(docImg.width * 0.02));
+  const sigW = Math.round(docImg.width * 0.3);
+  const sigH = Math.round(sigW * ((sigImg.height / sigImg.width) || 0.35));
+  const canvas = document.createElement('canvas');
+  canvas.width = docImg.width;
+  canvas.height = docImg.height + gap * 2 + sigH;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(docImg, 0, 0, docImg.width, docImg.height);
+  const sigX = Math.round((canvas.width - sigW) / 2);
+  const sigY = docImg.height + gap;
+  ctx.drawImage(sigImg, sigX, sigY, sigW, sigH);
+  return canvas.toDataURL('image/jpeg', 0.85);
+}
+
 function uploadDocToServer(catKey, base64, mimeType, fileName){
   const cat = DOC_CATEGORIES.find(c=>c.key===catKey);
   const statusEl = document.getElementById('docStatus_'+catKey);
   statusEl.className = 'doc-cat-status';
   statusEl.textContent = '⏳ กำลังอัปโหลด...';
+  if(!gasUrl){
+    statusEl.className = 'doc-cat-status err';
+    statusEl.textContent = '❌ ยังไม่ได้ตั้งค่า GAS URL';
+    alert('ยังไม่ได้ตั้งค่า URL ของ Google Apps Script (GAS) — ไปตั้งค่าที่หน้าประวัติ ⚙️ ก่อน');
+    return;
+  }
+  let done = false;
+  const timeoutId = setTimeout(function(){
+    if(done) return;
+    done = true;
+    statusEl.className = 'doc-cat-status err';
+    statusEl.textContent = '❌ หมดเวลารอ (เช็คเน็ต/URL GAS)';
+    alert('แนบเอกสาร "' + cat.label + '" ไม่สำเร็จ: หมดเวลารอการตอบกลับ ลองใหม่อีกครั้ง หรือเช็คว่า deploy เวอร์ชันล่าสุดแล้วหรือยัง');
+  }, 25000);
   gasPostReadable('uploadDoc', {
     id: currentDocsCaseId,
     custName: resolveCustNameForDocs(),
@@ -2825,65 +2930,19 @@ function uploadDocToServer(catKey, base64, mimeType, fileName){
     mimeType: mimeType,
     dataBase64: base64
   }, function(err, data){
+    if(done) return;
+    done = true;
+    clearTimeout(timeoutId);
     if(err || !data || data.status !== 'ok'){
+      const msg = (data && data.message) || (err && err.message) || 'ไม่ทราบสาเหตุ';
       statusEl.className = 'doc-cat-status err';
-      statusEl.textContent = '❌ อัปโหลดไม่สำเร็จ ลองใหม่';
+      statusEl.textContent = '❌ อัปโหลดไม่สำเร็จ';
+      alert('แนบเอกสาร "' + cat.label + '" ไม่สำเร็จ: ' + msg);
       return;
     }
     statusEl.className = 'doc-cat-status ok';
     statusEl.textContent = '✓ แนบแล้ว';
   });
-}
-
-// ===== ประกบลายเซ็นบนรูปเอกสาร: แตะจุดคร่าวๆ ระบบวางขนาดคงที่ให้อัตโนมัติ =====
-let sigPlaceCtx = { category:null, docImg:null, pos:null };
-function openSigPlaceModal(catKey, docImageDataUrl){
-  sigPlaceCtx = { category:catKey, docImg:null, pos:null };
-  document.getElementById('sigPlaceModalBg').style.display = 'flex';
-  const canvas = document.getElementById('sigCanvas');
-  const docImg = new Image();
-  docImg.onload = function(){
-    canvas.width = docImg.width;
-    canvas.height = docImg.height;
-    sigPlaceCtx.docImg = docImg;
-    drawSigCanvas();
-  };
-  docImg.src = docImageDataUrl;
-  canvas.onclick = function(e){
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    sigPlaceCtx.pos = { x:(e.clientX-rect.left)*scaleX, y:(e.clientY-rect.top)*scaleY };
-    drawSigCanvas();
-  };
-}
-function drawSigCanvas(){
-  const canvas = document.getElementById('sigCanvas');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(sigPlaceCtx.docImg, 0, 0, canvas.width, canvas.height);
-  if(sigPlaceCtx.pos && sigSignatureImgEl && sigSignatureImgEl.complete){
-    const sigW = canvas.width * 0.28;
-    const sigH = sigW * (sigSignatureImgEl.height / sigSignatureImgEl.width || 0.4);
-    ctx.drawImage(sigSignatureImgEl, sigPlaceCtx.pos.x - sigW/2, sigPlaceCtx.pos.y - sigH/2, sigW, sigH);
-  }
-}
-function closeSigPlaceModal(){
-  document.getElementById('sigPlaceModalBg').style.display = 'none';
-  const catKey = sigPlaceCtx.category;
-  if(catKey){
-    const statusEl = document.getElementById('docStatus_'+catKey);
-    if(statusEl && statusEl.textContent.includes('ประกบ')) statusEl.textContent = 'ยังไม่แนบ';
-  }
-}
-function confirmSigPlacement(){
-  if(!sigPlaceCtx.pos){ alert('กรุณาแตะตำแหน่งที่จะวางลายเซ็นก่อน'); return; }
-  const canvas = document.getElementById('sigCanvas');
-  const finalDataUrl = canvas.toDataURL('image/jpeg', 0.82);
-  const base64 = finalDataUrl.split(',')[1];
-  const catKey = sigPlaceCtx.category;
-  document.getElementById('sigPlaceModalBg').style.display = 'none';
-  uploadDocToServer(catKey, base64, 'image/jpeg', catKey + '_signed.jpg');
 }
 
 // ===== รวมเอกสารทั้งหมดของเคสเป็น PDF เดียว =====
@@ -4339,6 +4398,11 @@ setBrand('yanmar');
       <div class="field-group">
         <label>1) อัปโหลดรูปลายเซ็นลูกค้า (เขียนบนกระดาษเปล่า) — ใช้ประกบกับบัตร/ทะเบียนบ้านอัตโนมัติ</label>
         <input type="file" id="docSignatureInput" accept="image/*" capture="environment" onchange="onSignatureFileSelected(event)">
+        <div id="sigCropArea" style="display:none;margin-top:8px">
+          <div style="font-size:11px;color:var(--ink-soft);margin-bottom:4px">ลากเลือกกรอบเฉพาะส่วนลายเซ็น (ตัดพื้นที่ว่างรอบๆ ออก)</div>
+          <canvas id="sigCropCanvas" style="width:100%;border:1.5px solid var(--line);border-radius:8px;touch-action:none"></canvas>
+          <button type="button" class="btn-save" style="width:100%;margin-top:6px" onclick="confirmSigCrop()">✓ ใช้ลายเซ็นที่ตัดนี้</button>
+        </div>
         <div id="docSignaturePreview" style="margin-top:6px"></div>
       </div>
       <div class="field-group">
@@ -4347,20 +4411,6 @@ setBrand('yanmar');
       </div>
       <button type="button" class="btn-save" style="width:100%;margin-top:10px" onclick="requestDocsPdf()">🖨 รวมเอกสารทั้งหมดเป็น PDF</button>
       <div id="docsPdfArea" style="margin-top:8px"></div>
-    </div>
-  </div>
-</div>
-
-<div class="preview-modal-bg" id="sigPlaceModalBg" style="display:none">
-  <div class="preview-modal-header">
-    <span>📍 แตะตำแหน่งที่จะวางลายเซ็น</span>
-    <button onclick="closeSigPlaceModal()">✕ ยกเลิก</button>
-  </div>
-  <div class="modal-form-scroll">
-    <div class="modal-form-inner">
-      <canvas id="sigCanvas" style="width:100%;border:1.5px solid var(--line);border-radius:8px;touch-action:none"></canvas>
-      <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;text-align:center">แตะจุดที่ต้องการวางลายเซ็น แตะซ้ำเพื่อขยับตำแหน่งใหม่ได้</div>
-      <button class="btn-save" style="width:100%;margin-top:10px" onclick="confirmSigPlacement()">✓ ยืนยันตำแหน่งนี้</button>
     </div>
   </div>
 </div>
