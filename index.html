@@ -2771,53 +2771,61 @@ function closeDocsModal(){
 }
 function renderDocCategoryList(){
   const c = document.getElementById('docCategoryList');
-  c.innerHTML = DOC_CATEGORIES.map(cat => `
-    <div class="doc-cat-row" id="docRow_${cat.key}">
-      <div class="doc-cat-label">${cat.label}</div>
-      <input type="file" accept="image/*" capture="environment" id="docFile_${cat.key}" onchange="onDocFileSelected('${cat.key}')">
-      <div class="doc-cat-status" id="docStatus_${cat.key}">ยังไม่แนบ</div>
-    </div>
-  `).join('');
+  c.innerHTML = DOC_CATEGORIES.map(cat => {
+    const n = cat.count || 1;
+    let rows = '';
+    for(let i=1; i<=n; i++){
+      const slotKey = n > 1 ? cat.key + '_' + i : cat.key;
+      const slotLabel = n > 1 ? cat.label + ' (ใบที่ ' + i + ')' : cat.label;
+      rows += `
+        <div class="doc-cat-row" id="docRow_${slotKey}">
+          <div class="doc-cat-label">${slotLabel}</div>
+          <input type="file" accept="image/*" capture="environment" id="docFile_${slotKey}" onchange="onDocFileSelected('${slotKey}','${cat.key}')">
+          <div class="doc-cat-status" id="docStatus_${slotKey}">ยังไม่แนบ</div>
+        </div>`;
+    }
+    return rows;
+  }).join('');
 }
-let sigCropImg = null;
-let sigCropRect = null;
-let sigCropDragging = false;
-let sigCropStart = null;
 
-function onSignatureFileSelected(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const prev = document.getElementById('docSignaturePreview');
-  prev.textContent = '⏳ กำลังเตรียมรูปลายเซ็น...';
-  compressImageFile(file, 1200, 0.85).then(compressed => {
-    sigCropImg = new Image();
-    sigCropImg.onload = function(){
-      const canvas = document.getElementById('sigCropCanvas');
-      canvas.width = sigCropImg.width;
-      canvas.height = sigCropImg.height;
-      sigCropRect = null;
-      drawSigCropCanvas();
-      document.getElementById('sigCropArea').style.display = 'block';
-      setupSigCropDrag(canvas);
-      prev.innerHTML = '';
-    };
-    sigCropImg.src = compressed.dataUrl;
-  }).catch(()=>{ prev.textContent = '❌ อ่านรูปลายเซ็นไม่ได้ ลองใหม่'; });
+// ===== เครื่องมือตัดกรอบแบบใช้ซ้ำได้ (ใช้ทั้งตัดลายเซ็น และตัดกรอบเอกสารก่อนวางบนพื้นขาว) =====
+let cropImg = null;
+let cropRect = null;
+let cropDragging = false;
+let cropStart = null;
+let cropCallback = null;
+
+function openCropModal(imageDataUrl, title, hint, callback){
+  cropCallback = callback;
+  document.getElementById('cropModalTitle').textContent = title;
+  document.getElementById('cropModalHint').textContent = hint;
+  const img = new Image();
+  img.onload = function(){
+    cropImg = img;
+    cropRect = null;
+    const canvas = document.getElementById('cropCanvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    drawCropCanvas();
+    setupCropDrag(canvas);
+    document.getElementById('cropModalBg').style.display = 'flex';
+  };
+  img.src = imageDataUrl;
 }
-function drawSigCropCanvas(){
-  const canvas = document.getElementById('sigCropCanvas');
+function drawCropCanvas(){
+  const canvas = document.getElementById('cropCanvas');
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(sigCropImg, 0, 0, canvas.width, canvas.height);
-  if(sigCropRect){
+  ctx.drawImage(cropImg, 0, 0, canvas.width, canvas.height);
+  if(cropRect){
     ctx.strokeStyle = '#D85A30';
     ctx.lineWidth = Math.max(2, canvas.width*0.004);
-    ctx.strokeRect(sigCropRect.x, sigCropRect.y, sigCropRect.w, sigCropRect.h);
+    ctx.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
     ctx.fillStyle = 'rgba(216,90,48,0.15)';
-    ctx.fillRect(sigCropRect.x, sigCropRect.y, sigCropRect.w, sigCropRect.h);
+    ctx.fillRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
   }
 }
-function setupSigCropDrag(canvas){
+function setupCropDrag(canvas){
   function getPos(e){
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -2826,86 +2834,121 @@ function setupSigCropDrag(canvas){
     const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
     return { x: cx*scaleX, y: cy*scaleY };
   }
-  function start(e){ e.preventDefault(); sigCropDragging = true; sigCropStart = getPos(e); sigCropRect = { x:sigCropStart.x, y:sigCropStart.y, w:0, h:0 }; }
+  function start(e){ e.preventDefault(); cropDragging = true; cropStart = getPos(e); cropRect = { x:cropStart.x, y:cropStart.y, w:0, h:0 }; }
   function move(e){
-    if(!sigCropDragging) return;
+    if(!cropDragging) return;
     e.preventDefault();
     const p = getPos(e);
-    sigCropRect = { x:Math.min(sigCropStart.x,p.x), y:Math.min(sigCropStart.y,p.y), w:Math.abs(p.x-sigCropStart.x), h:Math.abs(p.y-sigCropStart.y) };
-    drawSigCropCanvas();
+    cropRect = { x:Math.min(cropStart.x,p.x), y:Math.min(cropStart.y,p.y), w:Math.abs(p.x-cropStart.x), h:Math.abs(p.y-cropStart.y) };
+    drawCropCanvas();
   }
-  function end(){ sigCropDragging = false; }
+  function end(){ cropDragging = false; }
   canvas.onmousedown = start; canvas.onmousemove = move; canvas.onmouseup = end; canvas.onmouseleave = end;
   canvas.ontouchstart = start; canvas.ontouchmove = move; canvas.ontouchend = end;
 }
-function confirmSigCrop(){
-  if(!sigCropRect || sigCropRect.w < 10 || sigCropRect.h < 10){
-    alert('กรุณาลากเลือกกรอบเฉพาะส่วนลายเซ็นก่อน (ลากจากมุมหนึ่งไปอีกมุม ให้เหลือแค่ตัวลายเซ็น)');
+function confirmGenericCrop(){
+  if(!cropRect || cropRect.w < 10 || cropRect.h < 10){
+    alert('กรุณาลากเลือกกรอบก่อน (ลากจากมุมหนึ่งไปอีกมุม)');
     return;
   }
   const out = document.createElement('canvas');
-  out.width = Math.round(sigCropRect.w);
-  out.height = Math.round(sigCropRect.h);
-  out.getContext('2d').drawImage(sigCropImg, sigCropRect.x, sigCropRect.y, sigCropRect.w, sigCropRect.h, 0, 0, out.width, out.height);
-  signatureDataUrl = out.toDataURL('image/jpeg', 0.9);
-  sigSignatureImgEl = new Image();
-  sigSignatureImgEl.src = signatureDataUrl;
-  document.getElementById('sigCropArea').style.display = 'none';
-  const prev = document.getElementById('docSignaturePreview');
-  prev.innerHTML = `<div style="font-size:11px;color:#1e7e34;margin-bottom:4px">✓ ตัดลายเซ็นแล้ว</div><img src="${signatureDataUrl}" style="max-width:150px;border:1px solid var(--line);border-radius:6px;display:block"><button type="button" onclick="document.getElementById('sigCropArea').style.display='block'" style="margin-top:4px;font-size:11px;background:none;border:none;color:var(--accent);cursor:pointer;text-decoration:underline">ตัดใหม่</button>`;
+  out.width = Math.round(cropRect.w);
+  out.height = Math.round(cropRect.h);
+  out.getContext('2d').drawImage(cropImg, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, out.width, out.height);
+  const dataUrl = out.toDataURL('image/jpeg', 0.92);
+  document.getElementById('cropModalBg').style.display = 'none';
+  if(cropCallback) cropCallback(dataUrl);
 }
-async function onDocFileSelected(catKey){
-  const input = document.getElementById('docFile_'+catKey);
+function cancelGenericCrop(){
+  document.getElementById('cropModalBg').style.display = 'none';
+}
+
+function onSignatureFileSelected(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const prev = document.getElementById('docSignaturePreview');
+  prev.textContent = '⏳ กำลังเตรียมรูปลายเซ็น...';
+  compressImageFile(file, 1200, 0.85).then(compressed => {
+    prev.textContent = '';
+    openCropModal(compressed.dataUrl, '✂️ ตัดกรอบลายเซ็น', 'ลากเลือกกรอบเฉพาะส่วนที่เป็นลายเซ็น (ตัดพื้นที่ว่างรอบๆ ออก)', function(croppedDataUrl){
+      signatureDataUrl = croppedDataUrl;
+      sigSignatureImgEl = new Image();
+      sigSignatureImgEl.src = signatureDataUrl;
+      prev.innerHTML = `<div style="font-size:11px;color:#1e7e34;margin-bottom:4px">✓ ตัดลายเซ็นแล้ว</div><img src="${signatureDataUrl}" style="max-width:150px;border:1px solid var(--line);border-radius:6px;display:block"><button type="button" onclick="document.getElementById('docSignatureInput').click()" style="margin-top:4px;font-size:11px;background:none;border:none;color:var(--accent);cursor:pointer;text-decoration:underline">เลือกรูปใหม่</button>`;
+    });
+  }).catch(()=>{ prev.textContent = '❌ อ่านรูปลายเซ็นไม่ได้ ลองใหม่'; });
+}
+async function onDocFileSelected(slotKey, catKey){
+  const input = document.getElementById('docFile_'+slotKey);
   const file = input.files[0];
   if(!file) return;
   const cat = DOC_CATEGORIES.find(c=>c.key===catKey);
-  const statusEl = document.getElementById('docStatus_'+catKey);
+  const isMulti = (cat.count || 1) > 1;
+  const label = isMulti ? (cat.label + ' หน้า ' + slotKey.split('_').pop()) : cat.label;
+  const statusEl = document.getElementById('docStatus_'+slotKey);
   statusEl.className = 'doc-cat-status';
   statusEl.textContent = '⏳ กำลังเตรียมรูป...';
   try{
-    const compressed = await compressImageFile(file, 1600, 0.72);
-    if(cat.needsSignature && signatureDataUrl && sigSignatureImgEl){
-      statusEl.textContent = '⏳ กำลังประกบลายเซ็น...';
-      const docImg = new Image();
-      docImg.onload = function(){
-        const finalDataUrl = compositeDocWithSignature(docImg, sigSignatureImgEl);
-        uploadDocToServer(catKey, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '_signed.jpg');
+    const compressed = await compressImageFile(file, 1600, 0.88);
+    openCropModal(compressed.dataUrl, '✂️ ตัดกรอบ' + label, 'ลากเลือกกรอบให้พอดีขอบเอกสาร (ตัดโต๊ะ/พื้นหลังออกให้หมด)', function(croppedDataUrl){
+      statusEl.textContent = '⏳ กำลังเตรียมรูป...';
+      const cropImgEl = new Image();
+      cropImgEl.onload = function(){
+        const finalDataUrl = (cat.needsSignature && signatureDataUrl && sigSignatureImgEl)
+          ? compositeDocWithSignature(cropImgEl, sigSignatureImgEl)
+          : placeOnWhitePage(cropImgEl);
+        uploadDocToServer(slotKey, label, finalDataUrl.split(',')[1], 'image/jpeg', slotKey + '.jpg');
       };
-      docImg.onerror = function(){
+      cropImgEl.onerror = function(){
         statusEl.className = 'doc-cat-status err';
         statusEl.textContent = '❌ เตรียมรูปไม่สำเร็จ ลองใหม่';
       };
-      docImg.src = compressed.dataUrl;
-    } else {
-      uploadDocToServer(catKey, compressed.base64, compressed.mimeType, file.name);
-    }
+      cropImgEl.src = croppedDataUrl;
+    });
   } catch(e){
     statusEl.className = 'doc-cat-status err';
     statusEl.textContent = '❌ อ่านรูปไม่ได้ ลองใหม่';
   }
 }
 
-// วางลายเซ็นไว้ใต้รูปเอกสารเสมอ (ไม่ทับตัวเอกสาร) เหมือนที่ไฟแนนซ์ทำด้วยมือปกติ — ไม่ต้องแตะตำแหน่งเอง
-function compositeDocWithSignature(docImg, sigImg){
-  const gap = Math.max(10, Math.round(docImg.width * 0.02));
-  const sigW = Math.round(docImg.width * 0.3);
-  const sigH = Math.round(sigW * ((sigImg.height / sigImg.width) || 0.35));
+// วางรูปเอกสาร (ที่ตัดกรอบแล้ว ไม่มีพื้นหลังเดิมติดมา) ลงบนพื้นขาวล้วน พร้อมปรับโทนสีเบาๆ ให้ดูเหมือนสแกน
+function applyScanLookAndDraw(ctx, img, x, y, w, h){
+  ctx.filter = 'contrast(1.12) brightness(1.06) saturate(1.05)';
+  ctx.drawImage(img, x, y, w, h);
+  ctx.filter = 'none';
+}
+function placeOnWhitePage(img){
+  const margin = Math.round(img.width * 0.06);
   const canvas = document.createElement('canvas');
-  canvas.width = docImg.width;
-  canvas.height = docImg.height + gap * 2 + sigH;
+  canvas.width = img.width + margin * 2;
+  canvas.height = img.height + margin * 2;
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(docImg, 0, 0, docImg.width, docImg.height);
+  applyScanLookAndDraw(ctx, img, margin, margin, img.width, img.height);
+  return canvas.toDataURL('image/jpeg', 0.9);
+}
+// วางลายเซ็นไว้ใต้รูปเอกสารเสมอ (ไม่ทับตัวเอกสาร) เหมือนที่ไฟแนนซ์ทำด้วยมือปกติ — ทั้งคู่อยู่บนพื้นขาวเดียวกัน ไม่เห็นรอยต่อพื้นหลัง
+function compositeDocWithSignature(docImg, sigImg){
+  const margin = Math.round(docImg.width * 0.06);
+  const gap = Math.max(14, Math.round(docImg.width * 0.03));
+  const sigW = Math.round(docImg.width * 0.3);
+  const sigH = Math.round(sigW * ((sigImg.height / sigImg.width) || 0.35));
+  const canvas = document.createElement('canvas');
+  canvas.width = docImg.width + margin * 2;
+  canvas.height = docImg.height + margin * 2 + gap + sigH;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  applyScanLookAndDraw(ctx, docImg, margin, margin, docImg.width, docImg.height);
   const sigX = Math.round((canvas.width - sigW) / 2);
-  const sigY = docImg.height + gap;
+  const sigY = margin + docImg.height + gap;
   ctx.drawImage(sigImg, sigX, sigY, sigW, sigH);
-  return canvas.toDataURL('image/jpeg', 0.85);
+  return canvas.toDataURL('image/jpeg', 0.9);
 }
 
-function uploadDocToServer(catKey, base64, mimeType, fileName){
-  const cat = DOC_CATEGORIES.find(c=>c.key===catKey);
-  const statusEl = document.getElementById('docStatus_'+catKey);
+function uploadDocToServer(slotKey, label, base64, mimeType, fileName){
+  const statusEl = document.getElementById('docStatus_'+slotKey);
   statusEl.className = 'doc-cat-status';
   statusEl.textContent = '⏳ กำลังอัปโหลด...';
   if(!gasUrl){
@@ -2920,13 +2963,13 @@ function uploadDocToServer(catKey, base64, mimeType, fileName){
     done = true;
     statusEl.className = 'doc-cat-status err';
     statusEl.textContent = '❌ หมดเวลารอ (เช็คเน็ต/URL GAS)';
-    alert('แนบเอกสาร "' + cat.label + '" ไม่สำเร็จ: หมดเวลารอการตอบกลับ ลองใหม่อีกครั้ง หรือเช็คว่า deploy เวอร์ชันล่าสุดแล้วหรือยัง');
+    alert('แนบเอกสาร "' + label + '" ไม่สำเร็จ: หมดเวลารอการตอบกลับ ลองใหม่อีกครั้ง หรือเช็คว่า deploy เวอร์ชันล่าสุดแล้วหรือยัง');
   }, 25000);
   gasPostReadable('uploadDoc', {
     id: currentDocsCaseId,
     custName: resolveCustNameForDocs(),
-    category: cat.label,
-    fileName: fileName || (cat.key + '.jpg'),
+    category: label,
+    fileName: fileName || (slotKey + '.jpg'),
     mimeType: mimeType,
     dataBase64: base64
   }, function(err, data){
@@ -2937,7 +2980,7 @@ function uploadDocToServer(catKey, base64, mimeType, fileName){
       const msg = (data && data.message) || (err && err.message) || 'ไม่ทราบสาเหตุ';
       statusEl.className = 'doc-cat-status err';
       statusEl.textContent = '❌ อัปโหลดไม่สำเร็จ';
-      alert('แนบเอกสาร "' + cat.label + '" ไม่สำเร็จ: ' + msg);
+      alert('แนบเอกสาร "' + label + '" ไม่สำเร็จ: ' + msg);
       return;
     }
     statusEl.className = 'doc-cat-status ok';
@@ -3208,12 +3251,12 @@ function saveToHistory(record){
 
 // ===== แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน/โฉนด ฯลฯ) =====
 const DOC_CATEGORIES = [
-  {key:'idcard',   label:'บัตรประชาชน',      needsSignature:true},
-  {key:'houseReg', label:'ทะเบียนบ้าน',       needsSignature:true},
-  {key:'landTitle',label:'โฉนดที่ดิน',        needsSignature:false},
-  {key:'farmReg',  label:'เอกสารแปลงเกษตร',   needsSignature:false},
-  {key:'loanCard', label:'การ์ดผ่อนชำระ',     needsSignature:false},
-  {key:'other',    label:'อื่นๆ',             needsSignature:false}
+  {key:'idcard',   label:'บัตรประชาชน',      needsSignature:true, count:1},
+  {key:'houseReg', label:'ทะเบียนบ้าน',       needsSignature:true, count:2},
+  {key:'landTitle',label:'โฉนดที่ดิน',        needsSignature:false, count:1},
+  {key:'farmReg',  label:'เอกสารแปลงเกษตร',   needsSignature:false, count:1},
+  {key:'loanCard', label:'การ์ดผ่อนชำระ',     needsSignature:false, count:1},
+  {key:'other',    label:'อื่นๆ',             needsSignature:false, count:1}
 ];
 
 // ย่อขนาด + บีบอัดรูปก่อนอัปโหลด ประหยัดโควต้า Drive และโหลดเร็วขึ้นมาก
@@ -4398,19 +4441,28 @@ setBrand('yanmar');
       <div class="field-group">
         <label>1) อัปโหลดรูปลายเซ็นลูกค้า (เขียนบนกระดาษเปล่า) — ใช้ประกบกับบัตร/ทะเบียนบ้านอัตโนมัติ</label>
         <input type="file" id="docSignatureInput" accept="image/*" capture="environment" onchange="onSignatureFileSelected(event)">
-        <div id="sigCropArea" style="display:none;margin-top:8px">
-          <div style="font-size:11px;color:var(--ink-soft);margin-bottom:4px">ลากเลือกกรอบเฉพาะส่วนลายเซ็น (ตัดพื้นที่ว่างรอบๆ ออก)</div>
-          <canvas id="sigCropCanvas" style="width:100%;border:1.5px solid var(--line);border-radius:8px;touch-action:none"></canvas>
-          <button type="button" class="btn-save" style="width:100%;margin-top:6px" onclick="confirmSigCrop()">✓ ใช้ลายเซ็นที่ตัดนี้</button>
-        </div>
         <div id="docSignaturePreview" style="margin-top:6px"></div>
       </div>
       <div class="field-group">
-        <label style="margin-bottom:8px;display:block">2) แนบรูปเอกสารแต่ละประเภท</label>
+        <label style="margin-bottom:8px;display:block">2) แนบรูปเอกสารแต่ละประเภท (จะให้ตัดกรอบก่อนอัปโหลดทุกครั้ง)</label>
         <div id="docCategoryList"></div>
       </div>
       <button type="button" class="btn-save" style="width:100%;margin-top:10px" onclick="requestDocsPdf()">🖨 รวมเอกสารทั้งหมดเป็น PDF</button>
       <div id="docsPdfArea" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="preview-modal-bg" id="cropModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span id="cropModalTitle">✂️ ตัดกรอบ</span>
+    <button onclick="cancelGenericCrop()">✕ ยกเลิก</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner">
+      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px" id="cropModalHint">ลากเลือกกรอบเฉพาะส่วนที่ต้องการ</div>
+      <canvas id="cropCanvas" style="width:100%;border:1.5px solid var(--line);border-radius:8px;touch-action:none"></canvas>
+      <button type="button" class="btn-save" style="width:100%;margin-top:10px" onclick="confirmGenericCrop()">✓ ใช้ส่วนที่ตัดนี้</button>
     </div>
   </div>
 </div>
