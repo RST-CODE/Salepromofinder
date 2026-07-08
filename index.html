@@ -2969,17 +2969,32 @@ function canvasFromImage(img){
 }
 
 // วางหน้าเอกสารทั้งหมด (1 หรือหลายหน้า) เรียงต่อกันในหน้าเดียว แล้วแปะลายเซ็นไว้ใต้สุดครั้งเดียว
-// พื้นหลังของหน้ารวมใช้สีเดียวกับโทนกระดาษ/พื้นหลังของเอกสารเอง (ไม่ใช่สีขาวล้วน) แล้วปรับสีของลายเซ็นให้เข้ากับโทนนั้นด้วย
+// ยึดสีกระดาษของรูปลายเซ็นเป็นหลัก (กระดาษเปล่าที่โทนสีสม่ำเสมอที่สุด) ปรับให้สว่างขึ้นเล็กน้อยให้ดูเหมือนภาพแสกน
+// แล้วปรับโทนของบัตร/เอกสารให้สว่างเข้าหาโทนกระดาษนั้น จะได้ดูกลืนเป็นแผ่นเดียวกัน
 function stackPagesOnWhiteCanvas(pageCanvases, sigCanvas){
-  // หาสีพื้นหลังของแต่ละหน้าเอกสาร แล้วเฉลี่ยเป็นโทนสีเป้าหมายของทั้งหน้ารวม
-  const pageBgColors = pageCanvases.map(sampleEdgeColor);
-  const targetBg = {
-    r: pageBgColors.reduce((s,c)=>s+c.r,0)/pageBgColors.length,
-    g: pageBgColors.reduce((s,c)=>s+c.g,0)/pageBgColors.length,
-    b: pageBgColors.reduce((s,c)=>s+c.b,0)/pageBgColors.length
-  };
-  // ปรับโทนแต่ละหน้าให้เข้าใกล้โทนเป้าหมายเดียวกัน (กันแสง/สีต่างกันระหว่างหน้า)
-  pageCanvases.forEach((c,i)=> shiftColorTone(c, pageBgColors[i], targetBg, 0.6));
+  let targetBg;
+  const brighten = 12; // ปรับสว่างขึ้นเล็กน้อยจากกระดาษจริง ให้ดูเหมือนภาพแสกน ไม่ใช่ภาพถ่ายดิบ
+  if(sigCanvas){
+    const paperColor = sampleEdgeColor(sigCanvas);
+    targetBg = {
+      r: Math.min(255, paperColor.r + brighten),
+      g: Math.min(255, paperColor.g + brighten),
+      b: Math.min(255, paperColor.b + brighten)
+    };
+    // ลายเซ็นเองก็ปรับสว่างขึ้นเท่ากัน (แค่ยกความสว่าง ไม่ต้องดึงเข้าหาที่อื่น เพราะมันคือต้นทางของโทนสีเป้าหมายอยู่แล้ว)
+    shiftColorTone(sigCanvas, paperColor, targetBg, 1);
+  } else {
+    // ไม่มีลายเซ็นให้ยึด ใช้สีเฉลี่ยของหน้าเอกสารเองแทน
+    const pageBgColors = pageCanvases.map(sampleEdgeColor);
+    const avg = {
+      r: pageBgColors.reduce((s,c)=>s+c.r,0)/pageBgColors.length,
+      g: pageBgColors.reduce((s,c)=>s+c.g,0)/pageBgColors.length,
+      b: pageBgColors.reduce((s,c)=>s+c.b,0)/pageBgColors.length
+    };
+    targetBg = { r:Math.min(255,avg.r+brighten), g:Math.min(255,avg.g+brighten), b:Math.min(255,avg.b+brighten) };
+  }
+  // ปรับโทนของบัตร/เอกสารแต่ละหน้าให้ "สว่างขึ้น" เข้าหาโทนกระดาษเป้าหมาย ให้ดูกลืนไปกับกระดาษลายเซ็น
+  pageCanvases.forEach(c => shiftColorTone(c, sampleEdgeColor(c), targetBg, 0.85));
 
   const margin = Math.round(pageCanvases[0].width * 0.05);
   const gap = Math.max(16, Math.round(pageCanvases[0].width * 0.03));
@@ -2992,8 +3007,6 @@ function stackPagesOnWhiteCanvas(pageCanvases, sigCanvas){
   if(sigCanvas){
     sigW = Math.round(maxW * 0.3);
     sigH = Math.round(sigW * ((sigCanvas.height/sigCanvas.width) || 0.35));
-    // ปรับโทนลายเซ็น (ปกติเป็นกระดาษขาว) ให้เข้ากับโทนพื้นหลังของเอกสารด้วย จะได้ดูเหมือนอยู่หน้าเดียวกัน
-    shiftColorTone(sigCanvas, sampleEdgeColor(sigCanvas), targetBg, 0.5);
   }
   const totalPagesHeight = scaledPages.reduce((s,p)=>s+p.h,0) + gap*(scaledPages.length-1);
   const canvas = document.createElement('canvas');
