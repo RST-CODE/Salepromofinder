@@ -2870,7 +2870,7 @@ function onSignatureFileSelected(event){
   prev.textContent = '⏳ กำลังเตรียมรูปลายเซ็น...';
   compressImageFile(file, 1200, 0.85).then(compressed => {
     prev.textContent = '';
-    openCropModal(compressed.dataUrl, '✂️ ตัดกรอบลายเซ็น', 'ลากเลือกกรอบเฉพาะส่วนที่เป็นลายเซ็น (ตัดพื้นที่ว่างรอบๆ ออก)', function(croppedDataUrl){
+    openCropModal(compressed.dataUrl, '✂️ ตัดกรอบลายเซ็น', 'ลากให้ชิดตัวลายเซ็นที่สุด ตัดพื้นที่กระดาษว่างรอบๆ ออกให้หมด', function(croppedDataUrl){
       signatureDataUrl = croppedDataUrl;
       sigSignatureImgEl = new Image();
       sigSignatureImgEl.src = signatureDataUrl;
@@ -2890,7 +2890,7 @@ async function onDocFileSelected(slotKey, catKey){
   statusEl.textContent = '⏳ กำลังเตรียมรูป...';
   try{
     const compressed = await compressImageFile(file, 1600, 0.88);
-    openCropModal(compressed.dataUrl, '✂️ ตัดกรอบ' + label, 'ลากเลือกกรอบให้พอดีขอบเอกสาร (ตัดโต๊ะ/พื้นหลังออกให้หมด)', function(croppedDataUrl){
+    openCropModal(compressed.dataUrl, '✂️ ตัดกรอบ' + label, 'ลากให้ชิดขอบเอกสารที่สุด อย่าให้เห็นโต๊ะ/พื้นหลังหลงเหลือเลยแม้แต่นิดเดียว', function(croppedDataUrl){
       statusEl.textContent = '⏳ กำลังเตรียมรูป...';
       const cropImgEl = new Image();
       cropImgEl.onload = function(){
@@ -2911,26 +2911,59 @@ async function onDocFileSelected(slotKey, catKey){
   }
 }
 
-// วางรูปเอกสาร (ที่ตัดกรอบแล้ว ไม่มีพื้นหลังเดิมติดมา) ลงบนพื้นขาวล้วน พร้อมปรับโทนสีเบาๆ ให้ดูเหมือนสแกน
-function applyScanLookAndDraw(ctx, img, x, y, w, h){
-  ctx.filter = 'contrast(1.12) brightness(1.06) saturate(1.05)';
-  ctx.drawImage(img, x, y, w, h);
-  ctx.filter = 'none';
+// ปรับสมดุลแสง/สีของรูปให้จุดที่สว่างที่สุด (ปกติคือพื้นกระดาษ/พื้นหลัง) กลายเป็นสีขาวจริง
+// ทำแยกทีละรูป (เอกสาร กับ ลายเซ็น คนละรอบ) ก่อนเอามาวางบนพื้นขาวเดียวกัน
+// เพื่อให้แสง/โทนสีของทั้งสองรูปเข้ากัน ไม่เห็นรอยต่อพื้นหลังคนละสีคนละแสง
+function normalizeWhiteBalance(canvas){
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  if(w*h === 0) return;
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+  const totalPixels = data.length / 4;
+  const step = Math.max(4, Math.floor(totalPixels / 40000) * 4);
+  const rVals=[], gVals=[], bVals=[];
+  for(let i=0; i<data.length; i+=step){
+    rVals.push(data[i]); gVals.push(data[i+1]); bVals.push(data[i+2]);
+  }
+  rVals.sort((a,b)=>a-b); gVals.sort((a,b)=>a-b); bVals.sort((a,b)=>a-b);
+  const pct = 0.98;
+  const pick = arr => arr[Math.min(arr.length-1, Math.floor(arr.length*pct))];
+  const capScale = 1.4;
+  const scaleR = Math.min(capScale, 255 / Math.max(120, pick(rVals)));
+  const scaleG = Math.min(capScale, 255 / Math.max(120, pick(gVals)));
+  const scaleB = Math.min(capScale, 255 / Math.max(120, pick(bVals)));
+  for(let i=0; i<data.length; i+=4){
+    data[i]   = Math.min(255, data[i]   * scaleR);
+    data[i+1] = Math.min(255, data[i+1] * scaleG);
+    data[i+2] = Math.min(255, data[i+2] * scaleB);
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+function normalizedCanvasFromImage(img){
+  const c = document.createElement('canvas');
+  c.width = img.width; c.height = img.height;
+  c.getContext('2d').drawImage(img, 0, 0);
+  normalizeWhiteBalance(c);
+  return c;
 }
 function placeOnWhitePage(img){
-  const margin = Math.round(img.width * 0.06);
+  const norm = normalizedCanvasFromImage(img);
+  const margin = Math.round(img.width * 0.05);
   const canvas = document.createElement('canvas');
   canvas.width = img.width + margin * 2;
   canvas.height = img.height + margin * 2;
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  applyScanLookAndDraw(ctx, img, margin, margin, img.width, img.height);
+  ctx.drawImage(norm, margin, margin);
   return canvas.toDataURL('image/jpeg', 0.9);
 }
-// วางลายเซ็นไว้ใต้รูปเอกสารเสมอ (ไม่ทับตัวเอกสาร) เหมือนที่ไฟแนนซ์ทำด้วยมือปกติ — ทั้งคู่อยู่บนพื้นขาวเดียวกัน ไม่เห็นรอยต่อพื้นหลัง
+// วางลายเซ็นไว้ใต้รูปเอกสารเสมอ (ไม่ทับตัวเอกสาร) เหมือนที่ไฟแนนซ์ทำด้วยมือปกติ — ปรับแสงทั้งคู่ให้เข้ากันก่อนวางบนพื้นขาวเดียวกัน
 function compositeDocWithSignature(docImg, sigImg){
-  const margin = Math.round(docImg.width * 0.06);
+  const docNorm = normalizedCanvasFromImage(docImg);
+  const sigNorm = normalizedCanvasFromImage(sigImg);
+  const margin = Math.round(docImg.width * 0.05);
   const gap = Math.max(14, Math.round(docImg.width * 0.03));
   const sigW = Math.round(docImg.width * 0.3);
   const sigH = Math.round(sigW * ((sigImg.height / sigImg.width) || 0.35));
@@ -2940,10 +2973,10 @@ function compositeDocWithSignature(docImg, sigImg){
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  applyScanLookAndDraw(ctx, docImg, margin, margin, docImg.width, docImg.height);
+  ctx.drawImage(docNorm, margin, margin, docImg.width, docImg.height);
   const sigX = Math.round((canvas.width - sigW) / 2);
   const sigY = margin + docImg.height + gap;
-  ctx.drawImage(sigImg, sigX, sigY, sigW, sigH);
+  ctx.drawImage(sigNorm, sigX, sigY, sigW, sigH);
   return canvas.toDataURL('image/jpeg', 0.9);
 }
 
