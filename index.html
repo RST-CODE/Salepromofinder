@@ -788,6 +788,15 @@ body.printing #printArea{ display:block !important; }
 .ref-row-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
 .ref-row-head b{ font-family:'Kanit',sans-serif; font-size:12px; color:var(--accent); }
 .ref-row-remove{ background:none; border:none; color:#c0392b; font-size:12px; font-weight:600; cursor:pointer; font-family:'Kanit',sans-serif; }
+.doc-cat-row{
+  display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--line); flex-wrap:wrap;
+}
+.doc-cat-row:last-child{ border-bottom:none; }
+.doc-cat-label{ font-family:'Kanit',sans-serif; font-size:12.5px; font-weight:600; flex:0 0 120px; }
+.doc-cat-row input[type="file"]{ flex:1; min-width:140px; font-size:11px; }
+.doc-cat-status{ font-size:11px; font-weight:600; color:var(--ink-soft); flex:0 0 auto; }
+.doc-cat-status.ok{ color:#1e7e34; }
+.doc-cat-status.err{ color:#c0392b; }
 .preview-modal-bg{
   position:fixed; inset:0; background:#fff; z-index:600;
   display:flex; flex-direction:column;
@@ -1039,6 +1048,7 @@ body.printing #printArea{ display:block !important; }
     <div class="finance-extra-launchers">
       <button type="button" class="finance-launch-btn" onclick="openAddressGuarantorModal()">📍 ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน <span class="fl-status" id="addrGtorStatus"></span></button>
       <button type="button" class="finance-launch-btn" onclick="openReferenceModal()">📇 บุคคลอ้างอิง <span class="fl-status" id="refStatus"></span></button>
+      <button type="button" class="finance-launch-btn" onclick="openDocsModal(getOrCreateDraftCaseId())">📎 แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน ฯลฯ)</button>
       <div style="text-align:center;font-size:11.5px"><a href="#" onclick="previewGuarantorForm();return false" style="color:var(--accent);font-family:'Kanit',sans-serif;font-weight:600">🔍 ดูตัวอย่างฟอร์มผู้ค้ำ/อ้างอิง</a></div>
     </div>
 
@@ -1188,6 +1198,7 @@ body.printing #printArea{ display:block !important; }
     <div class="finance-extra-launchers">
       <button type="button" class="finance-launch-btn" onclick="openAddressGuarantorModal()">📍 ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน <span class="fl-status" id="addrGtorStatusM"></span></button>
       <button type="button" class="finance-launch-btn" onclick="openReferenceModal()">📇 บุคคลอ้างอิง <span class="fl-status" id="refStatusM"></span></button>
+      <button type="button" class="finance-launch-btn" onclick="openDocsModal(getOrCreateDraftCaseId())">📎 แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน ฯลฯ)</button>
       <div style="text-align:center;font-size:11.5px"><a href="#" onclick="previewGuarantorForm();return false" style="color:var(--accent);font-family:'Kanit',sans-serif;font-weight:600">🔍 ดูตัวอย่างฟอร์มผู้ค้ำ/อ้างอิง</a></div>
     </div>
 
@@ -2268,6 +2279,7 @@ function collectExportData(){
   return {
     custName, custAddr, custPhone, branch, model, brand, seg, progName,
     custCurrentAddr, gtorName, gtorAddr, gtorPhone, refs,
+    id: _draftCaseId || undefined,
     price, down, support, custOut, rst,
     finYears, finRate, finTotal: Math.round(finTotal), annualFull: Math.round(annualFull),
     minorMode, minorAdvanceTotal,
@@ -2722,6 +2734,172 @@ function reprintGuarantorForm(id){
   });
 }
 
+// ===== แนบเอกสารประกอบ: modal เปิด/ปิด + รายการหมวดเอกสาร =====
+let currentDocsCaseId = null;
+let currentDocsIsDraft = false;
+let signatureDataUrl = null;
+let sigSignatureImgEl = null;
+let _draftCaseId = null;
+
+// สร้างรหัสเคสชั่วคราวไว้ใช้แนบเอกสารได้ตั้งแต่ก่อนกดบันทึกจริง
+// พอกดบันทึกจริง จะส่ง id เดียวกันนี้ไปให้ backend ใช้เป็นรหัสเคสตัวจริงเลย (ไฟล์ที่แนบไว้จะตรงกันอัตโนมัติ)
+function getOrCreateDraftCaseId(){
+  if(!_draftCaseId){
+    _draftCaseId = 'RST_' + new Date().toISOString().replace(/[-:TZ.]/g,'').slice(0,17) + '_' + Math.floor(Math.random()*1000);
+  }
+  return _draftCaseId;
+}
+function resolveCustNameForDocs(){
+  if(!currentDocsIsDraft) return (window._docsCustNameFixed || '').trim();
+  return (document.getElementById('custName2')?.value || document.getElementById('custNameM')?.value || '').trim();
+}
+
+function openDocsModal(id){
+  currentDocsCaseId = id;
+  const histRec = (typeof _allHistoryRecords !== 'undefined') ? _allHistoryRecords.find(r => String(r.id) === String(id)) : null;
+  currentDocsIsDraft = !histRec;
+  window._docsCustNameFixed = histRec ? (histRec.custName || '') : '';
+  signatureDataUrl = null;
+  sigSignatureImgEl = null;
+  document.getElementById('docSignaturePreview').innerHTML = '';
+  document.getElementById('docsPdfArea').innerHTML = '';
+  renderDocCategoryList();
+  document.getElementById('docsModalBg').style.display = 'flex';
+}
+function closeDocsModal(){
+  document.getElementById('docsModalBg').style.display = 'none';
+}
+function renderDocCategoryList(){
+  const c = document.getElementById('docCategoryList');
+  c.innerHTML = DOC_CATEGORIES.map(cat => `
+    <div class="doc-cat-row" id="docRow_${cat.key}">
+      <div class="doc-cat-label">${cat.label}</div>
+      <input type="file" accept="image/*" capture="environment" id="docFile_${cat.key}" onchange="onDocFileSelected('${cat.key}')">
+      <div class="doc-cat-status" id="docStatus_${cat.key}">ยังไม่แนบ</div>
+    </div>
+  `).join('');
+}
+function onSignatureFileSelected(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const prev = document.getElementById('docSignaturePreview');
+  prev.textContent = '⏳ กำลังเตรียมรูปลายเซ็น...';
+  compressImageFile(file, 600, 0.85).then(compressed => {
+    signatureDataUrl = compressed.dataUrl;
+    sigSignatureImgEl = new Image();
+    sigSignatureImgEl.src = signatureDataUrl;
+    prev.innerHTML = `<img src="${signatureDataUrl}" style="max-width:150px;border:1px solid var(--line);border-radius:6px;display:block">`;
+  }).catch(()=>{ prev.textContent = '❌ อ่านรูปลายเซ็นไม่ได้ ลองใหม่'; });
+}
+async function onDocFileSelected(catKey){
+  const input = document.getElementById('docFile_'+catKey);
+  const file = input.files[0];
+  if(!file) return;
+  const cat = DOC_CATEGORIES.find(c=>c.key===catKey);
+  const statusEl = document.getElementById('docStatus_'+catKey);
+  statusEl.className = 'doc-cat-status';
+  statusEl.textContent = '⏳ กำลังเตรียมรูป...';
+  try{
+    const compressed = await compressImageFile(file, 1600, 0.72);
+    if(cat.needsSignature && signatureDataUrl){
+      openSigPlaceModal(catKey, compressed.dataUrl);
+      statusEl.textContent = 'กำลังประกบลายเซ็น...';
+    } else {
+      uploadDocToServer(catKey, compressed.base64, compressed.mimeType, file.name);
+    }
+  } catch(e){
+    statusEl.className = 'doc-cat-status err';
+    statusEl.textContent = '❌ อ่านรูปไม่ได้ ลองใหม่';
+  }
+}
+function uploadDocToServer(catKey, base64, mimeType, fileName){
+  const cat = DOC_CATEGORIES.find(c=>c.key===catKey);
+  const statusEl = document.getElementById('docStatus_'+catKey);
+  statusEl.className = 'doc-cat-status';
+  statusEl.textContent = '⏳ กำลังอัปโหลด...';
+  gasPostReadable('uploadDoc', {
+    id: currentDocsCaseId,
+    custName: resolveCustNameForDocs(),
+    category: cat.label,
+    fileName: fileName || (cat.key + '.jpg'),
+    mimeType: mimeType,
+    dataBase64: base64
+  }, function(err, data){
+    if(err || !data || data.status !== 'ok'){
+      statusEl.className = 'doc-cat-status err';
+      statusEl.textContent = '❌ อัปโหลดไม่สำเร็จ ลองใหม่';
+      return;
+    }
+    statusEl.className = 'doc-cat-status ok';
+    statusEl.textContent = '✓ แนบแล้ว';
+  });
+}
+
+// ===== ประกบลายเซ็นบนรูปเอกสาร: แตะจุดคร่าวๆ ระบบวางขนาดคงที่ให้อัตโนมัติ =====
+let sigPlaceCtx = { category:null, docImg:null, pos:null };
+function openSigPlaceModal(catKey, docImageDataUrl){
+  sigPlaceCtx = { category:catKey, docImg:null, pos:null };
+  document.getElementById('sigPlaceModalBg').style.display = 'flex';
+  const canvas = document.getElementById('sigCanvas');
+  const docImg = new Image();
+  docImg.onload = function(){
+    canvas.width = docImg.width;
+    canvas.height = docImg.height;
+    sigPlaceCtx.docImg = docImg;
+    drawSigCanvas();
+  };
+  docImg.src = docImageDataUrl;
+  canvas.onclick = function(e){
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    sigPlaceCtx.pos = { x:(e.clientX-rect.left)*scaleX, y:(e.clientY-rect.top)*scaleY };
+    drawSigCanvas();
+  };
+}
+function drawSigCanvas(){
+  const canvas = document.getElementById('sigCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(sigPlaceCtx.docImg, 0, 0, canvas.width, canvas.height);
+  if(sigPlaceCtx.pos && sigSignatureImgEl && sigSignatureImgEl.complete){
+    const sigW = canvas.width * 0.28;
+    const sigH = sigW * (sigSignatureImgEl.height / sigSignatureImgEl.width || 0.4);
+    ctx.drawImage(sigSignatureImgEl, sigPlaceCtx.pos.x - sigW/2, sigPlaceCtx.pos.y - sigH/2, sigW, sigH);
+  }
+}
+function closeSigPlaceModal(){
+  document.getElementById('sigPlaceModalBg').style.display = 'none';
+  const catKey = sigPlaceCtx.category;
+  if(catKey){
+    const statusEl = document.getElementById('docStatus_'+catKey);
+    if(statusEl && statusEl.textContent.includes('ประกบ')) statusEl.textContent = 'ยังไม่แนบ';
+  }
+}
+function confirmSigPlacement(){
+  if(!sigPlaceCtx.pos){ alert('กรุณาแตะตำแหน่งที่จะวางลายเซ็นก่อน'); return; }
+  const canvas = document.getElementById('sigCanvas');
+  const finalDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+  const base64 = finalDataUrl.split(',')[1];
+  const catKey = sigPlaceCtx.category;
+  document.getElementById('sigPlaceModalBg').style.display = 'none';
+  uploadDocToServer(catKey, base64, 'image/jpeg', catKey + '_signed.jpg');
+}
+
+// ===== รวมเอกสารทั้งหมดของเคสเป็น PDF เดียว =====
+function requestDocsPdf(){
+  if(!currentDocsCaseId) return;
+  const area = document.getElementById('docsPdfArea');
+  area.textContent = '⏳ กำลังรวมไฟล์เป็น PDF (อาจใช้เวลาสักครู่)...';
+  gasPostReadable('buildDocsPdf', {id: currentDocsCaseId}, function(err, data){
+    if(err || !data || data.status !== 'ok'){
+      area.textContent = '❌ รวมไฟล์ไม่สำเร็จ: ' + (data?.message || err?.message || 'ไม่ทราบสาเหตุ');
+      return;
+    }
+    area.innerHTML = `<a href="${data.pdfUrl}" target="_blank" class="btn-save" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box">📄 เปิด/ดาวน์โหลด PDF</a>`;
+  });
+}
+
 // ===== XLSX Export =====
 function exportXLSX(){
   const d = collectExportData();
@@ -2948,10 +3126,60 @@ function gasPost(action, payload, callback){
     .catch(err => callback && callback(err));
 }
 
+// เหมือน gasPost แต่ "อ่านผลลัพธ์กลับได้" (ไม่ใช้ no-cors) — ใช้กับ action ที่ต้องรู้ผลจริง เช่น
+// อัปโหลดเอกสารสำเร็จไหม / ลิงก์ PDF คืออะไร ใช้ Content-Type: text/plain เหมือนเดิม
+// เพื่อเลี่ยง CORS preflight ที่ Apps Script รับมือไม่ได้
+function gasPostReadable(action, payload, callback){
+  if(!gasUrl) return callback && callback(new Error('no GAS URL'));
+  fetch(gasUrl, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(Object.assign({action}, payload))
+  }).then(r => r.json())
+    .then(data => callback && callback(null, data))
+    .catch(err => callback && callback(err));
+}
+
 function saveToHistory(record){
   if(!gasUrl){ console.warn('GAS URL not set'); return; }
   gasPost('save', {action:'save', record}, (err)=>{
     if(err) console.error('Save failed:', err);
+  });
+}
+
+// ===== แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน/โฉนด ฯลฯ) =====
+const DOC_CATEGORIES = [
+  {key:'idcard',   label:'บัตรประชาชน',      needsSignature:true},
+  {key:'houseReg', label:'ทะเบียนบ้าน',       needsSignature:true},
+  {key:'landTitle',label:'โฉนดที่ดิน',        needsSignature:false},
+  {key:'farmReg',  label:'เอกสารแปลงเกษตร',   needsSignature:false},
+  {key:'loanCard', label:'การ์ดผ่อนชำระ',     needsSignature:false},
+  {key:'other',    label:'อื่นๆ',             needsSignature:false}
+];
+
+// ย่อขนาด + บีบอัดรูปก่อนอัปโหลด ประหยัดโควต้า Drive และโหลดเร็วขึ้นมาก
+function compressImageFile(file, maxDim, quality){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const img = new Image();
+      img.onload = function(){
+        let w = img.width, h = img.height;
+        if(w > maxDim || h > maxDim){
+          const scale = maxDim / Math.max(w, h);
+          w = Math.round(w * scale); h = Math.round(h * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality || 0.72);
+        resolve({ base64: dataUrl.split(',')[1], mimeType:'image/jpeg', dataUrl, width:w, height:h });
+      };
+      img.onerror = () => reject(new Error('อ่านรูปไม่ได้'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('อ่านไฟล์ไม่ได้'));
+    reader.readAsDataURL(file);
   });
 }
 
@@ -3352,6 +3580,10 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div class="hd-row"><span class="hd-label">สาขา/ผู้ปิดการขาย</span><span class="hd-val">${d.branch||'—'}</span></div>
 
       ${renderGuarantorSectionWrap(id, d)}
+
+      <div class="hd-section">เอกสารประกอบ</div>
+      <button class="btn-reprint" style="width:100%" onclick="openDocsModal('${id}')">📎 แนบ/ดูเอกสารประกอบ</button>
+      ${d.docsPdfUrl ? `<a href="${d.docsPdfUrl}" target="_blank" class="btn-reprint" style="width:100%;display:block;text-align:center;text-decoration:none;box-sizing:border-box;margin-top:6px">📄 เปิด PDF ที่รวมไว้ล่าสุด</a>` : ''}
 
       <div class="hd-section">รายละเอียดการซื้อ</div>
       <div class="hd-row"><span class="hd-label">แบรนด์/รุ่น</span><span class="hd-val">${d.brand} ${d.model}</span></div>
@@ -4093,6 +4325,42 @@ setBrand('yanmar');
       <div id="referenceListContainer"></div>
       <button type="button" class="btn-reprint" style="width:100%;margin-top:4px" onclick="addReferenceRow()">➕ เพิ่มผู้อ้างอิงอีกคน</button>
       <button class="btn-save" style="width:100%;margin-top:10px" onclick="closeReferenceModal()">✓ เสร็จแล้ว</button>
+    </div>
+  </div>
+</div>
+
+<div class="preview-modal-bg" id="docsModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>📎 แนบเอกสารประกอบ</span>
+    <button onclick="closeDocsModal()">✕ ปิด</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner">
+      <div class="field-group">
+        <label>1) อัปโหลดรูปลายเซ็นลูกค้า (เขียนบนกระดาษเปล่า) — ใช้ประกบกับบัตร/ทะเบียนบ้านอัตโนมัติ</label>
+        <input type="file" id="docSignatureInput" accept="image/*" capture="environment" onchange="onSignatureFileSelected(event)">
+        <div id="docSignaturePreview" style="margin-top:6px"></div>
+      </div>
+      <div class="field-group">
+        <label style="margin-bottom:8px;display:block">2) แนบรูปเอกสารแต่ละประเภท</label>
+        <div id="docCategoryList"></div>
+      </div>
+      <button type="button" class="btn-save" style="width:100%;margin-top:10px" onclick="requestDocsPdf()">🖨 รวมเอกสารทั้งหมดเป็น PDF</button>
+      <div id="docsPdfArea" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="preview-modal-bg" id="sigPlaceModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>📍 แตะตำแหน่งที่จะวางลายเซ็น</span>
+    <button onclick="closeSigPlaceModal()">✕ ยกเลิก</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner">
+      <canvas id="sigCanvas" style="width:100%;border:1.5px solid var(--line);border-radius:8px;touch-action:none"></canvas>
+      <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;text-align:center">แตะจุดที่ต้องการวางลายเซ็น แตะซ้ำเพื่อขยับตำแหน่งใหม่ได้</div>
+      <button class="btn-save" style="width:100%;margin-top:10px" onclick="confirmSigPlacement()">✓ ยืนยันตำแหน่งนี้</button>
     </div>
   </div>
 </div>
