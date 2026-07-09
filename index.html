@@ -805,6 +805,11 @@ body.printing #printArea{ display:block !important; }
   padding:5px 12px; border-radius:8px; border:1.5px dashed var(--accent);
   background:#fff; color:var(--accent); cursor:pointer; margin-top:4px;
 }
+.doc-remove-slot-btn{
+  font-family:'Kanit',sans-serif; font-size:12px; font-weight:700;
+  width:22px; height:22px; border-radius:50%; border:1.5px solid #ccc;
+  background:#fff; color:#c0392b; cursor:pointer; flex:0 0 auto; line-height:1; padding:0;
+}
 .preview-modal-bg{
   position:fixed; inset:0; background:#fff; z-index:600;
   display:flex; flex-direction:column;
@@ -2826,8 +2831,23 @@ function addDynamicSlot(catKey){
   row.innerHTML = `
     <div class="doc-cat-label">ใบที่ ${idx}</div>
     <input type="file" accept="image/*" capture="environment" id="docFile_${slotKey}" onchange="onDocFileSelected('${slotKey}','${catKey}')">
-    <div class="doc-cat-status" id="docStatus_${slotKey}">ยังไม่แนบ</div>`;
+    <div class="doc-cat-status" id="docStatus_${slotKey}">ยังไม่แนบ</div>
+    <button type="button" class="doc-remove-slot-btn" onclick="removeDynamicSlot('${catKey}', ${idx})" title="ยกเลิกช่องนี้">✕</button>`;
   container.appendChild(row);
+}
+// ยกเลิกช่องที่กดเพิ่มไว้ (เผื่อกดเพิ่มแล้วไม่ได้ใส่รูป หรือใส่ไปแล้วอยากลบออก)
+function removeDynamicSlot(catKey, idx){
+  const slotKey = catKey + '_' + idx;
+  const row = document.getElementById('docRow_' + slotKey);
+  if(row) row.remove();
+  const hadContent = docPageStore[catKey] && docPageStore[catKey][idx-1];
+  if(docPageStore[catKey]) docPageStore[catKey][idx-1] = undefined;
+  if(hadContent){
+    // ถ้าใบนี้เคยแนบไปแล้ว ต้องรวมไฟล์ใหม่ (ไม่รวมใบที่ลบไป) แล้วอัปโหลดทับของเดิม
+    const cat = DOC_CATEGORIES.find(c => c.key === catKey);
+    const remaining = (docPageStore[catKey] || []).filter(Boolean);
+    if(remaining.length > 0) combineAndUploadCategory(catKey, cat);
+  }
 }
 
 // ===== เครื่องมือตัดกรอบแบบใช้ซ้ำได้ (ใช้ทั้งตัดลายเซ็น และตัดกรอบเอกสารก่อนวางบนพื้นขาว) =====
@@ -2937,32 +2957,43 @@ async function onDocFileSelected(slotKey, catKey){
   const statusEl = document.getElementById('docStatus_'+slotKey);
   statusEl.className = 'doc-cat-status';
   statusEl.textContent = '⏳ กำลังเตรียมรูป...';
+
+  function finalizePage(dataUrl){
+    const img = new Image();
+    img.onload = function(){
+      const normCanvas = canvasFromImage(img);
+      if(!docPageStore[catKey]) docPageStore[catKey] = [];
+      docPageStore[catKey][pageIndex-1] = normCanvas;
+      const filled = docPageStore[catKey].filter(Boolean).length;
+      const needed = isDynamic ? filled : (cat.count || 1);
+      if(filled >= needed){
+        statusEl.className = 'doc-cat-status ok';
+        statusEl.textContent = '✓ แนบแล้ว';
+        combineAndUploadCategory(catKey, cat);
+      } else {
+        statusEl.className = 'doc-cat-status ok';
+        statusEl.textContent = '✓ แนบแล้ว (รออีก ' + (needed-filled) + ' หน้า)';
+      }
+    };
+    img.onerror = function(){
+      statusEl.className = 'doc-cat-status err';
+      statusEl.textContent = '❌ เตรียมรูปไม่สำเร็จ ลองใหม่';
+    };
+    img.src = dataUrl;
+  }
+
   try{
     const compressed = await compressImageFile(file, 1600, 0.88);
-    openCropModal(compressed.dataUrl, '✂️ ตัดกรอบ' + label, 'ลากให้ชิดขอบเอกสารที่สุด อย่าให้เห็นโต๊ะ/พื้นหลังหลงเหลือเลยแม้แต่นิดเดียว', function(croppedDataUrl){
-      statusEl.textContent = '⏳ กำลังเตรียมรูป...';
-      const cropImgEl = new Image();
-      cropImgEl.onload = function(){
-        const normCanvas = canvasFromImage(cropImgEl);
-        if(!docPageStore[catKey]) docPageStore[catKey] = [];
-        docPageStore[catKey][pageIndex-1] = normCanvas;
-        const filled = docPageStore[catKey].filter(Boolean).length;
-        const needed = isDynamic ? filled : (cat.count || 1);
-        if(filled >= needed){
-          statusEl.className = 'doc-cat-status ok';
-          statusEl.textContent = '✓ ตัดแล้ว';
-          combineAndUploadCategory(catKey, cat);
-        } else {
-          statusEl.className = 'doc-cat-status ok';
-          statusEl.textContent = '✓ ตัดแล้ว (รออีก ' + (needed-filled) + ' หน้า)';
-        }
-      };
-      cropImgEl.onerror = function(){
-        statusEl.className = 'doc-cat-status err';
-        statusEl.textContent = '❌ เตรียมรูปไม่สำเร็จ ลองใหม่';
-      };
-      cropImgEl.src = croppedDataUrl;
-    });
+    if(cat.needsSignature){
+      // เฉพาะบัตรประชาชน/ทะเบียนบ้านเท่านั้น ที่ต้องตัดกรอบก่อน (จะเอาไปประกบกับลายเซ็น)
+      openCropModal(compressed.dataUrl, '✂️ ตัดกรอบ' + label, 'ลากให้ชิดขอบเอกสารที่สุด อย่าให้เห็นโต๊ะ/พื้นหลังหลงเหลือเลยแม้แต่นิดเดียว', function(croppedDataUrl){
+        statusEl.textContent = '⏳ กำลังเตรียมรูป...';
+        finalizePage(croppedDataUrl);
+      });
+    } else {
+      // เอกสารอื่นๆ ใช้รูปที่ถ่ายมาตรงๆ ไม่ต้องตัดกรอบ
+      finalizePage(compressed.dataUrl);
+    }
   } catch(e){
     statusEl.className = 'doc-cat-status err';
     statusEl.textContent = '❌ อ่านรูปไม่ได้ ลองใหม่';
@@ -3185,7 +3216,8 @@ function stackPagesOnPlainCanvas(pageCanvases){
 // เมื่อครบทุกหน้าของหมวดนั้นแล้ว — ถ้าหมวดนี้ต้องมีลายเซ็น เปิดหน้าปรับแสงให้ผู้ใช้เลือกเองก่อนอัปโหลด
 // ถ้าไม่ต้องมีลายเซ็น (โฉนด ฯลฯ) อัปโหลดแบบอัตโนมัติไปเลยเหมือนเดิม
 function combineAndUploadCategory(catKey, cat){
-  const pages = docPageStore[catKey];
+  const pages = (docPageStore[catKey] || []).filter(Boolean);
+  if(!pages.length) return; // ไม่มีหน้าเหลือให้รวม (ถูกกดยกเลิกออกไปหมดแล้ว)
   const useSigPage = cat.needsSignature && sigSignatureImgEl && sigSignatureImgEl.complete;
   if(useSigPage){
     openBrightnessAdjustModal(catKey, cat);
@@ -3233,7 +3265,7 @@ function renderBrightnessPreview(){
   const { catKey, cat } = brightnessAdjustCtx;
   const cardBrightness = Number(document.getElementById('cardBrightnessSlider').value);
   const inkIntensity = Number(document.getElementById('inkIntensitySlider').value) / 100;
-  const dataUrl = placeDocsOnSignaturePage(docPageStore[catKey], sigSignatureImgEl, cardBrightness, inkIntensity);
+  const dataUrl = placeDocsOnSignaturePage((docPageStore[catKey]||[]).filter(Boolean), sigSignatureImgEl, cardBrightness, inkIntensity);
   const previewCanvas = document.getElementById('brightnessPreviewCanvas');
   const img = new Image();
   img.onload = function(){
@@ -3247,7 +3279,7 @@ function confirmBrightnessAdjust(){
   const { catKey, cat } = brightnessAdjustCtx;
   const cardBrightness = Number(document.getElementById('cardBrightnessSlider').value);
   const inkIntensity = Number(document.getElementById('inkIntensitySlider').value) / 100;
-  const finalDataUrl = placeDocsOnSignaturePage(docPageStore[catKey], sigSignatureImgEl, cardBrightness, inkIntensity);
+  const finalDataUrl = placeDocsOnSignaturePage((docPageStore[catKey]||[]).filter(Boolean), sigSignatureImgEl, cardBrightness, inkIntensity);
   document.getElementById('brightnessModalBg').style.display = 'none';
   const isMulti = (cat.count || 1) > 1;
   const primarySlot = isMulti ? (catKey + '_1') : catKey;
