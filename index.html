@@ -2888,15 +2888,9 @@ function removeDynamicSlot(catKey, idx){
   const slotKey = catKey + '_' + idx;
   const row = document.getElementById('docRow_' + slotKey);
   if(row) row.remove();
-  const store = docPageStoreByRole[currentDocsRole];
-  const hadContent = store[catKey] && store[catKey][idx-1];
-  if(store[catKey]) store[catKey][idx-1] = undefined;
-  if(hadContent){
-    // ถ้าใบนี้เคยแนบไปแล้ว ต้องรวมไฟล์ใหม่ (ไม่รวมใบที่ลบไป) แล้วอัปโหลดทับของเดิม
-    const cat = getActiveCategory(catKey);
-    const remaining = (store[catKey] || []).filter(Boolean);
-    if(remaining.length > 0) combineAndUploadCategory(catKey, cat);
-  }
+  // หมวดที่เพิ่มได้หลายใบ อัปโหลดแยกเป็นไฟล์อิสระทันทีที่แนบ (ไม่รอรวมกับใบอื่นอีกต่อไป)
+  // กดยกเลิกช่องนี้แค่เอาช่องกรอกออกจากจอ ถ้าใบนี้อัปโหลดไปแล้วจริง ไฟล์จะยังอยู่ใน Drive แยกเป็นหน้าของมันเอง
+  // (ลบไฟล์ที่อัปโหลดไปแล้วออกจาก Drive โดยตรง ต้องไปลบเองในหน้า Drive)
 }
 
 // ===== เครื่องมือตัดกรอบแบบใช้ซ้ำได้ (ใช้ทั้งตัดลายเซ็น และตัดกรอบเอกสารก่อนวางบนพื้นขาว) =====
@@ -3011,11 +3005,20 @@ async function onDocFileSelected(slotKey, catKey){
     const img = new Image();
     img.onload = function(){
       const normCanvas = canvasFromImage(img);
+      if(isDynamic){
+        // หมวดที่เพิ่มได้หลายใบแบบไม่จำกัด (โฉนด/ทะเบียนเกษตร/เอกสารต่างค่าย) — อัปโหลดแยกเป็นไฟล์อิสระทันที
+        // ให้ 1 รูป = 1 หน้า PDF ไม่ต้องรวมย่อหลายรูปเข้าหน้าเดียวกัน (อ่านยาก/รูปเล็กเกินไป)
+        statusEl.className = 'doc-cat-status ok';
+        statusEl.textContent = '✓ แนบแล้ว';
+        const finalDataUrl = normCanvas.toDataURL('image/jpeg', 0.9);
+        uploadDocToServer(slotKey, label, finalDataUrl.split(',')[1], 'image/jpeg', slotKey + '.jpg', catKey, role);
+        return;
+      }
       const store = docPageStoreByRole[role];
       if(!store[catKey]) store[catKey] = [];
       store[catKey][pageIndex-1] = normCanvas;
       const filled = store[catKey].filter(Boolean).length;
-      const needed = isDynamic ? filled : (cat.count || 1);
+      const needed = cat.count || 1;
       if(filled >= needed){
         statusEl.className = 'doc-cat-status ok';
         statusEl.textContent = '✓ แนบแล้ว';
