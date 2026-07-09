@@ -3010,12 +3010,11 @@ function brightenCanvas(canvas, amount){
   return canvas;
 }
 
-// จำลองโหมด "สแกนขาว-ดำ" แบบแอปสแกนเอกสารทั่วไป: เทียบทุกพิกเซลกับค่าเฉลี่ยของพื้นที่รอบๆตัวเอง (ไม่ใช่ค่าคงที่ตัวเดียว)
-// จุดที่เข้มกว่าพื้นรอบๆ ชัดเจน (ตัวอักษร/ลายเซ็น) กลายเป็นสีเข้ม ส่วนที่เหลือ (กระดาษ ไม่ว่าจะมีเงา/รอยเปื้อน/แสงไม่เท่ากัน) กลายเป็นขาวสนิททั้งหมด
-// วิธีนี้ทนต่อแสงไม่สม่ำเสมอในรูปถ่ายได้ดีกว่าการตั้งค่า threshold คงที่ค่าเดียว
-function scannerizeImage(canvas, threshold, darken){
-  threshold = threshold == null ? 16 : threshold;
-  darken = darken == null ? 1.7 : darken;
+// ตัดพื้นหลังกระดาษออกทั้งหมด (เทียบทุกพิกเซลกับค่าเฉลี่ยพื้นที่รอบๆตัวเอง ไม่ใช่ค่าคงที่ตัวเดียว ทนต่อแสงไม่สม่ำเสมอในภาพถ่าย)
+// แต่ "คงสีปากกาลายเซ็นไว้" ไม่บังคับให้เป็นขาว-ดำ — จุดที่เป็นพื้นหลังกลายเป็นขาวสนิท จุดที่เป็นลายเซ็นยังเห็นสีปากกาเดิม
+function scannerizeImage(canvas, threshold, sensitivity){
+  threshold = threshold == null ? 6 : threshold;      // ตัดสัญญาณรบกวนเล็กๆของกล้อง ไม่ใช้จับเป็นลายเซ็น
+  sensitivity = sensitivity == null ? 35 : sensitivity; // ยิ่งค่าน้อย ยิ่งไวจับลายเซ็นจางๆได้ง่ายขึ้น
   const w = canvas.width, h = canvas.height;
   const ctx = canvas.getContext('2d');
   const src = ctx.getImageData(0, 0, w, h);
@@ -3039,13 +3038,14 @@ function scannerizeImage(canvas, threshold, darken){
     const graySrc = 0.299*sd[i] + 0.587*sd[i+1] + 0.114*sd[i+2];
     const grayBg  = 0.299*bd[i] + 0.587*bd[i+1] + 0.114*bd[i+2];
     const diff = grayBg - graySrc; // บวก = จุดนี้เข้มกว่าพื้นรอบๆ (น่าจะเป็นตัวหนังสือ/ลายเซ็น)
+    let inkStrength = 0;
     if(diff > threshold){
-      const strength = Math.min(1, diff/80);
-      const val = Math.max(0, 255 - strength*255*darken);
-      od[i]=od[i+1]=od[i+2] = val;
-    } else {
-      od[i]=od[i+1]=od[i+2] = 255;
+      inkStrength = Math.min(1, (diff - threshold) / sensitivity);
     }
+    // ผสมระหว่าง "สีเดิมของปากกา" (ตอน inkStrength=1) กับ "ขาวสนิท" (ตอน inkStrength=0) แบบไล่เฉด ไม่ตัดขาดฉับพลัน
+    od[i]   = Math.round(sd[i]   * inkStrength + 255 * (1 - inkStrength));
+    od[i+1] = Math.round(sd[i+1] * inkStrength + 255 * (1 - inkStrength));
+    od[i+2] = Math.round(sd[i+2] * inkStrength + 255 * (1 - inkStrength));
     od[i+3] = 255;
   }
   ctx.putImageData(out, 0, 0);
