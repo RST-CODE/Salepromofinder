@@ -810,6 +810,12 @@ body.printing #printArea{ display:block !important; }
   width:22px; height:22px; border-radius:50%; border:1.5px solid #ccc;
   background:#fff; color:#c0392b; cursor:pointer; flex:0 0 auto; line-height:1; padding:0;
 }
+.doc-required-badge{
+  font-family:'Kanit',sans-serif; font-size:9.5px; font-weight:700;
+  padding:1px 6px; border-radius:10px; margin-left:4px; white-space:nowrap;
+}
+.doc-required-badge.missing{ background:#fdeaea; color:#c0392b; }
+.doc-required-badge.ok{ background:#e3f7ea; color:#1e7e34; }
 .preview-modal-bg{
   position:fixed; inset:0; background:#fff; z-index:600;
   display:flex; flex-direction:column;
@@ -2769,6 +2775,8 @@ function resolveCustNameForDocs(){
   return (document.getElementById('custName2')?.value || document.getElementById('custNameM')?.value || '').trim();
 }
 
+let attachedCategoriesByRole = { buyer: new Set(), guarantor: new Set() };
+
 function openDocsModal(id, role){
   currentDocsCaseId = id;
   currentDocsRole = role || 'buyer';
@@ -2777,14 +2785,45 @@ function openDocsModal(id, role){
   window._docsCustNameFixed = histRec ? (histRec.custName || '') : '';
   signatureDataUrlByRole[currentDocsRole] = null;
   sigSignatureImgElByRole[currentDocsRole] = null;
+  attachedCategoriesByRole[currentDocsRole] = new Set();
   document.getElementById('docSignaturePreview').innerHTML = '';
   document.getElementById('docsPdfArea').innerHTML = '';
   document.getElementById('docsModalTitle').textContent = currentDocsRole === 'guarantor' ? '📎 แนบเอกสารประกอบ — ผู้ค้ำประกัน' : '📎 แนบเอกสารประกอบ — ผู้ซื้อ';
   renderDocCategoryList();
   document.getElementById('docsModalBg').style.display = 'flex';
+  refreshAttachedCategories(id, currentDocsRole);
 }
 function closeDocsModal(){
   document.getElementById('docsModalBg').style.display = 'none';
+}
+// เช็คว่าหมวดไหนถูกแนบไปแล้วบ้าง (ทั้งจากรอบก่อนที่เคยอัปโหลดไว้ + ที่แนบใหม่ในรอบนี้) ไว้ตัดสินว่าหมวดที่บังคับแนบครบหรือยัง
+function refreshAttachedCategories(id, role){
+  if(!gasUrl) return;
+  gasPostReadable('listDocCategories', {id}, function(err, data){
+    if(err || !data || data.status !== 'ok') return;
+    const names = data.names || [];
+    const cats = role === 'guarantor' ? DOC_CATEGORIES_GUARANTOR : DOC_CATEGORIES;
+    names.forEach(function(n){
+      const nameNoExt = n.replace(/\.[^.]+$/, '');
+      const isGuarantorFile = nameNoExt.indexOf('_ผู้ค้ำ') > -1;
+      if((role === 'guarantor') !== isGuarantorFile) return;
+      cats.forEach(function(cat){
+        if(nameNoExt.indexOf(cat.label) > -1) attachedCategoriesByRole[role].add(cat.key);
+      });
+    });
+    updateRequiredBadges();
+  });
+}
+function updateRequiredBadges(){
+  const cats = getActiveCategories();
+  cats.filter(c => c.required).forEach(function(cat){
+    const done = attachedCategoriesByRole[currentDocsRole].has(cat.key);
+    const badgeId = 'reqBadge_' + cat.key;
+    let badge = document.getElementById(badgeId);
+    if(!badge) return;
+    badge.textContent = done ? '✓ แนบแล้ว (จำเป็น)' : '⚠ จำเป็นต้องแนบ';
+    badge.className = 'doc-required-badge ' + (done ? 'ok' : 'missing');
+  });
 }
 let docPageStoreByRole = { buyer:{}, guarantor:{} };
 let dynamicSlotCountByRole = { buyer:{}, guarantor:{} };
@@ -2794,6 +2833,7 @@ function renderDocCategoryList(){
   const cats = getActiveCategories();
   const c = document.getElementById('docCategoryList');
   c.innerHTML = cats.map(cat => {
+    const reqBadge = cat.required ? `<span class="doc-required-badge missing" id="reqBadge_${cat.key}">⚠ จำเป็นต้องแนบ</span>` : '';
     if(cat.count === 'dynamic'){
       const gradeField = cat.hasGrade ? `
         <div class="field-group" style="margin:4px 0 8px">
@@ -2802,7 +2842,7 @@ function renderDocCategoryList(){
         </div>` : '';
       return `
         <div class="doc-cat-group" id="docGroup_${cat.key}">
-          <div class="doc-cat-group-label">${cat.label}</div>
+          <div class="doc-cat-group-label">${cat.label} ${reqBadge}</div>
           ${gradeField}
           <div id="docSlots_${cat.key}"></div>
           <button type="button" class="doc-add-slot-btn" onclick="addDynamicSlot('${cat.key}')">➕ เพิ่มรูป</button>
@@ -2812,7 +2852,7 @@ function renderDocCategoryList(){
     let rows = '';
     for(let i=1; i<=n; i++){
       const slotKey = n > 1 ? cat.key + '_' + i : cat.key;
-      const slotLabel = n > 1 ? cat.label + ' (ใบที่ ' + i + ')' : cat.label;
+      const slotLabel = (n > 1 ? cat.label + ' (ใบที่ ' + i + ')' : cat.label) + (i===1 ? ' ' + reqBadge : '');
       rows += `
         <div class="doc-cat-row" id="docRow_${slotKey}">
           <div class="doc-cat-label">${slotLabel}</div>
@@ -2824,6 +2864,7 @@ function renderDocCategoryList(){
   }).join('');
   // เริ่มต้นให้หมวดที่เพิ่มได้หลายใบ มีช่องแรกไว้ให้เลย 1 ช่อง
   cats.filter(cat => cat.count === 'dynamic').forEach(cat => addDynamicSlot(cat.key));
+  updateRequiredBadges();
 }
 function addDynamicSlot(catKey){
   const slotCounts = dynamicSlotCountByRole[currentDocsRole];
@@ -3243,9 +3284,8 @@ function combineAndUploadCategory(catKey, cat, role){
     const grade = (document.getElementById('grade_'+catKey)?.value || '').trim();
     if(grade) label += ' - เกรด ' + grade;
   }
-  if(role === 'guarantor') label = 'ผู้ค้ำ - ' + label;
   const primarySlot = isMulti ? (catKey + '_1') : catKey;
-  uploadDocToServer(primarySlot, label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg');
+  uploadDocToServer(primarySlot, label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg', catKey, role);
   if(isMulti){
     const totalSlots = isDynamic ? pages.filter(Boolean).length : cat.count;
     for(let i=2; i<=totalSlots; i++){
@@ -3298,8 +3338,7 @@ function confirmBrightnessAdjust(){
   document.getElementById('brightnessModalBg').style.display = 'none';
   const isMulti = (cat.count || 1) > 1;
   const primarySlot = isMulti ? (catKey + '_1') : catKey;
-  const label = role === 'guarantor' ? ('ผู้ค้ำ - ' + cat.label) : cat.label;
-  uploadDocToServer(primarySlot, label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg');
+  uploadDocToServer(primarySlot, cat.label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg', catKey, role);
   if(isMulti){
     for(let i=2; i<=cat.count; i++){
       const el = document.getElementById('docStatus_'+catKey+'_'+i);
@@ -3314,7 +3353,7 @@ function cancelBrightnessAdjust(){
   if(statusEl) statusEl.textContent = 'ยังไม่อัปโหลด (ยกเลิกการปรับแสง)';
 }
 
-function uploadDocToServer(slotKey, label, base64, mimeType, fileName){
+function uploadDocToServer(slotKey, label, base64, mimeType, fileName, catKey, role){
   const statusEl = document.getElementById('docStatus_'+slotKey);
   statusEl.className = 'doc-cat-status';
   statusEl.textContent = '⏳ กำลังอัปโหลด...';
@@ -3324,6 +3363,7 @@ function uploadDocToServer(slotKey, label, base64, mimeType, fileName){
     alert('ยังไม่ได้ตั้งค่า URL ของ Google Apps Script (GAS) — ไปตั้งค่าที่หน้าประวัติ ⚙️ ก่อน');
     return;
   }
+  role = role || currentDocsRole;
   let done = false;
   const timeoutId = setTimeout(function(){
     if(done) return;
@@ -3336,6 +3376,7 @@ function uploadDocToServer(slotKey, label, base64, mimeType, fileName){
     id: currentDocsCaseId,
     custName: resolveCustNameForDocs(),
     category: label,
+    role: role,
     fileName: fileName || (slotKey + '.jpg'),
     mimeType: mimeType,
     dataBase64: base64
@@ -3352,12 +3393,21 @@ function uploadDocToServer(slotKey, label, base64, mimeType, fileName){
     }
     statusEl.className = 'doc-cat-status ok';
     statusEl.textContent = '✓ แนบแล้ว';
+    if(catKey){
+      attachedCategoriesByRole[role].add(catKey);
+      if(role === currentDocsRole) updateRequiredBadges();
+    }
   });
 }
 
 // ===== รวมเอกสารทั้งหมดของเคสเป็น PDF เดียว =====
 function requestDocsPdf(){
   if(!currentDocsCaseId) return;
+  const missing = getActiveCategories().filter(c => c.required && !attachedCategoriesByRole[currentDocsRole].has(c.key));
+  if(missing.length){
+    alert('กรุณาแนบเอกสารที่จำเป็นให้ครบก่อนถึงจะรวมเป็น PDF ได้:\n' + missing.map(c=>'• '+c.label).join('\n'));
+    return;
+  }
   const area = document.getElementById('docsPdfArea');
   area.textContent = '⏳ กำลังรวมไฟล์เป็น PDF (อาจใช้เวลาสักครู่)...';
   gasPostReadable('buildDocsPdf', {id: currentDocsCaseId}, function(err, data){
@@ -3618,8 +3668,8 @@ function saveToHistory(record){
 
 // ===== แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน/โฉนด ฯลฯ) =====
 const DOC_CATEGORIES = [
-  {key:'idcard',    label:'บัตรประชาชน',      needsSignature:true, count:1},
-  {key:'houseReg',  label:'ทะเบียนบ้าน',       needsSignature:true, count:2},
+  {key:'idcard',    label:'บัตรประชาชน',      needsSignature:true, count:1, required:true},
+  {key:'houseReg',  label:'ทะเบียนบ้าน',       needsSignature:true, count:2, required:true},
   {key:'landTitle', label:'โฉนดที่ดิน (มีหน้า-หลัง/หลายใบได้)', needsSignature:false, count:'dynamic'},
   {key:'farmReg',   label:'ทะเบียนเกษตร (อาจมีหลายใบ)',        needsSignature:false, count:'dynamic'},
   {key:'otherBrand',label:'เอกสารต่างค่าย (เช่น ใบเสร็จ การ์ดผ่อนชำระ อื่นๆ)', needsSignature:false, count:'dynamic', hasGrade:true},
@@ -3627,10 +3677,11 @@ const DOC_CATEGORIES = [
   {key:'statement', label:'สเตทเม้นท์/ใบรับรองเงินเดือน (ถ้ามี)',   needsSignature:false, count:1},
   {key:'leaderCard',label:'บัตรผู้นำ (ถ้ามี)',                     needsSignature:false, count:1},
   {key:'baac',      label:'ใบ ธกส. (ถ้ามี)',                       needsSignature:false, count:1},
-  {key:'nsfCheck',  label:'หน้าจอยืนยันตรวจสิทธิ กอช.',            needsSignature:false, count:1},
+  {key:'nsfCheck',  label:'หน้าจอยืนยันตรวจสิทธิ กอช.',            needsSignature:false, count:1, required:true},
   {key:'other',     label:'อื่นๆ',             needsSignature:false, count:1}
 ];
 // ฝั่งผู้ค้ำประกัน ใช้รายการเดียวกับผู้ซื้อ แต่ไม่ต้องมีหน้าจอยืนยันสิทธิ กอช. (เป็นของผู้ซื้อเท่านั้น)
+// required ของบัตร/ทะเบียนบ้าน ยังบังคับอยู่เหมือนผู้ซื้อ เพราะติดมากับ object เดิม (filter ไม่กระทบ)
 const DOC_CATEGORIES_GUARANTOR = DOC_CATEGORIES.filter(c => c.key !== 'nsfCheck');
 function getActiveCategories(){ return currentDocsRole === 'guarantor' ? DOC_CATEGORIES_GUARANTOR : DOC_CATEGORIES; }
 function getActiveCategory(catKey){ return getActiveCategories().find(c => c.key === catKey); }
@@ -4084,11 +4135,11 @@ function renderHistoryDetailHtml(id, d, rowNote){
 
       <div class="hd-section">Timeline</div>
       <div class="hd-timeline" id="hdTimeline_${id}">
-        <div class="hd-tl-row"><div class="hd-tl-dot"></div><div><b>เซ็นสัญญา</b> — ${d.date||''}<br><span style="color:#888;font-size:11px">บันทึกโดย ${d.branch||'—'} · ${rowNote||''}</span></div></div>
         ${Array.isArray(d.updates)
-          ? (renderTimelineEntries(d.updates) || '<div class="hd-tl-row"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">ยังไม่มีการอัปเดตเพิ่มเติม</div></div>')
+          ? renderTimelineEntries(d.updates)
           : `<div class="hd-tl-row" id="hdTimelineLoading_${id}"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">⏳ กำลังโหลดบันทึกเพิ่มเติม...</div></div>`
         }
+        <div class="hd-tl-row"><div class="hd-tl-dot"></div><div><b>เซ็นสัญญา</b> — ${d.date||''}<br><span style="color:#888;font-size:11px">บันทึกโดย ${d.branch||'—'} · ${rowNote||''}</span></div></div>
       </div>
       <div id="hdAddUpdateArea_${id}" style="margin-top:8px">
         <button class="btn-reprint" style="width:100%" onclick="showAddUpdateForm('${id}')">📝 เพิ่มบันทึกคุยกับลูกค้า</button>
