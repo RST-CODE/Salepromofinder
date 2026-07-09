@@ -2964,6 +2964,12 @@ function canvasFromImage(img){
   c.getContext('2d').drawImage(img, 0, 0);
   return c;
 }
+function cloneCanvas(canvas){
+  const c = document.createElement('canvas');
+  c.width = canvas.width; c.height = canvas.height;
+  c.getContext('2d').drawImage(canvas, 0, 0);
+  return c;
+}
 
 // ตัดพื้นที่ว่างสีขาวส่วนเกินออกไป เหลือแค่บริเวณที่มีเนื้อหาจริง (ตัวบัตร + ลายเซ็น) เท่านั้น
 function autoTrimToContent(canvas, marginRatio){
@@ -3012,9 +3018,11 @@ function brightenCanvas(canvas, amount){
 
 // ตัดพื้นหลังกระดาษออกทั้งหมด (เทียบทุกพิกเซลกับค่าเฉลี่ยพื้นที่รอบๆตัวเอง ไม่ใช่ค่าคงที่ตัวเดียว ทนต่อแสงไม่สม่ำเสมอในภาพถ่าย)
 // แต่ "คงสีปากกาลายเซ็นไว้" ไม่บังคับให้เป็นขาว-ดำ — จุดที่เป็นพื้นหลังกลายเป็นขาวสนิท จุดที่เป็นลายเซ็นยังเห็นสีปากกาเดิม
-function scannerizeImage(canvas, threshold, sensitivity){
+// inkIntensity: ผู้ใช้ปรับเองได้ (1 = ปกติ, มากกว่า 1 = ลายเซ็นเข้ม/ชัดขึ้น กันจางหาย, น้อยกว่า 1 = จางลง)
+function scannerizeImage(canvas, threshold, sensitivity, inkIntensity){
   threshold = threshold == null ? 6 : threshold;      // ตัดสัญญาณรบกวนเล็กๆของกล้อง ไม่ใช้จับเป็นลายเซ็น
   sensitivity = sensitivity == null ? 35 : sensitivity; // ยิ่งค่าน้อย ยิ่งไวจับลายเซ็นจางๆได้ง่ายขึ้น
+  inkIntensity = inkIntensity == null ? 1 : inkIntensity;
   const w = canvas.width, h = canvas.height;
   const ctx = canvas.getContext('2d');
   const src = ctx.getImageData(0, 0, w, h);
@@ -3040,7 +3048,7 @@ function scannerizeImage(canvas, threshold, sensitivity){
     const diff = grayBg - graySrc; // บวก = จุดนี้เข้มกว่าพื้นรอบๆ (น่าจะเป็นตัวหนังสือ/ลายเซ็น)
     let inkStrength = 0;
     if(diff > threshold){
-      inkStrength = Math.min(1, (diff - threshold) / sensitivity);
+      inkStrength = Math.min(1, ((diff - threshold) / sensitivity) * inkIntensity);
     }
     // ผสมระหว่าง "สีเดิมของปากกา" (ตอน inkStrength=1) กับ "ขาวสนิท" (ตอน inkStrength=0) แบบไล่เฉด ไม่ตัดขาดฉับพลัน
     od[i]   = Math.round(sd[i]   * inkStrength + 255 * (1 - inkStrength));
@@ -3053,25 +3061,27 @@ function scannerizeImage(canvas, threshold, sensitivity){
 }
 
 // วางรูปเอกสาร (ที่ตัดกรอบแล้ว) ลงบนรูปกระดาษลายเซ็นตัวจริง โดยตัดพื้นหลังกระดาษออกให้เหลือแต่ลายเซ็น/ตัวหนังสือ
-// บนพื้นขาวสนิทแบบภาพที่ผ่านเครื่องสแกน (ไม่ใช่ภาพถ่ายที่มีเงา/สีกระดาษเพี้ยนอีกต่อไป)
-function placeDocsOnSignaturePage(pageCanvases, sigImg){
+// บนพื้นขาวสนิทแบบภาพที่ผ่านเครื่องสแกน — cardBrightness/inkIntensity ปรับได้จากสไลเดอร์ ไม่ยึดค่าคงที่ตายตัวอีกต่อไป
+// ไม่แก้ไข canvas ต้นฉบับใน pageCanvases เลย (clone ก่อนทุกครั้ง) เพื่อให้เรียกซ้ำได้หลายรอบตอนพรีวิวสไลเดอร์
+function placeDocsOnSignaturePage(pageCanvases, sigImg, cardBrightness, inkIntensity){
+  cardBrightness = cardBrightness == null ? 30 : cardBrightness;
+  inkIntensity = inkIntensity == null ? 1 : inkIntensity;
+
   const canvas = document.createElement('canvas');
   canvas.width = sigImg.width;
   canvas.height = sigImg.height;
   const ctx = canvas.getContext('2d');
   ctx.drawImage(sigImg, 0, 0);
-  scannerizeImage(canvas); // ตัดพื้นหลังกระดาษออกทั้งหมด เหลือแต่ลายเซ็น/ตัวหนังสือ บนพื้นขาวสนิท
-
-  // พื้นหลังเป็นขาวสนิทแล้ว ใช้ขาวเป็นโทนเป้าหมายให้เอกสาร/บัตรที่จะแปะกลืนไปด้วย
-  const topColor = {r:255, g:255, b:255};
+  scannerizeImage(canvas, undefined, undefined, inkIntensity); // ตัดพื้นหลังกระดาษออกทั้งหมด เหลือแต่ลายเซ็น/ตัวหนังสือ บนพื้นขาวสนิท
 
   const margin = Math.round(canvas.width * 0.08);
   const docWidth = Math.round((canvas.width - margin*2) * 0.9);
   const gap = Math.round(canvas.width * 0.025);
   let y = Math.round(canvas.height * 0.04);
 
-  pageCanvases.forEach(pageCanvas => {
-    shiftColorTone(pageCanvas, sampleEdgeColor(pageCanvas), topColor, 0.85);
+  pageCanvases.forEach(rawPageCanvas => {
+    const pageCanvas = cloneCanvas(rawPageCanvas); // ไม่แก้ของเดิม กันเพี้ยนสะสมตอนพรีวิวซ้ำ
+    brightenCanvas(pageCanvas, cardBrightness);
     const scale = docWidth / pageCanvas.width;
     const docHeight = Math.round(pageCanvas.height * scale);
     const x = Math.round((canvas.width - docWidth) / 2);
@@ -3085,6 +3095,7 @@ function placeDocsOnSignaturePage(pageCanvases, sigImg){
 
 // สำหรับหมวดที่ไม่มีลายเซ็น (โฉนด/เอกสารแปลงเกษตร ฯลฯ) — วางบนพื้นสีเดียวกับโทนของเอกสารเอง
 function stackPagesOnPlainCanvas(pageCanvases){
+  pageCanvases = pageCanvases.map(cloneCanvas);
   const bgColors = pageCanvases.map(sampleEdgeColor);
   const targetBg = {
     r: bgColors.reduce((s,c)=>s+c.r,0)/bgColors.length,
@@ -3112,13 +3123,16 @@ function stackPagesOnPlainCanvas(pageCanvases){
   return canvas.toDataURL('image/jpeg', 0.9);
 }
 
-// เมื่อครบทุกหน้าของหมวดนั้นแล้ว รวมเป็นไฟล์เดียว + แปะบนกระดาษลายเซ็น (ถ้าหมวดนี้ต้องมี) แล้วอัปโหลดทีเดียว
+// เมื่อครบทุกหน้าของหมวดนั้นแล้ว — ถ้าหมวดนี้ต้องมีลายเซ็น เปิดหน้าปรับแสงให้ผู้ใช้เลือกเองก่อนอัปโหลด
+// ถ้าไม่ต้องมีลายเซ็น (โฉนด ฯลฯ) อัปโหลดแบบอัตโนมัติไปเลยเหมือนเดิม
 function combineAndUploadCategory(catKey, cat){
   const pages = docPageStore[catKey];
   const useSigPage = cat.needsSignature && sigSignatureImgEl && sigSignatureImgEl.complete;
-  const finalDataUrl = useSigPage
-    ? placeDocsOnSignaturePage(pages, sigSignatureImgEl)
-    : stackPagesOnPlainCanvas(pages);
+  if(useSigPage){
+    openBrightnessAdjustModal(catKey, cat);
+    return;
+  }
+  const finalDataUrl = stackPagesOnPlainCanvas(pages);
   const isMulti = (cat.count || 1) > 1;
   const primarySlot = isMulti ? (catKey + '_1') : catKey;
   uploadDocToServer(primarySlot, cat.label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg');
@@ -3128,6 +3142,62 @@ function combineAndUploadCategory(catKey, cat){
       if(el) el.textContent = 'รวมกับหน้า 1 แล้ว';
     }
   }
+}
+
+// ===== ปุ่มปรับแสงเอง: แยกสไลเดอร์บัตร/เอกสาร กับ สไลเดอร์ความเข้มลายเซ็น =====
+let brightnessAdjustCtx = { catKey:null, cat:null };
+let brightnessPreviewDebounce = null;
+
+function openBrightnessAdjustModal(catKey, cat){
+  brightnessAdjustCtx = { catKey, cat };
+  document.getElementById('cardBrightnessSlider').value = 30;
+  document.getElementById('inkIntensitySlider').value = 100;
+  document.getElementById('cardBrightnessVal').textContent = 30;
+  document.getElementById('inkIntensityVal').textContent = 100;
+  document.getElementById('brightnessModalBg').style.display = 'flex';
+  renderBrightnessPreview();
+}
+function onBrightnessSliderChange(){
+  document.getElementById('cardBrightnessVal').textContent = document.getElementById('cardBrightnessSlider').value;
+  document.getElementById('inkIntensityVal').textContent = document.getElementById('inkIntensitySlider').value;
+  clearTimeout(brightnessPreviewDebounce);
+  brightnessPreviewDebounce = setTimeout(renderBrightnessPreview, 120);
+}
+function renderBrightnessPreview(){
+  const { catKey, cat } = brightnessAdjustCtx;
+  const cardBrightness = Number(document.getElementById('cardBrightnessSlider').value);
+  const inkIntensity = Number(document.getElementById('inkIntensitySlider').value) / 100;
+  const dataUrl = placeDocsOnSignaturePage(docPageStore[catKey], sigSignatureImgEl, cardBrightness, inkIntensity);
+  const previewCanvas = document.getElementById('brightnessPreviewCanvas');
+  const img = new Image();
+  img.onload = function(){
+    previewCanvas.width = img.width;
+    previewCanvas.height = img.height;
+    previewCanvas.getContext('2d').drawImage(img, 0, 0);
+  };
+  img.src = dataUrl;
+}
+function confirmBrightnessAdjust(){
+  const { catKey, cat } = brightnessAdjustCtx;
+  const cardBrightness = Number(document.getElementById('cardBrightnessSlider').value);
+  const inkIntensity = Number(document.getElementById('inkIntensitySlider').value) / 100;
+  const finalDataUrl = placeDocsOnSignaturePage(docPageStore[catKey], sigSignatureImgEl, cardBrightness, inkIntensity);
+  document.getElementById('brightnessModalBg').style.display = 'none';
+  const isMulti = (cat.count || 1) > 1;
+  const primarySlot = isMulti ? (catKey + '_1') : catKey;
+  uploadDocToServer(primarySlot, cat.label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg');
+  if(isMulti){
+    for(let i=2; i<=cat.count; i++){
+      const el = document.getElementById('docStatus_'+catKey+'_'+i);
+      if(el) el.textContent = 'รวมกับหน้า 1 แล้ว';
+    }
+  }
+}
+function cancelBrightnessAdjust(){
+  document.getElementById('brightnessModalBg').style.display = 'none';
+  const { catKey } = brightnessAdjustCtx;
+  const statusEl = document.getElementById('docStatus_'+catKey+'_1') || document.getElementById('docStatus_'+catKey);
+  if(statusEl) statusEl.textContent = 'ยังไม่อัปโหลด (ยกเลิกการปรับแสง)';
 }
 
 function uploadDocToServer(slotKey, label, base64, mimeType, fileName){
@@ -4646,6 +4716,28 @@ setBrand('yanmar');
       <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px" id="cropModalHint">ลากเลือกกรอบเฉพาะส่วนที่ต้องการ</div>
       <canvas id="cropCanvas" style="width:100%;border:1.5px solid var(--line);border-radius:8px;touch-action:none"></canvas>
       <button type="button" class="btn-save" style="width:100%;margin-top:10px" onclick="confirmGenericCrop()">✓ ใช้ส่วนที่ตัดนี้</button>
+    </div>
+  </div>
+</div>
+
+<div class="preview-modal-bg" id="brightnessModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>🔆 ปรับแสงก่อนอัปโหลด</span>
+    <button onclick="cancelBrightnessAdjust()">✕ ยกเลิก</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner">
+      <canvas id="brightnessPreviewCanvas" style="width:100%;border:1.5px solid var(--line);border-radius:8px;margin-bottom:12px"></canvas>
+      <div class="field-group">
+        <label>ความสว่างของบัตร/เอกสาร: <b id="cardBrightnessVal">30</b></label>
+        <input type="range" min="-40" max="100" value="30" id="cardBrightnessSlider" oninput="onBrightnessSliderChange()" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label>ความเข้มลายเซ็น: <b id="inkIntensityVal">100</b>%</label>
+        <input type="range" min="30" max="220" value="100" id="inkIntensitySlider" oninput="onBrightnessSliderChange()" style="width:100%">
+        <div style="font-size:10.5px;color:var(--ink-soft);margin-top:2px">ลายเซ็นจาง → เลื่อนขึ้น &nbsp;|&nbsp; ลายเซ็นเข้ม/พื้นหลังยังไม่ขาวพอ → เลื่อนลง</div>
+      </div>
+      <button class="btn-save" style="width:100%;margin-top:10px" onclick="confirmBrightnessAdjust()">✓ ใช้ค่านี้ & อัปโหลด</button>
     </div>
   </div>
 </div>
