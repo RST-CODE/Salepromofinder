@@ -797,6 +797,14 @@ body.printing #printArea{ display:block !important; }
 .doc-cat-status{ font-size:11px; font-weight:600; color:var(--ink-soft); flex:0 0 auto; }
 .doc-cat-status.ok{ color:#1e7e34; }
 .doc-cat-status.err{ color:#c0392b; }
+.doc-cat-group{ padding:8px 0; border-bottom:1px solid var(--line); }
+.doc-cat-group:last-child{ border-bottom:none; }
+.doc-cat-group-label{ font-family:'Kanit',sans-serif; font-size:12.5px; font-weight:600; margin-bottom:4px; }
+.doc-add-slot-btn{
+  font-family:'Kanit',sans-serif; font-size:11px; font-weight:600;
+  padding:5px 12px; border-radius:8px; border:1.5px dashed var(--accent);
+  background:#fff; color:var(--accent); cursor:pointer; margin-top:4px;
+}
 .preview-modal-bg{
   position:fixed; inset:0; background:#fff; z-index:600;
   display:flex; flex-direction:column;
@@ -2769,9 +2777,25 @@ function openDocsModal(id){
 function closeDocsModal(){
   document.getElementById('docsModalBg').style.display = 'none';
 }
+let dynamicSlotCount = {};
 function renderDocCategoryList(){
+  dynamicSlotCount = {};
   const c = document.getElementById('docCategoryList');
   c.innerHTML = DOC_CATEGORIES.map(cat => {
+    if(cat.count === 'dynamic'){
+      const gradeField = cat.hasGrade ? `
+        <div class="field-group" style="margin:4px 0 8px">
+          <label style="font-size:10px">เกรดลูกค้า (ถ้ามี)</label>
+          <input type="text" id="grade_${cat.key}" placeholder="เช่น A, B, C">
+        </div>` : '';
+      return `
+        <div class="doc-cat-group" id="docGroup_${cat.key}">
+          <div class="doc-cat-group-label">${cat.label}</div>
+          ${gradeField}
+          <div id="docSlots_${cat.key}"></div>
+          <button type="button" class="doc-add-slot-btn" onclick="addDynamicSlot('${cat.key}')">➕ เพิ่มรูป</button>
+        </div>`;
+    }
     const n = cat.count || 1;
     let rows = '';
     for(let i=1; i<=n; i++){
@@ -2786,6 +2810,24 @@ function renderDocCategoryList(){
     }
     return rows;
   }).join('');
+  // เริ่มต้นให้หมวดที่เพิ่มได้หลายใบ มีช่องแรกไว้ให้เลย 1 ช่อง
+  DOC_CATEGORIES.filter(cat => cat.count === 'dynamic').forEach(cat => addDynamicSlot(cat.key));
+}
+function addDynamicSlot(catKey){
+  dynamicSlotCount[catKey] = (dynamicSlotCount[catKey] || 0) + 1;
+  const idx = dynamicSlotCount[catKey];
+  const cat = DOC_CATEGORIES.find(c => c.key === catKey);
+  const slotKey = catKey + '_' + idx;
+  const container = document.getElementById('docSlots_' + catKey);
+  if(!container) return;
+  const row = document.createElement('div');
+  row.className = 'doc-cat-row';
+  row.id = 'docRow_' + slotKey;
+  row.innerHTML = `
+    <div class="doc-cat-label">ใบที่ ${idx}</div>
+    <input type="file" accept="image/*" capture="environment" id="docFile_${slotKey}" onchange="onDocFileSelected('${slotKey}','${catKey}')">
+    <div class="doc-cat-status" id="docStatus_${slotKey}">ยังไม่แนบ</div>`;
+  container.appendChild(row);
 }
 
 // ===== เครื่องมือตัดกรอบแบบใช้ซ้ำได้ (ใช้ทั้งตัดลายเซ็น และตัดกรอบเอกสารก่อนวางบนพื้นขาว) =====
@@ -2883,9 +2925,15 @@ async function onDocFileSelected(slotKey, catKey){
   const file = input.files[0];
   if(!file) return;
   const cat = DOC_CATEGORIES.find(c=>c.key===catKey);
-  const isMulti = (cat.count || 1) > 1;
+  const isDynamic = cat.count === 'dynamic';
+  const isMulti = isDynamic || (cat.count || 1) > 1;
   const pageIndex = isMulti ? parseInt(slotKey.split('_').pop(), 10) : 1;
-  const label = isMulti ? (cat.label + ' หน้า ' + pageIndex) : cat.label;
+  let baseLabel = cat.label;
+  if(cat.hasGrade){
+    const grade = (document.getElementById('grade_'+catKey)?.value || '').trim();
+    if(grade) baseLabel += ' - เกรด ' + grade;
+  }
+  const label = isMulti ? (baseLabel + ' หน้า ' + pageIndex) : baseLabel;
   const statusEl = document.getElementById('docStatus_'+slotKey);
   statusEl.className = 'doc-cat-status';
   statusEl.textContent = '⏳ กำลังเตรียมรูป...';
@@ -2899,7 +2947,7 @@ async function onDocFileSelected(slotKey, catKey){
         if(!docPageStore[catKey]) docPageStore[catKey] = [];
         docPageStore[catKey][pageIndex-1] = normCanvas;
         const filled = docPageStore[catKey].filter(Boolean).length;
-        const needed = cat.count || 1;
+        const needed = isDynamic ? filled : (cat.count || 1);
         if(filled >= needed){
           statusEl.className = 'doc-cat-status ok';
           statusEl.textContent = '✓ ตัดแล้ว';
@@ -3144,11 +3192,18 @@ function combineAndUploadCategory(catKey, cat){
     return;
   }
   const finalDataUrl = stackPagesOnPlainCanvas(pages);
-  const isMulti = (cat.count || 1) > 1;
+  const isDynamic = cat.count === 'dynamic';
+  const isMulti = isDynamic || (cat.count || 1) > 1;
+  let label = cat.label;
+  if(cat.hasGrade){
+    const grade = (document.getElementById('grade_'+catKey)?.value || '').trim();
+    if(grade) label += ' - เกรด ' + grade;
+  }
   const primarySlot = isMulti ? (catKey + '_1') : catKey;
-  uploadDocToServer(primarySlot, cat.label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg');
+  uploadDocToServer(primarySlot, label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg');
   if(isMulti){
-    for(let i=2; i<=cat.count; i++){
+    const totalSlots = isDynamic ? pages.filter(Boolean).length : cat.count;
+    for(let i=2; i<=totalSlots; i++){
       const el = document.getElementById('docStatus_'+catKey+'_'+i);
       if(el) el.textContent = 'รวมกับหน้า 1 แล้ว';
     }
@@ -3515,16 +3570,17 @@ function saveToHistory(record){
 
 // ===== แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน/โฉนด ฯลฯ) =====
 const DOC_CATEGORIES = [
-  {key:'idcard',   label:'บัตรประชาชน',      needsSignature:true, count:1},
-  {key:'houseReg', label:'ทะเบียนบ้าน',       needsSignature:true, count:2},
-  {key:'landTitle',label:'โฉนดที่ดิน',        needsSignature:false, count:1},
-  {key:'farmReg',  label:'เอกสารแปลงเกษตร',   needsSignature:false, count:1},
-  {key:'loanCard', label:'การ์ดผ่อนชำระ',     needsSignature:false, count:1},
+  {key:'idcard',    label:'บัตรประชาชน',      needsSignature:true, count:1},
+  {key:'houseReg',  label:'ทะเบียนบ้าน',       needsSignature:true, count:2},
+  {key:'landTitle', label:'โฉนดที่ดิน (มีหน้า-หลัง/หลายใบได้)', needsSignature:false, count:'dynamic'},
+  {key:'farmReg',   label:'ทะเบียนเกษตร (อาจมีหลายใบ)',        needsSignature:false, count:'dynamic'},
+  {key:'otherBrand',label:'เอกสารต่างค่าย (เช่น ใบเสร็จ การ์ดผ่อนชำระ อื่นๆ)', needsSignature:false, count:'dynamic', hasGrade:true},
   {key:'carBook',   label:'เล่มรถ (ถ้ามี)',                        needsSignature:false, count:1},
   {key:'statement', label:'สเตทเม้นท์/ใบรับรองเงินเดือน (ถ้ามี)',   needsSignature:false, count:1},
   {key:'leaderCard',label:'บัตรผู้นำ (ถ้ามี)',                     needsSignature:false, count:1},
   {key:'baac',      label:'ใบ ธกส. (ถ้ามี)',                       needsSignature:false, count:1},
-  {key:'other',    label:'อื่นๆ',             needsSignature:false, count:1}
+  {key:'nsfCheck',  label:'หน้าจอยืนยันตรวจสิทธิ กอช.',            needsSignature:false, count:1},
+  {key:'other',     label:'อื่นๆ',             needsSignature:false, count:1}
 ];
 
 // ย่อขนาด + บีบอัดรูปก่อนอัปโหลด ประหยัดโควต้า Drive และโหลดเร็วขึ้นมาก
