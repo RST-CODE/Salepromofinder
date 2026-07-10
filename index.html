@@ -2973,7 +2973,7 @@ function onSignatureFileSelected(event){
   if(!file) return;
   const prev = document.getElementById('docSignaturePreview');
   prev.textContent = '⏳ กำลังเตรียมรูป...';
-  compressImageFile(file, 1600, 0.85).then(compressed => {
+  compressImageFile(file, 1200, 0.78).then(compressed => {
     signatureDataUrlByRole[currentDocsRole] = compressed.dataUrl;
     const img = new Image();
     img.src = compressed.dataUrl;
@@ -3036,7 +3036,7 @@ async function onDocFileSelected(slotKey, catKey){
   }
 
   try{
-    const compressed = await compressImageFile(file, 1600, 0.88);
+    const compressed = await compressImageFile(file, 1600, 0.8);
     if(cat.needsSignature){
       // เฉพาะบัตรประชาชน/ทะเบียนบ้านเท่านั้น ที่ต้องตัดกรอบก่อน (จะเอาไปประกบกับลายเซ็น)
       openCropModal(compressed.dataUrl, '✂️ ตัดกรอบ' + label, 'ลากให้ชิดขอบเอกสารที่สุด อย่าให้เห็นโต๊ะ/พื้นหลังหลงเหลือเลยแม้แต่นิดเดียว', function(croppedDataUrl){
@@ -3715,7 +3715,11 @@ function compressImageFile(file, maxDim, quality){
   });
 }
 
-function loadHistory(){
+const HISTORY_FAST_LIMIT = 80;   // โหลดแค่ล่าสุด 80 รายการก่อน ให้เปิดหน้าประวัติได้เร็วขึ้นมาก
+const HISTORY_FULL_LIMIT = 1000; // กด "โหลดทั้งหมด" แล้วค่อยดึงเต็มจำนวน
+let _historyLoadedFull = false;
+
+function loadHistory(limit, onDone){
   const container = document.getElementById('historyListContainer');
   if(!gasUrl){
     container.innerHTML = `<div class="gas-config" style="margin:16px 0">
@@ -3723,14 +3727,20 @@ function loadHistory(){
     </div>`;
     return;
   }
+  const useLimit = limit || HISTORY_FAST_LIMIT;
+  _historyLoadedFull = useLimit >= HISTORY_FULL_LIMIT;
   container.innerHTML = '<div class="history-loading">⏳ กำลังโหลด...</div>';
-  jsonpRequest(gasUrl + '?action=list', function(err, data){
+  jsonpRequest(gasUrl + '?action=list&limit=' + useLimit, function(err, data){
     if(err || data.status !== 'ok'){
       container.innerHTML = `<div class="history-empty">⚠️ โหลดไม่ได้<br><small>${err?.message||data?.message||'ไม่ทราบสาเหตุ'}</small><br><small>เช็ค: Deploy → Access: Anyone (anonymous)?</small></div>`;
       return;
     }
     renderHistoryList(data.records);
+    if(onDone) onDone();
   });
+}
+function loadFullHistory(onDone){
+  loadHistory(HISTORY_FULL_LIMIT, onDone);
 }
 
 let _allHistoryRecords = [];
@@ -3745,6 +3755,13 @@ function filterHistory(){
   const fModel   = (document.getElementById('hf_model')?.value||'');
   const fProg    = (document.getElementById('hf_prog')?.value||'');
   const fSort    = (document.getElementById('hf_sort')?.value||'date_desc');
+
+  // ถ้ามีการค้นหา/กรองอยู่ แต่ยังโหลดมาไม่ครบทุกเคส ให้โหลดให้ครบก่อนอัตโนมัติ กันค้นหาแล้วตกหล่นเคสเก่า
+  const hasActiveFilter = !!(fQuick || fName || fPhone || fProv || fAmph || fTambon || fModel || fProg);
+  if(hasActiveFilter && !_historyLoadedFull){
+    loadFullHistory(filterHistory);
+    return;
+  }
 
   let filtered = _allHistoryRecords.filter(r=>{
     const addr = (r.custAddr||'').toLowerCase();
@@ -3898,7 +3915,9 @@ function renderHistoryCards(records){
         <button class="btn-del" onclick="event.stopPropagation();deleteRecord('${r.id}')">ลบ</button>
       </div>
     </div>
-  `).join('');
+  `).join('') + (!_historyLoadedFull ? `
+    <button class="btn-reprint" style="width:100%;margin-top:8px" onclick="loadFullHistory()">🔽 โหลดประวัติทั้งหมด (แสดงแค่ล่าสุด ${HISTORY_FAST_LIMIT} รายการอยู่ตอนนี้ เพื่อให้เปิดหน้าเร็วขึ้น)</button>
+  ` : '');
 }
 
 function viewHistoryDetail(id){
