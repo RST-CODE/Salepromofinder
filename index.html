@@ -978,7 +978,7 @@ body.printing #printArea{ display:block !important; }
   <!-- minor installment now auto-set from payment type; input kept for JS ref only -->
   <input type="hidden" id="minorInstallmentInput" value="2000">
   <div class="select-row" style="margin-top:2px;">
-    <div style="font-size:10.5px;color:var(--ink-soft);">แก้ไขตัวเลข "ลูกค้าออกเอง" ในการ์ดที่แนะนำได้ ถ้าลูกค้าต้องการวางดาวน์เพิ่ม</div>
+    <div style="font-size:10.5px;color:var(--ink-soft);">กรอกช่อง "ลูกค้าวางดาวน์เพิ่ม" ในการ์ดที่แนะนำได้ ถ้าลูกค้าต้องการวางดาวน์เพิ่มเพื่อลดค่างวด</div>
   </div>
   <button id="viewPromoBtn" class="view-promo-btn" onclick="goToResults()">ดูโปร ▶</button>
 </div>
@@ -1389,7 +1389,8 @@ function renderCriteria(){
 
 let currentBrand = 'yanmar';
 let currentSegment = 'ทั่วไป';
-let extraDown = 0;
+let extraDown = 0;           // แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (บวกเพิ่มบนยอดดาวน์รวม ไม่แตะสนับสนุน ลดเฉพาะยอดจัดไฟแนนซ์)
+let custSubForSupport = 0;   // แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน)
 let minorInstallment = 2000;
 let minorMode = 'normal'; // 'normal' | 'advance' | 'with_down'
 let toggleState = {land50:false, land30:false, baac:false};
@@ -1506,11 +1507,15 @@ function cardHtml(r, badge, compareTo, editable){
   }
 
   const extra = Math.max(0, Number(extraDown) || 0);
-  const cust = (e.customer_out ?? 0) + extra;
-  const downDisp = down + extra;
   const support = (e.ysp||0)+(e.yct||0)+(e.fire||0)+(e.ysp_topup||0);
   const rst = e.rst ?? 0;
-  const totalSupport = down - (e.customer_out ?? 0);
+  const totalSupportBase = down - (e.customer_out ?? 0);
+  // แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน) — จำกัดไม่ให้เกินยอดสนับสนุนที่มีจริง
+  const subForSupport = editable ? Math.max(0, Math.min(Number(custSubForSupport)||0, totalSupportBase)) : 0;
+  const cust = (e.customer_out ?? 0) + extra + subForSupport;
+  const downDisp = down + extra;
+  const totalSupport = Math.max(0, totalSupportBase - subForSupport);
+  const supportForBar = Math.max(0, support - subForSupport);
 
   let custDelta = '', supportDelta = '', rstDelta = '';
   if(compareTo){
@@ -1525,7 +1530,7 @@ function cardHtml(r, badge, compareTo, editable){
   let custPct=0, suppPct=0, rstPct=0;
   if(downDisp>0){
     custPct = Math.max(0, cust)/downDisp*100;
-    suppPct = Math.max(0, support)/downDisp*100;
+    suppPct = Math.max(0, supportForBar)/downDisp*100;
     rstPct = Math.max(0, Math.min(100-custPct-suppPct, (rst/downDisp*100)));
     if(rstPct<0) rstPct = 0;
   }
@@ -1662,8 +1667,10 @@ function cardHtml(r, badge, compareTo, editable){
           <div class="numbers">
             <div class="num-box cust full"><div class="k">ส่วนสนับสนุนรวม (ลูกค้าได้รับ)</div><div class="v">${fmt(totalSupport)} บาท${supportDelta}</div></div>
             <div class="num-box"><div class="k">เงินดาวน์รวม</div><div class="v">${fmt(downDisp)}${extra>0 ? `<div class="vv">(เดิม ${fmt(down)} + วางเพิ่ม ${fmt(extra)})</div>` : ''}</div></div>
-            <div class="num-box"><div class="k">ลูกค้าออกเอง</div><div class="v">${editable ? `<input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="custOutInput" data-base="${e.customer_out??0}" value="${cust}">` : fmt(cust)}${custDelta}</div></div>
+            <div class="num-box"><div class="k">ลูกค้าออกเอง</div><div class="v">${fmt(cust)}${custDelta}</div></div>
             <div class="num-box"><div class="k">ต้นทุน RST (บริษัท)</div><div class="v">${fmt(rst)}${rstDelta}</div></div>
+            ${editable ? `<div class="num-box full extra-down-box"><div class="k">แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (ถ้ามี)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="extraDownInput" value="${extra||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">กรอกเฉพาะ "ส่วนที่ลูกค้าอยากจ่ายเพิ่ม" เพื่อลดค่างวด — เพิ่มยอดดาวน์รวมขึ้น ไม่กระทบส่วนสนับสนุน/ต้นทุน RST</div></div>
+            <div class="num-box full extra-down-box"><div class="k">แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="subForSupportInput" value="${subForSupport||''}" placeholder="0" max="${totalSupportBase}"></div><div class="vv" style="margin-top:2px">ลูกค้าออกเองแทนสนับสนุนบางส่วน (สูงสุด ${fmt(totalSupportBase)} บาท) — ยอดดาวน์รวมไม่เปลี่ยน แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน ไม่ลดยอดจัดไฟแนนซ์</div></div>` : ''}
           </div>
           <div class="breakdown">
             ${e.yct ? `<span class="chip">YCT <b>${fmt(e.yct)}</b></span>`:''}
@@ -1808,16 +1815,28 @@ function renderResultsCommon(rawRows, model){
   const _fi = getCurrentFinParams();
   renderEquipment(currentBrand, modelSelect.value, _fi.interest, _fi.years);
   updateEqScrollBtn();
-  const custInput = document.getElementById('custOutInput');
-  if(custInput){
-    custInput.addEventListener('input', ()=>{
-      const base = Number(custInput.dataset.base) || 0;
-      const digits = custInput.value.replace(/[^0-9]/g, '');
-      const val = Number(digits) || 0;
-      extraDown = Math.max(0, val - base);
-      const cursorPos = custInput.selectionStart;
+  const extraInput = document.getElementById('extraDownInput');
+  if(extraInput){
+    extraInput.addEventListener('input', ()=>{
+      const digits = extraInput.value.replace(/[^0-9]/g, '');
+      extraDown = Math.max(0, Number(digits) || 0);
+      const cursorPos = extraInput.selectionStart;
       renderResults();
-      const newInput = document.getElementById('custOutInput');
+      const newInput = document.getElementById('extraDownInput');
+      if(newInput){
+        newInput.focus();
+        newInput.setSelectionRange(cursorPos, cursorPos);
+      }
+    });
+  }
+  const subInput = document.getElementById('subForSupportInput');
+  if(subInput){
+    subInput.addEventListener('input', ()=>{
+      const digits = subInput.value.replace(/[^0-9]/g, '');
+      custSubForSupport = Math.max(0, Number(digits) || 0);
+      const cursorPos = subInput.selectionStart;
+      renderResults();
+      const newInput = document.getElementById('subForSupportInput');
       if(newInput){
         newInput.focus();
         newInput.setSelectionRange(cursorPos, cursorPos);
@@ -2229,13 +2248,15 @@ function collectExportData(){
 
   const price     = e.price || 0;
   const down      = (e.down || 0) + Math.max(0, extraDown);
-  const support   = (e.yct||0) + (e.ysp||0) + (e.fire||0) + (e.ysp_topup||0);
+  const totalSupportBase = Math.max(0, (e.down||0) - (e.customer_out||0));
+  const subForSupport = Math.max(0, Math.min(Number(custSubForSupport)||0, totalSupportBase));
+  const support   = Math.max(0, ((e.yct||0) + (e.ysp||0) + (e.fire||0) + (e.ysp_topup||0)) - subForSupport);
   const baseMinorCollect = getMinorFromPayment(tractorPayment);
   const periodsBeforeBigCollect = tractorPayment==='semi' ? 10 : 11;
   const minorAdvanceTotal = baseMinorCollect * periodsBeforeBigCollect;
   // แบบ 3: งวดย่อยรวมดาวน์ → บวกเพิ่มใน custOut (จ่ายจริง)
   const minorWithDown = minorMode === 'with_down' ? minorAdvanceTotal : 0;
-  const custOut = Math.max(0, (e.customer_out||0) + Math.max(0, extraDown) + minorWithDown);
+  const custOut = Math.max(0, (e.customer_out||0) + Math.max(0, extraDown) + subForSupport + minorWithDown);
   const rst       = e.rst || 0;
   const finYears  = tractorYears || e.years || (currentBrand==='yanmar'?10:7);
   const finRate   = lookupInterest(currentBrand, currentSegment, finYears, tractorPayment);
@@ -3501,12 +3522,15 @@ let gasUrl = localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL;
 
 // ===== User Identity (ชื่อ + บทบาท) =====
 const USER_NAME_KEY = 'rst_promo_user_name';
-const USER_ROLE_KEY = 'rst_promo_user_role'; // 'sales' | 'finance'
+const USER_ROLE_KEY = 'rst_promo_user_role'; // 'sales' | 'finance' | 'supervisor'
 let userName = localStorage.getItem(USER_NAME_KEY) || '';
 let userRole = localStorage.getItem(USER_ROLE_KEY) || '';
 let _pendingRole = userRole;
 
 function isFinanceUser(){ return userRole === 'finance'; }
+function roleLabel(role){ return role==='finance' ? 'ไฟแนนซ์' : (role==='supervisor' ? 'หัวหน้างาน' : 'เซลล์'); }
+// สิทธิ์แก้ไขข้อมูลเคสที่บันทึกไปแล้ว (กรณีกรอกผิด) — ไฟแนนซ์กับหัวหน้างานเท่านั้น
+function canEditRecords(){ return userRole === 'finance' || userRole === 'supervisor'; }
 
 function openIdentityModal(){
   document.getElementById('identityNameInput').value = userName;
@@ -3524,9 +3548,10 @@ function pickRole(role){
   updateRoleButtons();
 }
 function updateRoleButtons(){
-  const sb = document.getElementById('roleBtnSales'), fb = document.getElementById('roleBtnFinance');
+  const sb = document.getElementById('roleBtnSales'), fb = document.getElementById('roleBtnFinance'), pb = document.getElementById('roleBtnSupervisor');
   if(sb) sb.classList.toggle('active', _pendingRole==='sales');
   if(fb) fb.classList.toggle('active', _pendingRole==='finance');
+  if(pb) pb.classList.toggle('active', _pendingRole==='supervisor');
 }
 function saveIdentity(){
   const name = document.getElementById('identityNameInput').value.trim();
@@ -3970,12 +3995,12 @@ function renderTimelineEntries(updates){
     <div class="hd-tl-row">
       <div class="hd-tl-dot"></div>
       <div>
-        <b>${u.type==='status' ? 'เปลี่ยนสถานะ' : 'บันทึกการคุย'}</b> — ${escapeHtml(u.ts||'')}<br>
+        <b>${u.type==='status' ? 'เปลี่ยนสถานะ' : (u.type==='edit' ? 'แก้ไขข้อมูล' : 'บันทึกการคุย')}</b> — ${escapeHtml(u.ts||'')}<br>
         <span style="font-size:12px">${escapeHtml(u.note||'')}</span>
         ${u.newDown!=null ? `<br><span style="font-size:11px;color:var(--accent)">ดาวน์ใหม่: ${fmt(u.newDown)} บาท</span>` : ''}
         ${u.newYears!=null ? `<br><span style="font-size:11px;color:var(--accent)">งวดใหม่: ${u.newYears} ปี</span>` : ''}
         ${u.nextFollowUp ? `<br><span style="font-size:11px;color:#888">นัดครั้งถัดไป: ${escapeHtml(u.nextFollowUp)}</span>` : ''}
-        <br><span style="color:#888;font-size:11px">โดย ${escapeHtml(u.byName||'-')} (${u.byRole==='finance'?'ไฟแนนซ์':'เซลล์'})</span>
+        <br><span style="color:#888;font-size:11px">โดย ${escapeHtml(u.byName||'-')} (${roleLabel(u.byRole)})</span>
       </div>
     </div>
   `).join('');
@@ -3992,6 +4017,50 @@ function changeCaseStatus(id, status){
     const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
     tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([{ts:nowStr, byName:userName, byRole:userRole, type:'status', status, note:'เปลี่ยนสถานะเป็น "'+status+'"'}]));
   }
+}
+
+// ===== แก้ไขข้อมูลลูกค้า (กรณีกรอกผิด) — เฉพาะไฟแนนซ์/หัวหน้างาน =====
+let _editRecordId = null;
+function openEditRecordModal(id){
+  if(!canEditRecords()){ alert('เฉพาะไฟแนนซ์และหัวหน้างานเท่านั้นที่แก้ไขข้อมูลได้'); return; }
+  _editRecordId = id;
+  jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
+    if(err || data.status !== 'ok'){ alert('โหลดข้อมูลไม่ได้: ' + (err?.message||data?.message)); return; }
+    const d = data.record;
+    document.getElementById('editCustName').value = d.custName || '';
+    document.getElementById('editCustAddr').value = d.custAddr || '';
+    document.getElementById('editCustPhone').value = d.custPhone || '';
+    document.getElementById('editBranch').value = d.branch || '';
+    document.getElementById('editRecordModalBg').style.display = 'flex';
+  });
+}
+function closeEditRecordModal(){
+  document.getElementById('editRecordModalBg').style.display = 'none';
+  _editRecordId = null;
+}
+function submitEditRecord(){
+  if(!_editRecordId) return;
+  const changes = {
+    custName: document.getElementById('editCustName').value.trim(),
+    custAddr: document.getElementById('editCustAddr').value.trim(),
+    custPhone: document.getElementById('editCustPhone').value.trim(),
+    branch: document.getElementById('editBranch').value.trim()
+  };
+  const id = _editRecordId;
+  gasPostReadable('editRecord', {id, changes, byName:userName, byRole:userRole}, function(err, data){
+    if(err || !data || data.status !== 'ok'){
+      alert('บันทึกการแก้ไขไม่สำเร็จ: ' + ((data && data.message) || (err && err.message) || 'ไม่ทราบสาเหตุ'));
+      return;
+    }
+    closeEditRecordModal();
+    // อัปเดต cache รายการในเครื่อง ให้หน้าจอตรงกับของจริงทันที ไม่ต้องรอโหลดใหม่
+    const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
+    if(rec){
+      rec.custName = changes.custName; rec.custAddr = changes.custAddr;
+      rec.custPhone = changes.custPhone; rec.branch = changes.branch;
+    }
+    viewHistoryDetail(id); // โหลดรายละเอียดใหม่ทั้งหมด (รวม Timeline ที่มี log ค่าเดิมติดมาด้วย)
+  });
 }
 
 function showAddUpdateForm(id){
@@ -4102,6 +4171,7 @@ function renderHistoryDetailHtml(id, d, rowNote){
         <div class="hd-title">📋 ${d.custName||'(ไม่ระบุชื่อ)'}</div>
         <button onclick="closeHistoryDetail()" style="font-family:'Kanit',sans-serif;font-size:20px;background:none;border:none;cursor:pointer;color:#888">✕</button>
       </div>
+      ${canEditRecords() ? `<button class="btn-reprint" style="width:100%;margin-bottom:10px" onclick="openEditRecordModal('${id}')">✏️ แก้ไขข้อมูลลูกค้า (กรณีกรอกผิด)</button>` : ''}
 
       <div class="sales-summary-card">
         <div class="ssc-head">🧾 สรุปการขาย (ดูไวใช้งานต่อได้เลย)</div>
@@ -4941,6 +5011,35 @@ setBrand('yanmar');
   </div>
 </div>
 
+<div class="preview-modal-bg" id="editRecordModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>✏️ แก้ไขข้อมูลลูกค้า</span>
+    <button onclick="closeEditRecordModal()">✕ ยกเลิก</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner">
+      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">ใช้สำหรับแก้ไขกรณีกรอกผิดเท่านั้น ระบบจะบันทึกค่าเดิมไว้ใน Timeline ให้ดูย้อนหลังได้เสมอ</div>
+      <div class="field-group">
+        <label>ชื่อลูกค้า</label>
+        <input type="text" id="editCustName">
+      </div>
+      <div class="field-group">
+        <label>ที่อยู่</label>
+        <textarea id="editCustAddr" rows="2"></textarea>
+      </div>
+      <div class="field-group">
+        <label>เบอร์โทร</label>
+        <input type="text" id="editCustPhone" inputmode="tel">
+      </div>
+      <div class="field-group">
+        <label>สาขา/ผู้ปิดการขาย</label>
+        <input type="text" id="editBranch">
+      </div>
+      <button class="btn-save" style="width:100%;margin-top:10px" onclick="submitEditRecord()">💾 บันทึกการแก้ไข</button>
+    </div>
+  </div>
+</div>
+
 <div class="hd-modal-bg" id="identityModalBg" style="display:none">
   <div class="hd-modal">
     <div class="hd-title">👋 ก่อนเริ่มใช้งาน บอกชื่อและบทบาทหน่อย</div>
@@ -4953,6 +5052,7 @@ setBrand('yanmar');
       <div style="display:flex;gap:8px">
         <button type="button" class="role-btn" id="roleBtnSales" onclick="pickRole('sales')">🧑‍💼 เซลล์</button>
         <button type="button" class="role-btn" id="roleBtnFinance" onclick="pickRole('finance')">🏦 ไฟแนนซ์</button>
+        <button type="button" class="role-btn" id="roleBtnSupervisor" onclick="pickRole('supervisor')">👔 หัวหน้างาน</button>
       </div>
     </div>
     <button class="btn-save" style="width:100%;margin-top:14px" onclick="saveIdentity()">บันทึก & เริ่มใช้งาน</button>
