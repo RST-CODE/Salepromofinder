@@ -2316,10 +2316,27 @@ function collectExportData(){
   const _customGift = (document.getElementById('customGiftInput')?.value || document.getElementById('customGiftInputM')?.value || customGiftText || '').trim();
   if(_customGift) gifts.unshift('✏️ ' + _customGift);
 
+  // ถ้ากำลังแก้ไขเคสเดิม (แก้รุ่นรถ/โปรใหม่ทั้งใบ) ให้สร้างสรุปเปลี่ยนแปลงไว้บันทึกใน Timeline ด้วย
+  let editSummaryNote = '';
+  const finalId = _editingRecordId || _draftCaseId || undefined;
+  if(_editingRecordId && _editingRecordSnapshot){
+    const old = _editingRecordSnapshot;
+    const newModel = model, newProg = progName, newFinTotal = Math.round(finTotal), newBigPay = bigPay;
+    const parts = [];
+    if((old.model||'') !== newModel) parts.push('รุ่น: "'+(old.model||'-')+'" → "'+newModel+'"');
+    if((old.progName||'') !== newProg) parts.push('โปร: "'+(old.progName||'-')+'" → "'+newProg+'"');
+    if(Math.round(Number(old.finTotal)||0) !== newFinTotal) parts.push('ยอดจัด: "'+fmt(Number(old.finTotal)||0)+'" → "'+fmt(newFinTotal)+'"');
+    if(Math.round(Number(old.bigPay)||0) !== Math.round(newBigPay)) parts.push('งวดใหญ่: "'+fmt(Number(old.bigPay)||0)+'" → "'+fmt(newBigPay)+'"');
+    editSummaryNote = parts.length ? ('แก้ไขรุ่นรถ/โปรใหม่ทั้งใบ: ' + parts.join(' | ')) : 'แก้ไขรุ่นรถ/โปรใหม่ทั้งใบ (คีย์ซ้ำด้วยข้อมูลเดิม)';
+  }
+
   return {
     custName, custAddr, custPhone, branch, model, brand, seg, progName,
     custCurrentAddr, gtorName, gtorAddr, gtorPhone, refs,
-    id: _draftCaseId || undefined,
+    id: finalId,
+    editSummaryNote: editSummaryNote || undefined,
+    byName: _editingRecordId ? userName : undefined,
+    byRole: _editingRecordId ? userRole : undefined,
     price, down, support, custOut, rst,
     finYears, finRate, finTotal: Math.round(finTotal), annualFull: Math.round(annualFull),
     minorMode, minorAdvanceTotal,
@@ -4021,14 +4038,23 @@ function changeCaseStatus(id, status){
 
 // ===== แก้ไขข้อมูลลูกค้า (กรณีกรอกผิด) — เฉพาะไฟแนนซ์/หัวหน้างาน =====
 let _editRecordId = null;
+let _editRecordSnapshot = null;
 function openEditRecordModal(id){
   if(!canEditRecords()){ alert('เฉพาะไฟแนนซ์และหัวหน้างานเท่านั้นที่แก้ไขข้อมูลได้'); return; }
   _editRecordId = id;
   jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
     if(err || data.status !== 'ok'){ alert('โหลดข้อมูลไม่ได้: ' + (err?.message||data?.message)); return; }
     const d = data.record;
+    _editRecordSnapshot = d;
     document.getElementById('editCustName').value = d.custName || '';
-    document.getElementById('editCustAddr').value = d.custAddr || '';
+    // ใส่ที่อยู่เดิมไว้ในช่องข้อความก่อน (ไม่ล้างข้อมูลเดิมทิ้ง) แล้วให้เลือกจังหวัด/อำเภอ/ตำบลเพิ่มเติมได้ถ้าต้องการ
+    document.getElementById('addr2_editRecord_line').value = d.custAddr || '';
+    document.getElementById('editCustAddrHidden').value = d.custAddr || '';
+    addrState2.editRecord = {province:null,provinceId:null,amphure:null,amphureId:null,tambon:null,tambonId:null};
+    ['province','amphure','tambon'].forEach(function(lvl){
+      const el = document.getElementById('addr2_editRecord_'+lvl);
+      if(el){ el.value=''; el.disabled = lvl!=='province'; el.placeholder = lvl==='province' ? 'ค้นหาจังหวัด...' : (lvl==='amphure' ? 'เลือกจังหวัดก่อน' : 'เลือกอำเภอก่อน'); }
+    });
     document.getElementById('editCustPhone').value = d.custPhone || '';
     document.getElementById('editBranch').value = d.branch || '';
     document.getElementById('editRecordModalBg').style.display = 'flex';
@@ -4038,11 +4064,34 @@ function closeEditRecordModal(){
   document.getElementById('editRecordModalBg').style.display = 'none';
   _editRecordId = null;
 }
+// พาไปหน้าคีย์ข้อมูลใหม่ทั้งใบ (เลือกรุ่นรถ/โปรใหม่ได้) โดยเติมข้อมูลลูกค้าเดิมไว้ให้ก่อน
+// ตอนกด "บันทึก & พิมพ์ PDF" ท้ายสุด ระบบจะอัปเดตทับเคสเดิม ไม่สร้างเคสใหม่ซ้ำ (เพราะตั้ง _editingRecordId ไว้)
+let _editingRecordId = null;
+let _editingRecordSnapshot = null;
+function editProductAndPromo(){
+  if(!_editRecordId || !_editRecordSnapshot) return;
+  const d = _editRecordSnapshot;
+  _editingRecordId = _editRecordId;
+  _editingRecordSnapshot = d;
+  closeEditRecordModal();
+  closeHistoryDetail();
+  document.querySelector('.app').classList.remove('history','step2','step3');
+  document.getElementById('custName2').value = d.custName || '';
+  document.getElementById('custNameM').value = d.custName || '';
+  document.getElementById('custAddrLine').value = d.custAddr || '';
+  document.getElementById('custAddrLineM').value = d.custAddr || '';
+  document.getElementById('custPhone').value = d.custPhone || '';
+  document.getElementById('custPhoneM').value = d.custPhone || '';
+  setBrand((d.brand||'').toLowerCase().indexOf('solis') > -1 ? 'solis' : 'yanmar');
+  window.scrollTo(0,0);
+  alert('กำลังแก้ไขข้อมูลของ "' + (d.custName||'-') + '" — เลือกรุ่นรถ/โปรใหม่ได้เลยตามปกติ พอกด "บันทึก & พิมพ์ PDF" ท้ายสุด ระบบจะอัปเดตทับเคสเดิมให้อัตโนมัติ ไม่สร้างเคสใหม่ซ้ำ');
+}
 function submitEditRecord(){
   if(!_editRecordId) return;
+  updateAddr2('editRecord'); // เผื่อพิมพ์ในช่อง line ล่าสุดแล้วยังไม่ trigger update
   const changes = {
     custName: document.getElementById('editCustName').value.trim(),
-    custAddr: document.getElementById('editCustAddr').value.trim(),
+    custAddr: (document.getElementById('editCustAddrHidden').value || document.getElementById('addr2_editRecord_line').value || '').trim(),
     custPhone: document.getElementById('editCustPhone').value.trim(),
     branch: document.getElementById('editBranch').value.trim()
   };
@@ -4526,7 +4575,8 @@ function syncAddrLine(el){
 // แต่แยก state ออกมาต่างหาก (addrState2) เพื่อไม่ให้กระทบที่อยู่ผู้ซื้อเดิม
 let addrState2 = {
   current: {province:null,provinceId:null,amphure:null,amphureId:null,tambon:null,tambonId:null},
-  gtor:    {province:null,provinceId:null,amphure:null,amphureId:null,tambon:null,tambonId:null}
+  gtor:    {province:null,provinceId:null,amphure:null,amphureId:null,tambon:null,tambonId:null},
+  editRecord: {province:null,provinceId:null,amphure:null,amphureId:null,tambon:null,tambonId:null}
 };
 
 function addr2Focus(key, level){
@@ -4623,7 +4673,8 @@ function updateAddr2(key){
   const line = document.getElementById('addr2_'+key+'_line')?.value || '';
   const parts = [line, st.tambon ? 'ต.'+st.tambon : '', st.amphure ? 'อ.'+st.amphure : '', st.province ? 'จ.'+st.province : ''];
   const addr = parts.filter(Boolean).join(' ');
-  const targetId = key === 'current' ? 'custCurrentAddr' : 'gtorAddr';
+  const targetMap = { current:'custCurrentAddr', gtor:'gtorAddr', editRecord:'editCustAddrHidden' };
+  const targetId = targetMap[key] || (key + 'Addr');
   const hidden = document.getElementById(targetId);
   if(hidden) hidden.value = addr;
 }
@@ -5024,9 +5075,27 @@ setBrand('yanmar');
         <input type="text" id="editCustName">
       </div>
       <div class="field-group">
-        <label>ที่อยู่</label>
-        <textarea id="editCustAddr" rows="2"></textarea>
+        <label>บ้านเลขที่ / ซอย / หมู่</label>
+        <input type="text" id="addr2_editRecord_line" placeholder="เช่น 49 ม.10 ซ.3" oninput="updateAddr2('editRecord')">
       </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div class="addr-group" style="margin:0">
+          <label>จังหวัด</label>
+          <input type="text" class="addr-search" id="addr2_editRecord_province" placeholder="ค้นหาจังหวัด..." autocomplete="off" oninput="addr2Input('editRecord','province',this.value)" onfocus="addr2Focus('editRecord','province')">
+          <div class="addr-dropdown" id="addr2Drop_editRecord_province" style="display:none"></div>
+        </div>
+        <div class="addr-group" style="margin:0">
+          <label>อำเภอ / เขต</label>
+          <input type="text" class="addr-search" id="addr2_editRecord_amphure" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addr2Input('editRecord','amphure',this.value)" onfocus="addr2Focus('editRecord','amphure')" disabled>
+          <div class="addr-dropdown" id="addr2Drop_editRecord_amphure" style="display:none"></div>
+        </div>
+      </div>
+      <div class="addr-group" style="margin-bottom:12px">
+        <label>ตำบล / แขวง</label>
+        <input type="text" class="addr-search" id="addr2_editRecord_tambon" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addr2Input('editRecord','tambon',this.value)" onfocus="addr2Focus('editRecord','tambon')" disabled>
+        <div class="addr-dropdown" id="addr2Drop_editRecord_tambon" style="display:none"></div>
+      </div>
+      <input type="hidden" id="editCustAddrHidden">
       <div class="field-group">
         <label>เบอร์โทร</label>
         <input type="text" id="editCustPhone" inputmode="tel">
@@ -5036,6 +5105,9 @@ setBrand('yanmar');
         <input type="text" id="editBranch">
       </div>
       <button class="btn-save" style="width:100%;margin-top:10px" onclick="submitEditRecord()">💾 บันทึกการแก้ไข</button>
+      <div style="border-top:1px solid var(--line);margin:14px 0 10px"></div>
+      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px">ถ้าต้องแก้รุ่นรถ/โปรโมชั่นด้วย ต้องไปคีย์ใหม่ทั้งใบ (ระบบจะอัปเดตทับเคสเดิม ไม่สร้างเคสซ้ำ):</div>
+      <button type="button" class="btn-reprint" style="width:100%" onclick="editProductAndPromo()">🔄 แก้ไขรุ่นรถ/โปรใหม่ทั้งหมด</button>
     </div>
   </div>
 </div>
