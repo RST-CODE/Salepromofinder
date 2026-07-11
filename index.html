@@ -4138,9 +4138,10 @@ function showAddUpdateForm(id){
       <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px">ปรับโครงสร้างเงินดาวน์ (ถ้ามี) — จะแก้ตัวเลขจริงของเคส + บันทึกค่าเดิมไว้ใน Timeline ให้ด้วย</div>
 
       <label>ยอดที่ต้องการเพิ่มดาวน์</label>
-      <input type="number" id="auExtraDown_${id}" placeholder="บาท" value="0" oninput="updateDownPreview('${id}')">
+      <input type="number" id="auExtraDown_${id}" placeholder="บาท" value="0" oninput="updateDownPreview('${id}')" onkeyup="updateDownPreview('${id}')">
+      <div style="font-size:10px;color:var(--accent);margin-top:2px">👆 พิมพ์ตัวเลขแล้วดูผลด้านล่างได้ทันที (ยังไม่กดบันทึกก็เห็นได้)</div>
 
-      <div id="auDownPreview_${id}" style="background:#F8F4ED;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:12px;display:none"></div>
+      <div id="auDownPreview_${id}" style="background:#F8F4ED;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:12px"></div>
 
       <div id="auSourceArea_${id}" style="display:none">
         <div style="font-size:11px;color:var(--ink-soft);margin:6px 0">ส่วนที่เพิ่มดาวน์นี้ มาจากไหนบ้าง (รวมกันต้องเท่ากับยอดที่เพิ่ม)</div>
@@ -4157,6 +4158,7 @@ function showAddUpdateForm(id){
         <button class="btn-del" onclick="cancelAddUpdateForm('${id}')">ยกเลิก</button>
       </div>
     </div>`;
+  updateDownPreview(id); // แสดงตัวเลขปัจจุบันให้เห็นทันทีตั้งแต่เปิดฟอร์ม ไม่ต้องรอพิมพ์ก่อนถึงจะเห็นว่ากดอะไรได้บ้าง
 }
 // คำนวณค่างวดใหม่แบบง่าย (ไม่ทราบ tractorFinType ของเคสเดิม จึงใช้ Math.round ธรรมดาแทนการปัดแบบ F/R-type เป๊ะๆ)
 function _recalcBigPay(rec, finTotalVal){
