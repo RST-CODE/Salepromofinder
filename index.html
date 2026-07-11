@@ -4123,8 +4123,6 @@ function showAddUpdateForm(id){
   const area = document.getElementById('hdAddUpdateArea_'+id);
   if(!area) return;
   const rec = _allHistoryRecords.find(r => String(r.id) === String(id)) || {};
-  const brandKey = (rec.brand||'').toLowerCase().indexOf('solis')>-1 ? 'solis' : 'yanmar';
-  const models = (DATA[brandKey] && DATA[brandKey].models) || [];
   area.innerHTML = `
     <div class="add-update-form">
       <label>บันทึกที่คุยกับลูกค้า</label>
@@ -4137,22 +4135,78 @@ function showAddUpdateForm(id){
       <input type="date" id="auFollow_${id}">
 
       <div style="border-top:1px dashed var(--line);margin:10px 0 8px"></div>
-      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px">ปรับโครงสร้างเงินดาวน์ (จะแก้ตัวเลขจริงของเคส + บันทึกค่าเดิมไว้ใน Timeline ให้ด้วย)</div>
-      <label>รุ่นรถ (อ้างอิง)</label>
-      <select id="auModel_${id}">${models.map(m=>`<option value="${m}" ${m===rec.model?'selected':''}>${m}</option>`).join('')}</select>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
-        <div><label>เงินดาวน์รวม (แก้ไขได้)</label><input type="number" id="auTotalDown_${id}" value="${rec.down||0}" placeholder="บาท"></div>
-        <div><label>ยอดที่ลูกค้าออก</label><input type="number" id="auCustOut_${id}" value="${rec.custOut||0}" placeholder="บาท"></div>
+      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px">ปรับโครงสร้างเงินดาวน์ (ถ้ามี) — จะแก้ตัวเลขจริงของเคส + บันทึกค่าเดิมไว้ใน Timeline ให้ด้วย</div>
+
+      <label>ยอดที่ต้องการเพิ่มดาวน์</label>
+      <input type="number" id="auExtraDown_${id}" placeholder="บาท" value="0" oninput="updateDownPreview('${id}')">
+
+      <div id="auDownPreview_${id}" style="background:#F8F4ED;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:12px;display:none"></div>
+
+      <div id="auSourceArea_${id}" style="display:none">
+        <div style="font-size:11px;color:var(--ink-soft);margin:6px 0">ส่วนที่เพิ่มดาวน์นี้ มาจากไหนบ้าง (รวมกันต้องเท่ากับยอดที่เพิ่ม)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <div><label style="font-size:10.5px">หลังบ้าน</label><input type="number" id="auSrcBackOffice_${id}" value="0" oninput="updateDownPreview('${id}')"></div>
+          <div><label style="font-size:10.5px">ลูกค้าออกเพิ่ม</label><input type="number" id="auSrcCustOut_${id}" value="0" oninput="updateDownPreview('${id}')"></div>
+          <div><label style="font-size:10.5px">RST ออกเพิ่ม</label><input type="number" id="auSrcRst_${id}" value="0" oninput="updateDownPreview('${id}')"></div>
+        </div>
+        <div id="auSourceCheck_${id}" style="font-size:11px;margin-top:4px"></div>
       </div>
-      <label style="margin-top:6px;display:block">ยอดหลังบ้าน (ขอเพิ่มเป็นเคสๆ ไปจากบริษัท)</label>
-      <input type="number" id="auBackOffice_${id}" placeholder="บาท" value="0">
-      <div style="font-size:10.5px;color:var(--ink-soft);margin-top:2px">ยอดหลังบ้าน + ส่วนที่ลูกค้าออกเพิ่มขึ้น จะไปหักจากต้นทุน RST ให้อัตโนมัติ (ปัจจุบัน RST: ${fmt(rec.rst||0)})</div>
 
       <div style="display:flex;gap:8px;margin-top:8px">
         <button class="btn-reprint" style="flex:1" onclick="submitUpdateNote('${id}')">บันทึก</button>
         <button class="btn-del" onclick="cancelAddUpdateForm('${id}')">ยกเลิก</button>
       </div>
     </div>`;
+}
+// คำนวณค่างวดใหม่แบบง่าย (ไม่ทราบ tractorFinType ของเคสเดิม จึงใช้ Math.round ธรรมดาแทนการปัดแบบ F/R-type เป๊ะๆ)
+function _recalcBigPay(rec, finTotalVal){
+  const finYears = Number(rec.finYears) || 1;
+  const finRatePct = parseFloat(rec.finRate) || 0;
+  const finRate = finRatePct / 100;
+  const periodsBeforeBigCollect = rec.tractorPayment === 'semi' ? 10 : 11;
+  const minorPerPeriod = Number(rec.minor) || 0;
+  const annual = finTotalVal * (1/finYears + finRate);
+  const bigPayPerYr = Math.max(0, annual - minorPerPeriod*periodsBeforeBigCollect);
+  return Math.round(rec.tractorPayment === 'semi' ? bigPayPerYr/2 : bigPayPerYr);
+}
+function updateDownPreview(id){
+  const rec = _allHistoryRecords.find(r => String(r.id) === String(id)) || {};
+  const extra = Math.max(0, Number(document.getElementById('auExtraDown_'+id)?.value || 0));
+  const previewEl = document.getElementById('auDownPreview_'+id);
+  const sourceArea = document.getElementById('auSourceArea_'+id);
+  if(extra <= 0){
+    if(previewEl) previewEl.style.display = 'none';
+    if(sourceArea) sourceArea.style.display = 'none';
+    return;
+  }
+  const oldDown = Number(rec.down||0);
+  const oldFinTotal = Number(rec.finTotal||0);
+  const oldBigPay = Number(rec.bigPay||0);
+  const newDown = oldDown + extra;
+  const newFinTotal = Math.max(0, oldFinTotal - extra);
+  const newBigPay = _recalcBigPay(rec, newFinTotal);
+
+  if(previewEl){
+    previewEl.style.display = 'block';
+    previewEl.innerHTML = `
+      <div style="display:flex;justify-content:space-between"><span>ดาวน์รวมใหม่</span><b>${fmt(oldDown)} → ${fmt(newDown)}</b></div>
+      <div style="display:flex;justify-content:space-between"><span>ยอดจัดใหม่</span><b>${fmt(oldFinTotal)} → ${fmt(newFinTotal)}</b></div>
+      <div style="display:flex;justify-content:space-between;color:var(--accent)"><span>งวดใหญ่ใหม่/ปี</span><b>${fmt(oldBigPay)} → ${fmt(newBigPay)} (ลด ${fmt(Math.max(0,oldBigPay-newBigPay))})</b></div>
+      <div style="font-size:10px;color:#888;margin-top:2px">*ค่างวดใหม่เป็นค่าประมาณ (ปัดเศษแบบทั่วไป อาจต่างจากตอนจัดจริงเล็กน้อย)</div>
+    `;
+  }
+  if(sourceArea) sourceArea.style.display = 'block';
+
+  const backOffice = Number(document.getElementById('auSrcBackOffice_'+id)?.value || 0);
+  const custOutAdd = Number(document.getElementById('auSrcCustOut_'+id)?.value || 0);
+  const rstAdd = Number(document.getElementById('auSrcRst_'+id)?.value || 0);
+  const allocated = backOffice + custOutAdd + rstAdd;
+  const checkEl = document.getElementById('auSourceCheck_'+id);
+  if(checkEl){
+    checkEl.innerHTML = (allocated === extra)
+      ? `<span style="color:#1e7e34">✓ จัดสรรครบแล้ว (${fmt(allocated)} / ${fmt(extra)})</span>`
+      : `<span style="color:#c0392b">⚠ จัดสรรแล้ว ${fmt(allocated)} / ${fmt(extra)} (ยังไม่ครบ ${fmt(Math.abs(extra-allocated))})</span>`;
+  }
 }
 function cancelAddUpdateForm(id){
   const area = document.getElementById('hdAddUpdateArea_'+id);
@@ -4181,27 +4235,35 @@ function submitUpdateNote(id){
     if(err) alert('บันทึกไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
   });
 
-  // ปรับโครงสร้างเงินดาวน์ (ถ้ามีการกรอก/แก้ไข) — แก้ตัวเลขจริงของเคส พร้อมบันทึกค่าเดิมไว้ใน Timeline
+  // ปรับโครงสร้างเงินดาวน์ (ถ้ามีการกรอกยอดเพิ่มดาวน์) — สามแหล่งรวมกันต้องเท่ากับยอดที่เพิ่ม
   const rec = _allHistoryRecords.find(r => String(r.id) === String(id)) || {};
-  const oldDown = Number(rec.down || 0);
-  const oldCustOut = Number(rec.custOut || 0);
-  const oldRst = Number(rec.rst || 0);
-  const totalDownEl = document.getElementById('auTotalDown_'+id);
-  const custOutEl = document.getElementById('auCustOut_'+id);
-  const backOfficeEl = document.getElementById('auBackOffice_'+id);
-  if(!totalDownEl || !custOutEl) return;
-  const newTotalDown = Number(totalDownEl.value || oldDown);
-  const newCustOut = Number(custOutEl.value || oldCustOut);
-  const backOffice = Math.max(0, Number(backOfficeEl?.value || 0));
-  // เฉพาะ "ส่วนที่ลูกค้าออกเพิ่มขึ้นจากเดิม" เท่านั้นที่ไปหักจาก RST (กันหักซ้ำกับยอดเดิมที่คิดไว้แล้วในการจัดครั้งแรก)
-  const custOutIncrease = Math.max(0, newCustOut - oldCustOut);
-  const newRst = Math.max(0, oldRst - backOffice - custOutIncrease);
-  const financialChanged = (newTotalDown !== oldDown) || (newCustOut !== oldCustOut) || (backOffice > 0);
-  if(!financialChanged) return;
+  const extra = Math.max(0, Number(document.getElementById('auExtraDown_'+id)?.value || 0));
+  if(extra <= 0) return;
 
-  const changes = { down: newTotalDown, custOut: newCustOut, rst: newRst };
-  let extraNote = '';
-  if(backOffice > 0) extraNote = ' (รวมยอดหลังบ้านที่ขอเพิ่มเป็นเคสนี้: ' + fmt(backOffice) + ' บาท)';
+  const backOffice = Math.max(0, Number(document.getElementById('auSrcBackOffice_'+id)?.value || 0));
+  const custOutAdd = Math.max(0, Number(document.getElementById('auSrcCustOut_'+id)?.value || 0));
+  const rstAdd = Math.max(0, Number(document.getElementById('auSrcRst_'+id)?.value || 0));
+  const allocated = backOffice + custOutAdd + rstAdd;
+  if(allocated !== extra){
+    alert('กรุณาจัดสรรแหล่งที่มาของเงินเพิ่มดาวน์ให้ครบ ' + fmt(extra) + ' บาทก่อนบันทึก (ตอนนี้จัดสรรไป ' + fmt(allocated) + ' บาท)');
+    return;
+  }
+
+  const oldDown = Number(rec.down||0);
+  const oldFinTotal = Number(rec.finTotal||0);
+  const oldSupport = Number(rec.support||0);
+  const oldCustOut = Number(rec.custOut||0);
+  const oldRst = Number(rec.rst||0);
+
+  const newDown = oldDown + extra;
+  const newFinTotal = Math.max(0, oldFinTotal - extra);
+  const newSupport = oldSupport + backOffice;
+  const newCustOut = oldCustOut + custOutAdd;
+  const newRst = oldRst + rstAdd;
+  const newBigPay = _recalcBigPay(rec, newFinTotal);
+
+  const changes = { down: newDown, support: newSupport, custOut: newCustOut, rst: newRst, finTotal: newFinTotal, bigPay: newBigPay };
+  const extraNote = ' (เพิ่มดาวน์ ' + fmt(extra) + ' บาท: หลังบ้าน ' + fmt(backOffice) + ' + ลูกค้า ' + fmt(custOutAdd) + ' + RST ' + fmt(rstAdd) + ')';
   gasPostReadable('editRecord', {id, changes, byName:userName, byRole:userRole, extraNote}, function(err2, data2){
     if(err2 || !data2 || data2.status !== 'ok'){
       alert('ปรับโครงสร้างเงินดาวน์ไม่สำเร็จ: ' + ((data2 && data2.message) || (err2 && err2.message) || 'ไม่ทราบสาเหตุ'));
