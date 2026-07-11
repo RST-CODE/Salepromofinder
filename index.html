@@ -4127,10 +4127,6 @@ function showAddUpdateForm(id){
     <div class="add-update-form">
       <label>บันทึกที่คุยกับลูกค้า</label>
       <textarea id="auNote_${id}" rows="3" placeholder="เช่น ลูกค้าขอเลื่อนนัดโอนเงิน..."></textarea>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
-        <div><label>ดาวน์ใหม่ (ถ้ามี)</label><input type="number" id="auDown_${id}" placeholder="บาท"></div>
-        <div><label>งวดใหม่ (ปี, ถ้ามี)</label><input type="number" id="auYears_${id}" placeholder="ปี"></div>
-      </div>
       <label style="margin-top:6px;display:block">นัดครั้งถัดไป (ถ้ามี)</label>
       <input type="date" id="auFollow_${id}">
 
@@ -4218,13 +4214,11 @@ function submitUpdateNote(id){
   const noteEl = document.getElementById('auNote_'+id);
   const note = (noteEl?.value || '').trim();
   if(!note){ alert('กรุณากรอกบันทึกก่อน'); return; }
-  const newDownVal  = document.getElementById('auDown_'+id)?.value ?? '';
-  const newYearsVal = document.getElementById('auYears_'+id)?.value ?? '';
   const nextFollowUp = document.getElementById('auFollow_'+id)?.value || '';
   const entry = {
     byName:userName, byRole:userRole, note,
-    newDown: newDownVal!=='' ? Number(newDownVal) : null,
-    newYears: newYearsVal!=='' ? Number(newYearsVal) : null,
+    newDown: null,
+    newYears: null,
     nextFollowUp
   };
   const tlEl = document.getElementById('hdTimeline_'+id);
