@@ -2338,6 +2338,8 @@ function collectExportData(){
     byName: _editingRecordId ? userName : undefined,
     byRole: _editingRecordId ? userRole : undefined,
     price, down, support, custOut, rst,
+    supportTotal: support + rst, // ยอดสนับสนุนรวมที่ถูกต้อง (รวม RST ด้วย) ใช้แสดงแทน support เดี่ยวๆ กันโชว์ไม่ตรง
+    yctAmt: e.yct||0, yspAmt: e.ysp||0, fireAmt: e.fire||0, yspTopupAmt: e.ysp_topup||0, subForSupport,
     finYears, finRate, finTotal: Math.round(finTotal), annualFull: Math.round(annualFull),
     minorMode, minorAdvanceTotal,
     minor, bigPay, bigPayFull: tractorPayment==='semi' ? roundInstallment(bigPayFull/2, tractorFinType) : roundInstallment(bigPayFull, tractorFinType), tractorPayment,
@@ -2630,7 +2632,7 @@ function buildPrintHtml(d){
             <table style="width:100%;font-size:8pt">
               <tr><td style="padding:1px 0;font-weight:bold">${d.model}</td><td style="text-align:right;font-weight:bold">${fmt(d.price)}</td></tr>
               <tr><td style="padding:1px 0;font-weight:bold">ดาวน์รวม</td><td style="text-align:right;font-weight:bold">${fmt(d.down)}</td></tr>
-              <tr><td style="color:#888;padding:1px 0">ช่วยดาวน์</td><td style="text-align:right;color:#888">${fmt(d.support)}</td></tr>
+              <tr><td style="color:#888;padding:1px 0">ช่วยดาวน์</td><td style="text-align:right;color:#888">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</td></tr>
               ${d.eqItems.length>1 ? Array(d.eqItems.length-1).fill('<tr><td style="padding:1px 0"> </td><td></td></tr>').join('') : ''}
               <tr><td style="padding:1px 0;font-weight:bold">จ่ายจริง</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.custOut)}</td></tr>
               <tr><td style="color:#888;padding:1px 0">ยอดจัด</td><td style="text-align:right;color:#888">${fmt(d.finTotal)}</td></tr>
@@ -3487,7 +3489,12 @@ function exportXLSX(){
     [],
     ['ข้อมูลการเงิน'],
     ['เงินดาวน์รวม', d.down],
-    ['ช่วยดาวน์ (YCT/YSP/ไฟไหม้)', d.support],
+    ['ช่วยดาวน์รวม (YCT/YSP/ไฟไหม้/RST)', d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0))],
+    ...(d.yctAmt ? [['  - YCT', d.yctAmt]] : []),
+    ...(d.yspAmt ? [['  - YSP/Pro', d.yspAmt]] : []),
+    ...(d.fireAmt ? [['  - ไฟไหม้', d.fireAmt]] : []),
+    ...(d.yspTopupAmt ? [['  - YSP เพิ่มเติม', d.yspTopupAmt]] : []),
+    ['  - ต้นทุน RST (บริษัท)', d.rst||0],
     ['จ่ายดาวน์จริง', d.custOut],
     ['ต้นทุน RST', d.rst],
     ['ยอดจัด (รถ)', d.finTotal],
@@ -4115,6 +4122,9 @@ function submitEditRecord(){
 function showAddUpdateForm(id){
   const area = document.getElementById('hdAddUpdateArea_'+id);
   if(!area) return;
+  const rec = _allHistoryRecords.find(r => String(r.id) === String(id)) || {};
+  const brandKey = (rec.brand||'').toLowerCase().indexOf('solis')>-1 ? 'solis' : 'yanmar';
+  const models = (DATA[brandKey] && DATA[brandKey].models) || [];
   area.innerHTML = `
     <div class="add-update-form">
       <label>บันทึกที่คุยกับลูกค้า</label>
@@ -4125,6 +4135,19 @@ function showAddUpdateForm(id){
       </div>
       <label style="margin-top:6px;display:block">นัดครั้งถัดไป (ถ้ามี)</label>
       <input type="date" id="auFollow_${id}">
+
+      <div style="border-top:1px dashed var(--line);margin:10px 0 8px"></div>
+      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px">ปรับโครงสร้างเงินดาวน์ (จะแก้ตัวเลขจริงของเคส + บันทึกค่าเดิมไว้ใน Timeline ให้ด้วย)</div>
+      <label>รุ่นรถ (อ้างอิง)</label>
+      <select id="auModel_${id}">${models.map(m=>`<option value="${m}" ${m===rec.model?'selected':''}>${m}</option>`).join('')}</select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+        <div><label>เงินดาวน์รวม (แก้ไขได้)</label><input type="number" id="auTotalDown_${id}" value="${rec.down||0}" placeholder="บาท"></div>
+        <div><label>ยอดที่ลูกค้าออก</label><input type="number" id="auCustOut_${id}" value="${rec.custOut||0}" placeholder="บาท"></div>
+      </div>
+      <label style="margin-top:6px;display:block">ยอดหลังบ้าน (ขอเพิ่มเป็นเคสๆ ไปจากบริษัท)</label>
+      <input type="number" id="auBackOffice_${id}" placeholder="บาท" value="0">
+      <div style="font-size:10.5px;color:var(--ink-soft);margin-top:2px">ยอดหลังบ้าน + ส่วนที่ลูกค้าออกเพิ่มขึ้น จะไปหักจากต้นทุน RST ให้อัตโนมัติ (ปัจจุบัน RST: ${fmt(rec.rst||0)})</div>
+
       <div style="display:flex;gap:8px;margin-top:8px">
         <button class="btn-reprint" style="flex:1" onclick="submitUpdateNote('${id}')">บันทึก</button>
         <button class="btn-del" onclick="cancelAddUpdateForm('${id}')">ยกเลิก</button>
@@ -4156,6 +4179,36 @@ function submitUpdateNote(id){
   cancelAddUpdateForm(id);
   gasPost('addUpdate', {action:'addUpdate', id, entry}, (err)=>{
     if(err) alert('บันทึกไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
+  });
+
+  // ปรับโครงสร้างเงินดาวน์ (ถ้ามีการกรอก/แก้ไข) — แก้ตัวเลขจริงของเคส พร้อมบันทึกค่าเดิมไว้ใน Timeline
+  const rec = _allHistoryRecords.find(r => String(r.id) === String(id)) || {};
+  const oldDown = Number(rec.down || 0);
+  const oldCustOut = Number(rec.custOut || 0);
+  const oldRst = Number(rec.rst || 0);
+  const totalDownEl = document.getElementById('auTotalDown_'+id);
+  const custOutEl = document.getElementById('auCustOut_'+id);
+  const backOfficeEl = document.getElementById('auBackOffice_'+id);
+  if(!totalDownEl || !custOutEl) return;
+  const newTotalDown = Number(totalDownEl.value || oldDown);
+  const newCustOut = Number(custOutEl.value || oldCustOut);
+  const backOffice = Math.max(0, Number(backOfficeEl?.value || 0));
+  // เฉพาะ "ส่วนที่ลูกค้าออกเพิ่มขึ้นจากเดิม" เท่านั้นที่ไปหักจาก RST (กันหักซ้ำกับยอดเดิมที่คิดไว้แล้วในการจัดครั้งแรก)
+  const custOutIncrease = Math.max(0, newCustOut - oldCustOut);
+  const newRst = Math.max(0, oldRst - backOffice - custOutIncrease);
+  const financialChanged = (newTotalDown !== oldDown) || (newCustOut !== oldCustOut) || (backOffice > 0);
+  if(!financialChanged) return;
+
+  const changes = { down: newTotalDown, custOut: newCustOut, rst: newRst };
+  let extraNote = '';
+  if(backOffice > 0) extraNote = ' (รวมยอดหลังบ้านที่ขอเพิ่มเป็นเคสนี้: ' + fmt(backOffice) + ' บาท)';
+  gasPostReadable('editRecord', {id, changes, byName:userName, byRole:userRole, extraNote}, function(err2, data2){
+    if(err2 || !data2 || data2.status !== 'ok'){
+      alert('ปรับโครงสร้างเงินดาวน์ไม่สำเร็จ: ' + ((data2 && data2.message) || (err2 && err2.message) || 'ไม่ทราบสาเหตุ'));
+      return;
+    }
+    if(rec){ rec.down = newTotalDown; rec.custOut = newCustOut; rec.rst = newRst; }
+    viewHistoryDetail(id); // โหลดใหม่ให้ตัวเลข/Timeline ตรงกับของจริงทั้งหมด
   });
 }
 
@@ -4265,7 +4318,19 @@ function renderHistoryDetailHtml(id, d, rowNote){
 
       <div class="hd-section">การเงิน</div>
       <div class="hd-row"><span class="hd-label">ดาวน์รวม</span><span class="hd-val">${fmt(d.down||0)}</span></div>
-      <div class="hd-row"><span class="hd-label">ช่วยดาวน์</span><span class="hd-val">${fmt(d.support||0)}</span></div>
+      <div class="hd-row" style="cursor:pointer" onclick="const el=document.getElementById('hdSupportBreak_${id}'); if(el) el.style.display = el.style.display==='none'?'block':'none';">
+        <span class="hd-label">ช่วยดาวน์ <span style="font-size:10px;color:var(--accent)">(กดดูรายละเอียด ▾)</span></span>
+        <span class="hd-val">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</span>
+      </div>
+      <div id="hdSupportBreak_${id}" style="display:none;background:#F8F4ED;border-radius:8px;padding:8px 10px;margin:2px 0 8px;font-size:12px">
+        ${d.yctAmt ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YCT</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yctAmt)}</span></div>` : ''}
+        ${d.yspAmt ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YSP/Pro</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yspAmt)}</span></div>` : ''}
+        ${d.fireAmt ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">ไฟไหม้</span><span class="hd-val" style="font-size:11.5px">${fmt(d.fireAmt)}</span></div>` : ''}
+        ${d.yspTopupAmt ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YSP เพิ่มเติม</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yspTopupAmt)}</span></div>` : ''}
+        ${d.subForSupport ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px;color:#c0392b">หัก: ลูกค้าจ่ายแทนสนับสนุน</span><span class="hd-val" style="font-size:11.5px;color:#c0392b">-${fmt(d.subForSupport)}</span></div>` : ''}
+        <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">ต้นทุน RST (บริษัท)</span><span class="hd-val" style="font-size:11.5px">${fmt(d.rst||0)}</span></div>
+        ${(!d.yctAmt && !d.yspAmt && !d.fireAmt && !d.yspTopupAmt) ? `<div style="font-size:11px;color:#888">(เคสเก่าก่อนหน้านี้ยังไม่มีรายละเอียดแยก YCT/YSP บันทึกไว้)</div>` : ''}
+      </div>
       <div class="hd-row"><span class="hd-label">จ่ายจริง</span><span class="hd-val" style="color:var(--accent)">${fmt(d.custOut||0)}</span></div>
       <div class="hd-row"><span class="hd-label">ยอดจัด</span><span class="hd-val">${fmt(d.finTotal||0)}</span></div>
       <div class="hd-row"><span class="hd-label">รูปแบบการผ่อน</span><span class="hd-val">${PAYMENT_LABELS_LOCAL[d.tractorPayment]||d.tractorPayment||'—'}</span></div>
