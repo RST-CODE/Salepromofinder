@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script src="ga.js"></script>
-<script src="data.js"></script>
+<script src="./data.js?v=130769" onerror="document.documentElement.setAttribute('data-data-load-error','1')"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RST Promo Finder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1231,6 +1231,10 @@ body.printing #printArea{ display:block !important; }
 </div>
 
 <script>
+if(typeof DATA === 'undefined'){
+  document.body.innerHTML = '<div style=\"font-family:sans-serif;padding:24px;color:#b00020\"><h2>ไม่พบไฟล์ data.js</h2><p>กรุณาอัปโหลด data.js ไว้โฟลเดอร์เดียวกับไฟล์ HTML และตรวจสอบตัวพิมพ์เล็ก-ใหญ่ของชื่อไฟล์</p></div>';
+  throw new Error('DATA is not loaded from ./data.js');
+}
 const LOOKUP_KEYS = DATA.yanmar_lookup_keys;
 
 // ===== Interest Rate Tables (from YCT PDF Apr-Jun 2568) =====
@@ -1451,9 +1455,24 @@ function findEntries(brand, model, segment, toggles){
     const subsetKey = keys.find(k=>p.models_subset.includes(k));
     if(!subsetKey) return;
     const groups = Array.isArray(groupCandidates) ? groupCandidates : [groupCandidates];
+    const norm = s => String(s||'').toLowerCase().replace(/\s+/g,'').replace(/\//g,',');
+
+    // โปรบางรายการในไฟล์ใหม่เก็บข้อมูลตามชื่อรุ่นโดยตรง โดยไม่มีชื่อกลุ่มต่อท้าย
+    if(p.entries[subsetKey]){
+      rows.push({program:p, group:groups[0]||null, entry:p.entries[subsetKey], variant:null});
+      return;
+    }
+
+    // รองรับชื่อกลุ่มหลายรูปแบบ เช่น SW/YF, SW,YF, YF, SW และ YF,SW
     for(const g of groups){
-      const e = p.entries[`${subsetKey} | ${g}`];
-      if(e){ rows.push({program:p, group:g, entry:e, variant:null}); return; }
+      const exact = p.entries[`${subsetKey} | ${g}`];
+      if(exact){ rows.push({program:p, group:g, entry:exact, variant:null}); return; }
+      const wanted = norm(g);
+      const foundKey = Object.keys(p.entries).find(k=>{
+        const parts = k.split('|');
+        return parts.length>1 && parts[0].trim()===subsetKey && norm(parts.slice(1).join('|'))===wanted;
+      });
+      if(foundKey){ rows.push({program:p, group:g, entry:p.entries[foundKey], variant:null}); return; }
     }
   }
 
@@ -1473,16 +1492,16 @@ function findEntries(brand, model, segment, toggles){
     if(ids.general30) getSubsetGroup(ids.general30, 'General');
   } else if(segment==='YF,SW'){
     getDirect(ids.target_yfsw);
-    if(ids.general30) getSubsetGroup(ids.general30, 'SW,YF');
-    getSubsetGroup(ids.bob25, 'YF,SW');
-    if(toggles.baac) getSubsetGroup(ids.bob30, ['YF,SW,RT','YF,SW']);
+    if(ids.general30) getSubsetGroup(ids.general30, ['SW,YF','SW/YF','YF,SW','YF, SW']);
+    getSubsetGroup(ids.bob25, ['YF,SW','YF, SW','SW,YF','SW/YF']);
+    if(toggles.baac) getSubsetGroup(ids.bob30, ['YF,SW,RT','YF, SW, RT','YF,SW','YF, SW','SW/YF']);
   } else if(segment==='RT'){
     getDirect(ids.target_rt);
     if(ids.general30) getSubsetGroup(ids.general30, 'RT');
     getSubsetGroup(ids.bob25, 'RT');
-    if(toggles.baac) getSubsetGroup(ids.bob30, ['YF,SW,RT','RT']);
+    if(toggles.baac) getSubsetGroup(ids.bob30, ['YF,SW,RT','YF, SW, RT','RT']);
   } else if(segment==='Dry Crop'){
-    if(toggles.baac) getSubsetGroup(ids.bob30, 'Dry Crop');
+    if(toggles.baac) getSubsetGroup(ids.bob30, ['Dry Crop','Dry crop']);
   }
   return rows;
 }
