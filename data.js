@@ -1,12 +1,3 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RST Promo Data 130769</title>
-</head>
-<body>
-  <script>
 // RST Promo Finder — อัปเดตโปรโมชั่นตามไฟล์ Promotion Sale Yanmar/Solis วันที่ 13/07/2569
 // สร้างจากไฟล์ Excel ต้นฉบับ โดยลบโปร/รุ่นที่ไม่อยู่ในไฟล์ใหม่ และเพิ่มเงื่อนไขใหม่แล้ว
 const DATA = {
@@ -2400,7 +2391,3 @@ const DATA = {
     ]
   }
 };
-
-  </script>
-</body>
-</html>
