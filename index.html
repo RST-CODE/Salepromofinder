@@ -4157,10 +4157,19 @@ function showAddUpdateForm(id){
   updateDownPreview(id); // แสดงตัวเลขปัจจุบันให้เห็นทันทีตั้งแต่เปิดฟอร์ม ไม่ต้องรอพิมพ์ก่อนถึงจะเห็นว่ากดอะไรได้บ้าง
 }
 // คำนวณค่างวดใหม่แบบง่าย (ไม่ทราบ tractorFinType ของเคสเดิม จึงใช้ Math.round ธรรมดาแทนการปัดแบบ F/R-type เป๊ะๆ)
+// Sheets บางทีเก็บ finRate เป็นตัวเลขทศนิยมล้วนๆ (เช่น 0.0895) เพราะตีความข้อความ "8.95%" ที่ส่งไปเป็นค่าเปอร์เซ็นต์จริง
+// ไม่ใช่ข้อความ — ต้องเช็คว่าค่าที่ได้มาเป็นทศนิยมอยู่แล้วหรือเป็นข้อความ "8.95%" ก่อน ค่อยตัดสินใจว่าต้องหาร 100 หรือไม่
+function _parseFinRate(raw){
+  if(raw == null || raw === '') return 0;
+  if(typeof raw === 'number') return raw; // เป็นทศนิยมอยู่แล้ว (เช่น 0.0895) ไม่ต้องหาร 100 ซ้ำ
+  const s = String(raw).trim();
+  const n = parseFloat(s);
+  if(isNaN(n)) return 0;
+  return s.indexOf('%') > -1 ? n/100 : n;
+}
 function _recalcBigPay(rec, finTotalVal){
   const finYears = Number(rec.finYears) || 1;
-  const finRatePct = parseFloat(rec.finRate) || 0;
-  const finRate = finRatePct / 100;
+  const finRate = _parseFinRate(rec.finRate);
   const periodsBeforeBigCollect = rec.tractorPayment === 'semi' ? 10 : 11;
   const minorPerPeriod = Number(rec.minor) || 0;
   const annual = finTotalVal * (1/finYears + finRate);
