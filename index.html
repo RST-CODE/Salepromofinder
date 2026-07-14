@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script src="ga.js"></script>
-<script src="./data.js?v=130769" onerror="document.documentElement.setAttribute('data-data-load-error','1')"></script>
+<script src="data.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RST Promo Finder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -113,6 +113,10 @@ select:focus{ outline:2px solid var(--accent); outline-offset:1px; }
 .toggle-row .tx{ font-size:12px; line-height:1.4; }
 .toggle-row .tx b{ display:block; font-size:12.5px; }
 .toggle-row .tx .unlock{ color:var(--accent); font-weight:600; font-size:11px; }
+.toggle-auto-note{
+  background:#e3f7ea; border:1.5px solid #1e7e34; border-radius:10px;
+  padding:9px 12px; font-size:12px; font-weight:600; color:#1e7e34;
+}
 
 .price-strip{
   margin-top:6px;
@@ -277,6 +281,10 @@ details li{ margin-bottom:3px; }
 .criteria-block .ct{ font-family:'Kanit',sans-serif; font-size:12px; font-weight:700; margin-bottom:3px; }
 .criteria-block ul{ margin:0; padding-left:16px; font-size:11px; color:var(--ink-soft); }
 .criteria-block li{ margin-bottom:2px; }
+.land-ref-table{ width:100%; border-collapse:collapse; font-size:11px; margin:0 10px 8px; width:calc(100% - 20px); }
+.land-ref-table th{ text-align:left; font-family:'Kanit',sans-serif; font-weight:700; padding:4px 6px; border-bottom:1.5px solid var(--line); color:var(--ink-soft); }
+.land-ref-table td{ padding:4px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+.land-ref-table tr:last-child td{ border-bottom:none; }
 
 @media (min-width: 760px){
   .app{
@@ -960,6 +968,7 @@ body.printing #printArea{ display:block !important; }
     </div>
   </div>
   <div id="criteriaInfo"></div>
+  <div id="landRefInfo"></div>
   <div class="toggles" id="togglesContainer"></div>
 
   <div class="price-strip">
@@ -1231,10 +1240,6 @@ body.printing #printArea{ display:block !important; }
 </div>
 
 <script>
-if(typeof DATA === 'undefined'){
-  document.body.innerHTML = '<div style=\"font-family:sans-serif;padding:24px;color:#b00020\"><h2>ไม่พบไฟล์ data.js</h2><p>กรุณาอัปโหลด data.js ไว้โฟลเดอร์เดียวกับไฟล์ HTML และตรวจสอบตัวพิมพ์เล็ก-ใหญ่ของชื่อไฟล์</p></div>';
-  throw new Error('DATA is not loaded from ./data.js');
-}
 const LOOKUP_KEYS = DATA.yanmar_lookup_keys;
 
 // ===== Interest Rate Tables (from YCT PDF Apr-Jun 2568) =====
@@ -1391,6 +1396,39 @@ function renderCriteria(){
   </details>`;
 }
 
+// ตารางเทียบ "มีที่ดินกี่ไร่ ปลดล็อกโปรอะไรได้บ้าง" เรียงจากน้อยไปมาก ช่วยให้เลือกโปรที่เหมาะกับลูกค้าได้เร็วขึ้น
+// ใช้เฉพาะ segment "ทั่วไป" เพราะเป็น segment เดียวที่มีเงื่อนไขเรื่องจำนวนไร่เข้ามาเกี่ยวข้อง
+const LAND_REF_TABLE = {
+  yanmar: [
+    {rai:'20 ไร่ขึ้นไป', note:'เฉพาะลูกค้า กอช.', unlock:'Bob 25%'},
+    {rai:'30 ไร่ขึ้นไป', note:'ลูกค้าทั่วไป', unlock:'Bob 25%'},
+    {rai:'40 ไร่ขึ้นไป', note:'ตนเอง+เช่ารวมกัน (ไม่รวมพื้นที่คนอื่น)', unlock:'Bob 30% (หรือเข้าทาง ธกส 3A/ผู้นำชุมชน/โรงงานน้ำตาลก็ได้เหมือนกัน)'},
+    {rai:'50 ไร่ขึ้นไป', note:'ตนเอง/เช่า รวมพื้นที่ญาติสายตรงได้', unlock:'Target ทั่วไป 20%'},
+  ],
+  solis: [
+    {rai:'20 ไร่ขึ้นไป', note:'เฉพาะลูกค้า กอช.', unlock:'Bob 25%'},
+    {rai:'30 ไร่ขึ้นไป', note:'ลูกค้าทั่วไป (หรือกลุ่มพืชไร่/พืชรวมของ Target)', unlock:'Bob 25% หรือ Target (กลุ่มพืชไร่/พืชรวม)'},
+    {rai:'50 ไร่ขึ้นไป', note:'กลุ่มข้าว', unlock:'Target (กลุ่มข้าว)'},
+  ],
+};
+function renderLandRef(){
+  const box = document.getElementById('landRefInfo');
+  if(!box) return;
+  if(currentSegment !== 'ทั่วไป'){ box.innerHTML = ''; return; }
+  const rows = LAND_REF_TABLE[currentBrand] || [];
+  if(!rows.length){ box.innerHTML = ''; return; }
+  box.innerHTML = `<details class="criteria-box">
+    <summary>📏 มีที่ดินกี่ไร่ ปลดล็อกโปรไหนได้บ้าง (${currentBrand==='yanmar'?'Yanmar':'Solis'})</summary>
+    <table class="land-ref-table">
+      <thead><tr><th>จำนวนไร่</th><th>เงื่อนไข</th><th>ปลดล็อกโปร</th></tr></thead>
+      <tbody>
+        ${rows.map(r=>`<tr><td><b>${r.rai}</b></td><td>${r.note}</td><td>${r.unlock}</td></tr>`).join('')}
+      </tbody>
+    </table>
+    <div style="font-size:10.5px;color:var(--ink-soft);margin-top:4px">*ยิ่งที่ดินเยอะ ยิ่งเข้าเงื่อนไขโปรที่ให้มากขึ้นด้วย (ไม่ได้แปลว่ามีน้อยกว่านี้แล้วปลดล็อกไม่ได้เลย — ให้ดูเงื่อนไขแต่ละโปรอีกที)</div>
+  </details>`;
+}
+
 let currentBrand = 'yanmar';
 let currentSegment = 'ทั่วไป';
 let extraDown = 0;           // แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (บวกเพิ่มบนยอดดาวน์รวม ไม่แตะสนับสนุน ลดเฉพาะยอดจัดไฟแนนซ์)
@@ -1409,25 +1447,34 @@ const results = document.getElementById('results');
 const minorInstallmentInput = document.getElementById('minorInstallmentInput');
 
 const TOGGLE_DEFS = {
-  'ทั่วไป': [
-    {key:'land50', label:'มีพื้นที่ทำกิน (ตนเอง/เช่า รวมญาติได้) ตั้งแต่ 50 ไร่ขึ้นไป', unlock:'ปลดล็อก Target ทั่วไป 20%'},
-    {key:'land30', label:'มีพื้นที่ทำกิน ตั้งแต่ 30 ไร่ขึ้นไป (หรือกอช. ตั้งแต่ 20 ไร่)', unlock:'ปลดล็อก Bob 25%'},
-    {key:'baac', label:'เป็นลูกค้าชั้นดี ธกส 3A / ผู้นำชุมชน / โรงงานน้ำตาล', unlock:'ปลดล็อก Bob 30%'},
-  ],
-  'YF,SW': [
-    {key:'baac', label:'เป็นลูกค้าชั้นดี ธกส 3A / ผู้นำชุมชน / โรงงานน้ำตาล', unlock:'ปลดล็อก Bob 30%'},
-  ],
-  'RT': [
-    {key:'baac', label:'เป็นลูกค้าชั้นดี ธกส 3A / ผู้นำชุมชน / โรงงานน้ำตาล', unlock:'ปลดล็อก Bob 30%'},
-  ],
-  'Dry Crop': [
-    {key:'baac', label:'เป็นลูกค้าชั้นดี ธกส 3A / ผู้นำชุมชน / โรงงานน้ำตาล', unlock:'ปลดล็อก Bob 30% (Dry Crop)'},
-  ],
+  yanmar: {
+    'ทั่วไป': [
+      {key:'land50', label:'มีพื้นที่(ตนเอง/เช่า) รวม 50 ไร่ขึ้นไป', unlock:'ปลดล็อก Target ทั่วไป 20%'},
+      {key:'land30', label:'มีพื้นที่(ตนเอง/เช่า) รวม 30 ไร่ขึ้นไป (กอช. 20 ไร่)', unlock:'ปลดล็อก Bob 25%'},
+      {key:'baac', label:'ธกส 3A / ผู้นำชุมชน / โรงงานน้ำตาล / หรือที่ดิน 40 ไร่ขึ้นไป', unlock:'ปลดล็อก Bob 30%'},
+    ],
+    'YF,SW': [],
+    'RT': [],
+  },
+  solis: {
+    'ทั่วไป': [
+      {key:'land50', label:'มีพื้นที่(ตนเอง/เช่า) รวม: ข้าว 50 ไร่ / พืชไร่-พืชรวม 30 ไร่', unlock:'ปลดล็อก Target ทั่วไป'},
+      {key:'land30', label:'มีพื้นที่(ตนเอง/เช่า) รวม 30 ไร่ขึ้นไป (กอช. 20 ไร่)', unlock:'ปลดล็อก Bob 25%'},
+      {key:'baac', label:'ธกส 3A / ผู้นำชุมชน / โรงงานน้ำตาล', unlock:'ปลดล็อก Bob 30%'},
+    ],
+    'YF,SW': [],
+    'RT': [],
+  },
+};
+// กลุ่ม YF,SW และ RT ปลดล็อก Bob 30% ได้เองอัตโนมัติอยู่แล้ว (เข้าเงื่อนไข "ลูกค้ากลุ่ม RT,YF,SW" โดยตรง) จึงไม่ต้องมี checkbox ให้ติ๊กซ้ำในกลุ่มนี้
+const TOGGLE_NOTE = {
+  'YF,SW': 'กลุ่ม YF,SW ปลดล็อก Bob 30% ให้อัตโนมัติแล้ว (เป็นโปรที่ดีที่สุดสำหรับกลุ่มนี้)',
+  'RT': 'กลุ่ม RT ปลดล็อก Bob 30% ให้อัตโนมัติแล้ว (เป็นโปรที่ดีที่สุดสำหรับกลุ่มนี้)',
 };
 
 // ===== Generic segment + toggle logic (shared by Yanmar & Solis) =====
 const PROGRAM_IDS = {
-  yanmar: { general:'y_general', target_general:'y_target_general', target_yfsw:'y_target_yfsw', target_rt:'y_target_rt', general30:'y_general30', bob25:'y_bob25', bob30:'y_bob30', special358:'y_358' },
+  yanmar: { general:'y_general', target_general:'y_target_general', target_yfsw:'y_target_yfsw', target_rt:'y_target_rt', bob25:'y_bob25', bob30:'y_bob30', special358:'y_358' },
   solis:  { general:'s_general', target_general:'s_target_general', target_yfsw:'s_target_yfsw', target_rt:'s_target_rt', bob25:'s_bob25', bob30:'s_bob30' },
 };
 
@@ -1455,24 +1502,9 @@ function findEntries(brand, model, segment, toggles){
     const subsetKey = keys.find(k=>p.models_subset.includes(k));
     if(!subsetKey) return;
     const groups = Array.isArray(groupCandidates) ? groupCandidates : [groupCandidates];
-    const norm = s => String(s||'').toLowerCase().replace(/\s+/g,'').replace(/\//g,',');
-
-    // โปรบางรายการในไฟล์ใหม่เก็บข้อมูลตามชื่อรุ่นโดยตรง โดยไม่มีชื่อกลุ่มต่อท้าย
-    if(p.entries[subsetKey]){
-      rows.push({program:p, group:groups[0]||null, entry:p.entries[subsetKey], variant:null});
-      return;
-    }
-
-    // รองรับชื่อกลุ่มหลายรูปแบบ เช่น SW/YF, SW,YF, YF, SW และ YF,SW
     for(const g of groups){
-      const exact = p.entries[`${subsetKey} | ${g}`];
-      if(exact){ rows.push({program:p, group:g, entry:exact, variant:null}); return; }
-      const wanted = norm(g);
-      const foundKey = Object.keys(p.entries).find(k=>{
-        const parts = k.split('|');
-        return parts.length>1 && parts[0].trim()===subsetKey && norm(parts.slice(1).join('|'))===wanted;
-      });
-      if(foundKey){ rows.push({program:p, group:g, entry:p.entries[foundKey], variant:null}); return; }
+      const e = p.entries[`${subsetKey} | ${g}`];
+      if(e){ rows.push({program:p, group:g, entry:e, variant:null}); return; }
     }
   }
 
@@ -1489,19 +1521,16 @@ function findEntries(brand, model, segment, toggles){
     if(toggles.land50) getDirect(ids.target_general);
     if(toggles.land30) getSubsetGroup(ids.bob25, 'General');
     if(toggles.baac) getSubsetGroup(ids.bob30, 'General');
-    if(ids.general30) getSubsetGroup(ids.general30, 'General');
   } else if(segment==='YF,SW'){
     getDirect(ids.target_yfsw);
-    if(ids.general30) getSubsetGroup(ids.general30, ['SW,YF','SW/YF','YF,SW','YF, SW']);
-    getSubsetGroup(ids.bob25, ['YF,SW','YF, SW','SW,YF','SW/YF']);
-    if(toggles.baac) getSubsetGroup(ids.bob30, ['YF,SW,RT','YF, SW, RT','YF,SW','YF, SW','SW/YF']);
+    getSubsetGroup(ids.bob25, 'YF,SW');
+    getSubsetGroup(ids.bob30, ['YF,SW,RT','YF,SW']); // กลุ่ม YF,SW ปลดล็อก Bob 30% ได้เองอยู่แล้ว (เข้าเงื่อนไขข้อ 4) ไม่ต้องรอติ๊ก
   } else if(segment==='RT'){
     getDirect(ids.target_rt);
-    if(ids.general30) getSubsetGroup(ids.general30, 'RT');
     getSubsetGroup(ids.bob25, 'RT');
-    if(toggles.baac) getSubsetGroup(ids.bob30, ['YF,SW,RT','YF, SW, RT','RT']);
+    getSubsetGroup(ids.bob30, ['YF,SW,RT','RT']); // กลุ่ม RT ปลดล็อก Bob 30% ได้เองอยู่แล้ว (เข้าเงื่อนไขข้อ 4) ไม่ต้องรอติ๊ก
   } else if(segment==='Dry Crop'){
-    if(toggles.baac) getSubsetGroup(ids.bob30, ['Dry Crop','Dry crop']);
+    if(toggles.baac) getSubsetGroup(ids.bob30, 'Dry Crop');
   }
   return rows;
 }
@@ -1717,9 +1746,6 @@ function dedupeWithinSameCustomerOut(rows, model){
   const pending = rows.filter(r=>r.entry.pending);
   const usable = rows.filter(r=>!r.entry.pending);
   const kept = usable.filter(r=>{
-    // Special case: YM358R's baseline ทั่วไป20% stays visible as a fallback option
-    // (e.g. customer's land doesn't qualify for the 25%+ programs), even if dominated.
-    if(model==='YM358R' && r.program.id==='y_general') return true;
     const cust = r.entry.customer_out ?? 0;
     const support = (r.entry.down ?? 0) - cust;
     const rst = r.entry.rst ?? 0;
@@ -1894,7 +1920,13 @@ function renderSegmentButtons(){
 }
 
 function renderToggles(){
-  const defs = TOGGLE_DEFS[currentSegment] || [];
+  renderLandRef();
+  const defs = (TOGGLE_DEFS[currentBrand] && TOGGLE_DEFS[currentBrand][currentSegment]) || [];
+  const note = TOGGLE_NOTE[currentSegment];
+  if(defs.length === 0 && note){
+    togglesContainer.innerHTML = `<div class="toggle-auto-note">✓ ${note}</div>`;
+    return;
+  }
   togglesContainer.innerHTML = defs.map(t=>`
     <label class="toggle-row">
       <input type="checkbox" data-key="${t.key}" ${toggleState[t.key] ? 'checked':''}>
