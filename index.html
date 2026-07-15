@@ -1076,6 +1076,7 @@ body.printing #printArea{ display:block !important; }
 
     <div class="finance-extra-launchers">
       <button type="button" class="finance-launch-btn" onclick="openAddressGuarantorModal()">📍 ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน <span class="fl-status" id="addrGtorStatus"></span></button>
+      <button type="button" class="finance-launch-btn" onclick="openFinInfoModal()">💰 ข้อมูลรายได้ลูกค้า <span class="fl-status" id="finInfoStatus"></span></button>
       <button type="button" class="finance-launch-btn" onclick="openReferenceModal()">📇 บุคคลอ้างอิง <span class="fl-status" id="refStatus"></span></button>
       <button type="button" class="finance-launch-btn" onclick="openDocsModal(getOrCreateDraftCaseId())">📎 แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน ฯลฯ)</button>
       <div style="text-align:center;font-size:11.5px"><a href="#" onclick="previewGuarantorForm();return false" style="color:var(--accent);font-family:'Kanit',sans-serif;font-weight:600">🔍 ดูตัวอย่างฟอร์มผู้ค้ำ/อ้างอิง</a></div>
@@ -1226,6 +1227,7 @@ body.printing #printArea{ display:block !important; }
 
     <div class="finance-extra-launchers">
       <button type="button" class="finance-launch-btn" onclick="openAddressGuarantorModal()">📍 ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน <span class="fl-status" id="addrGtorStatusM"></span></button>
+      <button type="button" class="finance-launch-btn" onclick="openFinInfoModal()">💰 ข้อมูลรายได้ลูกค้า <span class="fl-status" id="finInfoStatusM"></span></button>
       <button type="button" class="finance-launch-btn" onclick="openReferenceModal()">📇 บุคคลอ้างอิง <span class="fl-status" id="refStatusM"></span></button>
       <button type="button" class="finance-launch-btn" onclick="openDocsModal(getOrCreateDraftCaseId())">📎 แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน ฯลฯ)</button>
       <div style="text-align:center;font-size:11.5px"><a href="#" onclick="previewGuarantorForm();return false" style="color:var(--accent);font-family:'Kanit',sans-serif;font-weight:600">🔍 ดูตัวอย่างฟอร์มผู้ค้ำ/อ้างอิง</a></div>
@@ -1970,9 +1972,10 @@ segmentToggle.querySelectorAll('.seg-btn').forEach(b=>{
 });
 modelSelect.addEventListener('change', ()=>{
   toggleState = {land50:false, land30:false, baac:false};
-  selectedEqSet = {}; eqDown = 0; selectedPromoIdx = 0;
-  eqFinanceType = {};
+  eqSelByMode = { new:{}, used:{} }; eqFinByMode = { new:{}, used:{} };
+  eqDown = 0; selectedPromoIdx = 0;
   eqMode = 'new';
+  selectedEqSet = eqSelByMode.new; eqFinanceType = eqFinByMode.new;
   tractorFinType = 'F';
   eqPaymentUserSet = false;
   renderToggles();
@@ -1998,9 +2001,13 @@ let eqPaymentUserSet = false;
 let eqMinorMode = 'normal'; // sync กับ minorMode ของรถ
 let eqMinorModeUserSet = false;
 
-let selectedEqSet = {}; // {idx: useSpecial}
-let eqMode = 'new'; // 'new' | 'used'
-let eqFinanceType = {}; // {idx: 'F'|'R'} default R
+// เก็บรายการที่เลือกแยกตามโหมด (ใหม่ / มือสอง) ไม่ล้างทิ้งเวลาสลับโหมด
+// เพื่อให้เลือกอุปกรณ์ทั้งมือหนึ่งและมือสองพร้อมกันได้ในเคสเดียว
+let eqSelByMode = { new:{}, used:{} };   // {mode: {idx: useSpecial}}
+let eqFinByMode = { new:{}, used:{} };   // {mode: {idx: 'F'|'R'}}
+let eqMode = 'new'; // 'new' | 'used' — โหมดที่กำลังดูอยู่ตอนนี้
+let selectedEqSet = eqSelByMode[eqMode]; // อ้างอิงถึง object เดียวกับ eqSelByMode[eqMode] เสมอ
+let eqFinanceType = eqFinByMode[eqMode]; // อ้างอิงถึง object เดียวกับ eqFinByMode[eqMode] เสมอ
 let tractorFinType = 'F'; // default F
 let eqDown = 0;
 
@@ -2190,17 +2197,10 @@ function buildEqSelectorHtml(brand, segment){
   const payments = getAvailablePayments(brand, segment, eqYears);
   if(!payments.includes(eqPayment)) eqPayment = payments[payments.length-1];
 
-  // compute current total for preview
+  // compute current total for preview — รวมทั้งมือหนึ่งและมือสองที่เลือกไว้
   function eqAnnualPreview(y, p){
-    const items = getEquipmentForModel(brand, document.getElementById('modelSelect').value);
-    let total = 0;
-    Object.keys(selectedEqSet).forEach(idx=>{
-      const item = items[Number(idx)];
-      if(!item) return;
-      const price = (selectedEqSet[idx] && item.special) ? item.special : item.price;
-      total += price;
-    });
-    const finTotal = Math.max(0, total - (eqDown||0));
+    const merged = getAllSelectedEquipment(brand, document.getElementById('modelSelect').value);
+    const finTotal = Math.max(0, merged.total - (eqDown||0));
     if(finTotal === 0) return null;
     const interest = lookupInterest(brand, segment, y, p);
     return Math.round(finTotal * (1/y + interest));
@@ -2233,8 +2233,12 @@ function buildEqSelectorHtml(brand, segment){
 
 function setEqMode(mode){
   eqMode = mode;
-  selectedEqSet = {};
-  eqFinanceType = {};
+  // สลับไปดูรายการของโหมดนี้ แต่ "ไม่ล้าง" ของที่เลือกไว้ในอีกโหมดหนึ่ง
+  // เพื่อให้เลือกอุปกรณ์มือหนึ่งและมือสองพร้อมกันได้
+  if(!eqSelByMode[mode]) eqSelByMode[mode] = {};
+  if(!eqFinByMode[mode]) eqFinByMode[mode] = {};
+  selectedEqSet = eqSelByMode[mode];
+  eqFinanceType = eqFinByMode[mode];
   rerenderEq();
 }
 function setEqMinorMode(m){
@@ -2323,18 +2327,10 @@ function collectExportData(){
     ? roundInstallment(bigPayFull / 2, tractorFinType)
     : roundInstallment(bigPayFull, tractorFinType);
 
-  // Equipment
-  const eqItems = getEquipmentForModel(currentBrand, model);
-  const selectedEqList = [];
-  let eqTotalPrice = 0;
-  Object.keys(selectedEqSet).forEach(idx=>{
-    const item = eqItems[Number(idx)];
-    if(!item) return;
-    const useSpec = selectedEqSet[idx] && !!item.special;
-    const p = useSpec ? item.special : item.price;
-    eqTotalPrice += p;
-    selectedEqList.push({name: item.name, price: p, finType: eqFinanceType[Number(idx)] || 'R'});
-  });
+  // Equipment — รวมทั้งที่เลือกไว้ในโหมดใหม่และมือสอง (เลือกพร้อมกันได้)
+  const eqMerged = getAllSelectedEquipment(currentBrand, model);
+  const selectedEqList = eqMerged.items;
+  let eqTotalPrice = eqMerged.total;
   const eqFinYears = eqYears || finYears;
   const eqFinRate  = lookupInterest(currentBrand, currentSegment, eqFinYears, eqPayment);
   const eqDown2    = Math.max(0, eqDown);
@@ -2384,6 +2380,7 @@ function collectExportData(){
   return {
     custName, custAddr, custPhone, branch, model, brand, seg, progName,
     custCurrentAddr, gtorName, gtorAddr, gtorPhone, refs,
+    finInfo,
     id: finalId,
     editSummaryNote: editSummaryNote || undefined,
     byName: _editingRecordId ? userName : undefined,
@@ -2489,6 +2486,10 @@ function refreshExportSummary(){
 }
 
 // ===== PDF / Print =====
+// true ระหว่างที่ preview modal กำลังโชว์ "หลังบันทึกสำเร็จ" — พอผู้ใช้กดปิด ค่อยรีเซ็ตฟอร์มไปเริ่มรายการใหม่
+// (แยกจากกรณีกด "ดูตัวอย่าง" เฉยๆ ก่อนบันทึก ซึ่งปิดแล้วไม่ต้องรีเซ็ตอะไร)
+let _reloadAfterPreviewClose = false;
+
 function saveAndPrint(){
   const d = collectExportData();
   const phoneDigits = (d.custPhone||'').replace(/\D/g,'');
@@ -2500,12 +2501,28 @@ function saveAndPrint(){
     if(target) target.focus();
     return;
   }
-  saveToHistory(d);
-  setTimeout(()=> {
-    exportPDF();
-    // บันทึกเรียบร้อย — รีเซ็ตข้อมูลที่เลือก/กรอกทั้งหมด แล้วกลับไปหน้าเริ่มต้น
-    setTimeout(()=> location.reload(), 300);
-  }, 400);
+  const saveBtns = document.querySelectorAll('button[onclick="saveAndPrint()"]');
+  saveBtns.forEach(b=>{
+    b.disabled = true;
+    if(!b.dataset.origText) b.dataset.origText = b.textContent;
+    b.textContent = '⏳ กำลังบันทึก...';
+  });
+  saveToHistory(d, function(err){
+    saveBtns.forEach(b=>{ b.disabled = false; b.textContent = b.dataset.origText; });
+    if(err){
+      alert('❌ บันทึกไม่สำเร็จ: ' + (err.message || 'ไม่ทราบสาเหตุ') + '\n\nข้อมูลที่กรอกไว้ยังอยู่ครบ ลองกดบันทึกอีกครั้งได้เลย (เช็คสัญญาณเน็ตด้วยถ้ายังไม่ผ่าน)');
+      return;
+    }
+    // บันทึกสำเร็จแน่นอนแล้ว (ได้คำตอบจากเซิร์ฟเวอร์จริง ไม่ใช่ยิงแบบไม่รู้ผลเหมือนเดิม)
+    // โชว์ใบสรุปแบบดูในหน้าเว็บ (ซูมนิ้วได้ปกติ ทำงานชัวร์บนมือถือ) แทนการเรียก print dialog ทันที
+    _reloadAfterPreviewClose = true;
+    previewPDF();
+    // เครื่องที่มีจอใหญ่/น่าจะต่อเครื่องพิมพ์อยู่ เปิดหน้าต่างพิมพ์เพิ่มให้อัตโนมัติ
+    // ส่วนมือถือข้ามขั้นนี้ เพราะ print dialog บนมือถือมักไม่เสถียรและอาจไปบังหน้าจอก่อนได้เห็นใบสรุป
+    if(window.innerWidth >= 760){
+      setTimeout(()=> exportPDF(), 300);
+    }
+  });
 }
 
 function buildPrintHtml(d){
@@ -2758,9 +2775,20 @@ function previewPDF(){
   const d = collectExportData();
   document.getElementById('previewModalScroll').innerHTML = buildPrintHtml(d);
   document.getElementById('previewModalBg').style.display = 'flex';
+  const titleEl = document.getElementById('previewModalTitle');
+  if(titleEl){
+    titleEl.textContent = _reloadAfterPreviewClose
+      ? '✅ บันทึกสำเร็จ — นี่คือใบสรุปที่บันทึกไว้'
+      : '👁 ตัวอย่างใบสรุป';
+  }
 }
 function closePreviewModal(){
   document.getElementById('previewModalBg').style.display = 'none';
+  if(_reloadAfterPreviewClose){
+    _reloadAfterPreviewClose = false;
+    // บันทึกเรียบร้อยและดูใบสรุปแล้ว — รีเซ็ตข้อมูลที่เลือก/กรอกทั้งหมด แล้วกลับไปหน้าเริ่มต้น
+    location.reload();
+  }
 }
 
 // ===== แบบฟอร์มข้อมูลเพิ่มเติม (ที่อยู่ปัจจุบัน / ผู้ค้ำประกัน / ผู้อ้างอิง) แยกจากใบสรุปค่างวด =====
@@ -2804,6 +2832,8 @@ function buildGuarantorFormHtml(d){
         <tr><td style="padding:2px 0;vertical-align:top"><b>ที่อยู่:</b></td><td style="padding:2px 0">${d.gtorAddr||blank}</td></tr>
       </table>
 
+      ${buildFinInfoPrintHtml(d.finInfo)}
+
       <div style="font-weight:bold;background:#f0fff4;padding:3px 6px;border-radius:4px;margin-bottom:4px">ข้อมูลผู้อ้างอิง</div>
       <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:9pt">
         ${refsHtml}
@@ -2818,6 +2848,54 @@ function buildGuarantorFormHtml(d){
         </tr>
       </table>
     </div>`;
+}
+
+// สร้างตารางข้อมูลรายได้ลูกค้าสำหรับใบพิมพ์ (ทำเกษตร/งานประจำ/รายได้เสริม/เครื่องจักรที่มีอยู่แล้ว/หนี้สิน)
+function buildFinInfoPrintHtml(fi){
+  const blankShort = '....................................';
+  if(!fi) return '';
+  const plots = (fi.farmPlots||[]).filter(p=>p.cropType||p.rai||p.titleHolder);
+  const machines = (fi.machines||[]).filter(m=>m.type||m.model||m.qty||m.note);
+  const debts = (fi.debts||[]).filter(d=>d.creditor||d.amount);
+  const hasAny = plots.length || machines.length || debts.length || fi.hasJob || fi.hasSideIncome;
+  if(!hasAny) return '';
+
+  const plotsRows = plots.length ? plots.map(p=>`
+      <tr><td style="padding:2px 0">${p.cropType||'-'}</td><td style="padding:2px 0;text-align:center">${p.rai||'-'} ไร่</td><td style="padding:2px 0">เอกสารสิทธิ์: ${p.titleHolder||'-'}</td></tr>
+    `).join('') : `<tr><td colspan="3" style="padding:2px 0;color:#888">${blankShort}</td></tr>`;
+
+  const jobLine = fi.hasJob === 'yes'
+    ? `มี — ${fi.jobDetail||'-'} (${fi.jobIncome?fmt(Number(fi.jobIncome)||0)+' บาท/เดือน':'-'})`
+    : (fi.hasJob === 'no' ? 'ไม่มี' : '-');
+  const sideLine = fi.hasSideIncome === 'yes'
+    ? `มี — ${fi.sideIncomeDetail||'-'} (${fi.sideIncomeAmount?fmt(Number(fi.sideIncomeAmount)||0)+' บาท/เดือน':'-'})`
+    : (fi.hasSideIncome === 'no' ? 'ไม่มี' : '-');
+
+  const machinesRows = machines.length ? machines.map(m=>`
+      <tr><td style="padding:2px 0">${m.type||'-'}</td><td style="padding:2px 0">${m.model||'-'}</td><td style="padding:2px 0;text-align:center">${m.qty||'-'} คัน</td><td style="padding:2px 0">${m.note||'-'}</td></tr>
+    `).join('') : '';
+
+  const debtsRows = debts.length ? debts.map(d=>`
+      <tr><td style="padding:2px 0">${d.creditor||'-'}</td><td style="padding:2px 0;text-align:right">${d.amount?fmt(Number(d.amount)||0):'-'} บาท</td></tr>
+    `).join('') : '';
+
+  return `
+      <div style="font-weight:bold;background:#eef4fb;padding:3px 6px;border-radius:4px;margin-bottom:4px">ข้อมูลรายได้ลูกค้า</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:4px;font-size:9pt">
+        <tr><td colspan="3" style="padding:2px 0;font-weight:bold;color:#555">ทำเกษตร</td></tr>
+        ${plotsRows}
+        <tr><td style="padding:4px 0"><b>งานประจำ:</b></td><td colspan="2" style="padding:4px 0">${jobLine}</td></tr>
+        <tr><td style="padding:2px 0"><b>รายได้เสริม:</b></td><td colspan="2" style="padding:2px 0">${sideLine}</td></tr>
+      </table>
+      ${machines.length ? `<table style="width:100%;border-collapse:collapse;margin-bottom:4px;font-size:9pt">
+        <tr><td colspan="4" style="padding:2px 0;font-weight:bold;color:#555">เครื่องจักรกลที่มีอยู่แล้ว</td></tr>
+        ${machinesRows}
+      </table>` : ''}
+      ${debts.length ? `<table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:9pt">
+        <tr><td colspan="2" style="padding:2px 0;font-weight:bold;color:#555">หนี้สิน</td></tr>
+        ${debtsRows}
+      </table>` : ''}
+  `;
 }
 
 function previewGuarantorForm(){
@@ -3762,10 +3840,26 @@ function gasPostReadable(action, payload, callback){
     .catch(err => callback && callback(err));
 }
 
-function saveToHistory(record){
-  if(!gasUrl){ console.warn('GAS URL not set'); return; }
-  gasPost('save', {action:'save', record}, (err)=>{
-    if(err) console.error('Save failed:', err);
+function saveToHistory(record, callback){
+  if(!gasUrl){
+    console.warn('GAS URL not set');
+    if(callback) callback(new Error('ยังไม่ได้ตั้งค่า GAS URL — กด ⚙️ ด้านบนเพื่อใส่ URL'));
+    return;
+  }
+  // ใช้ gasPostReadable แทน gasPost(no-cors) เพื่อให้รู้ผลจริงว่าบันทึกสำเร็จหรือไม่
+  // (no-cors แบบเดิม ยิงแบบไม่รู้ผล ถ้าบันทึกไม่สำเร็จก็จะไม่มีทางรู้เลย)
+  gasPostReadable('save', {record}, (err, data)=>{
+    if(err || !data || data.status !== 'ok'){
+      console.error('Save failed:', err || data);
+      if(callback) callback(err || new Error((data && data.message) || 'บันทึกไม่สำเร็จ ไม่ทราบสาเหตุ'));
+      return;
+    }
+    // อัปเดต id จริงที่เซิร์ฟเวอร์สร้างให้ (ถ้ามี) แล้วเติมเข้า cache ประวัติในเครื่องทันที
+    // เพื่อให้เปิดหน้าประวัติแล้วเห็นเคสที่เพิ่งบันทึกได้เลย ไม่ต้องรอโหลดใหม่/กังวลเรื่องลำดับ
+    if(data.id) record.id = data.id;
+    if(!record.savedAt) record.savedAt = new Date().toISOString();
+    _allHistoryRecords = [record, ..._allHistoryRecords.filter(r=>String(r.id)!==String(record.id))];
+    if(callback) callback(null, data);
   });
 }
 
@@ -4381,6 +4475,42 @@ function renderGuarantorSectionWrap(id, d){
   return `<div id="hdGuarantor_${id}">${renderGuarantorInner(id, d)}</div>`;
 }
 
+// แสดงข้อมูลรายได้ลูกค้าในหน้ารายละเอียดประวัติ (ถ้าเคยกรอกไว้)
+function renderFinInfoSectionWrap(d){
+  const fi = d.finInfo;
+  if(!fi) return '';
+  const plots = (fi.farmPlots||[]).filter(p=>p.cropType||p.rai||p.titleHolder);
+  const machines = (fi.machines||[]).filter(m=>m.type||m.model||m.qty||m.note);
+  const debts = (fi.debts||[]).filter(x=>x.creditor||x.amount);
+  const hasAny = plots.length || machines.length || debts.length || fi.hasJob || fi.hasSideIncome;
+  if(!hasAny) return '';
+
+  const plotsHtml = plots.length
+    ? plots.map(p=>`<div class="hd-row"><span class="hd-label">${p.cropType||'-'}</span><span class="hd-val">${p.rai||'-'} ไร่ · เอกสารสิทธิ์: ${p.titleHolder||'-'}</span></div>`).join('')
+    : '';
+  const jobLine = fi.hasJob === 'yes'
+    ? `มี — ${fi.jobDetail||'-'} (${fi.jobIncome?fmt(Number(fi.jobIncome)||0)+' บาท/เดือน':'-'})`
+    : (fi.hasJob === 'no' ? 'ไม่มี' : '—');
+  const sideLine = fi.hasSideIncome === 'yes'
+    ? `มี — ${fi.sideIncomeDetail||'-'} (${fi.sideIncomeAmount?fmt(Number(fi.sideIncomeAmount)||0)+' บาท/เดือน':'-'})`
+    : (fi.hasSideIncome === 'no' ? 'ไม่มี' : '—');
+  const machinesHtml = machines.length
+    ? machines.map(m=>`<div class="hd-row"><span class="hd-label">${m.type||'-'}</span><span class="hd-val">${m.model||'-'} × ${m.qty||'-'} คัน${m.note?' · '+m.note:''}</span></div>`).join('')
+    : '';
+  const debtsHtml = debts.length
+    ? debts.map(x=>`<div class="hd-row"><span class="hd-label">${x.creditor||'-'}</span><span class="hd-val">${x.amount?fmt(Number(x.amount)||0)+' บาท':'-'}</span></div>`).join('')
+    : '';
+
+  return `
+      <div class="hd-section">ข้อมูลรายได้ลูกค้า</div>
+      ${plotsHtml}
+      <div class="hd-row"><span class="hd-label">งานประจำ</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${jobLine}</span></div>
+      <div class="hd-row"><span class="hd-label">รายได้เสริม</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${sideLine}</span></div>
+      ${machinesHtml}
+      ${debtsHtml}
+  `;
+}
+
 function renderHistoryDetailHtml(id, d, rowNote){
     const content = document.getElementById('historyDetailContent');
     const PAYMENT_LABELS_LOCAL = PAYMENT_LABELS;
@@ -4421,6 +4551,8 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div class="hd-row"><span class="hd-label">สาขา/ผู้ปิดการขาย</span><span class="hd-val">${d.branch||'—'}</span></div>
 
       ${renderGuarantorSectionWrap(id, d)}
+
+      ${renderFinInfoSectionWrap(d)}
 
       <div class="hd-section">เอกสารประกอบ</div>
       <button class="btn-reprint" style="width:100%" onclick="openDocsModal('${id}', 'buyer')">📎 แนบ/ดูเอกสารประกอบ — ผู้ซื้อ</button>
@@ -4930,17 +5062,194 @@ function updateRefStatus(){
   ['refStatus','refStatusM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = txt; });
 }
 
+// ===== ข้อมูลรายได้ลูกค้า (ทำเกษตร/งานประจำ/รายได้เสริม/เครื่องจักรที่มีอยู่แล้ว/หนี้สิน) =====
+let finInfo = {
+  farmPlots: [],       // {cropType, rai, titleHolder}
+  hasJob: '',          // 'yes' | 'no' | ''
+  jobDetail: '',
+  jobIncome: '',
+  hasSideIncome: '',   // 'yes' | 'no' | ''
+  sideIncomeDetail: '',
+  sideIncomeAmount: '',
+  machines: [],        // {type, model, qty, note} — เครื่องจักรกลที่มีอยู่แล้วก่อนซื้อคันนี้
+  debts: []            // {creditor, amount}
+};
+
+function farmPlotRowHtml(idx, p){
+  return `
+    <div class="ref-row" data-idx="${idx}">
+      <div class="ref-row-head">
+        <b>แปลงที่ ${idx+1}</b>
+        <button type="button" class="ref-row-remove" onclick="removeFarmPlotRow(${idx})">✕ ลบ</button>
+      </div>
+      <div class="field-group" style="margin-bottom:6px">
+        <label>ทำเกษตรอะไร (เช่น ทำนา, ปลูกอ้อย, มันสำปะหลัง)</label>
+        <input type="text" value="${escapeHtml(p.cropType||'')}" placeholder="เช่น ทำนา" oninput="finInfo.farmPlots[${idx}].cropType=this.value">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div class="field-group" style="margin:0">
+          <label>จำนวนไร่</label>
+          <input type="text" inputmode="decimal" value="${escapeHtml(p.rai||'')}" placeholder="เช่น 7" oninput="finInfo.farmPlots[${idx}].rai=this.value">
+        </div>
+        <div class="field-group" style="margin:0">
+          <label>เอกสารสิทธิ์ชื่อใคร</label>
+          <input type="text" value="${escapeHtml(p.titleHolder||'')}" placeholder="เช่น ชื่อแม่" oninput="finInfo.farmPlots[${idx}].titleHolder=this.value">
+        </div>
+      </div>
+    </div>`;
+}
+function renderFarmPlotList(){
+  const c = document.getElementById('farmPlotListContainer');
+  if(!c) return;
+  if(!finInfo.farmPlots.length) finInfo.farmPlots.push({cropType:'',rai:'',titleHolder:''});
+  c.innerHTML = finInfo.farmPlots.map((p,i)=>farmPlotRowHtml(i,p)).join('');
+}
+function addFarmPlotRow(){ finInfo.farmPlots.push({cropType:'',rai:'',titleHolder:''}); renderFarmPlotList(); }
+function removeFarmPlotRow(idx){ finInfo.farmPlots.splice(idx,1); renderFarmPlotList(); }
+
+function machineRowHtml(idx, m){
+  return `
+    <div class="ref-row" data-idx="${idx}">
+      <div class="ref-row-head">
+        <b>เครื่องที่ ${idx+1}</b>
+        <button type="button" class="ref-row-remove" onclick="removeMachineRow(${idx})">✕ ลบ</button>
+      </div>
+      <div class="field-group" style="margin-bottom:6px">
+        <label>ประเภท (รถแทรกเตอร์ / รถเกี่ยว / รถขุด / อื่นๆ)</label>
+        <input type="text" value="${escapeHtml(m.type||'')}" placeholder="เช่น รถแทรกเตอร์" oninput="finInfo.machines[${idx}].type=this.value">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div class="field-group" style="margin:0">
+          <label>ยี่ห้อ/รุ่น</label>
+          <input type="text" value="${escapeHtml(m.model||'')}" placeholder="เช่น Yanmar EF393" oninput="finInfo.machines[${idx}].model=this.value">
+        </div>
+        <div class="field-group" style="margin:0">
+          <label>จำนวน (คัน)</label>
+          <input type="text" inputmode="numeric" value="${escapeHtml(m.qty||'')}" placeholder="1" oninput="finInfo.machines[${idx}].qty=this.value">
+        </div>
+      </div>
+      <div class="field-group" style="margin-top:6px">
+        <label>หมายเหตุ (เช่น ผ่อนอยู่/ปลอดภาระ, ยอดคงเหลือ)</label>
+        <input type="text" value="${escapeHtml(m.note||'')}" placeholder="เช่น เหลือยอด 136,631" oninput="finInfo.machines[${idx}].note=this.value">
+      </div>
+    </div>`;
+}
+function renderMachineList(){
+  const c = document.getElementById('machineListContainer');
+  if(!c) return;
+  if(!finInfo.machines.length) finInfo.machines.push({type:'',model:'',qty:'',note:''});
+  c.innerHTML = finInfo.machines.map((m,i)=>machineRowHtml(i,m)).join('');
+}
+function addMachineRow(){ finInfo.machines.push({type:'',model:'',qty:'',note:''}); renderMachineList(); }
+function removeMachineRow(idx){ finInfo.machines.splice(idx,1); renderMachineList(); }
+
+function debtRowHtml(idx, d){
+  return `
+    <div class="ref-row" data-idx="${idx}">
+      <div class="ref-row-head">
+        <b>หนี้สินที่ ${idx+1}</b>
+        <button type="button" class="ref-row-remove" onclick="removeDebtRow(${idx})">✕ ลบ</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div class="field-group" style="margin:0">
+          <label>หนี้สิน/เจ้าหนี้</label>
+          <input type="text" value="${escapeHtml(d.creditor||'')}" placeholder="เช่น ธกส." oninput="finInfo.debts[${idx}].creditor=this.value">
+        </div>
+        <div class="field-group" style="margin:0">
+          <label>ยอดคงเหลือ (บาท)</label>
+          <input type="text" inputmode="numeric" value="${escapeHtml(d.amount||'')}" placeholder="0" oninput="finInfo.debts[${idx}].amount=this.value">
+        </div>
+      </div>
+    </div>`;
+}
+function renderDebtList(){
+  const c = document.getElementById('debtListContainer');
+  if(!c) return;
+  if(!finInfo.debts.length) finInfo.debts.push({creditor:'',amount:''});
+  c.innerHTML = finInfo.debts.map((d,i)=>debtRowHtml(i,d)).join('');
+}
+function addDebtRow(){ finInfo.debts.push({creditor:'',amount:''}); renderDebtList(); }
+function removeDebtRow(idx){ finInfo.debts.splice(idx,1); renderDebtList(); }
+
+function setHasJob(val){ finInfo.hasJob = val; renderFinInfoToggles(); }
+function setHasSideIncome(val){ finInfo.hasSideIncome = val; renderFinInfoToggles(); }
+function renderFinInfoToggles(){
+  const jobBox = document.getElementById('jobDetailBox');
+  if(jobBox) jobBox.style.display = finInfo.hasJob === 'yes' ? 'block' : 'none';
+  const sideBox = document.getElementById('sideIncomeDetailBox');
+  if(sideBox) sideBox.style.display = finInfo.hasSideIncome === 'yes' ? 'block' : 'none';
+  ['Job','SideIncome'].forEach(kind=>{
+    const key = kind === 'Job' ? 'hasJob' : 'hasSideIncome';
+    ['yes','no'].forEach(v=>{
+      const btn = document.getElementById(`btn${kind}_${v}`);
+      if(btn) btn.classList.toggle('active', finInfo[key] === v);
+    });
+  });
+}
+function renderFinInfoForm(){
+  renderFarmPlotList();
+  renderMachineList();
+  renderDebtList();
+  const jobIncomeEl = document.getElementById('jobIncomeInput');
+  if(jobIncomeEl) jobIncomeEl.value = finInfo.jobIncome || '';
+  const jobDetailEl = document.getElementById('jobDetailInput');
+  if(jobDetailEl) jobDetailEl.value = finInfo.jobDetail || '';
+  const sideDetailEl = document.getElementById('sideIncomeDetailInput');
+  if(sideDetailEl) sideDetailEl.value = finInfo.sideIncomeDetail || '';
+  const sideAmtEl = document.getElementById('sideIncomeAmountInput');
+  if(sideAmtEl) sideAmtEl.value = finInfo.sideIncomeAmount || '';
+  renderFinInfoToggles();
+}
+function openFinInfoModal(){
+  renderFinInfoForm();
+  document.getElementById('finInfoModalBg').style.display = 'flex';
+}
+function closeFinInfoModal(){
+  document.getElementById('finInfoModalBg').style.display = 'none';
+  updateFinInfoStatus();
+}
+function updateFinInfoStatus(){
+  const hasPlots = finInfo.farmPlots.some(p=>p.cropType||p.rai||p.titleHolder);
+  const hasMachines = finInfo.machines.some(m=>m.type||m.model||m.qty||m.note);
+  const hasDebts = finInfo.debts.some(d=>d.creditor||d.amount);
+  const filled = hasPlots || hasMachines || hasDebts || finInfo.hasJob || finInfo.hasSideIncome;
+  const txt = filled ? '✓ กรอกแล้ว' : '';
+  ['finInfoStatus','finInfoStatusM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = txt; });
+}
+
 // init when export panel shows
 const _origGoToResults = goToResults;
 
-function getEquipmentForModel(brand, model){
-  if(eqMode === 'used'){
-    const usedItems = (USED_EQUIPMENT[brand]||{})[model] || [];
-    return usedItems;
+function getEquipmentListForMode(brand, model, mode){
+  if(mode === 'used'){
+    return (USED_EQUIPMENT[brand]||{})[model] || [];
   }
   const map = EQUIPMENT[brand];
   if(!map) return [];
   return map[model] || [];
+}
+function getEquipmentForModel(brand, model){
+  return getEquipmentListForMode(brand, model, eqMode);
+}
+// รวมรายการอุปกรณ์ที่เลือกไว้จากทั้งสองโหมด (ใหม่ + มือสอง) เข้าด้วยกัน
+// ใช้ตอนคำนวณยอดจริง/บันทึก/พิมพ์ เพื่อให้เลือกทั้งมือหนึ่งและมือสองพร้อมกันได้จริง
+function getAllSelectedEquipment(brand, model){
+  const out = [];
+  let total = 0;
+  ['new','used'].forEach(mode=>{
+    const items = getEquipmentListForMode(brand, model, mode);
+    const sel = eqSelByMode[mode] || {};
+    const fin = eqFinByMode[mode] || {};
+    Object.keys(sel).forEach(idx=>{
+      const item = items[Number(idx)];
+      if(!item) return;
+      const useSpec = sel[idx] && !!item.special;
+      const price = useSpec ? item.special : item.price;
+      total += price;
+      out.push({name: item.name, price, finType: fin[idx] || 'R', mode});
+    });
+  });
+  return {items: out, total};
 }
 
 function renderEquipment(brand, model, finInterest, finYears){
@@ -4949,12 +5258,16 @@ function renderEquipment(brand, model, finInterest, finYears){
   if(!items || items.length === 0){
     if(eqMode === 'used'){
       // โชว์ข้อความแทน ไม่ซ่อน section
+      const newCount = Object.keys(eqSelByMode.new || {}).length;
+      const newBadge = newCount > 0
+        ? `<span style="font-size:10.5px;color:#1e7e34;background:#e3f7ea;border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:middle">✓ เลือกไว้จากมือหนึ่งอีก ${newCount} รายการ</span>`
+        : '';
       eqSection.innerHTML = `<div class="eq-section">
         <h4>🔧 อุปกรณ์ต่อพ่วง
           <span style="margin-left:8px;display:inline-flex;gap:4px;vertical-align:middle">
             <button class="fin-btn${eqMode==='new'?' active':''}" style="font-size:11px;padding:3px 10px" onclick="setEqMode('new')">✨ ใหม่</button>
             <button class="fin-btn active" style="font-size:11px;padding:3px 10px;background:#555;border-color:#555;color:#fff" onclick="setEqMode('used')">🔧 มือสอง</button>
-          </span>
+          </span>${newBadge}
         </h4>
         <div style="padding:16px;text-align:center;color:var(--ink-soft);font-size:13px;border:1.5px dashed var(--line);border-radius:10px;margin-top:8px">
           ไม่มีข้อมูลอุปกรณ์มือสองสำหรับรุ่นนี้
@@ -4966,7 +5279,15 @@ function renderEquipment(brand, model, finInterest, finYears){
     return;
   }
 
-  const anySelected = Object.keys(selectedEqSet).length > 0;
+  // นับของโหมดปัจจุบัน (คุมการแสดงผลรายชิ้น) และนับรวมทั้งสองโหมด (คุมยอดสรุป/ปุ่มล้าง)
+  const curModeSelected = Object.keys(selectedEqSet).length > 0;
+  const eqMerged = getAllSelectedEquipment(brand, model);
+  const anySelected = eqMerged.items.length > 0;
+  const otherMode = eqMode === 'new' ? 'used' : 'new';
+  const otherModeCount = Object.keys(eqSelByMode[otherMode] || {}).length;
+  const otherModeBadge = otherModeCount > 0
+    ? `<span style="font-size:10.5px;color:#1e7e34;background:#e3f7ea;border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:middle">✓ เลือกไว้จาก${otherMode==='used'?'มือสอง':'มือหนึ่ง'}อีก ${otherModeCount} รายการ</span>`
+    : '';
 
   const listHtml = items.map((item, idx) => {
     const isSelected = idx in selectedEqSet;
@@ -4995,17 +5316,9 @@ function renderEquipment(brand, model, finInterest, finYears){
     </div>`;
   }).join('');
 
-  // total selected price
-  let totalPrice = 0;
-  const selectedItems = [];
-  Object.keys(selectedEqSet).forEach(idx => {
-    const item = items[Number(idx)];
-    if(!item) return;
-    const useSpec = selectedEqSet[idx] && !!item.special;
-    const price = useSpec ? item.special : item.price;
-    totalPrice += price;
-    selectedItems.push({name: item.name, price});
-  });
+  // total selected price — รวมทั้งมือหนึ่งและมือสองที่เลือกไว้ (ไม่ใช่แค่โหมดที่กำลังดูอยู่)
+  const totalPrice = eqMerged.total;
+  const selectedItems = eqMerged.items;
 
   let resultHtml = '';
   if(anySelected){
@@ -5016,9 +5329,9 @@ function renderEquipment(brand, model, finInterest, finYears){
       ? lookupInterest(currentBrand, currentSegment, eqFinYears, eqPayment)
       : finInterest;
     const annual = finTotal * (1/eqFinYears + eqFinInterest);
-    const itemsLine = selectedItems.map(i=>`${i.name} (${fmt(i.price)})`).join(', ');
+    const itemsLine = selectedItems.map(i=>`${i.name}${i.mode==='used'?' (มือสอง)':''} (${fmt(i.price)})`).join(', ');
     resultHtml = `<div class="eq-result">
-      <div class="eq-r-label">🔧 งวดอุปกรณ์รวม (${selectedItems.length} รายการ)</div>
+      <div class="eq-r-label">🔧 งวดอุปกรณ์รวม (${selectedItems.length} รายการ — รวมมือหนึ่ง+มือสอง)</div>
       <div class="eq-r-value">ผ่อน <b>${fmt(Math.round(annual))}</b> บาท/${eqPayment==='monthly_3m'?'งวด':eqPayment==='semi'?'ครั้ง':'ปี'} · ${eqFinYears} ปี · ${PAYMENT_LABELS[eqPayment]} @ ${fmtPct(eqFinInterest)}</div>
       <div class="eq-r-detail">รวมราคาอุปกรณ์ ${fmt(totalPrice)} · ดาวน์ ${fmt(downAmt)} · ยอดจัด ${fmt(finTotal)}</div>
       <div class="eq-r-detail" style="margin-top:3px;color:#6a8a6a">${itemsLine}</div>
@@ -5038,8 +5351,8 @@ function renderEquipment(brand, model, finInterest, finYears){
       <span style="margin-left:8px;display:inline-flex;gap:4px;vertical-align:middle">
         <button class="fin-btn${eqMode==='new'?' active':''}" style="font-size:11px;padding:3px 10px" onclick="setEqMode('new')">✨ ใหม่</button>
         <button class="fin-btn${eqMode==='used'?' active':''}" style="font-size:11px;padding:3px 10px;border-color:#888;${eqMode==='used'?'background:#555;color:#fff':''}" onclick="setEqMode('used')">🔧 มือสอง</button>
-      </span>
-      ${anySelected ? `<span style="font-size:11px;color:var(--accent);margin-left:auto;cursor:pointer" onclick="clearEq()">ล้างทั้งหมด ✕</span>` : ''}
+      </span>${otherModeBadge}
+      ${curModeSelected ? `<span style="font-size:11px;color:var(--accent);margin-left:auto;cursor:pointer" onclick="clearEq()">ล้างรายการนี้ ✕</span>` : ''}
     </h4>
     <div class="eq-list">${listHtml}</div>
     ${eqSelectorHtml}
@@ -5067,7 +5380,9 @@ function toggleSpecial(idx, val){
   rerenderEq();
 }
 function clearEq(){
-  selectedEqSet = {};
+  // ล้างเฉพาะรายการของโหมดที่กำลังดูอยู่ (ไม่กระทบของอีกโหมดที่เลือกไว้)
+  Object.keys(selectedEqSet).forEach(k=> delete selectedEqSet[k]);
+  Object.keys(eqFinanceType).forEach(k=> delete eqFinanceType[k]);
   eqDown = 0;
   rerenderEq();
 }
@@ -5097,7 +5412,7 @@ setBrand('yanmar');
 </script>
 <div class="preview-modal-bg" id="previewModalBg" style="display:none">
   <div class="preview-modal-header">
-    <span>👁 ตัวอย่างใบสรุป</span>
+    <span id="previewModalTitle">👁 ตัวอย่างใบสรุป</span>
     <button onclick="closePreviewModal()">✕ ปิด</button>
   </div>
   <div class="preview-modal-scroll" id="previewModalScroll"></div>
@@ -5183,6 +5498,62 @@ setBrand('yanmar');
       <div id="referenceListContainer"></div>
       <button type="button" class="btn-reprint" style="width:100%;margin-top:4px" onclick="addReferenceRow()">➕ เพิ่มผู้อ้างอิงอีกคน</button>
       <button class="btn-save" style="width:100%;margin-top:10px" onclick="closeReferenceModal()">✓ เสร็จแล้ว</button>
+    </div>
+  </div>
+</div>
+<div class="preview-modal-bg" id="finInfoModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>💰 ข้อมูลรายได้ลูกค้า</span>
+    <button onclick="closeFinInfoModal()">✕ ปิด</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner">
+
+      <div class="finance-extra-subhead" style="margin-top:0">🌾 ทำเกษตร</div>
+      <div id="farmPlotListContainer"></div>
+      <button type="button" class="btn-reprint" style="width:100%;margin-top:4px" onclick="addFarmPlotRow()">➕ เพิ่มแปลง/ประเภทพืชอีกรายการ</button>
+
+      <div class="finance-extra-subhead">💼 งานประจำ</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button type="button" id="btnJob_yes" class="fin-btn" onclick="setHasJob('yes')">มีงานประจำ</button>
+        <button type="button" id="btnJob_no" class="fin-btn" onclick="setHasJob('no')">ไม่มี</button>
+      </div>
+      <div id="jobDetailBox" style="display:none">
+        <div class="field-group">
+          <label>ทำงานอะไร/ที่ไหน</label>
+          <input type="text" id="jobDetailInput" placeholder="เช่น รับราชการ, พนักงานบริษัท" oninput="finInfo.jobDetail=this.value">
+        </div>
+        <div class="field-group">
+          <label>รายได้ต่อเดือน (บาท)</label>
+          <input type="text" inputmode="numeric" id="jobIncomeInput" placeholder="0" oninput="finInfo.jobIncome=this.value">
+        </div>
+      </div>
+
+      <div class="finance-extra-subhead">💵 รายได้เสริม</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button type="button" id="btnSideIncome_yes" class="fin-btn" onclick="setHasSideIncome('yes')">มีรายได้เสริม</button>
+        <button type="button" id="btnSideIncome_no" class="fin-btn" onclick="setHasSideIncome('no')">ไม่มี</button>
+      </div>
+      <div id="sideIncomeDetailBox" style="display:none">
+        <div class="field-group">
+          <label>รายได้เสริมจากอะไร</label>
+          <input type="text" id="sideIncomeDetailInput" placeholder="เช่น เลี้ยงวัว, ค้าขาย" oninput="finInfo.sideIncomeDetail=this.value">
+        </div>
+        <div class="field-group">
+          <label>รายได้เสริมต่อเดือน (บาท)</label>
+          <input type="text" inputmode="numeric" id="sideIncomeAmountInput" placeholder="0" oninput="finInfo.sideIncomeAmount=this.value">
+        </div>
+      </div>
+
+      <div class="finance-extra-subhead">🚜 เครื่องจักรกลที่มีอยู่แล้ว (รถแทรกเตอร์/รถเกี่ยว/รถขุด)</div>
+      <div id="machineListContainer"></div>
+      <button type="button" class="btn-reprint" style="width:100%;margin-top:4px" onclick="addMachineRow()">➕ เพิ่มเครื่องจักรอีกคัน</button>
+
+      <div class="finance-extra-subhead">📉 หนี้สิน</div>
+      <div id="debtListContainer"></div>
+      <button type="button" class="btn-reprint" style="width:100%;margin-top:4px" onclick="addDebtRow()">➕ เพิ่มรายการหนี้สิน</button>
+
+      <button class="btn-save" style="width:100%;margin-top:14px" onclick="closeFinInfoModal()">✓ เสร็จแล้ว</button>
     </div>
   </div>
 </div>
