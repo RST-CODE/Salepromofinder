@@ -4384,9 +4384,15 @@ function updateDownPreview(id){
   const oldDown = Number(rec.down||0);
   const oldFinTotal = Number(rec.finTotal||0);
   const oldBigPay = Number(rec.bigPay||0);
+  const oldSupport = Number(rec.support||0);
+  const oldCustOut = Number(rec.custOut||0);
   const newDown = oldDown + extra;
   const newFinTotal = Math.max(0, oldFinTotal - extra);
   const newBigPay = _recalcBigPay(rec, newFinTotal);
+  const backOfficePrev = Math.max(0, Number(document.getElementById('auSrcBackOffice_'+id)?.value || 0));
+  const custOutAddPrev = Math.max(0, Number(document.getElementById('auSrcCustOut_'+id)?.value || 0));
+  const newSupportPrev = oldSupport + backOfficePrev;
+  const newCustOutPrev = oldCustOut + custOutAddPrev;
 
   if(previewEl){
     previewEl.style.display = 'block';
@@ -4394,6 +4400,8 @@ function updateDownPreview(id){
       <div style="display:flex;justify-content:space-between"><span>ดาวน์รวมใหม่</span><b>${fmt(oldDown)} → ${fmt(newDown)}</b></div>
       <div style="display:flex;justify-content:space-between"><span>ยอดจัดใหม่</span><b>${fmt(oldFinTotal)} → ${fmt(newFinTotal)}</b></div>
       <div style="display:flex;justify-content:space-between;color:var(--accent)"><span>งวดใหญ่ใหม่/ปี</span><b>${fmt(oldBigPay)} → ${fmt(newBigPay)} (ลด ${fmt(Math.max(0,oldBigPay-newBigPay))})</b></div>
+      ${backOfficePrev>0 ? `<div style="display:flex;justify-content:space-between;color:#1e7e34"><span>ช่วยดาวน์ใหม่ (รวมหลังบ้าน +${fmt(backOfficePrev)})</span><b>${fmt(oldSupport)} → ${fmt(newSupportPrev)}</b></div>` : ''}
+      ${custOutAddPrev>0 ? `<div style="display:flex;justify-content:space-between"><span>ลูกค้าออกเองใหม่ (+${fmt(custOutAddPrev)})</span><b>${fmt(oldCustOut)} → ${fmt(newCustOutPrev)}</b></div>` : ''}
       <div style="font-size:10px;color:#888;margin-top:2px">*ค่างวดใหม่เป็นค่าประมาณ (ปัดเศษแบบทั่วไป อาจต่างจากตอนจัดจริงเล็กน้อย)</div>
     `;
   }
@@ -4454,6 +4462,7 @@ function submitUpdateNote(id){
   const oldSupport = Number(rec.support||0);
   const oldCustOut = Number(rec.custOut||0);
   const oldRst = Number(rec.rst||0);
+  const oldBackOfficeAdjustTotal = Number(rec.backOfficeAdjustTotal||0);
 
   const newDown = oldDown + extra;
   const newFinTotal = Math.max(0, oldFinTotal - extra);
@@ -4461,15 +4470,22 @@ function submitUpdateNote(id){
   const newCustOut = oldCustOut + custOutAdd;
   const newRst = oldRst + rstAdd;
   const newBigPay = _recalcBigPay(rec, newFinTotal);
+  // สะสมยอดช่วยดาวน์ที่มาจากหลังบ้านทุกรอบที่เคยปรับ ไว้โชว์แยกในหน้าประวัติ (ไม่ใช่แค่รอบล่าสุด)
+  const newBackOfficeAdjustTotal = oldBackOfficeAdjustTotal + backOffice;
 
-  const changes = { down: newDown, support: newSupport, custOut: newCustOut, rst: newRst, finTotal: newFinTotal, bigPay: newBigPay };
+  const changes = { down: newDown, support: newSupport, custOut: newCustOut, rst: newRst, finTotal: newFinTotal, bigPay: newBigPay, backOfficeAdjustTotal: newBackOfficeAdjustTotal };
   const extraNote = ' (เพิ่มดาวน์ ' + fmt(extra) + ' บาท: หลังบ้าน ' + fmt(backOffice) + ' + ลูกค้า ' + fmt(custOutAdd) + ' + RST ' + fmt(rstAdd) + ')';
   gasPostReadable('editRecord', {id, changes, byName:userName, byRole:userRole, extraNote}, function(err2, data2){
     if(err2 || !data2 || data2.status !== 'ok'){
       alert('ปรับโครงสร้างเงินดาวน์ไม่สำเร็จ: ' + ((data2 && data2.message) || (err2 && err2.message) || 'ไม่ทราบสาเหตุ'));
       return;
     }
-    if(rec){ rec.down = newDown; rec.custOut = newCustOut; rec.rst = newRst; }
+    // อัปเดต cache ในเครื่องให้ครบทุกฟิลด์ที่เปลี่ยน (เดิมอัปเดตแค่ down/custOut/rst ทำให้ช่วยดาวน์/ยอดจัด/งวดใหญ่
+    // ที่โชว์ในหน้าประวัติไม่ตรงกับของจริงจนกว่าจะโหลดหน้าใหม่)
+    if(rec){
+      rec.down = newDown; rec.support = newSupport; rec.custOut = newCustOut; rec.rst = newRst;
+      rec.finTotal = newFinTotal; rec.bigPay = newBigPay; rec.backOfficeAdjustTotal = newBackOfficeAdjustTotal;
+    }
     viewHistoryDetail(id); // โหลดใหม่ให้ตัวเลข/Timeline ตรงกับของจริงทั้งหมด
   });
 }
@@ -4627,6 +4643,7 @@ function renderHistoryDetailHtml(id, d, rowNote){
         ${d.yspAmt ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YSP/Pro</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yspAmt)}</span></div>` : ''}
         ${d.fireAmt ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">ไฟไหม้</span><span class="hd-val" style="font-size:11.5px">${fmt(d.fireAmt)}</span></div>` : ''}
         ${d.yspTopupAmt ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YSP เพิ่มเติม</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yspTopupAmt)}</span></div>` : ''}
+        ${d.backOfficeAdjustTotal ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px;color:#1e7e34">+ ปรับเพิ่มจากหลังบ้าน (สะสมจากบันทึกคุย)</span><span class="hd-val" style="font-size:11.5px;color:#1e7e34">+${fmt(d.backOfficeAdjustTotal)}</span></div>` : ''}
         ${d.subForSupport ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px;color:#c0392b">หัก: ลูกค้าจ่ายแทนสนับสนุน</span><span class="hd-val" style="font-size:11.5px;color:#c0392b">-${fmt(d.subForSupport)}</span></div>` : ''}
         <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">ต้นทุน RST (บริษัท)</span><span class="hd-val" style="font-size:11.5px">${fmt(d.rst||0)}</span></div>
         ${(!d.yctAmt && !d.yspAmt && !d.fireAmt && !d.yspTopupAmt) ? `<div style="font-size:11px;color:#888">(เคสเก่าก่อนหน้านี้ยังไม่มีรายละเอียดแยก YCT/YSP บันทึกไว้)</div>` : ''}
