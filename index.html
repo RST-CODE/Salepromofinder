@@ -4728,6 +4728,58 @@ document.addEventListener('click', function(e){
   if(!e.target.closest('.addr-group')){ closeAllDropdowns(); }
 });
 
+// ===== Tap-vs-scroll disambiguation for .addr-opt (dropdown option) elements =====
+// Problem this fixes: options used to fire selection on touchend the instant a finger
+// lifted off them, even when the finger only landed there mid-scroll. Now we track how
+// far the finger moved between touchstart and touchend on the option, and only treat it
+// as a real tap (and select it) if the movement stayed under a small threshold.
+let _addrOptTouch = null;
+const ADDR_OPT_TAP_TOLERANCE = 10; // px — finger can drift this much and still count as a tap
+
+document.addEventListener('touchstart', function(e){
+  const opt = e.target.closest('.addr-opt');
+  if(!opt) { _addrOptTouch = null; return; }
+  const t = e.touches[0];
+  _addrOptTouch = { x:t.clientX, y:t.clientY, moved:false, opt };
+}, {passive:true});
+
+document.addEventListener('touchmove', function(e){
+  if(!_addrOptTouch) return;
+  const t = e.touches[0];
+  if(Math.abs(t.clientX-_addrOptTouch.x) > ADDR_OPT_TAP_TOLERANCE || Math.abs(t.clientY-_addrOptTouch.y) > ADDR_OPT_TAP_TOLERANCE){
+    _addrOptTouch.moved = true;
+  }
+}, {passive:true});
+
+document.addEventListener('touchend', function(e){
+  const opt = e.target.closest('.addr-opt');
+  const wasTap = opt && _addrOptTouch && _addrOptTouch.opt === opt && !_addrOptTouch.moved;
+  if(wasTap){
+    e.preventDefault(); // stop the synthetic click that would otherwise double-fire the pick
+    fireAddrOptPick(opt);
+  }
+  _addrOptTouch = null;
+});
+
+// Mouse/keyboard click (desktop, or any environment without touch) still works normally.
+// On touch devices this won't double-fire because a genuine tap already called
+// preventDefault() above, which suppresses the follow-up synthetic click event.
+document.addEventListener('click', function(e){
+  const opt = e.target.closest('.addr-opt');
+  if(opt) fireAddrOptPick(opt);
+});
+
+function fireAddrOptPick(opt){
+  const picker = opt.dataset.picker;
+  const id = Number(opt.dataset.id);
+  const name = opt.dataset.name;
+  if(picker === 'addr'){
+    addrPick(opt.dataset.level, id, name, opt.dataset.suffix || '');
+  } else if(picker === 'addr2'){
+    addr2Pick(opt.dataset.key, opt.dataset.level, id, name);
+  }
+}
+
 function closeAllDropdowns(){
   document.querySelectorAll('.addr-dropdown').forEach(d=>d.style.display='none');
   addrDropOpen = null;
@@ -4791,11 +4843,10 @@ function addrShowDrop(level, query, suffix){
   const filtered = q ? items.filter(i=>i.name.includes(q)) : items;
   if(!filtered.length){ drop.style.display='none'; return; }
 
-  // Build option HTML — use ontouchend+onclick for iOS compatibility
+  // Build option HTML — tap vs scroll disambiguated by delegated listener below (see handleAddrOptPick)
   function optHtml(id, name){
     const hl = highlightMatch(name, q);
-    const fn = `addrPick('${level}',${id},'${name}','${suffix}')`;
-    return `<div class="addr-opt" ontouchend="${fn}" onclick="${fn}">${hl}</div>`;
+    return `<div class="addr-opt" data-picker="addr" data-level="${level}" data-id="${id}" data-name="${escapeHtml(name)}" data-suffix="${suffix}">${hl}</div>`;
   }
 
   let inner = '';
@@ -4943,8 +4994,7 @@ function addr2ShowDrop(key, level, query){
 
   function optHtml(id, name){
     const hl = highlightMatch(name, q);
-    const fn = `addr2Pick('${key}','${level}',${id},'${name}')`;
-    return `<div class="addr-opt" ontouchend="${fn}" onclick="${fn}">${hl}</div>`;
+    return `<div class="addr-opt" data-picker="addr2" data-key="${key}" data-level="${level}" data-id="${id}" data-name="${escapeHtml(name)}">${hl}</div>`;
   }
   let inner = '';
   if(level==='province'){
