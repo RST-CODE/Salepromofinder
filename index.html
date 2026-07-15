@@ -2494,12 +2494,35 @@ function saveAndPrint(){
   const d = collectExportData();
   const phoneDigits = (d.custPhone||'').replace(/\D/g,'');
   if(phoneDigits.length !== 10){
-    alert('กรุณากรอกเบอร์โทรให้ครบ 10 หลัก ก่อนบันทึก (ตอนนี้กรอก ' + phoneDigits.length + ' หลัก)');
+    alert('กรุณากรอกเบอร์โทรผู้ซื้อให้ครบ 10 หลัก ก่อนบันทึก (ตอนนี้กรอก ' + phoneDigits.length + ' หลัก)');
     const phoneM = document.getElementById('custPhoneM');
     const phoneD = document.getElementById('custPhone');
     const target = (phoneM && phoneM.offsetParent) ? phoneM : phoneD;
     if(target) target.focus();
     return;
+  }
+  // ผู้ค้ำประกัน — ไม่บังคับต้องกรอก แต่ถ้ากรอกแล้วต้องครบ 10 หลัก
+  const gtorPhoneDigits = (d.gtorPhone||'').replace(/\D/g,'');
+  if(gtorPhoneDigits.length > 0 && gtorPhoneDigits.length !== 10){
+    alert('เบอร์โทรผู้ค้ำประกันกรอกไม่ครบ 10 หลัก (ตอนนี้กรอก ' + gtorPhoneDigits.length + ' หลัก)');
+    openAddressGuarantorModal();
+    setTimeout(()=>{ const el = document.getElementById('gtorPhone'); if(el) el.focus(); }, 50);
+    return;
+  }
+  // บุคคลอ้างอิง — ไม่บังคับต้องกรอก แต่ถ้ากรอกแล้วต้องครบ 10 หลัก (เช็คทีละคน)
+  const refsList = (typeof refList !== 'undefined' ? refList : []);
+  for(let i=0; i<refsList.length; i++){
+    const rPhoneDigits = (refsList[i].phone||'').replace(/\D/g,'');
+    if(rPhoneDigits.length > 0 && rPhoneDigits.length !== 10){
+      alert('เบอร์โทรผู้อ้างอิงคนที่ ' + (i+1) + ' กรอกไม่ครบ 10 หลัก (ตอนนี้กรอก ' + rPhoneDigits.length + ' หลัก)');
+      openReferenceModal();
+      setTimeout(()=>{
+        const row = document.querySelector('#referenceListContainer .ref-row[data-idx="'+i+'"]');
+        const el = row ? row.querySelector('input[inputmode="tel"]') : null;
+        if(el) el.focus();
+      }, 50);
+      return;
+    }
   }
   const saveBtns = document.querySelectorAll('button[onclick="saveAndPrint()"]');
   saveBtns.forEach(b=>{
@@ -4241,6 +4264,13 @@ function editProductAndPromo(){
 function submitEditRecord(){
   if(!_editRecordId) return;
   updateAddr2('editRecord'); // เผื่อพิมพ์ในช่อง line ล่าสุดแล้วยังไม่ trigger update
+  const editPhoneDigits = (document.getElementById('editCustPhone').value || '').replace(/\D/g,'');
+  if(editPhoneDigits.length !== 10){
+    alert('กรุณากรอกเบอร์โทรผู้ซื้อให้ครบ 10 หลัก (ตอนนี้กรอก ' + editPhoneDigits.length + ' หลัก)');
+    const el = document.getElementById('editCustPhone');
+    if(el) el.focus();
+    return;
+  }
   const changes = {
     custName: document.getElementById('editCustName').value.trim(),
     custAddr: (document.getElementById('editCustAddrHidden').value || document.getElementById('addr2_editRecord_line').value || '').trim(),
