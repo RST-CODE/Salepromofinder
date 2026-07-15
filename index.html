@@ -959,7 +959,7 @@ body.printing #printArea{ display:block !important; }
   </div>
 
   <div class="select-row">
-    <label id="segmentLabel">กลุ่มลูกค้าหลัก (ตามความสัมพันธ์กับ Yanmar)</label>
+    <label id="segmentLabel">กลุ่มลูกค้า</label>
     <div class="segment-toggle" id="segmentToggle">
       <button data-seg="ทั่วไป" class="seg-btn active">ทั่วไป</button>
       <button data-seg="YF,SW" class="seg-btn">YF, SW</button>
@@ -988,7 +988,6 @@ body.printing #printArea{ display:block !important; }
   <!-- minor installment now auto-set from payment type; input kept for JS ref only -->
   <input type="hidden" id="minorInstallmentInput" value="2000">
   <div class="select-row" style="margin-top:2px;">
-    <div style="font-size:10.5px;color:var(--ink-soft);">กรอกช่อง "ลูกค้าวางดาวน์เพิ่ม" ในการ์ดที่แนะนำได้ ถ้าลูกค้าต้องการวางดาวน์เพิ่มเพื่อลดค่างวด</div>
   </div>
   <button id="viewPromoBtn" class="view-promo-btn" onclick="goToResults()">ดูโปร ▶</button>
 </div>
@@ -1019,9 +1018,9 @@ body.printing #printArea{ display:block !important; }
     <div id="minorModeDetail" style="font-size:10.5px;color:var(--accent);margin-top:4px;padding:4px 8px;background:#fdf8f5;border-radius:6px;display:none"></div>
   </div>
   <div class="legend">
-    <span><i style="background:var(--accent)"></i>ลูกค้าจ่ายเอง (ลูกค้าออก)</span>
+    <span><i style="background:var(--accent)"></i>ลูกค้าจ่าย</span>
     <span><i style="background:var(--support)"></i>ส่วนสนับสนุน (YCT/YSP/ไฟไหม้)</span>
-    <span><i style="background:var(--rst)"></i>ต้นทุน RST (บริษัทรับภาระ)</span>
+    <span><i style="background:var(--rst)"></i>RST ออก</span>
   </div>
   <div id="results"></div>
   <div id="eqAnchor" style="scroll-margin-top:8px"></div>
@@ -1070,7 +1069,7 @@ body.printing #printArea{ display:block !important; }
     <div id="exportSummaryBox"></div>
     <div id="giftSelectorBox"></div>
     <div class="field-group" style="margin-top:4px">
-      <label>ของแถมอื่นๆ (พิมพ์เพิ่มเอง)</label>
+      <label>ของแถมอื่นๆ</label>
       <input type="text" id="customGiftInput" placeholder="เช่น ถุงมือหนัง 1 คู่" oninput="customGiftText=this.value">
     </div>
 
@@ -1221,7 +1220,7 @@ body.printing #printArea{ display:block !important; }
     <div id="exportSummaryBoxM"></div>
     <div id="giftSelectorBoxM"></div>
     <div class="field-group" style="margin-top:4px">
-      <label>ของแถมอื่นๆ (พิมพ์เพิ่มเอง)</label>
+      <label>ของแถมอื่นๆ</label>
       <input type="text" id="customGiftInputM" placeholder="เช่น ถุงมือหนัง 1 คู่" oninput="customGiftText=this.value">
     </div>
 
@@ -1894,7 +1893,7 @@ function setBrand(brand){
   eqYears = null; eqPayment = 'annual';
   document.documentElement.style.setProperty('--accent', brand==='yanmar' ? 'var(--yanmar)' : 'var(--solis)');
   document.querySelectorAll('.brand-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand===brand));
-  document.getElementById('segmentLabel').textContent = `กลุ่มลูกค้าหลัก (ตามความสัมพันธ์กับ ${brand==='yanmar'?'Yanmar':'Solis'})`;
+  document.getElementById('segmentLabel').textContent = 'กลุ่มลูกค้า';
   const dryCropBtn = segmentToggle.querySelector('[data-seg="Dry Crop"]');
   dryCropBtn.style.display = brand==='yanmar' ? 'none' : '';
   populateModels();
@@ -4633,28 +4632,33 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div id="hdEqItems_${id}">${(d.eqItems||[]).length>0 ? (d.eqItems.map(eq=>`<div class="hd-row"><span class="hd-label">อุปกรณ์ (${eq.finType||'R'})</span><span class="hd-val">${eq.name} — ${fmt(eq.price)}</span></div>`).join('')) : ''}</div>
 
       <div class="hd-section">การเงิน</div>
-      <div class="hd-row"><span class="hd-label">ดาวน์รวม</span><span class="hd-val">${fmt(d.down||0)}</span></div>
-      <div class="hd-row" style="cursor:pointer" onclick="const el=document.getElementById('hdSupportBreak_${id}'); if(el) el.style.display = el.style.display==='none'?'block':'none';">
-        <span class="hd-label">ช่วยดาวน์ <span style="font-size:10px;color:var(--accent)">(กดดูรายละเอียด ▾)</span></span>
-        <span class="hd-val">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</span>
-      </div>
-      <div id="hdSupportBreak_${id}" style="display:none;background:#F8F4ED;border-radius:8px;padding:8px 10px;margin:2px 0 8px;font-size:12px">
-        ${d.yctAmt ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YCT</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yctAmt)}</span></div>` : ''}
-        ${d.yspAmt ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YSP/Pro</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yspAmt)}</span></div>` : ''}
-        ${d.fireAmt ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">ไฟไหม้</span><span class="hd-val" style="font-size:11.5px">${fmt(d.fireAmt)}</span></div>` : ''}
+
+      <div style="background:#F8F4ED;border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:12px">
+        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:11px;color:var(--ink-soft);margin-bottom:4px">ช่วยดาวน์ — แยกตามที่มา</div>
+        <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YCT</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yctAmt||0)}</span></div>
+        <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YSP/Pro</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yspAmt||0)}</span></div>
+        <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">ไฟไหม้</span><span class="hd-val" style="font-size:11.5px">${fmt(d.fireAmt||0)}</span></div>
         ${d.yspTopupAmt ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YSP เพิ่มเติม</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yspTopupAmt)}</span></div>` : ''}
-        ${d.backOfficeAdjustTotal ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px;color:#1e7e34">+ ปรับเพิ่มจากหลังบ้าน (สะสมจากบันทึกคุย)</span><span class="hd-val" style="font-size:11.5px;color:#1e7e34">+${fmt(d.backOfficeAdjustTotal)}</span></div>` : ''}
-        ${d.subForSupport ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px;color:#c0392b">หัก: ลูกค้าจ่ายแทนสนับสนุน</span><span class="hd-val" style="font-size:11.5px;color:#c0392b">-${fmt(d.subForSupport)}</span></div>` : ''}
         <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">ต้นทุน RST (บริษัท)</span><span class="hd-val" style="font-size:11.5px">${fmt(d.rst||0)}</span></div>
-        ${(!d.yctAmt && !d.yspAmt && !d.fireAmt && !d.yspTopupAmt) ? `<div style="font-size:11px;color:#888">(เคสเก่าก่อนหน้านี้ยังไม่มีรายละเอียดแยก YCT/YSP บันทึกไว้)</div>` : ''}
+        <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px;color:#1e7e34">หลังบ้าน (ปรับเพิ่มจากบันทึกคุย)</span><span class="hd-val" style="font-size:11.5px;color:#1e7e34">${fmt(d.backOfficeAdjustTotal||0)}</span></div>
+        ${d.subForSupport ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px;color:#c0392b">หัก: ลูกค้าจ่ายแทนสนับสนุน</span><span class="hd-val" style="font-size:11.5px;color:#c0392b">-${fmt(d.subForSupport)}</span></div>` : ''}
+        <div class="hd-row" style="padding:4px 0 0;border-top:1px solid var(--line);margin-top:4px"><span class="hd-label" style="font-size:11.5px;font-weight:700;color:var(--ink)">รวมช่วยดาวน์</span><span class="hd-val" style="font-size:12.5px;color:var(--accent)">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</span></div>
       </div>
-      <div class="hd-row"><span class="hd-label">จ่ายจริง</span><span class="hd-val" style="color:var(--accent)">${fmt(d.custOut||0)}</span></div>
+
+      <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:11px;color:var(--ink-soft);margin:8px 0 2px">สรุปย่อ</div>
+      <div class="hd-row"><span class="hd-label">ดาวน์รวม</span><span class="hd-val">${fmt(d.down||0)}</span></div>
+      <div class="hd-row"><span class="hd-label">โปรที่ใช้</span><span class="hd-val" style="color:var(--accent)">${d.progName||'—'}</span></div>
+      <div class="hd-row"><span class="hd-label">ลูกค้าจ่ายจริง</span><span class="hd-val" style="color:var(--accent)">${fmt(d.custOut||0)}</span></div>
+      <div class="hd-row"><span class="hd-label">ช่วยดาวน์รวม</span><span class="hd-val">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</span></div>
+      <div class="hd-row"><span class="hd-label">ค่างวดใหญ่/ปี</span><span class="hd-val" style="color:var(--accent);font-size:15px">${fmt(d.bigPay||0)} บาท</span></div>
+
+      <div class="hd-section" style="margin-top:12px">รายละเอียดเพิ่มเติม</div>
       <div class="hd-row"><span class="hd-label">ยอดจัด</span><span class="hd-val">${fmt(d.finTotal||0)}</span></div>
       <div class="hd-row"><span class="hd-label">รูปแบบการผ่อน</span><span class="hd-val">${PAYMENT_LABELS_LOCAL[d.tractorPayment]||d.tractorPayment||'—'}</span></div>
       <div class="hd-row"><span class="hd-label">รูปแบบงวดย่อย</span><span class="hd-val" id="hdMinorMode_${id}">${minorLabels[d.minorMode]||'แบบปกติ'}</span></div>
-      <div class="hd-row"><span class="hd-label">งวดใหญ่/ปี</span><span class="hd-val" style="color:var(--accent);font-size:15px">${fmt(d.bigPay||0)} บาท</span></div>
       <div class="hd-row"><span class="hd-label">งวดย่อย/เดือน</span><span class="hd-val">${fmt(d.minor||0)} บาท × ${d.tractorPayment==='semi'?10:11} เดือน</span></div>
       <div class="hd-row"><span class="hd-label">ระยะเวลา</span><span class="hd-val">${d.finYears} ปี @ ${((d.finRate||0)*100).toFixed(2)}%</span></div>
+
 
       <div class="hd-section">Timeline</div>
       <div class="hd-timeline" id="hdTimeline_${id}">
