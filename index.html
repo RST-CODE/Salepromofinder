@@ -4176,9 +4176,32 @@ function statusSlug(s){
 }
 const MINOR_LABELS = {normal:'แบบปกติ', advance:'จ่ายล่วงหน้า', with_down:'รวมกับดาวน์'};
 
+// เก็บ "ใบสรุป ณ ตอนนั้น" ของแต่ละรายการใน Timeline ไว้ชั่วคราว (เฉพาะระหว่างเปิดหน้านี้อยู่)
+// เพื่อให้กดปุ่มดูใบสรุปของรอบที่คุยแต่ละครั้งได้ โดยไม่ต้องยัด JSON ก้อนใหญ่ลงใน attribute ของปุ่มตรงๆ
+let _tlSnapshotStore = {};
+let _tlSnapshotSeq = 0;
+function registerTlSnapshot(snap){
+  const key = 'tl' + (_tlSnapshotSeq++);
+  _tlSnapshotStore[key] = snap;
+  return key;
+}
+function viewTimelineSnapshot(key, ts){
+  const snap = _tlSnapshotStore[key];
+  if(!snap){ alert('ไม่พบข้อมูลใบสรุปของรอบนี้แล้ว (อาจต้องโหลดหน้าใหม่)'); return; }
+  _recordOverride = snap;
+  previewPDF();
+  _recordOverride = null;
+  const t = document.getElementById('previewModalTitle');
+  if(t) t.textContent = '📜 ใบสรุป ณ ตอนที่บันทึกไว้ — ' + (ts||'');
+}
+
 function renderTimelineEntries(updates){
   if(!updates || !updates.length) return '';
-  return updates.slice().reverse().map(u => `
+  return updates.slice().reverse().map(u => {
+    const snapBtn = u.snapshot
+      ? `<br><button type="button" onclick="viewTimelineSnapshot('${registerTlSnapshot(u.snapshot)}','${escapeHtml(u.ts||'')}')" style="margin-top:4px;font-family:'Kanit',sans-serif;font-size:11px;font-weight:600;padding:3px 10px;border-radius:7px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);cursor:pointer">🖨 ดูใบสรุปการขาย ณ รอบนี้</button>`
+      : '';
+    return `
     <div class="hd-tl-row">
       <div class="hd-tl-dot"></div>
       <div>
@@ -4188,9 +4211,11 @@ function renderTimelineEntries(updates){
         ${u.newYears!=null ? `<br><span style="font-size:11px;color:var(--accent)">งวดใหม่: ${u.newYears} ปี</span>` : ''}
         ${u.nextFollowUp ? `<br><span style="font-size:11px;color:#888">นัดครั้งถัดไป: ${escapeHtml(u.nextFollowUp)}</span>` : ''}
         <br><span style="color:#888;font-size:11px">โดย ${escapeHtml(u.byName||'-')} (${roleLabel(u.byRole)})</span>
+        ${snapBtn}
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function changeCaseStatus(id, status){
