@@ -453,7 +453,7 @@ const DATA = {
       },
       {
         "id": "y_bob25",
-        "name": "Bob 25%",
+        "name": "โปร 25%",
         "groups": [
           "General"
         ],
@@ -544,7 +544,7 @@ const DATA = {
       },
       {
         "id": "y_bob30",
-        "name": "Bob 30%",
+        "name": "โปร 30%",
         "groups": [
           "General",
           "YF,SW",
@@ -1578,7 +1578,7 @@ const DATA = {
       },
       {
         "id": "s_bob25",
-        "name": "Bob 25% (เฉพาะรุ่นที่กำหนด)",
+        "name": "โปร 25% (เฉพาะรุ่นที่กำหนด)",
         "groups": [
           "General"
         ],
@@ -1713,7 +1713,7 @@ const DATA = {
       },
       {
         "id": "s_bob30",
-        "name": "Bob 30% (VHM/SMVH/BAAC, ผู้นำชุมชน/โรงงานน้ำตาล/ธกส 3A)",
+        "name": "โปร 30% (VHM/SMVH/BAAC, ผู้นำชุมชน/โรงงานน้ำตาล/ธกส 3A)",
         "groups": [
           "General",
           "YF,SW",
