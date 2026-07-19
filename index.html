@@ -1245,244 +1245,6 @@ body.printing #printArea{ display:block !important; }
 
 <script>
 const LOOKUP_KEYS = DATA.yanmar_lookup_keys;
-DATA.combine = {
-  "models": [
-    "AW82V",
-    "YH700",
-    "YH700 Cabin",
-    "YH850GUW 2.3",
-    "YH850 Cabin",
-    "YH1180G26WU-TH"
-  ],
-  "programs": [
-    {
-      "id": "c_general",
-      "name": "โปรลูกค้าทั่วไป ดาวน์30%",
-      "conditions": [],
-      "entries": {
-        "AW82V": {
-          "price": 1237000,
-          "down": 372000,
-          "yct": 97000,
-          "ysp": 200000,
-          "rst": 75000,
-          "customer_out": 0
-        },
-        "YH700": {
-          "price": 1292000,
-          "down": 388000,
-          "yct": 129000,
-          "ysp": 100000,
-          "rst": 109000,
-          "customer_out": 50000
-        },
-        "YH700 Cabin": {
-          "price": 1409000,
-          "down": 423000,
-          "yct": 102500,
-          "ysp": 110000,
-          "rst": 50500,
-          "customer_out": 160000
-        },
-        "YH850GUW 2.3": {
-          "price": 1562000,
-          "down": 469000,
-          "yct": 147000,
-          "ysp": 120000,
-          "rst": 62000,
-          "customer_out": 140000
-        },
-        "YH850 Cabin": {
-          "price": 1658000,
-          "down": 498000,
-          "yct": 130000,
-          "ysp": 130000,
-          "rst": 68000,
-          "customer_out": 170000
-        },
-        "YH1180G26WU-TH": {
-          "price": 1779000,
-          "down": 534000,
-          "yct": 133500,
-          "ysp": 200000,
-          "rst": 70500,
-          "customer_out": 130000
-        }
-      }
-    },
-    {
-      "id": "c_owner_combine",
-      "name": "โปรลูกค้ามีรถเกี่ยวนวดข้าวยันม่าร์,คูโบต้า ดาวน์20%",
-      "conditions": [
-        "แสดงหลักฐานเล่มทะเบียนรถ หรือสัญญาเช่าซื้อกรณียังไม่หมดงวด",
-        "กรณีลูกค้าครอบครองรถเกี่ยวที่ยังผ่อนชำระ ต้องเหลือไม่เกิน 2 งวด"
-      ],
-      "entries": {
-        "AW82V": {
-          "price": 1237000,
-          "down": 248000,
-          "yct": 122500,
-          "ysp": 200000,
-          "rst": 49500,
-          "customer_out": 0
-        },
-        "YH700": {
-          "price": 1292000,
-          "down": 259000,
-          "yct": 155000,
-          "ysp": 100000,
-          "rst": 4000,
-          "customer_out": 0
-        },
-        "YH700 Cabin": {
-          "price": 1409000,
-          "down": 282000,
-          "yct": 140000,
-          "ysp": 110000,
-          "rst": 32000,
-          "customer_out": 0
-        },
-        "YH850GUW 2.3": {
-          "price": 1562000,
-          "down": 313000,
-          "yct": 186500,
-          "ysp": 120000,
-          "rst": 6500,
-          "customer_out": 0
-        },
-        "YH850 Cabin": {
-          "price": 1658000,
-          "down": 332000,
-          "yct": 170500,
-          "ysp": 130000,
-          "rst": 31500,
-          "customer_out": 0
-        },
-        "YH1180G26WU-TH": {
-          "price": 1779000,
-          "down": 356000,
-          "yct": 175500,
-          "ysp": 200000,
-          "rst": 0,
-          "customer_out": 0
-        }
-      }
-    },
-    {
-      "id": "c_owner_tractor",
-      "name": "โปรลูกค้ามีรถแทรกเตอร์ยันม่าร์,ลูกค้าย้ายค่ายรถแทรกเตอร์5ยี่ห้อ ดาวน์25%",
-      "conditions": [
-        "แสดงหลักฐานเล่มทะเบียนรถ หรือสัญญาเช่าซื้อกรณียังไม่หมดงวด",
-        "กรณีลูกค้าครอบครองรถแทรกเตอร์ยันม่าร์ที่ยังผ่อนชำระ ต้องเหลือไม่เกิน 3 งวด"
-      ],
-      "entries": {
-        "AW82V": {
-          "price": 1237000,
-          "down": 310000,
-          "yct": 122500,
-          "ysp": 200000,
-          "rst": 49500,
-          "customer_out": 0
-        },
-        "YH700": {
-          "price": 1292000,
-          "down": 323000,
-          "yct": 155000,
-          "ysp": 100000,
-          "rst": 68000,
-          "customer_out": 0
-        },
-        "YH700 Cabin": {
-          "price": 1409000,
-          "down": 353000,
-          "yct": 140000,
-          "ysp": 110000,
-          "rst": 43000,
-          "customer_out": 60000
-        },
-        "YH850GUW 2.3": {
-          "price": 1562000,
-          "down": 391000,
-          "yct": 186500,
-          "ysp": 120000,
-          "rst": 34500,
-          "customer_out": 50000
-        },
-        "YH850 Cabin": {
-          "price": 1658000,
-          "down": 415000,
-          "yct": 170500,
-          "ysp": 130000,
-          "rst": 54500,
-          "customer_out": 60000
-        },
-        "YH1180G26WU-TH": {
-          "price": 1779000,
-          "down": 445000,
-          "yct": 175500,
-          "ysp": 200000,
-          "rst": 69500,
-          "customer_out": 0
-        }
-      }
-    },
-    {
-      "id": "c_rt",
-      "name": "โปรลูกค้าเก่าชั้นดีรถเกี่ยว ดาวน์ต่ำ10%",
-      "conditions": [],
-      "entries": {
-        "AW82V": {
-          "price": 1237000,
-          "down": 124000,
-          "yct": 70000,
-          "ysp": 200000,
-          "rst": 75000,
-          "customer_out": 0
-        },
-        "YH700": {
-          "price": 1292000,
-          "down": 130000,
-          "yct": 100000,
-          "ysp": 100000,
-          "rst": 109000,
-          "customer_out": 0
-        },
-        "YH700 Cabin": {
-          "price": 1409000,
-          "down": 141000,
-          "yct": 80000,
-          "ysp": 110000,
-          "rst": 50500,
-          "customer_out": 0
-        },
-        "YH850GUW 2.3": {
-          "price": 1562000,
-          "down": 157000,
-          "yct": 120000,
-          "ysp": 120000,
-          "rst": 62000,
-          "customer_out": 0
-        },
-        "YH850 Cabin": {
-          "price": 1658000,
-          "down": 166000,
-          "yct": 100000,
-          "ysp": 130000,
-          "rst": 68000,
-          "customer_out": 0
-        },
-        "YH1180G26WU-TH": {
-          "price": 1779000,
-          "down": 178000,
-          "yct": 120000,
-          "ysp": 200000,
-          "rst": 70500,
-          "customer_out": 0
-        }
-      }
-    }
-  ]
-};
 
 // ===== Interest Rate Tables (from YCT PDF Apr-Jun 2568) =====
 const INTEREST_TABLE = {
@@ -1516,10 +1278,10 @@ const INTEREST_TABLE = {
     dry_crop: {'6_semi':0.0875,'6_annual':0.0895,'7_semi':0.0875,'7_annual':0.0895},
   },
   combine: {
-    general: {'6_annual':0.085},
-    owner_combine: {'6_annual':0.085},
-    owner_tractor: {'6_annual':0.085},
-    rt: {'6_annual':0.085},
+    general: {'6_annual':0.085,'6_split_70_30':0.0875,'6_split_50_50':0.085},
+    owner_combine: {'6_annual':0.085,'6_split_70_30':0.0875,'6_split_50_50':0.085},
+    owner_tractor: {'6_annual':0.085,'6_split_70_30':0.0875,'6_split_50_50':0.085},
+    rt: {'6_annual':0.085,'6_split_70_30':0.0875,'6_split_50_50':0.085},
   }
 };
 
@@ -1542,7 +1304,10 @@ const PAYMENT_OPTIONS = {
     dry_crop: { 6:['semi','annual'], 7:['semi','annual'] },
   },
   combine: {
-    general: {6:['annual']}, owner_combine: {6:['annual']}, owner_tractor: {6:['annual']}, rt: {6:['annual']},
+    general: {6:['annual','split_70_30','split_50_50']},
+    owner_combine: {6:['annual','split_70_30','split_50_50']},
+    owner_tractor: {6:['annual','split_70_30','split_50_50']},
+    rt: {6:['annual','split_70_30','split_50_50']},
   }
 };
 
@@ -1550,7 +1315,39 @@ const PAYMENT_LABELS = {
   monthly_3m: 'รายเดือน / ราย 3 เดือน',
   semi: 'ราย 6 เดือน (2 ครั้ง/ปี)',
   annual: 'รายปี',
+  split_70_30: 'สองครั้งต่อปี (ม.ค. 70% + พ.ค. 30%)',
+  split_50_50: 'สองครั้งต่อปี (ม.ค. 50% + ก.พ. 50%)',
 };
+
+// ===== ตัวช่วยกลาง สำหรับ payment type ที่มี "งวดใหญ่ 2 ครั้ง/ปี" (semi ของแทรกเตอร์เดิม + split ใหม่ของรถเกี่ยว) =====
+// SPLIT_RATIO: สัดส่วนงวดใหญ่ครั้งที่ 1 กับครั้งที่ 2 ในแต่ละปี (เดิม semi = ครึ่งต่อครึ่งเป๊ะ ยังคงพฤติกรรมเดิมทุกประการ)
+const SPLIT_RATIO = { semi: [0.5, 0.5], split_70_30: [0.7, 0.3], split_50_50: [0.5, 0.5] };
+function isTwoBigPerYear(paymentType){ return paymentType === 'semi' || paymentType === 'split_70_30' || paymentType === 'split_50_50'; }
+function getSplitRatio(paymentType){ return SPLIT_RATIO[paymentType] || [0.5, 0.5]; }
+// จำนวนงวดย่อยก่อนงวดใหญ่ในแต่ละปี: annual=11, สองครั้งต่อปี(ไม่ว่าจะ semi/split ใดๆ)=10, รายเดือน/3เดือน=0
+function getPeriodsMinor(paymentType){
+  if(paymentType === 'monthly_3m') return 0;
+  if(isTwoBigPerYear(paymentType)) return 10;
+  return 11; // annual
+}
+// แยกยอดงวดใหญ่เต็มปี ออกเป็น 2 ก้อนตามสัดส่วนจริง (เดิม semi = ครึ่งเท่ากันเป๊ะ, split_70_30/split_50_50 ใหม่ = ตามสัดส่วนที่ระบุ)
+function splitBigAmounts(fullAmount, paymentType, finType){
+  const ratio = getSplitRatio(paymentType);
+  return [roundInstallment(fullAmount*ratio[0], finType), roundInstallment(fullAmount*ratio[1], finType)];
+}
+// ข้อความสรุปยอดงวดใหญ่: ถ้าจ่ายครั้งเดียว/ปี โชว์ยอดเดียว, ถ้า 2 ครั้ง/ปีเท่ากัน (semi เดิม) โชว์ "ยอด × 2 ครั้ง",
+// ถ้า 2 ครั้ง/ปีแต่ไม่เท่ากัน (split_70_30/split_50_50 ใหม่) โชว์ "ยอด1 + ยอด2" ตรงตามจริง
+function formatBigLabel(fullAmount, paymentType, finType){
+  if(!isTwoBigPerYear(paymentType)) return fmt(roundInstallment(fullAmount, finType));
+  const [a1,a2] = splitBigAmounts(fullAmount, paymentType, finType);
+  return a1===a2 ? (fmt(a1)+' × 2 ครั้ง') : (fmt(a1)+' + '+fmt(a2));
+}
+// ยอด "งวดใหญ่ครั้งแรก" ของปี (ใช้แทนที่จุดที่โค้ดเดิมหาร /2 เฉพาะกรณี semi) — เดิม semi ครึ่งเท่ากันเป๊ะ
+// ตอนนี้ครอบคลุม split_70_30/split_50_50 ด้วย โดยใช้สัดส่วนจริง (ครั้งแรก = ratio[0])
+function firstBigAmount(fullAmount, paymentType, finType){
+  if(!isTwoBigPerYear(paymentType)) return roundInstallment(fullAmount, finType);
+  return splitBigAmounts(fullAmount, paymentType, finType)[0];
+}
 
 // Segment -> interest group mapping
 function getInterestGroup(brand, segment){
@@ -1900,8 +1697,8 @@ function cardHtml(r, badge, compareTo, editable){
   const finAnnual = finTotal * (1/finYears + finInterest);
 
   const minorBase = getMinorFromPayment(tractorPayment);
-  const periodsMinor = tractorPayment==='semi' ? 10 : 11;
-  const bigMonthsPerYear = tractorPayment==='semi' ? 2 : 1;
+  const periodsMinor = getPeriodsMinor(tractorPayment);
+  const bigMonthsPerYear = isTwoBigPerYear(tractorPayment) ? 2 : 1;
   // แบบ 1: minor ทุกปี, แบบ 2&3: งวดใหญ่คือ annual เต็ม ไม่หัก minor
   const minor = (minorMode === 'normal') ? minorBase : 0;
   // bigPayment = งวดใหญ่ที่จ่ายจริง
@@ -1909,22 +1706,22 @@ function cardHtml(r, badge, compareTo, editable){
   // แบบ advance/with_down: ปีที่ 1 ถึง N-1 = annual เต็ม, ปีสุดท้าย = annual - minor*periods
   const bigPaymentFull = Math.max(0, finAnnual - minor*periodsMinor);
   // สำหรับ card chip: แสดง "งวดใหญ่ปกติ" ซึ่งคือยอดที่จ่ายส่วนใหญ่ของปี
-  const bigPaymentNormal = tractorPayment==='semi' ? roundInstallment(bigPaymentFull/2, tractorFinType) : roundInstallment(bigPaymentFull, tractorFinType);
+  const bigPaymentNormal = firstBigAmount(bigPaymentFull, tractorPayment, tractorFinType);
   const bigPaymentMajority = (minorMode==='advance'||minorMode==='with_down')
-    ? (tractorPayment==='semi' ? roundInstallment(finAnnual/2, tractorFinType) : roundInstallment(finAnnual, tractorFinType))
+    ? firstBigAmount(finAnnual, tractorPayment, tractorFinType)
     : bigPaymentNormal;
   const bigPayment = bigPaymentMajority;
 
   const totalChip = `<span class="chip">ยอดจัด <b>${fmt(Math.round(finTotal))}</b></span>`;
   const payFreqLabel = PAYMENT_LABELS[tractorPayment] || 'รายปี';
   let minorNote = '';
-  const periodsBeforeBig = tractorPayment==='semi' ? 10 : 11;
+  const periodsBeforeBig = getPeriodsMinor(tractorPayment);
   if(minorMode === 'normal' && minorBase > 0){
     minorNote = ' + งวดย่อย <b>' + fmt(minorBase) + '</b> × ' + periodsBeforeBig + ' เดือน';
   } else if(minorMode === 'advance' && minorBase > 0){
     // ปีแรก = annual เต็ม (bigFull), ปีที่เหลือ = annual เต็ม, ปีสุดท้าย = bigHalf (หัก minor)
-    const bigFull = tractorPayment==='semi' ? roundInstallment(finAnnual/2, tractorFinType) : roundInstallment(finAnnual, tractorFinType);
-    const lastPay = tractorPayment==='semi' ? roundInstallment(bigPaymentFull/2, tractorFinType) : roundInstallment(bigPaymentFull, tractorFinType);
+    const bigFull = firstBigAmount(finAnnual, tractorPayment, tractorFinType);
+    const lastPay = firstBigAmount(bigPaymentFull, tractorPayment, tractorFinType);
     const minorTotal = minorBase * periodsBeforeBig;
     minorNote = ' <span style="font-size:10px;color:#888">'
       + 'ปีแรก: งวดย่อย ' + fmt(minorBase) + '×' + periodsBeforeBig + '=' + fmt(minorTotal)
@@ -1934,8 +1731,8 @@ function cardHtml(r, badge, compareTo, editable){
       + '</span>';
   } else if(minorMode === 'with_down' && minorBase > 0){
     const wdTotal = minorBase * periodsBeforeBig;
-    const wdBigFull = tractorPayment==='semi' ? roundInstallment(finAnnual/2, tractorFinType) : roundInstallment(finAnnual, tractorFinType);
-    const wdLastPay = tractorPayment==='semi' ? roundInstallment(bigPaymentFull/2, tractorFinType) : roundInstallment(bigPaymentFull, tractorFinType);
+    const wdBigFull = firstBigAmount(finAnnual, tractorPayment, tractorFinType);
+    const wdLastPay = firstBigAmount(bigPaymentFull, tractorPayment, tractorFinType);
     minorNote = ' <span style="font-size:10px;color:#888">'
       + '+ดาวน์ ' + fmt(wdTotal) + ' บาท'
       + ' | ทุกปี: ' + fmt(wdBigFull) + '/ปี'
@@ -1944,32 +1741,24 @@ function cardHtml(r, badge, compareTo, editable){
   }
 
   let paymentDesc = '';
-  const isSemi = tractorPayment==='semi';
+  const isSemi = isTwoBigPerYear(tractorPayment);
   // F/R badge สำหรับรถ (แสดงใน chip)
   const tractorFRHtml = `<span onclick="event.stopPropagation()" style="display:inline-flex;gap:2px;margin-left:6px;vertical-align:middle">
     <button onclick="tractorFinType='F';renderResults()" style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1.5px solid ${tractorFinType==='F'?'var(--accent)':'#ccc'};background:${tractorFinType==='F'?'var(--accent)':'#fff'};color:${tractorFinType==='F'?'#fff':'#999'};cursor:pointer">F</button>
     <button onclick="tractorFinType='R';renderResults()" style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1.5px solid ${tractorFinType==='R'?'#1e7e34':'#ccc'};background:${tractorFinType==='R'?'#1e7e34':'#fff'};color:${tractorFinType==='R'?'#fff':'#999'};cursor:pointer">R</button>
   </span>`;
-  const bigLabel = isSemi
-    ? fmt(roundInstallment(bigPayment, tractorFinType)) + ' × 2 ครั้ง'
-    : fmt(roundInstallment(bigPayment, tractorFinType));
+  const bigLabel = formatBigLabel(bigPayment, tractorPayment, tractorFinType);
   if(minorMode === 'normal' && minorBase > 0){
     paymentDesc = ' · งวดใหญ่ <b>' + bigLabel + '</b> บาท' + minorNote;
   } else if(minorMode === 'advance' && minorBase > 0){
     // แสดง annual เต็ม (ปีแรกและปีทั่วไป)
-    const fullLabel = isSemi
-      ? fmt(roundInstallment(finAnnual/2, tractorFinType)) + ' × 2 ครั้ง'
-      : fmt(roundInstallment(finAnnual, tractorFinType));
+    const fullLabel = formatBigLabel(finAnnual, tractorPayment, tractorFinType);
     paymentDesc = ' · <b>' + fullLabel + '</b> บาท/ปี' + minorNote;
   } else if(minorMode === 'with_down' && minorBase > 0){
-    const fullLabel2 = isSemi
-      ? fmt(roundInstallment(finAnnual/2, tractorFinType)) + ' × 2 ครั้ง'
-      : fmt(roundInstallment(finAnnual, tractorFinType));
+    const fullLabel2 = formatBigLabel(finAnnual, tractorPayment, tractorFinType);
     paymentDesc = ' · <b>' + fullLabel2 + '</b> บาท/ปี' + minorNote;
   } else {
-    const noMinorLabel = isSemi
-      ? fmt(roundInstallment(finAnnual/2, tractorFinType)) + ' × 2 ครั้ง'
-      : fmt(roundInstallment(finAnnual, tractorFinType));
+    const noMinorLabel = formatBigLabel(finAnnual, tractorPayment, tractorFinType);
     paymentDesc = ' · <b>' + noMinorLabel + '</b> บาท/งวด';
   }
   const paymentChip = `<span class="chip">ผ่อน <b>${finYears} ปี</b> · ${payFreqLabel} @ <b>${fmtPct(finInterest)}</b>${paymentDesc} ${tractorFRHtml}</span>`;
@@ -2367,7 +2156,7 @@ function updateMinorModeDetail(){
   const minor = getMinorFromPayment(tractorPayment);
   if(minorMode === 'normal' || minor === 0){ el.style.display='none'; return; }
   el.style.display = 'block';
-  const periods = tractorPayment==='semi' ? 10 : 11;
+  const periods = getPeriodsMinor(tractorPayment);
   const totalMinor = minor * periods;
   const annual = minor * periods + (tractorYears ? 0 : 0); // approximate
   if(minorMode === 'advance'){
@@ -2410,7 +2199,7 @@ function renderTractorSelectors(){
   function previewAnnual(y, p){
     const interest = lookupInterest(currentBrand, currentSegment, y, p);
     const minorPrev = minorMode==='normal' ? getMinorFromPayment(p) : 0;
-    const periodsPrev = p==='semi' ? 10 : 11;
+    const periodsPrev = getPeriodsMinor(p);
     // ดึง finTotal จากโปรที่กำลังเลือกอยู่จริง
     const rows = findEntries(currentBrand, modelSelect.value, currentSegment, toggleState);
     const deduped = dedupeWithinSameCustomerOut(rows, modelSelect.value);
@@ -2423,8 +2212,8 @@ function renderTractorSelectors(){
     if(finTotal <= 0) return null;
     const annual = finTotal * (1/y + interest);
     const bigPayPerYr = Math.max(0, annual - minorPrev*periodsPrev);
-    const bigPay = p==='semi' ? roundInstallment(bigPayPerYr/2, tractorFinType) : roundInstallment(bigPayPerYr, tractorFinType);
-    const annualRounded = p==='semi' ? roundInstallment(annual/2, tractorFinType) : roundInstallment(annual, tractorFinType);
+    const bigPay = firstBigAmount(bigPayPerYr, p, tractorFinType);
+    const annualRounded = firstBigAmount(annual, p, tractorFinType);
     return {bigPay, minor: minorPrev, interest, annualRounded};
   }
 
@@ -2437,7 +2226,7 @@ function renderTractorSelectors(){
   payRow.innerHTML = payments.map(p=>{
     const prev = previewAnnual(tractorYears, p);
     const minorBase2 = getMinorFromPayment(p);
-    const periods2 = p==='semi' ? 10 : 11;
+    const periods2 = getPeriodsMinor(p);
     const minorLabel = (minorMode==='normal' && minorBase2>0) ? ` <span class="fin-preview">+${fmt(minorBase2)}×${periods2}</span>` : '';
     const showAmt = prev ? (minorMode==='normal' ? prev.bigPay : prev.annualRounded) : null;
     const bigLabel = showAmt!=null ? ` <span class="fin-preview">${fmt(showAmt)}</span>` : '';
@@ -2593,7 +2382,7 @@ function collectExportData(){
   const subForSupport = Math.max(0, Math.min(Number(custSubForSupport)||0, totalSupportBase));
   const support   = Math.max(0, ((e.yct||0) + (e.ysp||0) + (e.fire||0) + (e.ysp_topup||0)) - subForSupport);
   const baseMinorCollect = getMinorFromPayment(tractorPayment);
-  const periodsBeforeBigCollect = tractorPayment==='semi' ? 10 : 11;
+  const periodsBeforeBigCollect = getPeriodsMinor(tractorPayment);
   const minorAdvanceTotal = baseMinorCollect * periodsBeforeBigCollect;
   // แบบ 3: งวดย่อยรวมดาวน์ → บวกเพิ่มใน custOut (จ่ายจริง)
   const minorWithDown = minorMode === 'with_down' ? minorAdvanceTotal : 0;
@@ -2604,14 +2393,12 @@ function collectExportData(){
   const finTotal  = Math.max(0, (e.total ?? (price-e.down||0)) - Math.max(0,extraDown));
   const annualFull= finTotal * (1/finYears + finRate);
   const minor       = getMinorFromPayment(tractorPayment);
-  const periodsMinorCollect = tractorPayment==='semi' ? 10 : 11;
+  const periodsMinorCollect = getPeriodsMinor(tractorPayment);
   // bigPay = งวดใหญ่ปีสุดท้าย (ปีที่จ่ายน้อยกว่าเพราะ minor หมดแล้ว)
   // ปกติ: bigPay = annual - minor*periods (ทุกปี)
   // ล่วงหน้า/รวมดาวน์: ปีที่ 1 ถึง N-1 = annual เต็ม, ปีสุดท้าย = annual - minor*periods
   const bigPayFull  = Math.max(0, annualFull - minor * periodsMinorCollect);
-  const bigPay      = tractorPayment==='semi'
-    ? roundInstallment(bigPayFull / 2, tractorFinType)
-    : roundInstallment(bigPayFull, tractorFinType);
+  const bigPay      = firstBigAmount(bigPayFull, tractorPayment, tractorFinType);
 
   // Equipment — รวมทั้งที่เลือกไว้ในโหมดใหม่และมือสอง (เลือกพร้อมกันได้)
   const eqMerged = getAllSelectedEquipment(currentBrand, model);
@@ -2634,7 +2421,7 @@ function collectExportData(){
   const eqRAnnual = eqRFinTotal > 0 ? roundInstallment(eqRFinTotal * (1/eqFinYears + eqFinRate), 'R') : 0;
   // อุปกรณ์ไม่มีงวดย่อย
   const eqMinorBase = 0;
-  const eqPeriodsMinor = eqPayment==='semi' ? 10 : 11;
+  const eqPeriodsMinor = getPeriodsMinor(eqPayment);
   const eqBigPayFull = Math.max(0, eqAnnualFull);
   // รวม F+R ที่ปัดเศษแยกกันแล้ว แทนการปัดเศษยอดรวมซ้ำ (กันยอดรวมไม่ตรงกับผลรวมของ F+R)
   const eqAnnual = eqFAnnual + eqRAnnual;
@@ -2676,7 +2463,7 @@ function collectExportData(){
     yctAmt: e.yct||0, yspAmt: e.ysp||0, fireAmt: e.fire||0, yspTopupAmt: e.ysp_topup||0, subForSupport,
     finYears, finRate, finTotal: Math.round(finTotal), annualFull: Math.round(annualFull),
     minorMode, minorAdvanceTotal,
-    minor, bigPay, bigPayFull: tractorPayment==='semi' ? roundInstallment(bigPayFull/2, tractorFinType) : roundInstallment(bigPayFull, tractorFinType), tractorPayment,
+    minor, bigPay, bigPayFull: firstBigAmount(bigPayFull, tractorPayment, tractorFinType), tractorPayment,
     eqItems: selectedEqList, eqTotalPrice, eqTotalF: eqFPrice, eqTotalR: eqRPrice,
     eqAnnualF: eqFAnnual, eqAnnualR: eqRAnnual, eqDown: eqDown2, eqDownF, eqDownR,
     eqFinTotal: Math.round(eqFinTotal), eqAnnual, eqAnnualFull: Math.round(eqAnnualFull),
@@ -2844,10 +2631,13 @@ function buildPrintHtml(d){
     const tft = d.tractorFinType;
     const rows = [];
     const totalPeriods = finYears * 12;
-    const bigHalf = paymentType==='semi' ? roundInstallment(d.bigPay/2, tft) : d.bigPay;
-    const annualHalf = paymentType==='semi' ? roundInstallment(d.annualFull/2, tft) : d.annualFull; // สำหรับแบบ 2/3
+    // เดิม semi หาร /2 เท่ากันเป๊ะทั้งสองก้อน — ตอนนี้รองรับ split_70_30/split_50_50 ที่สัดส่วน 2 ก้อนไม่เท่ากัน
+    // จึงต้องแยกเป็น "ก้อนที่ 1" (เดือน 6 ในตาราง) กับ "ก้อนที่ 2" (เดือน 12) ให้ถูกต้องตามจริง
+    const [bigHalf1, bigHalf2] = isTwoBigPerYear(paymentType) ? splitBigAmounts(d.bigPay, paymentType, tft) : [d.bigPay, d.bigPay];
+    const [annualHalf1, annualHalf2] = isTwoBigPerYear(paymentType) ? splitBigAmounts(d.annualFull, paymentType, tft) : [d.annualFull, d.annualFull]; // สำหรับแบบ 2/3
 
-    function isBigMonth(m){ return m===12 || (paymentType==='semi' && m===6); }
+    function isBigMonth(m){ return m===12 || (isTwoBigPerYear(paymentType) && m===6); }
+    function pickBig(m, v1, v2){ return (isTwoBigPerYear(paymentType) && m===6) ? v1 : v2; }
 
     for(let i=1; i<=totalPeriods; i++){
       const monthInYear = ((i-1)%12)+1;
@@ -2857,29 +2647,29 @@ function buildPrintHtml(d){
         amt = roundInstallment(d.annualFull/12, tft);
       } else if(mode === 'normal'){
         // งวดใหญ่ที่เดือน 6,12 (semi) หรือ 12 (annual); งวดย่อยเดือนอื่น
-        amt = isBigMonth(monthInYear) ? bigHalf : minor;
+        amt = isBigMonth(monthInYear) ? pickBig(monthInYear, bigHalf1, bigHalf2) : minor;
       } else if(mode === 'advance'){
         // ปีแรก: minor ทุกเดือน + annualHalf (งวดใหญ่เต็ม)
         // ปีที่ 2 ถึงก่อนสุดท้าย: annualHalf เต็ม ไม่มี minor
         // ปีสุดท้าย: bigHalf เท่านั้น (minor หมดไปแล้ว)
         if(yearNum === finYears){
-          amt = isBigMonth(monthInYear) ? bigHalf : 0;
+          amt = isBigMonth(monthInYear) ? pickBig(monthInYear, bigHalf1, bigHalf2) : 0;
         } else if(yearNum === 1){
-          amt = isBigMonth(monthInYear) ? annualHalf : minor;
+          amt = isBigMonth(monthInYear) ? pickBig(monthInYear, annualHalf1, annualHalf2) : minor;
         } else {
-          amt = isBigMonth(monthInYear) ? annualHalf : 0;
+          amt = isBigMonth(monthInYear) ? pickBig(monthInYear, annualHalf1, annualHalf2) : 0;
         }
       } else if(mode === 'with_down'){
         // แบบ 3: งวดย่อยรวมดาวน์แล้ว ไม่มี minor ในตาราง
         // ทุกปี = annualHalf เต็ม ยกเว้นปีสุดท้าย = bigHalf
         if(yearNum === finYears){
-          amt = isBigMonth(monthInYear) ? bigHalf : 0;
+          amt = isBigMonth(monthInYear) ? pickBig(monthInYear, bigHalf1, bigHalf2) : 0;
         } else {
-          amt = isBigMonth(monthInYear) ? annualHalf : 0;
+          amt = isBigMonth(monthInYear) ? pickBig(monthInYear, annualHalf1, annualHalf2) : 0;
         }
       } else {
         // monthly_3m หรือ mode ที่ไม่รู้จัก
-        amt = isBigMonth(monthInYear) ? bigHalf : minor;
+        amt = isBigMonth(monthInYear) ? pickBig(monthInYear, bigHalf1, bigHalf2) : minor;
       }
       rows.push({period: i, amt, yearNum, monthInYear});
     }
@@ -2898,9 +2688,9 @@ function buildPrintHtml(d){
     const eqAnnualAmt = (eqFAmt||0) + (eqRAmt||0);
     const _pt = d.tractorPayment;   // ใช้แค่เพื่อตาราง schedule งวดรถ
     const _eqPt = d.eqPayment || _pt;
-    const isSemiPay = _pt === 'semi';
-    const eqIsSemi = _eqPt === 'semi';
-    const eqTimesPerYear = _eqPt==='monthly_3m' ? 12 : _eqPt==='semi' ? 2 : 1;
+    const isSemiPay = isTwoBigPerYear(_pt);
+    const eqIsSemi = isTwoBigPerYear(_eqPt);
+    const eqTimesPerYear = _eqPt==='monthly_3m' ? 12 : isTwoBigPerYear(_eqPt) ? 2 : 1;
     const eqMode = d.eqMinorMode || 'normal';
     const eqMinorPerPeriod = d.eqMinorBase || 0;
     // bigPay อุปกรณ์ต่อ period (หักงวดย่อยเฉพาะแบบ normal)
@@ -2927,7 +2717,7 @@ function buildPrintHtml(d){
           // เดือนที่จ่ายงวดอุปกรณ์ตาม payment type
           const isBigCell = _pt==='monthly_3m'
             ? true  // ทุกเดือน
-            : _pt==='semi'
+            : isTwoBigPerYear(_pt)
               ? (monthInYear===6 || monthInYear===12)
               : monthInYear===12;  // annual
           const bg = isBigCell ? 'background:#fff3e0;' : (r.period%2===0?'background:#fafafa':'');
@@ -3014,7 +2804,7 @@ function buildPrintHtml(d){
               <tr><td style="padding:1px 0;font-weight:bold">จ่ายจริง</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.custOut)}</td></tr>
               <tr><td style="color:#888;padding:1px 0">ยอดจัด</td><td style="text-align:right;color:#888">${fmt(d.finTotal)}</td></tr>
               <tr style="background:#fff3e0"><td style="padding:1px 0;font-weight:bold">งวดใหญ่/ปี</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.bigPay)}</td></tr>
-              ${d.minor>0?`<tr><td style="padding:1px 0;font-weight:bold">งวดย่อย/เดือน</td><td style="text-align:right;font-weight:bold">${fmt(d.minor)} × ${d.tractorPayment==='semi'?10:11}</td></tr>`:''}
+              ${d.minor>0?`<tr><td style="padding:1px 0;font-weight:bold">งวดย่อย/เดือน</td><td style="text-align:right;font-weight:bold">${fmt(d.minor)} × ${getPeriodsMinor(d.tractorPayment)}</td></tr>`:''}
               <tr><td style="color:#888;padding:1px 0">${d.finYears} ปี @ ${(d.finRate*100).toFixed(2)}%</td><td></td></tr>
             </table>
           </td>
@@ -3038,9 +2828,9 @@ function buildPrintHtml(d){
 
       <div style="font-size:7.5pt;font-weight:bold;margin-bottom:1px">ตารางงวดชำระ — ${d.finYears} ปี (${d.finYears*12} งวด)${d.eqAnnual>0?(()=>{
         const pt=d.tractorPayment;
-        const times = pt==='monthly_3m'?12:pt==='semi'?2:1;
+        const times = pt==='monthly_3m'?12:isTwoBigPerYear(pt)?2:1;
         const perTime = Math.round(d.eqAnnual/times);
-        const suffix = pt==='monthly_3m'?'/เดือน':pt==='semi'?'/ครั้ง × 2':'/ปี';
+        const suffix = pt==='monthly_3m'?'/เดือน':isTwoBigPerYear(pt)?'/ครั้ง × 2':'/ปี';
         return ` + อุปกรณ์ <span style='color:#1e7e34'>${fmt(perTime)}${suffix}</span>`;
       })():''}</div>
       ${scheduleTableHtml(schedule, d.eqAnnualF||0, d.eqAnnualR||0)}
@@ -4656,11 +4446,11 @@ function _parseFinRate(raw){
 function _recalcBigPay(rec, finTotalVal){
   const finYears = Number(rec.finYears) || 1;
   const finRate = _parseFinRate(rec.finRate);
-  const periodsBeforeBigCollect = rec.tractorPayment === 'semi' ? 10 : 11;
+  const periodsBeforeBigCollect = getPeriodsMinor(rec.tractorPayment);
   const minorPerPeriod = Number(rec.minor) || 0;
   const annual = finTotalVal * (1/finYears + finRate);
   const bigPayPerYr = Math.max(0, annual - minorPerPeriod*periodsBeforeBigCollect);
-  return Math.round(rec.tractorPayment === 'semi' ? bigPayPerYr/2 : bigPayPerYr);
+  return Math.round(firstBigAmount(bigPayPerYr, rec.tractorPayment, 'R'));
 }
 function updateDownPreview(id){
   const rec = _allHistoryRecords.find(r => String(r.id) === String(id)) || {};
@@ -4948,7 +4738,7 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div class="hd-row"><span class="hd-label">ยอดจัด</span><span class="hd-val">${fmt(d.finTotal||0)}</span></div>
       <div class="hd-row"><span class="hd-label">รูปแบบการผ่อน</span><span class="hd-val">${PAYMENT_LABELS_LOCAL[d.tractorPayment]||d.tractorPayment||'—'}</span></div>
       <div class="hd-row"><span class="hd-label">รูปแบบงวดย่อย</span><span class="hd-val" id="hdMinorMode_${id}">${minorLabels[d.minorMode]||'แบบปกติ'}</span></div>
-      <div class="hd-row"><span class="hd-label">งวดย่อย/เดือน</span><span class="hd-val">${fmt(d.minor||0)} บาท × ${d.tractorPayment==='semi'?10:11} เดือน</span></div>
+      <div class="hd-row"><span class="hd-label">งวดย่อย/เดือน</span><span class="hd-val">${fmt(d.minor||0)} บาท × ${getPeriodsMinor(d.tractorPayment)} เดือน</span></div>
       <div class="hd-row"><span class="hd-label">ระยะเวลา</span><span class="hd-val">${d.finYears} ปี @ ${((d.finRate||0)*100).toFixed(2)}%</span></div>
 
 
@@ -5745,7 +5535,7 @@ function renderEquipment(brand, model, finInterest, finYears){
     const itemsLine = selectedItems.map(i=>`${i.name}${i.mode==='used'?' (มือสอง)':''} (${fmt(i.price)})`).join(', ');
     resultHtml = `<div class="eq-result">
       <div class="eq-r-label">🔧 งวดอุปกรณ์รวม (${selectedItems.length} รายการ — รวมมือหนึ่ง+มือสอง)</div>
-      <div class="eq-r-value">ผ่อน <b>${fmt(Math.round(annual))}</b> บาท/${eqPayment==='monthly_3m'?'งวด':eqPayment==='semi'?'ครั้ง':'ปี'} · ${eqFinYears} ปี · ${PAYMENT_LABELS[eqPayment]} @ ${fmtPct(eqFinInterest)}</div>
+      <div class="eq-r-value">ผ่อน <b>${fmt(Math.round(annual))}</b> บาท/${eqPayment==='monthly_3m'?'งวด':isTwoBigPerYear(eqPayment)?'ครั้ง':'ปี'} · ${eqFinYears} ปี · ${PAYMENT_LABELS[eqPayment]} @ ${fmtPct(eqFinInterest)}</div>
       <div class="eq-r-detail">รวมราคาอุปกรณ์ ${fmt(totalPrice)} · ดาวน์ ${fmt(downAmt)} · ยอดจัด ${fmt(finTotal)}</div>
       <div class="eq-r-detail" style="margin-top:3px;color:#6a8a6a">${itemsLine}</div>
     </div>`;
@@ -6036,67 +5826,4 @@ setBrand('yanmar');
   </div>
   <div class="modal-form-scroll">
     <div class="modal-form-inner">
-      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">ใช้สำหรับแก้ไขกรณีกรอกผิดเท่านั้น ระบบจะบันทึกค่าเดิมไว้ใน Timeline ให้ดูย้อนหลังได้เสมอ</div>
-      <div class="field-group">
-        <label>ชื่อลูกค้า</label>
-        <input type="text" id="editCustName">
-      </div>
-      <div class="field-group">
-        <label>บ้านเลขที่ / ซอย / หมู่</label>
-        <input type="text" id="addr2_editRecord_line" placeholder="เช่น 49 ม.10 ซ.3" oninput="updateAddr2('editRecord')">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-        <div class="addr-group" style="margin:0">
-          <label>จังหวัด</label>
-          <input type="text" class="addr-search" id="addr2_editRecord_province" placeholder="ค้นหาจังหวัด..." autocomplete="off" oninput="addr2Input('editRecord','province',this.value)" onfocus="addr2Focus('editRecord','province')">
-          <div class="addr-dropdown" id="addr2Drop_editRecord_province" style="display:none"></div>
-        </div>
-        <div class="addr-group" style="margin:0">
-          <label>อำเภอ / เขต</label>
-          <input type="text" class="addr-search" id="addr2_editRecord_amphure" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addr2Input('editRecord','amphure',this.value)" onfocus="addr2Focus('editRecord','amphure')" disabled>
-          <div class="addr-dropdown" id="addr2Drop_editRecord_amphure" style="display:none"></div>
-        </div>
-      </div>
-      <div class="addr-group" style="margin-bottom:12px">
-        <label>ตำบล / แขวง</label>
-        <input type="text" class="addr-search" id="addr2_editRecord_tambon" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addr2Input('editRecord','tambon',this.value)" onfocus="addr2Focus('editRecord','tambon')" disabled>
-        <div class="addr-dropdown" id="addr2Drop_editRecord_tambon" style="display:none"></div>
-      </div>
-      <input type="hidden" id="editCustAddrHidden">
-      <div class="field-group">
-        <label>เบอร์โทร</label>
-        <input type="text" id="editCustPhone" inputmode="tel">
-      </div>
-      <div class="field-group">
-        <label>สาขา/ผู้ปิดการขาย</label>
-        <input type="text" id="editBranch">
-      </div>
-      <button class="btn-save" style="width:100%;margin-top:10px" onclick="submitEditRecord()">💾 บันทึกการแก้ไข</button>
-      <div style="border-top:1px solid var(--line);margin:14px 0 10px"></div>
-      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px">ถ้าต้องแก้รุ่นรถ/โปรโมชั่นด้วย ต้องไปคีย์ใหม่ทั้งใบ (ระบบจะอัปเดตทับเคสเดิม ไม่สร้างเคสซ้ำ):</div>
-      <button type="button" class="btn-reprint" style="width:100%" onclick="editProductAndPromo()">🔄 แก้ไขรุ่นรถ/โปรใหม่ทั้งหมด</button>
-    </div>
-  </div>
-</div>
-
-<div class="hd-modal-bg" id="identityModalBg" style="display:none">
-  <div class="hd-modal">
-    <div class="hd-title">👋 ก่อนเริ่มใช้งาน บอกชื่อและบทบาทหน่อย</div>
-    <div class="field-group">
-      <label>ชื่อของคุณ</label>
-      <input type="text" id="identityNameInput" placeholder="เช่น สมชาย">
-    </div>
-    <div class="field-group">
-      <label>บทบาท</label>
-      <div style="display:flex;gap:8px">
-        <button type="button" class="role-btn" id="roleBtnSales" onclick="pickRole('sales')">🧑‍💼 เซลล์</button>
-        <button type="button" class="role-btn" id="roleBtnFinance" onclick="pickRole('finance')">🏦 ไฟแนนซ์</button>
-        <button type="button" class="role-btn" id="roleBtnSupervisor" onclick="pickRole('supervisor')">👔 หัวหน้างาน</button>
-      </div>
-    </div>
-    <button class="btn-save" style="width:100%;margin-top:14px" onclick="saveIdentity()">บันทึก & เริ่มใช้งาน</button>
-  </div>
-</div>
-<div id="printArea"></div>
-</body>
-</html>
+      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">ใช้สำหรับแก้ไขกรณีกรอกผิดเท่านั้น ระบบจะบันทึกค่าเดิมไว้ใน Tim
