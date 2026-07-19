@@ -2031,6 +2031,376 @@ const DATA = {
       }
     ]
   },
+  "combine": {
+    "models": [
+      "AW82V",
+      "YH700",
+      "YH700 Cabin",
+      "YH850GUW 2.3",
+      "YH850 Cabin",
+      "YH1180G26WU-TH"
+    ],
+    "programs": [
+      {
+        "id": "c_general",
+        "name": "โปรลูกค้าทั่วไป ดาวน์30%",
+        "groups": [
+          "ทั่วไป"
+        ],
+        "conditions": [],
+        "entries": {
+          "AW82V": {
+            "price": 1237000,
+            "down": 372000,
+            "yct": 97000,
+            "ysp": 200000,
+            "rst": 75000,
+            "customer_out": 0,
+            "total": 865000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1306150.02,
+            "annual": 217691.67
+          },
+          "YH700": {
+            "price": 1292000,
+            "down": 388000,
+            "yct": 129000,
+            "ysp": 100000,
+            "rst": 109000,
+            "customer_out": 50000,
+            "total": 904000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1365040.02,
+            "annual": 227506.67
+          },
+          "YH700 Cabin": {
+            "price": 1409000,
+            "down": 423000,
+            "yct": 102500,
+            "ysp": 110000,
+            "rst": 50500,
+            "customer_out": 160000,
+            "total": 986000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1488859.98,
+            "annual": 248143.33
+          },
+          "YH850GUW 2.3": {
+            "price": 1562000,
+            "down": 469000,
+            "yct": 147000,
+            "ysp": 120000,
+            "rst": 62000,
+            "customer_out": 140000,
+            "total": 1093000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1650430.02,
+            "annual": 275071.67
+          },
+          "YH850 Cabin": {
+            "price": 1658000,
+            "down": 498000,
+            "yct": 130000,
+            "ysp": 130000,
+            "rst": 68000,
+            "customer_out": 170000,
+            "total": 1160000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1751599.98,
+            "annual": 291933.33
+          },
+          "YH1180G26WU-TH": {
+            "price": 1779000,
+            "down": 534000,
+            "yct": 133500,
+            "ysp": 200000,
+            "rst": 70500,
+            "customer_out": 130000,
+            "total": 1245000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1879950.0,
+            "annual": 313325.0
+          }
+        }
+      },
+      {
+        "id": "c_owner_combine",
+        "name": "โปรลูกค้ามีรถเกี่ยวนวดข้าวยันม่าร์,คูโบต้า ดาวน์20%",
+        "groups": [
+          "YF,SW"
+        ],
+        "conditions": [
+          "แสดงหลักฐานเล่มทะเบียนรถ หรือสัญญาเช่าซื้อกรณียังไม่หมดงวด",
+          "กรณีลูกค้าครอบครองรถเกี่ยวที่ยังผ่อนชำระ ต้องเหลือไม่เกิน 2 งวด"
+        ],
+        "entries": {
+          "AW82V": {
+            "price": 1237000,
+            "down": 248000,
+            "yct": 122500,
+            "ysp": 200000,
+            "rst": 49500,
+            "customer_out": 0,
+            "total": 989000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1493389.98,
+            "annual": 248898.33
+          },
+          "YH700": {
+            "price": 1292000,
+            "down": 259000,
+            "yct": 155000,
+            "ysp": 100000,
+            "rst": 4000,
+            "customer_out": 0,
+            "total": 1033000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1559830.02,
+            "annual": 259971.67
+          },
+          "YH700 Cabin": {
+            "price": 1409000,
+            "down": 282000,
+            "yct": 140000,
+            "ysp": 110000,
+            "rst": 32000,
+            "customer_out": 0,
+            "total": 1127000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1701769.98,
+            "annual": 283628.33
+          },
+          "YH850GUW 2.3": {
+            "price": 1562000,
+            "down": 313000,
+            "yct": 186500,
+            "ysp": 120000,
+            "rst": 6500,
+            "customer_out": 0,
+            "total": 1249000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1885990.02,
+            "annual": 314331.67
+          },
+          "YH850 Cabin": {
+            "price": 1658000,
+            "down": 332000,
+            "yct": 170500,
+            "ysp": 130000,
+            "rst": 31500,
+            "customer_out": 0,
+            "total": 1326000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 2002260.0,
+            "annual": 333710.0
+          },
+          "YH1180G26WU-TH": {
+            "price": 1779000,
+            "down": 356000,
+            "yct": 195500,
+            "ysp": 200000,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 1423000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 2148730.02,
+            "annual": 358121.67
+          }
+        }
+      },
+      {
+        "id": "c_owner_tractor",
+        "name": "โปรลูกค้ามีรถแทรกเตอร์ยันม่าร์,ลูกค้าย้ายค่ายรถแทรกเตอร์5ยี่ห้อ ดาวน์25%",
+        "groups": [
+          "Dry Crop"
+        ],
+        "conditions": [
+          "แสดงหลักฐานเล่มทะเบียนรถ หรือสัญญาเช่าซื้อกรณียังไม่หมดงวด",
+          "กรณีลูกค้าครอบครองรถแทรกเตอร์ยันม่าร์ที่ยังผ่อนชำระ ต้องเหลือไม่เกิน 3 งวด"
+        ],
+        "entries": {
+          "AW82V": {
+            "price": 1237000,
+            "down": 310000,
+            "yct": 122500,
+            "ysp": 200000,
+            "rst": 49500,
+            "customer_out": 0,
+            "total": 927000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1399770.0,
+            "annual": 233295.0
+          },
+          "YH700": {
+            "price": 1292000,
+            "down": 323000,
+            "yct": 155000,
+            "ysp": 100000,
+            "rst": 68000,
+            "customer_out": 0,
+            "total": 969000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1463190.0,
+            "annual": 243865.0
+          },
+          "YH700 Cabin": {
+            "price": 1409000,
+            "down": 353000,
+            "yct": 140000,
+            "ysp": 110000,
+            "rst": 43000,
+            "customer_out": 60000,
+            "total": 1056000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1594560.0,
+            "annual": 265760.0
+          },
+          "YH850GUW 2.3": {
+            "price": 1562000,
+            "down": 391000,
+            "yct": 186500,
+            "ysp": 120000,
+            "rst": 34500,
+            "customer_out": 50000,
+            "total": 1171000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1768210.02,
+            "annual": 294701.67
+          },
+          "YH850 Cabin": {
+            "price": 1658000,
+            "down": 415000,
+            "yct": 170500,
+            "ysp": 130000,
+            "rst": 54500,
+            "customer_out": 60000,
+            "total": 1243000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1876930.02,
+            "annual": 312821.67
+          },
+          "YH1180G26WU-TH": {
+            "price": 1779000,
+            "down": 445000,
+            "yct": 195500,
+            "ysp": 200000,
+            "rst": 69500,
+            "customer_out": 0,
+            "total": 1334000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 2014339.98,
+            "annual": 335723.33
+          }
+        }
+      },
+      {
+        "id": "c_rt",
+        "name": "โปรลูกค้าเก่าชั้นดีรถเกี่ยว ดาวน์ต่ำ10%",
+        "groups": [
+          "RT"
+        ],
+        "conditions": [],
+        "entries": {
+          "AW82V": {
+            "price": 1237000,
+            "down": 124000,
+            "yct": 70000,
+            "ysp": 200000,
+            "rst": 75000,
+            "customer_out": 0,
+            "total": 1113000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1680630.0,
+            "annual": 280105.0
+          },
+          "YH700": {
+            "price": 1292000,
+            "down": 130000,
+            "yct": 100000,
+            "ysp": 100000,
+            "rst": 109000,
+            "customer_out": 0,
+            "total": 1162000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1754620.02,
+            "annual": 292436.67
+          },
+          "YH700 Cabin": {
+            "price": 1409000,
+            "down": 141000,
+            "yct": 80000,
+            "ysp": 110000,
+            "rst": 50500,
+            "customer_out": 0,
+            "total": 1268000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1914679.98,
+            "annual": 319113.33
+          },
+          "YH850GUW 2.3": {
+            "price": 1562000,
+            "down": 157000,
+            "yct": 120000,
+            "ysp": 120000,
+            "rst": 62000,
+            "customer_out": 0,
+            "total": 1405000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 2121550.02,
+            "annual": 353591.67
+          },
+          "YH850 Cabin": {
+            "price": 1658000,
+            "down": 166000,
+            "yct": 100000,
+            "ysp": 130000,
+            "rst": 68000,
+            "customer_out": 0,
+            "total": 1492000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 2252920.02,
+            "annual": 375486.67
+          },
+          "YH1180G26WU-TH": {
+            "price": 1779000,
+            "down": 178000,
+            "yct": 120000,
+            "ysp": 200000,
+            "rst": 70500,
+            "customer_out": 0,
+            "total": 1601000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 2417509.98,
+            "annual": 402918.33
+          }
+        }
+      }
+    ]
+  },
   "yanmar_lookup_keys": {
     "EF393A / EF393T-45th": [
       "EF393A",
