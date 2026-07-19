@@ -18,6 +18,7 @@
   --card:#FFFFFF;
   --yanmar:#C8372D;
   --solis:#3E7C42;
+  --combine:#D9930F;
   --gold:#E0A526;
   --gold-bg:#FCF1D9;
   --support:#3F6FA8;
@@ -70,6 +71,7 @@ body{
 }
 .brand-btn.active.yanmar{ background:var(--yanmar); border-color:var(--yanmar); color:#fff;}
 .brand-btn.active.solis{ background:var(--solis); border-color:var(--solis); color:#fff;}
+.brand-btn.active.combine{ background:var(--combine); border-color:var(--combine); color:#fff;}
 
 .select-row{ display:flex; flex-direction:column; gap:3px; margin-bottom:6px;}
 .select-row label{ font-size:10.5px; font-weight:600; color:var(--ink-soft); letter-spacing:.3px;}
@@ -952,6 +954,7 @@ body.printing #printArea{ display:block !important; }
   <div class="brand-toggle">
     <button class="brand-btn yanmar active" data-brand="yanmar">Yanmar</button>
     <button class="brand-btn solis" data-brand="solis">Solis</button>
+    <button class="brand-btn combine" data-brand="combine">รถเกี่ยว</button>
   </div>
   <div class="select-row">
     <label for="modelSelect">เลือกรุ่นรถ</label>
@@ -1242,6 +1245,244 @@ body.printing #printArea{ display:block !important; }
 
 <script>
 const LOOKUP_KEYS = DATA.yanmar_lookup_keys;
+DATA.combine = {
+  "models": [
+    "AW82V",
+    "YH700",
+    "YH700 Cabin",
+    "YH850GUW 2.3",
+    "YH850 Cabin",
+    "YH1180G26WU-TH"
+  ],
+  "programs": [
+    {
+      "id": "c_general",
+      "name": "โปรลูกค้าทั่วไป ดาวน์30%",
+      "conditions": [],
+      "entries": {
+        "AW82V": {
+          "price": 1237000,
+          "down": 372000,
+          "yct": 97000,
+          "ysp": 200000,
+          "rst": 75000,
+          "customer_out": 0
+        },
+        "YH700": {
+          "price": 1292000,
+          "down": 388000,
+          "yct": 129000,
+          "ysp": 100000,
+          "rst": 109000,
+          "customer_out": 50000
+        },
+        "YH700 Cabin": {
+          "price": 1409000,
+          "down": 423000,
+          "yct": 102500,
+          "ysp": 110000,
+          "rst": 50500,
+          "customer_out": 160000
+        },
+        "YH850GUW 2.3": {
+          "price": 1562000,
+          "down": 469000,
+          "yct": 147000,
+          "ysp": 120000,
+          "rst": 62000,
+          "customer_out": 140000
+        },
+        "YH850 Cabin": {
+          "price": 1658000,
+          "down": 498000,
+          "yct": 130000,
+          "ysp": 130000,
+          "rst": 68000,
+          "customer_out": 170000
+        },
+        "YH1180G26WU-TH": {
+          "price": 1779000,
+          "down": 534000,
+          "yct": 133500,
+          "ysp": 200000,
+          "rst": 70500,
+          "customer_out": 130000
+        }
+      }
+    },
+    {
+      "id": "c_owner_combine",
+      "name": "โปรลูกค้ามีรถเกี่ยวนวดข้าวยันม่าร์,คูโบต้า ดาวน์20%",
+      "conditions": [
+        "แสดงหลักฐานเล่มทะเบียนรถ หรือสัญญาเช่าซื้อกรณียังไม่หมดงวด",
+        "กรณีลูกค้าครอบครองรถเกี่ยวที่ยังผ่อนชำระ ต้องเหลือไม่เกิน 2 งวด"
+      ],
+      "entries": {
+        "AW82V": {
+          "price": 1237000,
+          "down": 248000,
+          "yct": 122500,
+          "ysp": 200000,
+          "rst": 49500,
+          "customer_out": 0
+        },
+        "YH700": {
+          "price": 1292000,
+          "down": 259000,
+          "yct": 155000,
+          "ysp": 100000,
+          "rst": 4000,
+          "customer_out": 0
+        },
+        "YH700 Cabin": {
+          "price": 1409000,
+          "down": 282000,
+          "yct": 140000,
+          "ysp": 110000,
+          "rst": 32000,
+          "customer_out": 0
+        },
+        "YH850GUW 2.3": {
+          "price": 1562000,
+          "down": 313000,
+          "yct": 186500,
+          "ysp": 120000,
+          "rst": 6500,
+          "customer_out": 0
+        },
+        "YH850 Cabin": {
+          "price": 1658000,
+          "down": 332000,
+          "yct": 170500,
+          "ysp": 130000,
+          "rst": 31500,
+          "customer_out": 0
+        },
+        "YH1180G26WU-TH": {
+          "price": 1779000,
+          "down": 356000,
+          "yct": 175500,
+          "ysp": 200000,
+          "rst": 0,
+          "customer_out": 0
+        }
+      }
+    },
+    {
+      "id": "c_owner_tractor",
+      "name": "โปรลูกค้ามีรถแทรกเตอร์ยันม่าร์,ลูกค้าย้ายค่ายรถแทรกเตอร์5ยี่ห้อ ดาวน์25%",
+      "conditions": [
+        "แสดงหลักฐานเล่มทะเบียนรถ หรือสัญญาเช่าซื้อกรณียังไม่หมดงวด",
+        "กรณีลูกค้าครอบครองรถแทรกเตอร์ยันม่าร์ที่ยังผ่อนชำระ ต้องเหลือไม่เกิน 3 งวด"
+      ],
+      "entries": {
+        "AW82V": {
+          "price": 1237000,
+          "down": 310000,
+          "yct": 122500,
+          "ysp": 200000,
+          "rst": 49500,
+          "customer_out": 0
+        },
+        "YH700": {
+          "price": 1292000,
+          "down": 323000,
+          "yct": 155000,
+          "ysp": 100000,
+          "rst": 68000,
+          "customer_out": 0
+        },
+        "YH700 Cabin": {
+          "price": 1409000,
+          "down": 353000,
+          "yct": 140000,
+          "ysp": 110000,
+          "rst": 43000,
+          "customer_out": 60000
+        },
+        "YH850GUW 2.3": {
+          "price": 1562000,
+          "down": 391000,
+          "yct": 186500,
+          "ysp": 120000,
+          "rst": 34500,
+          "customer_out": 50000
+        },
+        "YH850 Cabin": {
+          "price": 1658000,
+          "down": 415000,
+          "yct": 170500,
+          "ysp": 130000,
+          "rst": 54500,
+          "customer_out": 60000
+        },
+        "YH1180G26WU-TH": {
+          "price": 1779000,
+          "down": 445000,
+          "yct": 175500,
+          "ysp": 200000,
+          "rst": 69500,
+          "customer_out": 0
+        }
+      }
+    },
+    {
+      "id": "c_rt",
+      "name": "โปรลูกค้าเก่าชั้นดีรถเกี่ยว ดาวน์ต่ำ10%",
+      "conditions": [],
+      "entries": {
+        "AW82V": {
+          "price": 1237000,
+          "down": 124000,
+          "yct": 70000,
+          "ysp": 200000,
+          "rst": 75000,
+          "customer_out": 0
+        },
+        "YH700": {
+          "price": 1292000,
+          "down": 130000,
+          "yct": 100000,
+          "ysp": 100000,
+          "rst": 109000,
+          "customer_out": 0
+        },
+        "YH700 Cabin": {
+          "price": 1409000,
+          "down": 141000,
+          "yct": 80000,
+          "ysp": 110000,
+          "rst": 50500,
+          "customer_out": 0
+        },
+        "YH850GUW 2.3": {
+          "price": 1562000,
+          "down": 157000,
+          "yct": 120000,
+          "ysp": 120000,
+          "rst": 62000,
+          "customer_out": 0
+        },
+        "YH850 Cabin": {
+          "price": 1658000,
+          "down": 166000,
+          "yct": 100000,
+          "ysp": 130000,
+          "rst": 68000,
+          "customer_out": 0
+        },
+        "YH1180G26WU-TH": {
+          "price": 1779000,
+          "down": 178000,
+          "yct": 120000,
+          "ysp": 200000,
+          "rst": 70500,
+          "customer_out": 0
+        }
+      }
+    }
+  ]
+};
 
 // ===== Interest Rate Tables (from YCT PDF Apr-Jun 2568) =====
 const INTEREST_TABLE = {
@@ -1273,12 +1514,19 @@ const INTEREST_TABLE = {
     sw: {'6_semi':0.0875,'6_annual':0.0875,'7_semi':0.0875,'7_annual':0.0875},
     rt: {'6_semi':0.0875,'6_annual':0.0875,'7_semi':0.0875,'7_annual':0.0875},
     dry_crop: {'6_semi':0.0875,'6_annual':0.0895,'7_semi':0.0875,'7_annual':0.0895},
+  },
+  combine: {
+    general: {'6_annual':0.085},
+    owner_combine: {'6_annual':0.085},
+    owner_tractor: {'6_annual':0.085},
+    rt: {'6_annual':0.085},
   }
 };
 
 const YEARS_OPTIONS = {
   yanmar: { general:[6,7,8,10], rt:[6,7,8,10], sw:[6,7,8,10] },
   solis:  { general:[6,7], sw:[6,7], rt:[6,7], dry_crop:[6,7] },
+  combine: { general:[6], owner_combine:[6], owner_tractor:[6], rt:[6] },
 };
 
 const PAYMENT_OPTIONS = {
@@ -1292,6 +1540,9 @@ const PAYMENT_OPTIONS = {
     sw:       { 6:['semi','annual'], 7:['semi','annual'] },
     rt:       { 6:['semi','annual'], 7:['semi','annual'] },
     dry_crop: { 6:['semi','annual'], 7:['semi','annual'] },
+  },
+  combine: {
+    general: {6:['annual']}, owner_combine: {6:['annual']}, owner_tractor: {6:['annual']}, rt: {6:['annual']},
   }
 };
 
@@ -1306,6 +1557,11 @@ function getInterestGroup(brand, segment){
   if(brand==='yanmar'){
     if(segment==='RT') return 'rt';
     if(segment==='YF,SW') return 'sw';
+    return 'general';
+  } else if(brand==='combine'){
+    if(segment==='RT') return 'rt';
+    if(segment==='YF,SW') return 'owner_combine';
+    if(segment==='Dry Crop') return 'owner_tractor';
     return 'general';
   } else {
     if(segment==='Dry Crop') return 'dry_crop';
@@ -1332,8 +1588,17 @@ function getAvailablePayments(brand, segment, years){
 }
 
 const USED_EQUIPMENT = {"yanmar": {"EF393A / EF393T-45th": [{"name": "ชุดใบมีด 1.60 ม. รุ่น EF39 (มือสอง)", "price": 35000}, {"name": "ผานบุกเบิก 4×22\" รุ่น EF39 (มือสอง)", "price": 28500}, {"name": "ผานพรวน 5×22\" รุ่น EF39 (มือสอง)", "price": 28500}, {"name": "ผานพรวน 6×22\" รุ่น EF39 (มือสอง)", "price": 29500}, {"name": "โรตารี่ 1.60 ม. รุ่น EF39 (มือสอง)", "price": 49000}, {"name": "เฉพาะใบดันดินหน้า 1.60 ม. (มือสอง)", "price": 7500}], "YM351R": [{"name": "ชุดใบมีด 1.80 ม. รุ่น YM351 (มือสอง)", "price": 45000}, {"name": "ผานพรวน 5×24\" รุ่น YM (มือสอง)", "price": 36500}, {"name": "ผานพรวน 6×24\" รุ่น YM (มือสอง)", "price": 37500}, {"name": "โรตารี่ 1.80 ม. รุ่น YM (มือสอง)", "price": 52500}, {"name": "เฉพาะใบดันดินหน้า 1.80 ม. (มือสอง)", "price": 8500}], "YM358R": [{"name": "ชุดใบมีด 1.80 ม. รุ่น YM358 (มือสอง)", "price": 45000}, {"name": "ผานพรวน 5×24\" รุ่น YM ยกเว้นล้อโต (มือสอง)", "price": 36500}, {"name": "ผานพรวน 6×24\" รุ่น YM ยกเว้นล้อโต (มือสอง)", "price": 37500}, {"name": "โรตารี่ 1.80 ม. รุ่น YM ยกเว้นล้อโต (มือสอง)", "price": 52500}, {"name": "เฉพาะใบดันดินหน้า 1.80 ม. (มือสอง)", "price": 8500}], "YM358R-L1": [{"name": "ชุดใบมีด 1.80 ม. รุ่น YM358 (มือสอง)", "price": 45000}, {"name": "เฉพาะใบดันดินหน้า 1.80 ม. (มือสอง)", "price": 8500}], "EF725T": []}, "solis": {}};
+USED_EQUIPMENT.combine = {};
 
 const EQUIPMENT = {"yanmar": {"EF393A / EF393T-45th": [{"name": "ใบมีดดันดินหน้า 1.60 ม.", "price": 55000}, {"name": "ผานบุกเบิก 22\"×4 ใบ", "price": 50000, "special": 42000}, {"name": "ผานพรวน 22\"×5 ใบ", "price": 47500, "special": 38000}, {"name": "ผานพรวน 22\"×6 ใบ", "price": 47500, "special": 39000}, {"name": "โรตารี่ 1.60 ม.", "price": 68900}, {"name": "เครื่องตัดหญ้า 1.20 ม.", "price": 31400}, {"name": "บุ้งกี๋ 3.4 ม.", "price": 177300}, {"name": "เครื่องอัดฟาง 1.35 ม.", "price": 500000}], "YM351R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM351R)", "price": 66100}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000, "special": 53000, "special_models": ["YM351R"]}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500, "special": 61000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000, "special": 58000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000, "special": 54000, "special_models": ["YM351R"]}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 182100}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 187300}], "YM358R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM358R)", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}, {"name": "เครื่องคีบอ้อย (YM358)", "price": 250000}], "YM358R-L1": [{"name": "ใบมีดดันดินหน้า 1.80 ม.", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "ผานพรวน 24\"×6 ใบ (กระบอกยันจานยาว 11\")", "price": 60000}, {"name": "โรตารี่ 2.00 ม.", "price": 78000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}, {"name": "เครื่องคีบอ้อย", "price": 250000}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}], "EF725T": [{"name": "ใบมีดดันดินหน้า 2.10 ม.", "price": 69000}, {"name": "ผานบุกเบิก 26\"×3 ใบ รุ่น EF725T", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ รุ่น EF725T", "price": 73600}, {"name": "โรตารี่ 2.20 ม. รุ่น EF725T", "price": 91400}]}, "solis": {"Solis 26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis22": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis30": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis30-45th": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis50-45th": [{"name": "ใบมีดดันดินหน้า 1.90 ม.", "price": 75000}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 64100}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "คีบอ้อย", "price": 250000}], "YM-Solis75": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000}], "YM-Solis75-45th": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000}], "YM-Solis 65": [], "YM-Solis90": [], "YM-Solis105-45th": [{"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (105 แรง)", "price": 95300}, {"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (110 แรง)", "price": 100200}, {"name": "ผานพรวน 26\"×8 ใบ", "price": 85520}, {"name": "ผานพรวนสับใบ", "price": 126400}, {"name": "วิปเปอร์ 3 ขา", "price": 122300}, {"name": "เครื่องปลูกอ้อย 2 แถว", "price": 109900}, {"name": "เครื่องตัดอ้อย", "price": 330000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}]}};
+EQUIPMENT.combine = {
+  "AW82V": [{"name":"ตัวถังอุ้ม","price":140000}],
+  "YH700": [{"name":"ตัวถังอุ้ม","price":140000}],
+  "YH700 Cabin": [{"name":"ตัวถังอุ้ม","price":140000}],
+  "YH850GUW 2.3": [{"name":"ตัวถังอุ้ม","price":140000}],
+  "YH850 Cabin": [{"name":"ตัวถังอุ้ม","price":140000}],
+  "YH1180G26WU-TH": [{"name":"ตัวถังอุ้ม","price":140000}]
+};
 const fmt = n => (n===null||n===undefined) ? '—' : n.toLocaleString('th-TH', {maximumFractionDigits:0});
 const fmtPct = n => (n*100).toFixed(2).replace(/\.00$/,'') + '%';
 function roundInstallment(n, finType){
@@ -1387,9 +1652,20 @@ const CRITERIA_INFO = {
     ]},
   ],
 };
+CRITERIA_INFO['combine_ทั่วไป'] = [];
+CRITERIA_INFO['combine_YF,SW'] = [{title:'เกณฑ์ลูกค้ามีรถเกี่ยวยันม่าร์/คูโบต้าอยู่แล้ว', points:[
+  'แสดงหลักฐานเล่มทะเบียนรถ หรือสัญญาเช่าซื้อกรณียังไม่หมดงวด',
+  'กรณีลูกค้าครอบครองรถเกี่ยวที่ยังผ่อนชำระ ต้องเหลือไม่เกิน 2 งวด'
+]}];
+CRITERIA_INFO['combine_Dry Crop'] = [{title:'เกณฑ์ลูกค้ามีรถแทรกเตอร์ยันม่าร์ หรือย้ายค่ายจาก 5 ยี่ห้อ', points:[
+  'แสดงหลักฐานเล่มทะเบียนรถ หรือสัญญาเช่าซื้อกรณียังไม่หมดงวด',
+  'กรณีลูกค้าครอบครองรถแทรกเตอร์ยันม่าร์ที่ยังผ่อนชำระ ต้องเหลือไม่เกิน 3 งวด'
+]}];
+CRITERIA_INFO['combine_RT'] = [];
 
 function renderCriteria(){
-  const blocks = CRITERIA_INFO[currentSegment] || [];
+  const key = currentBrand==='combine' ? ('combine_'+currentSegment) : currentSegment;
+  const blocks = CRITERIA_INFO[key] || [];
   const criteriaInfo = document.getElementById('criteriaInfo');
   if(blocks.length===0){ criteriaInfo.innerHTML = ''; return; }
   criteriaInfo.innerHTML = `<details class="criteria-box"><summary>เกณฑ์การเข้ากลุ่มนี้ (เอกสาร/เงื่อนไข)</summary>
@@ -1463,6 +1739,12 @@ const TOGGLE_DEFS = {
     'RT': [],
   },
 };
+TOGGLE_DEFS.combine = { 'ทั่วไป':[], 'YF,SW':[], 'RT':[], 'Dry Crop':[] };
+const SEGMENT_LABELS = {
+  yanmar: {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT','Dry Crop':'Dry Crop'},
+  solis:  {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT','Dry Crop':'Dry Crop'},
+  combine:{'ทั่วไป':'ทั่วไป (ดาวน์30%)','YF,SW':'มีรถเกี่ยว/คูโบต้า (ดาวน์20%)','RT':'ลูกค้าเก่าชั้นดี (ดาวน์10%)','Dry Crop':'มีรถแทรกเตอร์ยันม่าร์ (ดาวน์25%)'}
+};
 // กลุ่ม YF,SW และ RT ปลดล็อก Bob 30% ได้เองอัตโนมัติอยู่แล้ว (เข้าเงื่อนไข "ลูกค้ากลุ่ม RT,YF,SW" โดยตรง) จึงไม่ต้องมี checkbox ให้ติ๊กซ้ำในกลุ่มนี้
 const TOGGLE_NOTE = {
   'YF,SW': 'กลุ่ม YF,SW ปลดล็อกโปร 30% ให้อัตโนมัติแล้ว (เป็นโปรที่ดีที่สุดสำหรับกลุ่มนี้)',
@@ -1473,10 +1755,12 @@ const TOGGLE_NOTE = {
 const PROGRAM_IDS = {
   yanmar: { general:'y_general', target_yfsw:'y_target_yfsw', target_rt:'y_target_rt', bob25:'y_bob25', bob30:'y_bob30', special358:'y_358' },
   solis:  { general:'s_general', target_yfsw:'s_target_yfsw', target_rt:'s_target_rt', bob25:'s_bob25', bob30:'s_bob30' },
+  combine: { general:'c_general', target_yfsw:'c_owner_combine', target_rt:'c_rt', target_tractor_owner:'c_owner_tractor' },
 };
 
 function getKeys(brand, model){
   if(brand==='yanmar') return LOOKUP_KEYS[model];
+  if(brand==='combine') return [model];
   return [model];
 }
 
@@ -1526,7 +1810,11 @@ function findEntries(brand, model, segment, toggles){
     getSubsetGroup(ids.bob25, 'RT');
     getSubsetGroup(ids.bob30, ['YF,SW,RT','RT']); // กลุ่ม RT ปลดล็อก Bob 30% ได้เองอยู่แล้ว (เข้าเงื่อนไขข้อ 4) ไม่ต้องรอติ๊ก
   } else if(segment==='Dry Crop'){
-    if(toggles.baac) getSubsetGroup(ids.bob30, 'Dry Crop');
+    if(brand==='combine'){
+      getDirect(ids.target_tractor_owner);
+    } else if(toggles.baac){
+      getSubsetGroup(ids.bob30, 'Dry Crop');
+    }
   }
   return rows;
 }
@@ -1603,7 +1891,7 @@ function cardHtml(r, badge, compareTo, editable){
   const finTotalBase = e.total ?? Math.max(0, (e.price||0) - down);
   const finTotal = Math.max(0, finTotalBase - extra);
   // Use user-selected years/payment, falling back to entry default
-  const entryYears = e.years ?? (currentBrand==='yanmar' ? 10 : 7);
+  const entryYears = e.years ?? (currentBrand==='yanmar' ? 10 : (currentBrand==='combine' ? 6 : 7));
   const finYears = tractorYears ?? entryYears;
   const entryInterest = e.interest ?? 0.0895;
   const finInterest = (tractorYears && tractorPayment)
@@ -1704,15 +1992,15 @@ function cardHtml(r, badge, compareTo, editable){
       <div class="card-body">
         <div class="card-main">
           <div class="bar">
-            <div class="seg-cust" style="width:${custPct}%"></div>
-            <div class="seg-support" style="width:${suppPct}%">${suppPct>8 ? fmt(support) : ''}</div>
-            <div class="seg-rst" style="width:${rstPct}%"></div>
+            <div class="seg-cust" style="width:${custPct}%" title="ลูกค้าจ่าย: ${fmt(cust)}"></div>
+            <div class="seg-support" style="width:${suppPct}%" title="ส่วนสนับสนุน (YCT/YSP/ไฟไหม้) เฉพาะส่วนนี้: ${fmt(support)} — ไม่รวม RST">${suppPct>8 ? fmt(support) : ''}</div>
+            <div class="seg-rst" style="width:${rstPct}%" title="RST ออก: ${fmt(rst)}"></div>
           </div>
           <div class="numbers">
             <div class="num-box cust full"><div class="k">ส่วนสนับสนุนรวม (ลูกค้าได้รับ)</div><div class="v">${fmt(totalSupport)} บาท${supportDelta}</div></div>
             <div class="num-box"><div class="k">เงินดาวน์รวม</div><div class="v">${fmt(downDisp)}${extra>0 ? `<div class="vv">(เดิม ${fmt(down)} + วางเพิ่ม ${fmt(extra)})</div>` : ''}</div></div>
             <div class="num-box"><div class="k">ลูกค้าออกเอง</div><div class="v">${fmt(cust)}${custDelta}</div></div>
-            <div class="num-box"><div class="k">ต้นทุน RST (บริษัท)</div><div class="v">${fmt(rst)}${rstDelta}</div></div>
+            <div class="num-box"><div class="k">RST ออก</div><div class="v">${fmt(rst)}${rstDelta}</div></div>
             ${editable ? `<div class="num-box full extra-down-box"><div class="k">แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (ถ้ามี)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="extraDownInput" value="${extra||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">กรอกเฉพาะ "ส่วนที่ลูกค้าอยากจ่ายเพิ่ม" เพื่อลดค่างวด — เพิ่มยอดดาวน์รวมขึ้น ไม่กระทบส่วนสนับสนุน/ต้นทุน RST</div></div>
             <div class="num-box full extra-down-box"><div class="k">แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="subForSupportInput" value="${subForSupport||''}" placeholder="0" max="${totalSupportBase}"></div><div class="vv" style="margin-top:2px">ลูกค้าออกเองแทนสนับสนุนบางส่วน (สูงสุด ${fmt(totalSupportBase)} บาท) — ยอดดาวน์รวมไม่เปลี่ยน แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน ไม่ลดยอดจัดไฟแนนซ์</div></div>` : ''}
           </div>
@@ -1891,11 +2179,15 @@ function setBrand(brand){
   currentBrand = brand;
   tractorYears = null; tractorPayment = 'annual';
   eqYears = null; eqPayment = 'annual';
-  document.documentElement.style.setProperty('--accent', brand==='yanmar' ? 'var(--yanmar)' : 'var(--solis)');
+  document.documentElement.style.setProperty('--accent', brand==='yanmar' ? 'var(--yanmar)' : brand==='solis' ? 'var(--solis)' : 'var(--combine)');
   document.querySelectorAll('.brand-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand===brand));
   document.getElementById('segmentLabel').textContent = 'กลุ่มลูกค้า';
   const dryCropBtn = segmentToggle.querySelector('[data-seg="Dry Crop"]');
   dryCropBtn.style.display = brand==='yanmar' ? 'none' : '';
+  segmentToggle.querySelectorAll('.seg-btn').forEach(b=>{
+    const labels = SEGMENT_LABELS[brand] || {};
+    if(labels[b.dataset.seg]) b.textContent = labels[b.dataset.seg];
+  });
   populateModels();
 }
 
@@ -1918,7 +2210,7 @@ function renderSegmentButtons(){
 function renderToggles(){
   renderLandRef();
   const defs = (TOGGLE_DEFS[currentBrand] && TOGGLE_DEFS[currentBrand][currentSegment]) || [];
-  const note = TOGGLE_NOTE[currentSegment];
+  const note = currentBrand === 'combine' ? null : TOGGLE_NOTE[currentSegment];
   if(defs.length === 0 && note){
     togglesContainer.innerHTML = `<div class="toggle-auto-note">✓ ${note}</div>`;
     return;
@@ -2038,7 +2330,7 @@ function goToResults(){
   initAddrDropdowns();
   const model = document.getElementById('modelSelect').value;
   const seg = currentSegment;
-  const brand = currentBrand === 'yanmar' ? 'Yanmar' : 'Solis';
+  const brand = currentBrand === 'yanmar' ? 'Yanmar' : (currentBrand === 'solis' ? 'Solis' : 'รถเกี่ยว');
   const sum = document.getElementById('backSummary');
   if(sum) sum.textContent = brand + ' · ' + model + ' · ' + seg;
   refreshExportSummary();
@@ -2059,7 +2351,7 @@ function maybeAutoStep2(){
 function getMinorFromPayment(paymentType){
   if(paymentType === 'monthly_3m') return 0;
   if(paymentType === 'semi') return 1000;
-  return 2000; // annual
+  return currentBrand === 'combine' ? 3000 : 2000; // annual
 }
 
 function setMinorMode(mode){
@@ -2196,7 +2488,7 @@ function buildEqSelectorHtml(brand, segment){
     const merged = getAllSelectedEquipment(brand, document.getElementById('modelSelect').value);
     const finTotal = Math.max(0, merged.total - (eqDown||0));
     if(finTotal === 0) return null;
-    const interest = lookupInterest(brand, segment, y, p);
+    const interest = brand === 'combine' ? 0.09 : lookupInterest(brand, segment, y, p);
     return Math.round(finTotal * (1/y + interest));
   }
 
@@ -2283,7 +2575,7 @@ function collectExportData(){
   const refs = (typeof refList !== 'undefined' ? refList : []).filter(r => r.name || r.phone || r.relation);
 
   const model = modelSelect.value;
-  const brand = currentBrand === 'yanmar' ? 'Yanmar' : 'Solis';
+  const brand = currentBrand === 'yanmar' ? 'Yanmar' : (currentBrand === 'solis' ? 'Solis' : 'รถเกี่ยว');
   const seg   = currentSegment;
 
   // Get best card entry
@@ -2307,7 +2599,7 @@ function collectExportData(){
   const minorWithDown = minorMode === 'with_down' ? minorAdvanceTotal : 0;
   const custOut = Math.max(0, (e.customer_out||0) + Math.max(0, extraDown) + subForSupport + minorWithDown);
   const rst       = e.rst || 0;
-  const finYears  = tractorYears || e.years || (currentBrand==='yanmar'?10:7);
+  const finYears  = tractorYears || e.years || (currentBrand==='yanmar'?10:(currentBrand==='combine'?6:7));
   const finRate   = lookupInterest(currentBrand, currentSegment, finYears, tractorPayment);
   const finTotal  = Math.max(0, (e.total ?? (price-e.down||0)) - Math.max(0,extraDown));
   const annualFull= finTotal * (1/finYears + finRate);
@@ -2326,7 +2618,7 @@ function collectExportData(){
   const selectedEqList = eqMerged.items;
   let eqTotalPrice = eqMerged.total;
   const eqFinYears = eqYears || finYears;
-  const eqFinRate  = lookupInterest(currentBrand, currentSegment, eqFinYears, eqPayment);
+  const eqFinRate  = currentBrand === 'combine' ? 0.09 : lookupInterest(currentBrand, currentSegment, eqFinYears, eqPayment);
   const eqDown2    = Math.max(0, eqDown);
   // แยก F และ R
   const eqFPrice = selectedEqList.filter(i=>i.finType==='F').reduce((s,i)=>s+i.price, 0);
@@ -3640,9 +3932,9 @@ function exportXLSX(){
     ...(d.yspAmt ? [['  - YSP/Pro', d.yspAmt]] : []),
     ...(d.fireAmt ? [['  - ไฟไหม้', d.fireAmt]] : []),
     ...(d.yspTopupAmt ? [['  - YSP เพิ่มเติม', d.yspTopupAmt]] : []),
-    ['  - ต้นทุน RST (บริษัท)', d.rst||0],
+    ['  - RST ออก', d.rst||0],
     ['จ่ายดาวน์จริง', d.custOut],
-    ['ต้นทุน RST', d.rst],
+    ['RST ออก', d.rst],
     ['ยอดจัด (รถ)', d.finTotal],
     ['ดอกเบี้ย', (d.finRate*100).toFixed(2)+'%'],
     ['ระยะเวลา (ปี)', d.finYears],
@@ -4639,7 +4931,7 @@ function renderHistoryDetailHtml(id, d, rowNote){
         <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YSP/Pro</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yspAmt||0)}</span></div>
         <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">ไฟไหม้</span><span class="hd-val" style="font-size:11.5px">${fmt(d.fireAmt||0)}</span></div>
         ${d.yspTopupAmt ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YSP เพิ่มเติม</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yspTopupAmt)}</span></div>` : ''}
-        <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">ต้นทุน RST (บริษัท)</span><span class="hd-val" style="font-size:11.5px">${fmt(d.rst||0)}</span></div>
+        <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">RST ออก</span><span class="hd-val" style="font-size:11.5px">${fmt(d.rst||0)}</span></div>
         <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px;color:#1e7e34">หลังบ้าน (ปรับเพิ่มจากบันทึกคุย)</span><span class="hd-val" style="font-size:11.5px;color:#1e7e34">${fmt(d.backOfficeAdjustTotal||0)}</span></div>
         ${d.subForSupport ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px;color:#c0392b">หัก: ลูกค้าจ่ายแทนสนับสนุน</span><span class="hd-val" style="font-size:11.5px;color:#c0392b">-${fmt(d.subForSupport)}</span></div>` : ''}
         <div class="hd-row" style="padding:4px 0 0;border-top:1px solid var(--line);margin-top:4px"><span class="hd-label" style="font-size:11.5px;font-weight:700;color:var(--ink)">รวมช่วยดาวน์</span><span class="hd-val" style="font-size:12.5px;color:var(--accent)">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</span></div>
@@ -5446,9 +5738,9 @@ function renderEquipment(brand, model, finInterest, finYears){
     const downAmt = Math.max(0, eqDown);
     const finTotal = Math.max(0, totalPrice - downAmt);
     const eqFinYears = eqYears ?? finYears;
-    const eqFinInterest = (eqYears && eqPayment)
-      ? lookupInterest(currentBrand, currentSegment, eqFinYears, eqPayment)
-      : finInterest;
+    const eqFinInterest = currentBrand === 'combine'
+      ? 0.09
+      : ((eqYears && eqPayment) ? lookupInterest(currentBrand, currentSegment, eqFinYears, eqPayment) : finInterest);
     const annual = finTotal * (1/eqFinYears + eqFinInterest);
     const itemsLine = selectedItems.map(i=>`${i.name}${i.mode==='used'?' (มือสอง)':''} (${fmt(i.price)})`).join(', ');
     resultHtml = `<div class="eq-result">
@@ -5463,7 +5755,7 @@ function renderEquipment(brand, model, finInterest, finYears){
   const downHtml = anySelected ? `
     <div class="eq-down-row">
       <label>ดาวน์อุปกรณ์รวม (บาท):</label>
-      <input type="text" inputmode="numeric" pattern="[0-9]*" id="eqDownInput" placeholder="0" value="${eqDown}"
+      <input type="text" inputmode="numeric" pattern="[0-9]*" id="eqDownInput" placeholder="${currentBrand==='combine' ? 'ดาวน์เริ่มต้น 40,000' : '0'}" value="${eqDown}"
         oninput="eqDown=Number(this.value.replace(/[^0-9]/g,''))||0; const pos=this.selectionStart; rerenderEq(); const ni=document.getElementById('eqDownInput'); if(ni){ni.focus();ni.setSelectionRange(pos,pos);}">
     </div>` : '';
 
@@ -5519,13 +5811,13 @@ function rerenderEq(){
 function getCurrentFinParams(){
   // Read from currently displayed best card
   const chip = document.querySelector('#results .chip');
-  if(!chip) return {interest:0.0895, years: currentBrand==='yanmar'?10:7};
+  if(!chip) return {interest:0.0895, years: currentBrand==='yanmar'?10:(currentBrand==='combine'?6:7)};
   const text = chip ? chip.textContent : '';
   const ym = text.match(/([\d.]+)%/);
   const yy = text.match(/(\d+) ปี/);
   return {
     interest: ym ? Number(ym[1])/100 : 0.0895,
-    years: yy ? Number(yy[1]) : (currentBrand==='yanmar'?10:7)
+    years: yy ? Number(yy[1]) : (currentBrand==='yanmar'?10:(currentBrand==='combine'?6:7))
   };
 }
 
