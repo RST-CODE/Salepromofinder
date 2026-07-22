@@ -105,6 +105,8 @@ select:focus{ outline:2px solid var(--accent); outline-offset:1px; }
   transition:all .15s ease;
 }
 .seg-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.role-btn{ flex:1; min-width:90px; cursor:pointer; border:2px solid var(--line); border-radius:8px; padding:8px; background:#fff; font-weight:700; font-size:12.5px; font-family:'Kanit',sans-serif; color:var(--ink); }
+.role-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
 
 .toggles{ display:flex; flex-direction:column; gap:6px; margin-top:6px; }
 .toggle-row{
@@ -1184,7 +1186,7 @@ body.printing #printArea{ display:block !important; }
     </div>
     <div class="hist-filter-footer">
       <span id="histFilterCount" class="hist-count"></span>
-      <button class="hist-filter-clear" onclick="exportCrmTemplateXLSX()" title="Export ข้อมูลลูกค้า/ลีดทั้งหมดใส่แบบฟอร์ม CRM Import (Yanmar) เพื่อนำไป import เข้า kintone" style="background:var(--support);color:#fff;border-color:var(--support)">📤 Export → CRM Template</button>
+      <button id="exportCrmTemplateBtn" class="hist-filter-clear" onclick="exportCrmTemplateXLSX()" title="Export ข้อมูลลูกค้า/ลีดทั้งหมดใส่แบบฟอร์ม CRM Import (Yanmar) เพื่อนำไป import เข้า kintone — เฉพาะผู้จัดการ" style="background:var(--support);color:#fff;border-color:var(--support);display:none">📤 Export → CRM Template</button>
       <button class="hist-filter-clear" onclick="clearHistoryFilter()">✕ ล้าง</button>
     </div>
   </div>
@@ -4005,6 +4007,8 @@ function buildCrmTemplateRow(rec, no, provinces){
 }
 
 function exportCrmTemplateXLSX(){
+  if(!userName || !userRole){ openIdentityModal(); alert('กรุณาใส่ชื่อและเลือกบทบาทก่อน (ต้องเป็นบทบาท "ผู้จัดการ" ถึงจะ Export ได้)'); return; }
+  if(!isManagerUser()){ alert('ฟังก์ชัน Export เข้า CRM นี้ใช้ได้เฉพาะบทบาท "ผู้จัดการ" เท่านั้น (ตอนนี้บทบาทของคุณคือ ' + (userRole||'-') + ') — ถ้าต้องเปลี่ยนบทบาท กด 👤 ด้านบน'); return; }
   function doExport(){
     if(typeof XLSX === 'undefined'){ alert('กำลังโหลด Excel library... ลองอีกครั้งใน 2-3 วิ'); return; }
     if(typeof CRM_TEMPLATE_XLSX_B64 === 'undefined'){ alert('ไม่พบไฟล์ crm_template_data.js — ใส่ไฟล์นี้ไว้โฟลเดอร์เดียวกับ HTML ด้วย'); return; }
@@ -4062,14 +4066,20 @@ let gasUrl = localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL;
 
 // ===== User Identity (ชื่อ + บทบาท) =====
 const USER_NAME_KEY = 'rst_promo_user_name';
-const USER_ROLE_KEY = 'rst_promo_user_role'; // 'sales' | 'finance' | 'supervisor'
+const USER_ROLE_KEY = 'rst_promo_user_role'; // 'sales' | 'finance' | 'supervisor' — บทบาททั้งหมดที่มีในระบบ: เซลล์/ไฟแนนซ์/ผู้จัดการ (ใช้ค่า 'supervisor' แทน 'ผู้จัดการ' ในโค้ด)
 let userName = localStorage.getItem(USER_NAME_KEY) || '';
 let userRole = localStorage.getItem(USER_ROLE_KEY) || '';
 let _pendingRole = userRole;
+updateExportCrmButtonVisibility();
 
 function isFinanceUser(){ return userRole === 'finance'; }
-function roleLabel(role){ return role==='finance' ? 'ไฟแนนซ์' : (role==='supervisor' ? 'หัวหน้างาน' : 'เซลล์'); }
-// สิทธิ์แก้ไขข้อมูลเคสที่บันทึกไปแล้ว (กรณีกรอกผิด) — ไฟแนนซ์กับหัวหน้างานเท่านั้น
+function isManagerUser(){ return userRole === 'supervisor'; } // "ผู้จัดการ" ในหน้าเลือกบทบาท = role 'supervisor' เดิมที่มีอยู่แล้วในระบบ
+function updateExportCrmButtonVisibility(){
+  const btn = document.getElementById('exportCrmTemplateBtn');
+  if(btn) btn.style.display = isManagerUser() ? '' : 'none';
+}
+function roleLabel(role){ return role==='finance' ? 'ไฟแนนซ์' : (role==='supervisor' ? 'ผู้จัดการ' : 'เซลล์'); }
+// สิทธิ์แก้ไขข้อมูลเคสที่บันทึกไปแล้ว (กรณีกรอกผิด) — ไฟแนนซ์กับผู้จัดการเท่านั้น
 function canEditRecords(){ return userRole === 'finance' || userRole === 'supervisor'; }
 
 function openIdentityModal(){
@@ -4100,6 +4110,7 @@ function saveIdentity(){
   localStorage.setItem(USER_NAME_KEY, userName);
   localStorage.setItem(USER_ROLE_KEY, userRole);
   document.getElementById('identityModalBg').style.display = 'none';
+  updateExportCrmButtonVisibility();
   // auto-fill ชื่อผู้ปิดการขายให้เซลล์ (ถ้ายังว่างอยู่) จะได้ไม่ต้องพิมพ์ซ้ำทุกเคส
   if(userRole === 'sales'){
     const bn = document.getElementById('branchName'); if(bn && !bn.value) bn.value = userName;
@@ -4117,6 +4128,7 @@ function openHistory(){
   document.querySelector('.app').classList.add('history');
   document.querySelector('.app').classList.remove('step2','step3');
   window.scrollTo(0,0);
+  updateExportCrmButtonVisibility();
   if(!userName || !userRole) openIdentityModal();
   loadHistory();
 }
@@ -4600,11 +4612,11 @@ function changeCaseStatus(id, status){
   }
 }
 
-// ===== แก้ไขข้อมูลลูกค้า (กรณีกรอกผิด) — เฉพาะไฟแนนซ์/หัวหน้างาน =====
+// ===== แก้ไขข้อมูลลูกค้า (กรณีกรอกผิด) — เฉพาะไฟแนนซ์/ผู้จัดการ =====
 let _editRecordId = null;
 let _editRecordSnapshot = null;
 function openEditRecordModal(id){
-  if(!canEditRecords()){ alert('เฉพาะไฟแนนซ์และหัวหน้างานเท่านั้นที่แก้ไขข้อมูลได้'); return; }
+  if(!canEditRecords()){ alert('เฉพาะไฟแนนซ์และผู้จัดการเท่านั้นที่แก้ไขข้อมูลได้'); return; }
   _editRecordId = id;
   jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
     if(err || data.status !== 'ok'){ alert('โหลดข้อมูลไม่ได้: ' + (err?.message||data?.message)); return; }
@@ -4689,15 +4701,11 @@ function showAddUpdateForm(id){
   const area = document.getElementById('hdAddUpdateArea_'+id);
   if(!area) return;
   const rec = _allHistoryRecords.find(r => String(r.id) === String(id)) || {};
-  area.innerHTML = `
-    <div class="add-update-form">
-      <label>บันทึกที่คุยกับลูกค้า</label>
-      <textarea id="auNote_${id}" rows="3" placeholder="เช่น ลูกค้าขอเลื่อนนัดโอนเงิน..."></textarea>
-      <label style="margin-top:6px;display:block">นัดครั้งถัดไป (ถ้ามี)</label>
-      <input type="date" id="auFollow_${id}">
-
+  // ทุกบทบาท (เซลล์/ไฟแนนซ์/ผู้จัดการ) เพิ่ม "บันทึกคุยกับลูกค้า" ได้หมด
+  // แต่การ "ปรับโครงสร้างเงินดาวน์" (มีผลเปลี่ยนยอดจัด/งวดผ่อนจริงของเคส) เฉพาะไฟแนนซ์เท่านั้นถึงจะเห็น/กรอกได้
+  const downAdjustHtml = isFinanceUser() ? `
       <div style="border-top:1px dashed var(--line);margin:10px 0 8px"></div>
-      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px">ปรับโครงสร้างเงินดาวน์ (ถ้ามี) — จะแก้ตัวเลขจริงของเคส + บันทึกค่าเดิมไว้ใน Timeline ให้ด้วย</div>
+      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px">ปรับโครงสร้างเงินดาวน์ (ถ้ามี) — จะแก้ตัวเลขจริงของเคส + บันทึกค่าเดิมไว้ใน Timeline ให้ด้วย (เฉพาะไฟแนนซ์)</div>
 
       <label>ยอดที่ต้องการเพิ่มดาวน์</label>
       <input type="number" id="auExtraDown_${id}" placeholder="บาท" value="0" oninput="updateDownPreview('${id}')" onkeyup="updateDownPreview('${id}')">
@@ -4713,14 +4721,20 @@ function showAddUpdateForm(id){
           <div><label style="font-size:10.5px">RST ออกเพิ่ม</label><input type="number" id="auSrcRst_${id}" value="0" oninput="updateDownPreview('${id}')"></div>
         </div>
         <div id="auSourceCheck_${id}" style="font-size:11px;margin-top:4px"></div>
-      </div>
-
+      </div>` : '';
+  area.innerHTML = `
+    <div class="add-update-form">
+      <label>บันทึกที่คุยกับลูกค้า</label>
+      <textarea id="auNote_${id}" rows="3" placeholder="เช่น ลูกค้าขอเลื่อนนัดโอนเงิน..."></textarea>
+      <label style="margin-top:6px;display:block">นัดครั้งถัดไป (ถ้ามี)</label>
+      <input type="date" id="auFollow_${id}">
+      ${downAdjustHtml}
       <div style="display:flex;gap:8px;margin-top:8px">
         <button class="btn-reprint" style="flex:1" onclick="submitUpdateNote('${id}')">บันทึก</button>
         <button class="btn-del" onclick="cancelAddUpdateForm('${id}')">ยกเลิก</button>
       </div>
     </div>`;
-  updateDownPreview(id); // แสดงตัวเลขปัจจุบันให้เห็นทันทีตั้งแต่เปิดฟอร์ม ไม่ต้องรอพิมพ์ก่อนถึงจะเห็นว่ากดอะไรได้บ้าง
+  if(isFinanceUser()) updateDownPreview(id); // แสดงตัวเลขปัจจุบันให้เห็นทันทีตั้งแต่เปิดฟอร์ม ไม่ต้องรอพิมพ์ก่อนถึงจะเห็นว่ากดอะไรได้บ้าง
 }
 // คำนวณค่างวดใหม่แบบง่าย (ไม่ทราบ tractorFinType ของเคสเดิม จึงใช้ Math.round ธรรมดาแทนการปัดแบบ F/R-type เป๊ะๆ)
 // Sheets บางทีเก็บ finRate เป็นตัวเลขทศนิยมล้วนๆ (เช่น 0.0895) เพราะตีความข้อความ "8.95%" ที่ส่งไปเป็นค่าเปอร์เซ็นต์จริง
@@ -4815,6 +4829,8 @@ function submitUpdateNote(id){
   });
 
   // ปรับโครงสร้างเงินดาวน์ (ถ้ามีการกรอกยอดเพิ่มดาวน์) — สามแหล่งรวมกันต้องเท่ากับยอดที่เพิ่ม
+  // เฉพาะไฟแนนซ์เท่านั้น (กันไว้อีกชั้น แม้ปกติ UI จะไม่แสดงช่องนี้ให้บทบาทอื่นอยู่แล้วก็ตาม)
+  if(!isFinanceUser()) return;
   const rec = _allHistoryRecords.find(r => String(r.id) === String(id)) || {};
   const extra = Math.max(0, Number(document.getElementById('auExtraDown_'+id)?.value || 0));
   if(extra <= 0) return;
@@ -6116,4 +6132,71 @@ setBrand('yanmar');
   </div>
   <div class="modal-form-scroll">
     <div class="modal-form-inner">
-      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">ใช้สำหรับแก้ไขกรณีกรอกผิดเท่านั้น ระบบจะบันทึกค่าเดิมไว้ใน Tim
+      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">ใช้สำหรับแก้ไขกรณีกรอกผิดเท่านั้น ระบบจะบันทึกค่าเดิมไว้ใน Timeline ให้ด้วย (ดูย้อนหลังได้ในรายละเอียดเคส) — ใช้แก้เฉพาะ ชื่อ/ที่อยู่/เบอร์โทร/ผู้ปิดการขาย ที่พิมพ์ผิด ไม่ใช่สำหรับเปลี่ยนรุ่นรถหรือโปร (ถ้าจะเปลี่ยนรุ่นรถ/โปร ใช้ปุ่ม "แก้รุ่นรถ/โปรใหม่ทั้งใบ" ด้านล่างแทน)</div>
+      <div class="field-group">
+        <label>ชื่อลูกค้า</label>
+        <input type="text" id="editCustName" placeholder="เช่น นายสมชาย ใจดี">
+      </div>
+      <div class="field-group">
+        <label>เบอร์โทร</label>
+        <input type="text" id="editCustPhone" placeholder="0xx-xxx-xxxx" inputmode="tel">
+      </div>
+      <div class="field-group">
+        <label>บ้านเลขที่ / ซอย / หมู่</label>
+        <input type="text" id="addr2_editRecord_line" placeholder="เช่น 49 ม.10 ซ.3" oninput="updateAddr2('editRecord')">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div class="addr-group" style="margin:0">
+          <label>จังหวัด</label>
+          <input type="text" class="addr-search" id="addr2_editRecord_province" placeholder="ค้นหาจังหวัด..." autocomplete="off" oninput="addr2Input('editRecord','province',this.value)" onfocus="addr2Focus('editRecord','province')">
+          <div class="addr-dropdown" id="addr2Drop_editRecord_province" style="display:none"></div>
+        </div>
+        <div class="addr-group" style="margin:0">
+          <label>อำเภอ / เขต</label>
+          <input type="text" class="addr-search" id="addr2_editRecord_amphure" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addr2Input('editRecord','amphure',this.value)" onfocus="addr2Focus('editRecord','amphure')" disabled>
+          <div class="addr-dropdown" id="addr2Drop_editRecord_amphure" style="display:none"></div>
+        </div>
+      </div>
+      <div class="addr-group" style="margin-bottom:16px">
+        <label>ตำบล / แขวง</label>
+        <input type="text" class="addr-search" id="addr2_editRecord_tambon" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addr2Input('editRecord','tambon',this.value)" onfocus="addr2Focus('editRecord','tambon')" disabled>
+        <div class="addr-dropdown" id="addr2Drop_editRecord_tambon" style="display:none"></div>
+      </div>
+      <input type="hidden" id="editCustAddrHidden">
+      <div class="field-group">
+        <label>ผู้ปิดการขาย</label>
+        <input type="text" id="editBranch" placeholder="ชื่อพนักงาน">
+      </div>
+      <button class="btn-save" style="width:100%;margin-top:10px" onclick="submitEditRecord()">✓ บันทึกการแก้ไข</button>
+      <button type="button" class="finance-launch-btn" style="width:100%;margin-top:8px" onclick="editProductAndPromo()">🔄 แก้รุ่นรถ/โปรใหม่ทั้งใบ (เลือกรุ่น/โปรใหม่)</button>
+    </div>
+  </div>
+</div>
+
+<div class="preview-modal-bg" id="identityModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>👤 ชื่อ / บทบาทของฉัน</span>
+    <button onclick="closeIdentityModal()">✕ ปิด</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner">
+      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">ใส่ชื่อและเลือกบทบาทของคุณ — ใช้แสดงชื่อผู้บันทึก/ผู้แก้ไขใน Timeline ของแต่ละเคส และกำหนดสิทธิ์การใช้งานบางฟังก์ชัน (เช่น แก้ไขข้อมูลย้อนหลัง, Export ข้อมูลเข้า CRM)</div>
+      <div class="field-group">
+        <label>ชื่อของคุณ</label>
+        <input type="text" id="identityNameInput" placeholder="เช่น สมชาย ใจดี">
+      </div>
+      <div class="field-group">
+        <label>บทบาท</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" id="roleBtnSales" class="role-btn" onclick="pickRole('sales')">🧑‍🌾 เซลล์</button>
+          <button type="button" id="roleBtnFinance" class="role-btn" onclick="pickRole('finance')">💰 การเงิน</button>
+          <button type="button" id="roleBtnSupervisor" class="role-btn" onclick="pickRole('supervisor')">👔 ผู้จัดการ</button>
+        </div>
+      </div>
+      <button class="btn-save" style="width:100%;margin-top:10px" onclick="saveIdentity()">✓ บันทึก</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
