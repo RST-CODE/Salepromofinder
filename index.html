@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <script src="ga.js"></script>
 <script src="data.js"></script>
+<script src="crm_template_data.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RST Promo Finder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1068,6 +1069,23 @@ body.printing #printArea{ display:block !important; }
         <input type="text" id="branchName" placeholder="ชื่อพนักงาน">
       </div>
     </div>
+    <div class="field-group">
+      <label>Lead Source (ลูกค้ารู้จักเราจากช่องทางไหน)</label>
+      <select id="leadSource" onchange="syncLeadSource(this)">
+        <option value="">— เลือก —</option>
+        <option value="เข้าพบโดยตรง/Offline (Direct Visit/Offline))">เข้าพบโดยตรง (Direct Visit/Offline)</option>
+        <option value="ลูกค้า Walk-in (Walk-in)">ลูกค้า Walk-in</option>
+        <option value="ค้นหาจาก Google (Google Search)">ค้นหาจาก Google</option>
+        <option value="โฆษณา Google (Google Ads)">Google Ads</option>
+        <option value="Facebook">Facebook</option>
+        <option value="TikTok">TikTok</option>
+        <option value="YouTube">YouTube</option>
+        <option value="LINE OA">LINE OA</option>
+        <option value="งานอีเวนต์/โรดโชว์ (Event/Roadshow)">งานอีเวนต์/โรดโชว์</option>
+        <option value="การแนะนำจากลูกค้า/เครือข่าย (Referral/Network)">การแนะนำจากลูกค้า/เครือข่าย</option>
+        <option value="อื่นๆ โปรดระบุ (Other, please specify)">อื่นๆ โปรดระบุ</option>
+      </select>
+    </div>
     <input type="hidden" id="custAddr">
     <div id="exportSummaryBox"></div>
     <div id="giftSelectorBox"></div>
@@ -1166,6 +1184,7 @@ body.printing #printArea{ display:block !important; }
     </div>
     <div class="hist-filter-footer">
       <span id="histFilterCount" class="hist-count"></span>
+      <button class="hist-filter-clear" onclick="exportCrmTemplateXLSX()" title="Export ข้อมูลลูกค้า/ลีดทั้งหมดใส่แบบฟอร์ม CRM Import (Yanmar) เพื่อนำไป import เข้า kintone" style="background:var(--support);color:#fff;border-color:var(--support)">📤 Export → CRM Template</button>
       <button class="hist-filter-clear" onclick="clearHistoryFilter()">✕ ล้าง</button>
     </div>
   </div>
@@ -1219,6 +1238,23 @@ body.printing #printArea{ display:block !important; }
     <div class="field-group">
       <label>ผู้ปิดการขาย</label>
       <input type="text" id="branchNameM" placeholder="ชื่อพนักงาน" oninput="syncCustomer(this,'branchName')">
+    </div>
+    <div class="field-group">
+      <label>Lead Source (ลูกค้ารู้จักเราจากช่องทางไหน)</label>
+      <select id="leadSourceM" onchange="syncLeadSource(this)">
+        <option value="">— เลือก —</option>
+        <option value="เข้าพบโดยตรง/Offline (Direct Visit/Offline))">เข้าพบโดยตรง (Direct Visit/Offline)</option>
+        <option value="ลูกค้า Walk-in (Walk-in)">ลูกค้า Walk-in</option>
+        <option value="ค้นหาจาก Google (Google Search)">ค้นหาจาก Google</option>
+        <option value="โฆษณา Google (Google Ads)">Google Ads</option>
+        <option value="Facebook">Facebook</option>
+        <option value="TikTok">TikTok</option>
+        <option value="YouTube">YouTube</option>
+        <option value="LINE OA">LINE OA</option>
+        <option value="งานอีเวนต์/โรดโชว์ (Event/Roadshow)">งานอีเวนต์/โรดโชว์</option>
+        <option value="การแนะนำจากลูกค้า/เครือข่าย (Referral/Network)">การแนะนำจากลูกค้า/เครือข่าย</option>
+        <option value="อื่นๆ โปรดระบุ (Other, please specify)">อื่นๆ โปรดระบุ</option>
+      </select>
     </div>
     <div id="exportSummaryBoxM"></div>
     <div id="giftSelectorBoxM"></div>
@@ -1503,6 +1539,7 @@ function renderLandRef(){
 
 let currentBrand = 'yanmar';
 let currentSegment = 'ทั่วไป';
+let yfSwSubType = null; // 'Yanmar Fan' | 'Switching' — เลือกเฉพาะตอน currentSegment==='YF,SW' และ currentBrand!=='combine' (ใช้แยกกลุ่มลูกค้าสำหรับ CRM แม้ราคาจะเท่ากัน)
 let extraDown = 0;           // แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (บวกเพิ่มบนยอดดาวน์รวม ไม่แตะสนับสนุน ลดเฉพาะยอดจัดไฟแนนซ์)
 let custSubForSupport = 0;   // แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน)
 let minorInstallment = 2000;
@@ -1540,7 +1577,12 @@ TOGGLE_DEFS.combine = { 'ทั่วไป':[], 'YF,SW':[], 'RT':[], 'Dry Crop'
 const SEGMENT_LABELS = {
   yanmar: {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT','Dry Crop':'Dry Crop'},
   solis:  {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT','Dry Crop':'Dry Crop'},
-  combine:{'ทั่วไป':'ทั่วไป (ดาวน์30%)','YF,SW':'มีรถเกี่ยว/คูโบต้า (ดาวน์20%)','RT':'ลูกค้าเก่าชั้นดี (ดาวน์10%)','Dry Crop':'มีรถแทรกเตอร์ยันม่าร์ (ดาวน์25%)'}
+  combine:{'ทั่วไป':'ทั่วไป (ดาวน์30%)','Dry Crop':'มีรถแทรกเตอร์ (ดาวน์25%)','YF,SW':'มีรถเกี่ยวข้าว (ดาวน์20%)','RT':'ลูกค้าเก่าชั้นดี (ดาวน์10%)'}
+};
+// ลำดับการแสดงปุ่มกลุ่มลูกค้า ต่อแบรนด์ (ใช้ CSS order ปรับมุมมองอย่างเดียว ไม่แตะ DOM/ลำดับของแบรนด์อื่น)
+// รถเกี่ยว: ทั่วไป, มีรถแทรกเตอร์, มีรถเกี่ยวข้าว, ลูกค้าเก่าชั้นดี — ตามที่ขอ; ยันม่าร์/โซลิสไม่ระบุ = ใช้ลำดับเดิมในหน้า HTML
+const SEGMENT_ORDER = {
+  combine: {'ทั่วไป':0, 'Dry Crop':1, 'YF,SW':2, 'RT':3},
 };
 // กลุ่ม YF,SW และ RT ปลดล็อก Bob 30% ได้เองอัตโนมัติอยู่แล้ว (เข้าเงื่อนไข "ลูกค้ากลุ่ม RT,YF,SW" โดยตรง) จึงไม่ต้องมี checkbox ให้ติ๊กซ้ำในกลุ่มนี้
 const TOGGLE_NOTE = {
@@ -1976,6 +2018,9 @@ function setBrand(brand){
   segmentToggle.querySelectorAll('.seg-btn').forEach(b=>{
     const labels = SEGMENT_LABELS[brand] || {};
     if(labels[b.dataset.seg]) b.textContent = labels[b.dataset.seg];
+    // ลำดับปุ่ม: เฉพาะแบรนด์ที่ระบุใน SEGMENT_ORDER เท่านั้นที่ปรับ (ไม่กระทบลำดับเดิมของยันม่าร์/โซลิส)
+    const orderMap = SEGMENT_ORDER[brand];
+    b.style.order = orderMap ? orderMap[b.dataset.seg] : '';
   });
   populateModels();
 }
@@ -1985,6 +2030,7 @@ function populateModels(){
   modelSelect.innerHTML = models.map(m=>`<option value="${m}">${m}</option>`).join('');
   modelSelect.selectedIndex = 0;
   currentSegment = 'ทั่วไป';
+  yfSwSubType = null;
   toggleState = {land30:false, baac:false};
   renderSegmentButtons();
   renderCriteria();
@@ -2000,8 +2046,32 @@ function renderToggles(){
   renderLandRef();
   const defs = (TOGGLE_DEFS[currentBrand] && TOGGLE_DEFS[currentBrand][currentSegment]) || [];
   const note = currentBrand === 'combine' ? null : TOGGLE_NOTE[currentSegment];
+  // กลุ่ม YF,SW (Yanmar Fan / Switching) ราคาเท่ากันเลยไม่แยกในระบบราคา แต่ CRM ต้องรู้ว่าเป็นกลุ่มไหนจริง
+  // ใช้กับทุกแบรนด์ รวมรถเกี่ยว/combine ด้วย (สำหรับรถเกี่ยว YF,SW = "มีรถเกี่ยวข้าวอยู่แล้ว" — คำถามเดียวกัน
+  // แค่เปลี่ยนเป็นถามยี่ห้อรถเกี่ยวที่มีอยู่เดิมแทน ว่าเป็น Yanmar หรือยี่ห้ออื่น)
+  const showYfSwPicker = currentSegment === 'YF,SW';
+  const yfSwEquipWord = currentBrand === 'combine' ? 'รถเกี่ยว' : 'รถ';
+  const yfSwPickerHtml = showYfSwPicker ? `
+    <div class="yfsw-picker" style="margin:8px 0 4px">
+      <div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px">👥 ลูกค้ากลุ่มนี้เป็นแบบไหน? (สำหรับบันทึก CRM — ไม่กระทบราคา)</div>
+      <div style="display:flex;gap:8px">
+        <button type="button" onclick="selectYfSwSubType('Yanmar Fan')"
+          style="flex:1;padding:8px;border-radius:8px;border:2px solid ${yfSwSubType==='Yanmar Fan'?'var(--accent)':'var(--line)'};background:${yfSwSubType==='Yanmar Fan'?'var(--accent)':'#fff'};color:${yfSwSubType==='Yanmar Fan'?'#fff':'var(--ink)'};font-weight:700;font-size:12.5px;cursor:pointer">
+          🚜 Yanmar Fan<br><span style="font-weight:400;font-size:10.5px">มี${yfSwEquipWord} Yanmar อยู่แล้ว</span>
+        </button>
+        <button type="button" onclick="selectYfSwSubType('Switching')"
+          style="flex:1;padding:8px;border-radius:8px;border:2px solid ${yfSwSubType==='Switching'?'var(--accent)':'var(--line)'};background:${yfSwSubType==='Switching'?'var(--accent)':'#fff'};color:${yfSwSubType==='Switching'?'#fff':'var(--ink)'};font-weight:700;font-size:12.5px;cursor:pointer">
+          🔄 Switching<br><span style="font-weight:400;font-size:10.5px">มี${yfSwEquipWord}ยี่ห้ออื่นอยู่</span>
+        </button>
+      </div>
+      ${!yfSwSubType ? '<div style="font-size:10.5px;color:#B8860B;margin-top:4px">⚠ ยังไม่เลือก — เลือกไว้ก่อนบันทึก จะได้ export เข้า CRM ได้ถูกกลุ่ม</div>' : ''}
+    </div>` : '';
   if(defs.length === 0 && note){
-    togglesContainer.innerHTML = `<div class="toggle-auto-note">✓ ${note}</div>`;
+    togglesContainer.innerHTML = yfSwPickerHtml + `<div class="toggle-auto-note">✓ ${note}</div>`;
+    return;
+  }
+  if(defs.length === 0 && showYfSwPicker){
+    togglesContainer.innerHTML = yfSwPickerHtml;
     return;
   }
   togglesContainer.innerHTML = defs.map(t=>`
@@ -2019,6 +2089,12 @@ function renderToggles(){
   });
 }
 
+function selectYfSwSubType(val){
+  yfSwSubType = (yfSwSubType === val) ? null : val; // กดซ้ำ = ยกเลิกเลือก
+  renderToggles();
+  if(typeof refreshExportSummary === 'function') refreshExportSummary();
+}
+
 function renderResults(){
   const model = modelSelect.value;
   const rows = findEntries(currentBrand, model, currentSegment, toggleState);
@@ -2031,6 +2107,7 @@ document.querySelectorAll('.brand-btn').forEach(b=>{
 segmentToggle.querySelectorAll('.seg-btn').forEach(b=>{
   b.addEventListener('click', ()=>{
     currentSegment = b.dataset.seg;
+    yfSwSubType = null;
     tractorYears = null; tractorPayment = 'annual';
     eqYears = null; eqPayment = 'annual';
   eqPaymentUserSet = false;
@@ -2047,6 +2124,7 @@ segmentToggle.querySelectorAll('.seg-btn').forEach(b=>{
 });
 modelSelect.addEventListener('change', ()=>{
   toggleState = {land30:false, baac:false};
+  yfSwSubType = null;
   eqSelByMode = { new:{}, used:{} }; eqFinByMode = { new:{}, used:{} };
   eqDown = 0; selectedPromoIdx = 0;
   eqMode = 'new';
@@ -2350,6 +2428,13 @@ function syncCustomer(el, targetId){
   refreshExportSummary();
 }
 
+function syncLeadSource(el){
+  const otherId = el.id === 'leadSource' ? 'leadSourceM' : 'leadSource';
+  const other = document.getElementById(otherId);
+  if(other) other.value = el.value;
+  refreshExportSummary();
+}
+
 function collectExportData(){
   if(_recordOverride) return _recordOverride;
   const custName  = (document.getElementById('custName2')?.value || document.getElementById('custNameM')?.value || '').trim();
@@ -2401,6 +2486,14 @@ function collectExportData(){
   const bigPay      = firstBigAmount(bigPayFull, tractorPayment, tractorFinType);
 
   // Equipment — รวมทั้งที่เลือกไว้ในโหมดใหม่และมือสอง (เลือกพร้อมกันได้)
+  // กลุ่มลูกค้าสำหรับ CRM (Retention/Yanmar Fan/Switching/General) — คนละเรื่องกับ seg ที่ใช้คำนวณราคา
+  // ทั่วไป -> General, RT -> Retention, YF,SW -> ตามที่เลือกไว้ (Yanmar Fan/Switching), Dry Crop(รถเกี่ยว) -> ไม่ระบุ
+  let crmCustRelType = '';
+  if(seg === 'ทั่วไป') crmCustRelType = 'General';
+  else if(seg === 'RT') crmCustRelType = 'Retention';
+  else if(seg === 'YF,SW') crmCustRelType = yfSwSubType || '';
+  const leadSource = (document.getElementById('leadSource')?.value || document.getElementById('leadSourceM')?.value || '').trim();
+
   const eqMerged = getAllSelectedEquipment(currentBrand, model);
   const selectedEqList = eqMerged.items;
   let eqTotalPrice = eqMerged.total;
@@ -2472,6 +2565,7 @@ function collectExportData(){
     gifts,
     yct: e.yct||0, ysp: e.ysp||0, fire: e.fire||0,
     totalDown: down, date: new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}),
+    crmCustRelType, leadSource,
   };
 }
 
@@ -2544,6 +2638,8 @@ function refreshExportSummary(){
   const html = `<div class="export-summary">
     <div class="es-row"><span class="es-label">รุ่นรถ</span><span class="es-val">${d.model}</span></div>
     <div class="es-row"><span class="es-label">โปร</span><span class="es-val">${d.progName}</span></div>
+    ${d.crmCustRelType !== undefined ? `<div class="es-row"><span class="es-label">กลุ่มลูกค้า (CRM)</span><span class="es-val" style="${!d.crmCustRelType && d.seg==='YF,SW' ? 'color:#B8860B' : ''}">${d.crmCustRelType || (d.seg==='YF,SW' ? '⚠ ยังไม่เลือก Yanmar Fan/Switching' : '-')}</span></div>` : ''}
+    ${d.leadSource !== undefined ? `<div class="es-row"><span class="es-label">Lead Source (CRM)</span><span class="es-val" style="${!d.leadSource ? 'color:#B8860B' : ''}">${d.leadSource || '⚠ ยังไม่เลือก'}</span></div>` : ''}
     <div class="es-row"><span class="es-label">ราคารถ</span><span class="es-val">${fmt(d.price)} บาท</span></div>
     <div class="es-row"><span class="es-label">เงินดาวน์รวม</span><span class="es-val">${fmt(d.down)} บาท</span></div>
     <div class="es-row"><span class="es-label">ยอดจัด (รถ)</span><span class="es-val">${fmt(d.finTotal)} บาท</span></div>
@@ -3767,6 +3863,198 @@ function exportXLSX(){
 }
 
 
+// ===== Export -> CRM Import Form Template (Yanmar Sales Lead) =====
+// ดึงประวัติเคสทั้งหมด (จาก GAS backend) แล้ว map เข้าคอลัมน์ของ "CRM Import Form" template
+// (ชีต "กรอกข้อมูล") เพื่อนำไปเปิดใน Excel/Google Sheets แล้ว import เข้า kintone ต่อ (ผ่านชีต Import_kintone
+// ที่มีสูตรดึงจากชีต "กรอกข้อมูล" อยู่แล้วในตัว template — เปิดไฟล์ใน Excel/Sheets สักครั้งเพื่อให้สูตรคำนวณค่าล่าสุดก่อน import)
+//
+// หมายเหตุ field ที่แอพนี้ไม่ได้เก็บข้อมูลไว้ (ต้องกรอกเพิ่มเองใน Excel ก่อน import):
+//   - Dealer: ใส่ค่าคงที่ "บ้านและที่ดินรวมสินไทย (RST)" ทุกแถว (ตามที่ยืนยันไว้ — ข้อมูลทั้งหมดเป็นของ RST เอง)
+//   - กลุ่มลูกค้า (ใหม่/เก่า) และ สถานะลูกค้า (Retention/Yanmar Fan/Switching/General): แอพไม่มีการเก็บ ปล่อยว่าง
+//   - Lead Source / Lead Event: แอพไม่มีการเก็บ ปล่อยว่าง
+//   - Tractor (ยี่ห้อรถที่ลูกค้ามีอยู่เดิม): แอพไม่มีการเก็บ ปล่อยว่าง
+//   - ประเภทลูกค้า: เดาจากคำนำหน้าชื่อ (นาย/นาง/นางสาว ฯลฯ = บุคคลธรรมดา, ไม่งั้น = นิติบุคคล) — ถ้าชื่อลูกค้าพิมพ์
+//     ไม่มีคำนำหน้า (เช่นพิมพ์ชื่อเล่น/ชื่อเดียว) จะถูกเดาว่าเป็นนิติบุคคลผิดได้ ควรเช็คซ้ำก่อน import
+//   - จำนวนไร่รวม/Farming Type/ชนิดพืช/DD_Owner: ดึงจากข้อมูล "ข้อมูลการเงิน > แปลงที่ดิน" ถ้ามีบันทึกไว้ตอนออกใบสรุป
+//     (บางเคสไม่ได้กรอกตอนนั้น จะว่าง) — รายละเอียดแปลงที่ดินดิบใส่ไว้ในช่อง "Other/หมายเหตุ" ให้เช็คได้ด้วย
+const CRM_DEALER_CONST = 'บ้านและที่ดินรวมสินไทย (RST)';
+const CRM_EMAIL_CONST = 't311728.market@gmail.com';
+const CRM_STATUS_CONST = 'ลูกค้าใหม่ (New Customer)';
+const CRM_NAME_PREFIXES = ['นาย','นาง','นางสาว','น.ส.','ด.ช.','ด.ญ.','คุณ','เด็กชาย','เด็กหญิง'];
+function crmCustomerType(name){
+  name = (name||'').trim();
+  for(const p of CRM_NAME_PREFIXES){ if(name.startsWith(p)) return 'บุคคลธรรมดา (Individual)'; }
+  return 'นิติบุคคล (Company)';
+}
+function crmParseAddress(addr){
+  addr = addr || '';
+  const t = addr.match(/ต\.\s*(\S+)/);
+  const a = addr.match(/อ\.\s*(\S+)/);
+  const p = addr.match(/จ\.\s*(\S+)/);
+  return { provinceRaw: p?p[1]:'', amphoe: a?a[1]:'', tambon: t?t[1]:'' };
+}
+function crmMatchProvince(thaiName, provinces){
+  if(!thaiName) return '';
+  for(const p of provinces){
+    const th = p.split(' (')[0];
+    if(th === thaiName || th.includes(thaiName) || thaiName.includes(th)) return p;
+  }
+  return '';
+}
+const CRM_CROP_RULES = [
+  [['ข้าวโพดหวาน'], 'ข้าวโพดหวาน (Maize)'],
+  [['อ้อย'], 'อ้อย (Sugarcane)'],
+  [['มันสำปะหลัง','มัน'], 'มันสำปะหลัง (Cassava)'],
+  [['ข้าวโพด'], 'ข้าวโพด (Corn)'],
+  [['ผัก'], 'พืชผัก (Vegetable)'],
+  [['นา','ข้าว'], 'ข้าว (Paddy)'],
+];
+function crmCropType(farmPlots){
+  const crops = (farmPlots||[]).map(p=>p.cropType||'').filter(Boolean);
+  if(!crops.length) return '';
+  const joined = crops.join(' ');
+  for(const [keys,label] of CRM_CROP_RULES){
+    if(keys.some(k=>joined.includes(k))) return label;
+  }
+  return 'อื่นๆ (Other)';
+}
+function crmFarmingType(farmPlots){
+  const crops = (farmPlots||[]).map(p=>p.cropType||'').filter(Boolean);
+  if(!crops.length) return '';
+  const joined = crops.join(' ');
+  const hasPaddy = joined.includes('นา') || (joined.includes('ข้าว') && !joined.includes('ข้าวโพด'));
+  const hasDry = ['ยาง','แตง','พริก','มัน','อ้อย','ข้าวโพด','ผัก'].some(k=>joined.includes(k));
+  if(hasPaddy && hasDry) return 'พืชไร่และนาข้าว (Dry & Paddy)';
+  if(hasPaddy) return 'นาข้าว (Paddy)';
+  if(hasDry) return 'พืชไร่ (Dry)';
+  return '';
+}
+function crmDdOwner(farmPlots){
+  const holders = (farmPlots||[]).map(p=>p.titleHolder||'').filter(Boolean).join(' ');
+  const hasOwn = holders.includes('ตนเอง');
+  const hasRent = holders.includes('เช่า');
+  if(hasOwn && hasRent) return 'มีทั้ง 2 แบบ';
+  if(hasOwn) return 'ที่ดินกรรมสิทธิ์ของตนเอง (Own land)';
+  if(hasRent) return 'ที่ดินเช่า (Rental land)';
+  return '';
+}
+function crmTotalRai(farmPlots){
+  let total = 0, found = false;
+  (farmPlots||[]).forEach(p=>{
+    const v = parseFloat(String(p.rai||'').trim());
+    if(!isNaN(v)){ total += v; found = true; }
+  });
+  return found ? total : '';
+}
+function crmFarmNote(farmPlots){
+  const parts = [];
+  (farmPlots||[]).forEach(p=>{
+    const crop = (p.cropType||'').trim();
+    const rai = (p.rai||'').trim();
+    const holder = (p.titleHolder||'').trim();
+    if(!crop && !rai && !holder) return;
+    let seg = crop || '(ไม่ระบุพืช)';
+    if(rai) seg += ' ' + rai + ' ไร่';
+    if(holder) seg += ' [' + holder + ']';
+    parts.push(seg);
+  });
+  return parts.join('; ');
+}
+function crmRelTypeFromRec(rec){
+  // เคสใหม่ (หลังอัปเดตนี้) จะมี rec.crmCustRelType บันทึกมาให้ตรงๆ อยู่แล้ว (มาจากตัวเลือก Yanmar Fan/Switching
+  // หรือ auto จาก General/Retention ตอนออกใบสรุป) — เคสเก่าก่อนอัปเดตนี้ไม่มี field นี้ เลย fallback เดาจาก seg แทน
+  if(rec.crmCustRelType) return rec.crmCustRelType;
+  if(rec.seg === 'ทั่วไป') return 'General';
+  if(rec.seg === 'RT') return 'Retention';
+  return ''; // seg === 'YF,SW' (เคสเก่า) เดาไม่ได้ว่า Yanmar Fan หรือ Switching ต้องเลือกเอง
+}
+function buildCrmTemplateRow(rec, no, provinces){
+  const addr = crmParseAddress(rec.custAddr);
+  const provFull = crmMatchProvince(addr.provinceRaw, provinces);
+  const fp = (rec.finInfo && rec.finInfo.farmPlots) || [];
+  const noteParts = [];
+  const fn = crmFarmNote(fp);
+  if(fn) noteParts.push('แปลงที่ดิน: ' + fn);
+  if(rec.caseStatus) noteParts.push('สถานะเคส (Promo Finder): ' + rec.caseStatus);
+  if(rec.id) noteParts.push('อ้างอิง ID: ' + rec.id);
+  const crmRelType = crmRelTypeFromRec(rec);
+  if(!crmRelType) noteParts.push('⚠ ไม่ทราบกลุ่มลูกค้า (Retention/Yanmar Fan/Switching/General) — เช็คมือก่อน import');
+  if(!rec.leadSource) noteParts.push('⚠ ไม่มี Lead Source (เคสเก่าก่อนอัปเดต) — เช็คมือก่อน import');
+  return [
+    no,
+    rec.custName || '',
+    rec.custPhone || '',
+    CRM_DEALER_CONST,
+    provFull,
+    addr.amphoe,
+    addr.tambon,
+    crmRelType,                      // กลุ่มลูกค้า — จาก crmCustRelType ที่บันทึกไว้ตอนออกใบสรุป (หรือเดาจาก seg เคสเก่า)
+    CRM_STATUS_CONST,                // สถานะลูกค้า — ใส่ค่าคงที่ "ลูกค้าใหม่ (New Customer)" ทุกแถวตามที่ยืนยันไว้
+    crmCustomerType(rec.custName),
+    rec.branch || '',                // Sale (ผู้ดูแล/พนักงานขายที่บันทึกเคสนี้)
+    CRM_EMAIL_CONST,                 // ผู้สร้าง (Email) — ใส่ค่าคงที่ทุกแถวตามที่ยืนยันไว้
+    crmTotalRai(fp),
+    crmFarmingType(fp),
+    crmCropType(fp),
+    crmDdOwner(fp),
+    '',                              // Tractor (ยี่ห้อเดิมของลูกค้า) — แอพไม่ได้เก็บ
+    rec.leadSource || '',            // Lead Source — จากตัวเลือกที่บันทึกไว้ตอนออกใบสรุป (เคสเก่าก่อนอัปเดตนี้จะว่าง)
+    '',                              // Lead Event — แอพไม่ได้เก็บ
+    noteParts.join(' | '),
+  ];
+}
+
+function exportCrmTemplateXLSX(){
+  function doExport(){
+    if(typeof XLSX === 'undefined'){ alert('กำลังโหลด Excel library... ลองอีกครั้งใน 2-3 วิ'); return; }
+    if(typeof CRM_TEMPLATE_XLSX_B64 === 'undefined'){ alert('ไม่พบไฟล์ crm_template_data.js — ใส่ไฟล์นี้ไว้โฟลเดอร์เดียวกับ HTML ด้วย'); return; }
+    const records = (_allHistoryRecords || []).slice();
+    if(!records.length){ alert('ยังไม่มีประวัติเคสให้ export (หรือยังโหลดไม่เสร็จ ลองใหม่อีกครั้ง)'); return; }
+
+    let wb;
+    try{
+      wb = XLSX.read(CRM_TEMPLATE_XLSX_B64, {type:'base64'});
+    }catch(e){
+      alert('เปิด template ไม่สำเร็จ: ' + e.message);
+      return;
+    }
+    const listSheet = wb.Sheets['Lists'];
+    const provinces = [];
+    if(listSheet){
+      for(let r = 2; ; r++){
+        const cell = listSheet['K'+r];
+        if(!cell || cell.v === undefined || cell.v === null || cell.v === '') break;
+        provinces.push(String(cell.v));
+      }
+    }
+
+    // เรียงเคสเก่าสุดก่อน (ให้ No. ไล่ตามลำดับเวลาบันทึก อ่านง่ายตอน import)
+    const sorted = sortHistoryRecords ? sortHistoryRecords(records, 'date_asc') : records;
+
+    const rows = sorted.map((rec, i) => buildCrmTemplateRow(rec, i+1, provinces));
+
+    const ws = wb.Sheets['กรอกข้อมูล'];
+    if(!ws){ alert('ไม่พบชีต "กรอกข้อมูล" ใน template'); return; }
+    XLSX.utils.sheet_add_aoa(ws, rows, {origin:'A5'});
+
+    // ขยาย !ref ของชีตให้ครอบคลุมแถวที่เพิ่งเติม เผื่อจำนวนเคสเกิน 203 แถวที่เตรียมไว้เดิม (row 5-207)
+    const lastDataRow = 4 + rows.length;
+    const ref = XLSX.utils.decode_range(ws['!ref']);
+    if(ref.e.r < lastDataRow - 1){ ref.e.r = lastDataRow - 1; ws['!ref'] = XLSX.utils.encode_range(ref); }
+
+    const todayStr = new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb, 'CRM_Import_Form_' + todayStr + '.xlsx');
+    alert('Export สำเร็จ ' + rows.length + ' รายการ\n\nเช็คก่อน import เข้า kintone:\n- เปิดไฟล์ใน Excel/Google Sheets 1 ครั้งก่อน เพื่อให้ชีต Import_kintone คำนวณค่าล่าสุด\n- Dealer / สถานะลูกค้า(ใหม่-เก่า) / Lead Source / Lead Event / Tractor(ยี่ห้อเดิม) แอพนี้ไม่มีข้อมูล ต้องกรอกเพิ่มเอง\n- กลุ่มลูกค้า (Retention/Yanmar Fan/Switching/General): เคสใหม่ดึงจากตัวเลือกตอนออกใบสรุปให้แล้ว แต่เคสเก่าก่อนอัปเดตนี้อาจว่าง (เช็คแถวที่มี ⚠ ในช่อง Other/หมายเหตุ)\n- ประเภทลูกค้าเดาจากคำนำหน้าชื่อ ช่วยเช็คซ้ำก่อน import');
+  }
+
+  if(!_historyLoadedFull){
+    loadFullHistory(doExport);
+  } else {
+    doExport();
+  }
+}
+
+
 // ===== History System =====
 const GAS_URL_KEY = 'rst_promo_gas_url';
 const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxnthS6N5IT4i0XjUt_ru9yv-jeoqNM0_oxkS9r8t1NlqNw9FjF43Q0PwOBlcUzfeU1/exec';
@@ -4358,6 +4646,8 @@ function editProductAndPromo(){
   document.getElementById('custAddrLineM').value = d.custAddr || '';
   document.getElementById('custPhone').value = d.custPhone || '';
   document.getElementById('custPhoneM').value = d.custPhone || '';
+  const _lsEl = document.getElementById('leadSource'); if(_lsEl) _lsEl.value = d.leadSource || '';
+  const _lsElM = document.getElementById('leadSourceM'); if(_lsElM) _lsElM.value = d.leadSource || '';
   setBrand((d.brand||'').toLowerCase().indexOf('solis') > -1 ? 'solis' : 'yanmar');
   window.scrollTo(0,0);
   alert('กำลังแก้ไขข้อมูลของ "' + (d.custName||'-') + '" — เลือกรุ่นรถ/โปรใหม่ได้เลยตามปกติ พอกด "บันทึก & พิมพ์ PDF" ท้ายสุด ระบบจะอัปเดตทับเคสเดิมให้อัตโนมัติ ไม่สร้างเคสใหม่ซ้ำ');
