@@ -1,6231 +1,2424 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8">
-<script src="ga.js"></script>
-<script src="data.js"></script>
-<script src="crm_template_data.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RST Promo Finder</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --paper:#FAF6EF;
-  --ink:#262420;
-  --ink-soft:#6B6259;
-  --line:#E4DCCF;
-  --card:#FFFFFF;
-  --yanmar:#C8372D;
-  --solis:#3E7C42;
-  --combine:#D9930F;
-  --gold:#E0A526;
-  --gold-bg:#FCF1D9;
-  --support:#3F6FA8;
-  --rst:#9A9389;
-  --radius:12px;
-  --accent: var(--yanmar);
-}
-*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-html,body{margin:0; padding:0;}
-body{
-  font-family:'Sarabun', sans-serif;
-  background:var(--paper);
-  color:var(--ink);
-  line-height:1.5;
-  padding-bottom:30px;
-}
-.topbar{
-  position:sticky; top:0; z-index:20;
-  background:var(--paper);
-  border-bottom:1px solid var(--line);
-  padding:10px 14px 8px;
-}
-.topbar h1{
-  font-family:'Kanit',sans-serif;
-  font-size:15px;
-  font-weight:700;
-  margin:0 0 1px;
-  letter-spacing:.2px;
-}
-.topbar .sub{
-  font-size:11px;
-  color:var(--ink-soft);
-  margin-bottom:6px;
-}
-.brand-toggle{
-  display:flex; gap:6px; margin-bottom:6px;
-}
-.brand-btn{
-  flex:1;
-  border:1.5px solid var(--line);
-  background:var(--card);
-  border-radius:999px;
-  padding:6px 0;
-  font-family:'Kanit',sans-serif;
-  font-weight:600;
-  font-size:13px;
-  color:var(--ink-soft);
-  cursor:pointer;
-  transition:all .15s ease;
-}
-.brand-btn.active.yanmar{ background:var(--yanmar); border-color:var(--yanmar); color:#fff;}
-.brand-btn.active.solis{ background:var(--solis); border-color:var(--solis); color:#fff;}
-.brand-btn.active.combine{ background:var(--combine); border-color:var(--combine); color:#fff;}
-
-.select-row{ display:flex; flex-direction:column; gap:3px; margin-bottom:6px;}
-.select-row label{ font-size:10.5px; font-weight:600; color:var(--ink-soft); letter-spacing:.3px;}
-select{
-  width:100%;
-  font-family:'Kanit',sans-serif;
-  font-size:14px;
-  font-weight:600;
-  padding:8px 10px;
-  border-radius:9px;
-  border:1.5px solid var(--line);
-  background:var(--card) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3e%3cpath d='M1 1l6 6 6-6' stroke='%236B6259' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e") no-repeat right 14px center;
-  appearance:none; -webkit-appearance:none;
-  color:var(--ink);
-}
-select:focus{ outline:2px solid var(--accent); outline-offset:1px; }
-
-.segment-toggle{ display:flex; gap:6px; }
-.seg-btn{
-  flex:1;
-  border:1.5px solid var(--line);
-  background:var(--card);
-  border-radius:9px;
-  padding:8px 4px;
-  font-family:'Kanit',sans-serif;
-  font-weight:600;
-  font-size:13px;
-  color:var(--ink-soft);
-  cursor:pointer;
-  transition:all .15s ease;
-}
-.seg-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
-.role-btn{ flex:1; min-width:90px; cursor:pointer; border:2px solid var(--line); border-radius:8px; padding:8px; background:#fff; font-weight:700; font-size:12.5px; font-family:'Kanit',sans-serif; color:var(--ink); }
-.role-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
-
-.toggles{ display:flex; flex-direction:column; gap:6px; margin-top:6px; }
-.toggle-row{
-  display:flex; align-items:flex-start; gap:8px;
-  background:var(--card); border:1.5px solid var(--line); border-radius:10px;
-  padding:8px 10px; cursor:pointer;
-}
-.toggle-row input{ margin-top:2px; width:16px; height:16px; accent-color:var(--accent); flex-shrink:0; cursor:pointer;}
-.toggle-row .tx{ font-size:12px; line-height:1.4; }
-.toggle-row .tx b{ display:block; font-size:12.5px; }
-.toggle-row .tx .unlock{ color:var(--accent); font-weight:600; font-size:11px; }
-.toggle-auto-note{
-  background:#e3f7ea; border:1.5px solid #1e7e34; border-radius:10px;
-  padding:9px 12px; font-size:12px; font-weight:600; color:#1e7e34;
-}
-
-.price-strip{
-  margin-top:6px;
-  display:flex; align-items:baseline; justify-content:space-between;
-  font-family:'Kanit',sans-serif;
-}
-.price-strip .label{ font-size:10.5px; color:var(--ink-soft); font-weight:600;}
-.price-strip .value{ font-size:16px; font-weight:700; }
-
-.summary-banner{
-  margin-top:8px;
-  display:flex; gap:8px;
-}
-.summary-box{
-  flex:1; background:var(--card); border:1.5px solid var(--accent); border-radius:10px;
-  padding:8px 10px; text-align:center;
-}
-.summary-box .k{ font-size:10.5px; color:var(--ink-soft); font-weight:600; margin-bottom:2px;}
-.summary-box .v{ font-family:'Kanit',sans-serif; font-size:19px; font-weight:700; color:var(--accent);}
-
-main{ padding:8px 14px 4px; }
-
-.legend{
-  display:flex; flex-wrap:wrap; gap:8px;
-  font-size:10px; color:var(--ink-soft);
-  margin:8px 2px 8px;
-}
-.legend span{ display:inline-flex; align-items:center; gap:4px;}
-.legend i{ width:9px; height:9px; border-radius:3px; display:inline-block;}
-
-.card{
-  background:var(--card);
-  border:1.5px solid var(--line);
-  border-radius:12px;
-  padding:10px;
-  margin-bottom:8px;
-  position:relative;
-  overflow:hidden;
-}
-.card.best{
-  border-color:var(--gold);
-  box-shadow:0 2px 14px -4px rgba(224,165,38,.45);
-}
-.best-badge{
-  position:absolute; top:0; right:0;
-  background:var(--gold);
-  color:#42330A;
-  font-family:'Kanit',sans-serif;
-  font-size:10px; font-weight:700;
-  padding:3px 10px 3px 12px;
-  border-radius:0 0 0 10px;
-  letter-spacing:.5px;
-}
-.card-head{
-  display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
-  margin-bottom:6px;
-}
-.card-head h3{
-  font-family:'Kanit',sans-serif;
-  font-size:13.5px; font-weight:700; margin:0;
-  padding-right:55px;
-}
-.group-tag{
-  display:inline-block;
-  font-size:10px; font-weight:600;
-  color:var(--accent);
-  background:color-mix(in srgb, var(--accent) 10%, white);
-  border:1px solid color-mix(in srgb, var(--accent) 25%, white);
-  border-radius:6px;
-  padding:1px 7px;
-  margin-top:2px;
-}
-
-.bar{
-  display:flex; width:100%; height:22px; border-radius:7px; overflow:hidden;
-  background:var(--line);
-  margin:6px 0 8px;
-}
-.bar div{ height:100%; }
-.bar .seg-cust{ background:var(--accent); }
-.bar .seg-support{
-  background:var(--support);
-  display:flex; align-items:center; justify-content:center;
-  color:#fff; font-family:'Kanit',sans-serif; font-size:10.5px; font-weight:700;
-  white-space:nowrap; overflow:hidden;
-}
-.bar .seg-rst{ background:var(--rst); }
-
-.numbers{
-  display:grid; grid-template-columns: 1fr 1fr; gap:5px 6px;
-  margin-bottom:6px;
-}
-.num-box{
-  background:#F8F4ED;
-  border-radius:7px;
-  padding:5px 7px;
-}
-.num-box.full{ grid-column: 1 / -1; }
-.num-box .k{ font-size:9.5px; color:var(--ink-soft); font-weight:600; margin-bottom:1px;}
-.num-box .v{ font-family:'Kanit',sans-serif; font-size:14px; font-weight:700; }
-.num-box.cust .v{ color:var(--accent); font-size:17px;}
-.num-box .vv{ font-size:10px; color:var(--ink-soft); font-weight:400; margin-top:1px;}
-
-.breakdown{
-  display:flex; flex-wrap:wrap; gap:4px;
-  font-size:10px; margin-bottom:6px;
-}
-.chip{
-  background:#F2EEE6; border-radius:6px; padding:2px 6px;
-  color:var(--ink-soft);
-}
-.chip b{ color:var(--ink); font-weight:700;}
-
-details{ font-size:11px; color:var(--ink-soft); }
-details summary{
-  cursor:pointer; font-weight:600; color:var(--accent);
-  list-style:none; outline:none;
-}
-details summary::-webkit-details-marker{ display:none; }
-details summary::before{ content:'เงื่อนไข / หมายเหตุ '; }
-details summary::after{ content:'▾'; margin-left:4px; font-size:10px; }
-details[open] summary::after{ content:'▴'; }
-details ul{ margin:6px 0 0; padding-left:18px; }
-details li{ margin-bottom:3px; }
-
-.more-summary{
-  cursor:pointer; font-family:'Kanit',sans-serif; font-size:13px; font-weight:600;
-  color:var(--ink-soft); padding:8px 4px; text-align:center; width:100%;
-  border:1.5px dashed var(--line); border-radius:10px; margin-bottom:10px;
-  background:transparent; display:block;
-}
-.more-cards .card{ opacity:.9; }
-
-.empty{
-  text-align:center; color:var(--ink-soft); font-size:13px; padding:30px 10px;
-}
-
-.footer-note{
-  margin:10px 4px 0;
-  font-size:10px; color:var(--ink-soft);
-  border-top:1px solid var(--line);
-  padding-top:8px;
-}
-.footer-note b{ color:var(--ink); }
-
-.brand-section{ display:none; }
-.brand-section.active{ display:block; }
-
-.criteria-box{
-  margin-top:6px; background:#F8F4ED; border:1px solid var(--line); border-radius:10px;
-  padding:0;
-}
-.criteria-box summary{
-  cursor:pointer; font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
-  color:var(--accent); list-style:none; outline:none; padding:7px 10px;
-}
-.criteria-box summary::-webkit-details-marker{ display:none; }
-.criteria-box summary::after{ content:' \25be'; font-size:10px; }
-.criteria-box[open] summary::after{ content:' \25b4'; }
-.criteria-block{ padding:0 10px 8px; }
-.criteria-block + .criteria-block{ border-top:1px dashed var(--line); padding-top:8px; margin-top:2px; }
-.criteria-block .ct{ font-family:'Kanit',sans-serif; font-size:12px; font-weight:700; margin-bottom:3px; }
-.criteria-block ul{ margin:0; padding-left:16px; font-size:11px; color:var(--ink-soft); }
-.criteria-block li{ margin-bottom:2px; }
-.land-ref-table{ width:100%; border-collapse:collapse; font-size:11px; margin:0 10px 8px; width:calc(100% - 20px); }
-.land-ref-table th{ text-align:left; font-family:'Kanit',sans-serif; font-weight:700; padding:4px 6px; border-bottom:1.5px solid var(--line); color:var(--ink-soft); }
-.land-ref-table td{ padding:4px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
-.land-ref-table tr:last-child td{ border-bottom:none; }
-
-@media (min-width: 760px){
-  .app{
-    display:grid;
-    grid-template-columns: 380px 1fr;
-    gap:16px;
-    align-items:start;
-    padding:16px;
-    max-width:1200px;
-    margin:0 auto;
-  }
-  #historyPage{ grid-column: 1 / -1; }
-  .topbar{
-    position:sticky; top:16px;
-    border:1.5px solid var(--line);
-    border-radius:14px;
-    border-bottom:1.5px solid var(--line);
-    align-self:start;
-    max-height:calc(100vh - 32px);
-    overflow-y:auto;
-  }
-  main{ padding:0; }
-
-  /* ── Desktop compact: fit left panel in viewport without scrolling ── */
-  .topbar h1{ font-size:13px; margin-bottom:0; }
-  .topbar .sub{ font-size:10px; margin-bottom:4px; }
-  .topbar{ padding:8px 12px 10px; }
-  .brand-toggle{ gap:5px; margin-bottom:4px; }
-  .brand-btn{ font-size:13px; padding:5px 0; border-radius:9px; }
-  .select-row{ margin-bottom:4px; }
-  .select-row label{ font-size:10px; }
-  select#modelSelect{ font-size:13px; padding:6px 8px; }
-  .segment-toggle{ gap:4px; margin-bottom:4px; }
-  .seg-btn{ font-size:12px; padding:5px 2px; border-radius:8px; }
-  .criteria-box{ margin-top:3px; }
-  .criteria-box summary{ font-size:11px; padding:5px 8px; }
-  .toggles{ gap:4px; margin-top:4px; }
-  .toggle-row{ padding:5px 8px; }
-  .toggle-row .tx{ font-size:11px; }
-  .toggle-row .tx b{ font-size:11.5px; }
-  .toggle-row .tx .unlock{ font-size:10px; }
-  .toggle-row input{ width:14px; height:14px; }
-  .price-strip{ margin-top:5px; }
-  .price-strip .label{ font-size:10px; }
-  .price-strip .value{ font-size:14px; }
-  .summary-banner{ margin-top:5px; gap:5px; }
-  .summary-box{ padding:5px 8px; }
-  .summary-box .k{ font-size:9.5px; }
-  .summary-box .v{ font-size:15px; }
-  input[type=number]{ font-size:13px; padding:5px 8px; }
-  input[type=number] + div,
-  .select-row > div{ font-size:9.5px; }
-  .view-promo-btn{ display:none !important; }
-}
-
-.delta{
-  display:inline-block; font-size:10px; font-weight:700; font-family:'Kanit',sans-serif;
-  padding:1px 5px; border-radius:5px; margin-left:5px; white-space:nowrap;
-}
-.delta-good{ background:#E3F3E6; color:#2E7D32; }
-.delta-bad{ background:#FBE5E3; color:#C8372D; }
-
-input[type=number]{
-  width:100%;
-  font-family:'Kanit',sans-serif;
-  font-size:14px;
-  font-weight:600;
-  padding:8px 10px;
-  border-radius:9px;
-  border:1.5px solid var(--line);
-  background:var(--card);
-  color:var(--ink);
-}
-input[type=number]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
-
-.cust-input{
-  width:90px; font-family:'Kanit',sans-serif; font-weight:700; font-size:14px;
-  color:var(--accent); border:1.5px solid var(--accent); border-radius:6px;
-  padding:1px 4px; background:#fff;
-}
-
-.card-body{ display:flex; gap:10px; align-items:flex-start; }
-.card-main{ flex:1; min-width:0; }
-.card-gifts{
-  flex:0 0 128px; font-size:10.5px; color:var(--ink-soft);
-  background:#F8F4ED; border-radius:8px; padding:7px 8px;
-}
-.card-gifts .gifts-title{ font-family:'Kanit',sans-serif; font-weight:700; font-size:11px; color:var(--ink); margin-bottom:3px; }
-.card-gifts ul{ margin:0; padding-left:16px; }
-.card-gifts li{ margin-bottom:2px; }
-.standard-gifts{ margin-top:8px; }
-.standard-gifts b{ color:var(--ink); }
-.standard-gifts ul{ margin:4px 0 0; padding-left:18px; }
-.standard-gifts li{ margin-bottom:3px; }
-@media (max-width:480px){
-  .card-body{ flex-direction:column; }
-  .card-gifts{ flex:none; width:100%; }
-  .history-topbar h2{ font-size:13px; }
-  .hist-sort-header label{ display:none; }
-  .hist-sort-header select{ max-width:96px; font-size:11px; padding:5px 6px; }
-}
-
-/* ===== Equipment Section ===== */
-.eq-section{
-  margin-top:16px; border:1.5px solid var(--line); border-radius:12px;
-  padding:14px 16px; background:var(--card);
-}
-.eq-section h4{
-  font-family:'Kanit',sans-serif; font-size:14px; font-weight:700;
-  color:var(--ink); margin:0 0 10px; display:flex; align-items:center; gap:6px;
-}
-.eq-list{
-  display:flex; flex-direction:column; gap:6px; margin-bottom:12px;
-}
-.eq-item{
-  display:flex; align-items:center; gap:10px; font-size:13px; cursor:pointer;
-  padding:10px 12px; border-radius:10px; border:1.5px solid var(--line);
-  background:#fff; transition:border-color .15s, background .15s; user-select:none;
-}
-.eq-item:hover{ border-color:var(--accent); background:#fdf8f5; }
-.eq-item.selected{ border-color:var(--accent); background:#fdf0e8; }
-.eq-name{ flex:1; }
-.eq-price{ font-weight:700; color:var(--ink); min-width:60px; text-align:right; }
-.eq-special-toggle{
-  font-size:11px; margin-top:2px; color:var(--accent);
-  display:flex; align-items:center; gap:4px; cursor:pointer;
-}
-.eq-special-toggle input[type=checkbox]{ accent-color:var(--accent); }
-.eq-down-row{
-  display:flex; align-items:center; gap:10px; margin-bottom:12px; font-size:13px;
-}
-.eq-down-row label{ color:var(--ink-soft); flex:0 0 auto; }
-.eq-down-row input{
-  width:130px; font-family:'Kanit',sans-serif; font-weight:700; font-size:14px;
-  padding:6px 10px; border-radius:8px; border:1.5px solid var(--line); background:#fff; color:var(--ink);
-}
-.eq-down-row input:focus{ outline:2px solid var(--accent); }
-.eq-result{
-  background:#f2f7f2; border-radius:8px; padding:10px 12px;
-  font-size:13px; border:1.5px solid #c8e0c8;
-}
-.eq-result .eq-r-label{ color:#3a6b3a; font-weight:600; font-size:12px; margin-bottom:4px; }
-.eq-result .eq-r-value{ font-family:'Kanit',sans-serif; font-weight:700; font-size:15px; color:#1e4d1e; }
-.eq-result .eq-r-detail{ font-size:11px; color:#4a7a4a; margin-top:3px; }
-.eq-none{ font-size:12px; color:var(--ink-soft); font-style:italic; }
-
-/* ===== Mobile Step Flow ===== */
-.view-promo-btn{
-  display:none;
-  width:100%; margin-top:12px;
-  background:var(--accent); color:#fff; border:none;
-  font-family:'Kanit',sans-serif; font-size:16px; font-weight:700;
-  padding:13px; border-radius:12px; cursor:pointer;
-  box-shadow:0 3px 12px -3px rgba(0,0,0,.2);
-}
-#backBar{ display:none; margin-bottom:8px; align-items:center; }
-@media (max-width:759px){
-  .view-promo-btn{ display:block; }
-  /* ซ่อน tractorFinRow และ minorModeSection ใน step1 บนมือถือ */
-  #tractorFinRow, #minorModeSection{ display:none !important; }
-  .app.step2 #tractorFinRow, .app.step2 #minorModeSection{ display:block !important; }
-  .app.step2 > .topbar{ display:none; }
-  .app.step2 #backBar{ display:flex !important; }
-}
-
-.eq-scroll-btn{
-  position:fixed; bottom:16px; right:16px; z-index:100;
-  background:var(--ink); color:#fff;
-  font-family:'Kanit',sans-serif; font-size:13px; font-weight:700;
-  padding:10px 16px; border-radius:20px; border:none; cursor:pointer;
-  box-shadow:0 3px 14px -3px rgba(0,0,0,.35);
-  display:none;
-}
-@media (min-width:760px){
-  .eq-scroll-btn{ display:none !important; }
-}
-.back-btn{
-  background:var(--card); border:1.5px solid var(--line);
-  font-family:'Kanit',sans-serif; font-size:13px; font-weight:600;
-  color:var(--ink-soft); padding:7px 14px; border-radius:9px;
-  cursor:pointer;
-}
-
-.fin-btn{
-  font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
-  padding:5px 10px; border-radius:8px;
-  border:1.5px solid var(--line); background:#fff; color:var(--ink-soft);
-  cursor:pointer; white-space:nowrap;
-}
-.fin-btn.active{
-  border-color:var(--accent); background:var(--accent); color:#fff;
-}
-
-.fin-preview{
-  font-size:10px; font-weight:700; color:var(--accent);
-  background:rgba(0,0,0,.04); border-radius:4px; padding:1px 4px; margin-left:3px;
-}
-.fin-btn.active .fin-preview{ color:#fff; background:rgba(255,255,255,.25); }
-
-/* ===== Step 3: Customer Info + Export ===== */
-.export-panel{
-  background:var(--card); border-radius:14px; padding:16px;
-  border:1.5px solid var(--line); margin-top:0;
-}
-.export-panel h2{
-  font-size:16px; font-weight:700; color:var(--ink); margin:0 0 12px;
-}
-.field-group{ margin-bottom:10px; }
-.field-group label{ font-size:11px; color:var(--ink-soft); display:block; margin-bottom:3px; }
-.field-group input, .field-group textarea{
-  width:100%; font-family:'Kanit',sans-serif; font-size:14px; font-weight:500;
-  padding:8px 10px; border-radius:9px; border:1.5px solid var(--line);
-  background:#fff; color:var(--ink); box-sizing:border-box;
-}
-.field-group textarea{ resize:vertical; min-height:56px; }
-.field-group input:focus, .field-group textarea:focus{ outline:2px solid var(--accent); }
-.export-summary{
-  background:#f7f3ee; border-radius:10px; padding:12px 14px;
-  font-size:12px; margin:12px 0; border:1px solid var(--line);
-}
-.export-summary .es-row{ display:flex; justify-content:space-between; margin-bottom:4px; }
-.export-summary .es-label{ color:var(--ink-soft); }
-.export-summary .es-val{ font-weight:700; color:var(--ink); }
-.export-btns{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
-.btn-pdf{
-  flex:1; background:var(--accent); color:#fff; border:none;
-  font-family:'Kanit',sans-serif; font-size:14px; font-weight:700;
-  padding:11px 0; border-radius:11px; cursor:pointer; min-width:120px;
-}
-.btn-xlsx{
-  flex:1; background:#1e7e34; color:#fff; border:none;
-  font-family:'Kanit',sans-serif; font-size:14px; font-weight:700;
-  padding:11px 0; border-radius:11px; cursor:pointer; min-width:120px;
-}
-.btn-export-back{
-  background:var(--card); border:1.5px solid var(--line);
-  font-family:'Kanit',sans-serif; font-size:13px; font-weight:600;
-  color:var(--ink-soft); padding:10px 16px; border-radius:9px; cursor:pointer;
-}
-.btn-export{
-  width:100%; background:var(--accent); color:#fff; border:none;
-  font-family:'Kanit',sans-serif; font-size:15px; font-weight:700;
-  padding:13px; border-radius:12px; cursor:pointer; margin-top:10px;
-  box-shadow:0 3px 12px -3px rgba(0,0,0,.2);
-}
-
-/* Mobile: show export button in results */
-/* Export panel visibility */
-#exportPanelMobile{ display:none; }
-#showExportBtn{ display:none; }
-#historyPage{ display:none; }
-
-@media (max-width:759px){
-  .app.step2 .export-panel{ display:none; }
-  .app.step3 > .topbar{ display:none; }
-  .app.step3 #mainPanel #backBar{ display:none !important; }
-  .app.step3 #mainPanel{ display:none; }
-  .app.step3 #historyPage{ display:none !important; }
-  .app.step3 #exportPanelMobile{ display:block !important; }
-  #showExportBtn{ display:block; }
-}
-@media (min-width:760px){
-  #showExportBtn{ display:none !important; }
-  #exportPanelMobile{ display:none !important; }
-  /* desktop: tractorFinRow และ minorModeSection ใน mainPanel โชว์เสมอ */
-  #tractorFinRow, #minorModeSection{ display:block !important; }
-}
-
-/* ===== Print Styles ===== */
-@media print {
-  body{ background:#fff; font-family:'Sarabun',sans-serif; }
-  .app, main, .topbar, #backBar, #equipmentSection, .eq-scroll-btn,
-  #showExportBtn, #exportPanelMobile, .view-promo-btn { display:none !important; }
-  #printArea{ display:block !important; }
-  #printArea *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-}
-#printArea{ display:none; }
-
-body.printing > *:not(#printArea){ display:none !important; }
-body.printing #printArea{ display:block !important; }
-
-/* ===== History Page ===== */
-.app.history #historyPage{ display:block !important; }
-.app.history > .topbar, .app.history #mainPanel,
-.app.history #exportPanelMobile{ display:none !important; }
-
-.history-topbar{
-  background:var(--card); border-bottom:1.5px solid var(--line);
-  padding:12px 16px; position:sticky; top:0; z-index:10;
-  display:flex; align-items:center; gap:10px;
-}
-.history-topbar h2{ font-size:15px; font-weight:700; margin:0; flex:1; }
-.hist-sort-header{ display:flex; align-items:center; gap:5px; flex-shrink:0; }
-.hist-sort-header label{ font-size:11px; color:var(--ink-soft); font-weight:600; white-space:nowrap; }
-.hist-sort-header select{
-  font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
-  padding:5px 8px; border-radius:8px; border:1.5px solid var(--line);
-  background:#fff; color:var(--ink); max-width:130px;
-}
-.hist-sort-header select:focus{ outline:none; border-color:var(--accent); }
-
-/* 2-col layout on desktop */
-#historyPage{ display:none; height:100vh; flex-direction:column; }
-.app.history #historyPage{ display:flex !important; }
-.history-body{
-  display:flex; flex:1; overflow:hidden;
-}
-.history-left{
-  display:flex; flex-direction:column;
-  width:360px; flex-shrink:0;
-  border-right:1.5px solid var(--line);
-  overflow:hidden;
-}
-.history-right{
-  flex:1; overflow-y:auto; padding:16px;
-  background:#fafafa;
-}
-@media(max-width:759px){
-  .history-left{ width:100%; border-right:none; }
-  .history-right{ display:none; }
-  .history-right.active{ display:block; position:fixed; inset:0; z-index:50; background:#fff; overflow-y:auto; }
-}
-.history-list{ padding:8px 12px; overflow-y:auto; flex:1; }
-
-/* filter แนวนอนเต็มความกว้าง left col */
-.hist-filter{ padding:8px 12px 6px; }
-.hist-filter-scroll{
-  display:flex; flex-wrap:wrap; gap:6px;
-}
-.hist-filter-group{ display:flex; flex-direction:column; flex:1 1 120px; min-width:100px; }
-.hist-filter-group.wide{ flex:1 1 160px; }
-.hist-filter-group.narrow{ flex:1 1 110px; }
-.hist-filter-group.med{ flex:1 1 130px; }
-
-/* detail panel ใน right col */
-.hist-detail-panel{ background:var(--card); border-radius:12px; padding:16px; }
-.hist-detail-empty{ color:var(--ink-soft); text-align:center; padding:60px 20px; font-size:14px; }
-.history-card{
-  background:var(--card); border:1.5px solid var(--line); border-radius:12px;
-  padding:12px 14px; margin-bottom:10px; cursor:pointer;
-  border-left-width:1.5px;
-  transition:border-color .15s, background-color .15s, box-shadow .15s;
-}
-.history-card:hover{ border-color:var(--accent); }
-.history-card.selected{
-  border-color:var(--accent); border-left-width:5px;
-  background:color-mix(in srgb, var(--accent) 6%, white);
-  box-shadow:0 2px 10px -3px color-mix(in srgb, var(--accent) 35%, transparent);
-}
-.history-card.selected .hc-name{ color:var(--accent); }
-.history-card .hc-top{
-  display:flex; justify-content:space-between; align-items:flex-start;
-  margin-bottom:4px;
-}
-.history-card .hc-name{ font-weight:700; font-size:14px; color:var(--ink); }
-.history-card .hc-date{ font-size:10.5px; color:var(--ink-soft); }
-.history-card .hc-model{ font-size:12px; color:var(--accent); font-weight:600; margin-bottom:3px; }
-.history-card .hc-nums{ font-size:11px; color:var(--ink-soft); }
-.history-card .hc-nums b{ color:var(--ink); }
-.history-card .hc-actions{ display:flex; gap:6px; margin-top:8px; }
-.btn-reprint{
-  font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
-  padding:5px 12px; border-radius:8px; border:1.5px solid var(--accent);
-  color:var(--accent); background:#fff; cursor:pointer;
-}
-.btn-rexport{
-  font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
-  padding:5px 12px; border-radius:8px; border:1.5px solid #1e7e34;
-  color:#1e7e34; background:#fff; cursor:pointer;
-}
-.btn-del{
-  font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
-  padding:5px 10px; border-radius:8px; border:1.5px solid #ccc;
-  color:#999; background:#fff; cursor:pointer; margin-left:auto;
-}
-.history-empty{
-  text-align:center; padding:40px 20px; color:var(--ink-soft); font-size:14px;
-}
-.history-loading{
-  text-align:center; padding:30px; color:var(--ink-soft); font-size:13px;
-}
-.gas-config{
-  background:#fffbe6; border:1.5px solid #f0c04a; border-radius:10px;
-  padding:12px 14px; margin:12px 16px;
-}
-.gas-config label{ font-size:11px; color:#7a6000; display:block; margin-bottom:3px; }
-.gas-config input{
-  width:100%; font-family:'Kanit',sans-serif; font-size:12px;
-  padding:7px 10px; border-radius:8px; border:1.5px solid #f0c04a;
-  background:#fff; box-sizing:border-box;
-}
-.btn-save-gas{
-  margin-top:6px; font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
-  padding:6px 14px; border-radius:8px; border:none;
-  background:#f0c04a; color:#7a6000; cursor:pointer;
-}
-.history-tab-btn{
-  font-family:'Kanit',sans-serif; font-size:13px; font-weight:700;
-  padding:8px 14px; border-radius:9px; border:1.5px solid var(--line);
-  background:#fff; color:var(--ink-soft); cursor:pointer; white-space:nowrap;
-}
-.history-tab-btn.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
-
-/* ===== Address Dropdowns ===== */
-.addr-group{ margin-bottom:8px; position:relative; }
-.addr-group label{ font-size:11px; color:var(--ink-soft); display:block; margin-bottom:3px; }
-.addr-search{
-  width:100%; font-family:'Kanit',sans-serif; font-size:14px; font-weight:500;
-  padding:8px 10px; border-radius:9px; border:1.5px solid var(--line);
-  background:#fff; color:var(--ink); box-sizing:border-box;
-}
-.addr-search:focus{ outline:2px solid var(--accent); border-color:var(--accent); }
-.addr-dropdown{
-  position:absolute; top:100%; left:0; right:0; z-index:200;
-  background:#fff; border:1.5px solid var(--accent); border-radius:10px;
-  max-height:220px; overflow-y:auto; box-shadow:0 4px 16px -4px rgba(0,0,0,.18);
-  margin-top:2px;
-}
-.addr-opt{
-  padding:9px 12px; font-size:13px; cursor:pointer; border-bottom:1px solid #f0ede8;
-}
-.addr-opt:last-child{ border-bottom:none; }
-.addr-opt:hover, .addr-opt.focused{ background:#fdf0e8; color:var(--accent); }
-.addr-opt b{ color:var(--accent); }
-.addr-loading{ padding:10px 12px; font-size:12px; color:var(--ink-soft); }
-.addr-priority{ border-bottom:2px solid var(--accent); margin-bottom:2px; }
-.addr-priority .addr-opt{ background:#fdf8f5; }
-
-/* ===== A4 Print Fix ===== */
-@media print {
-  @page{ size:A4 portrait; margin:8mm; }
-  html, body{ margin:0; padding:0; width:210mm; }
-  #printArea{
-    display:block !important;
-    width:194mm; margin:0 auto;
-    font-family:'Sarabun','Kanit',sans-serif;
-    font-size:8.5pt; color:#000;
-    -webkit-print-color-adjust:exact;
-    print-color-adjust:exact;
-  }
-  #printArea table{ page-break-inside:auto; width:100%; }
-  #printArea tr{ page-break-inside:avoid; }
-  #printArea td, #printArea th{ box-sizing:border-box; }
-  body.printing > *:not(#printArea){ display:none !important; }
-  body.printing #printArea{ display:block !important; }
-}
-
-.btn-save{
-  flex:1; background:#2d6a4f; color:#fff; border:none;
-  font-family:'Kanit',sans-serif; font-size:14px; font-weight:700;
-  padding:11px 0; border-radius:11px; cursor:pointer; min-width:120px;
-}
-
-/* ===== Gift Selector ===== */
-.gift-selector{ margin:8px 0; }
-.gift-selector .gs-title{ font-size:11px; color:var(--ink-soft); margin-bottom:5px; font-weight:600; }
-.gift-standard{ 
-  background:#f7f3ee; border-radius:8px; padding:8px 10px; 
-  margin-bottom:6px; font-size:11px; color:var(--ink-soft);
-}
-.gift-standard b{ color:var(--ink); }
-.gift-special-list{ display:flex; flex-direction:column; gap:4px; }
-.gift-check-row{
-  display:flex; align-items:center; gap:8px; padding:6px 10px;
-  border:1.5px solid var(--line); border-radius:8px; background:#fff;
-  cursor:pointer; font-size:13px; user-select:none;
-}
-.gift-check-row:hover{ border-color:var(--accent); background:#fdf8f5; }
-.gift-check-row.checked{ border-color:var(--accent); background:#fdf0e8; }
-.gift-check-row svg{ flex:0 0 18px; }
-
-/* ===== History Detail Modal ===== */
-.hd-modal-bg{
-  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;
-  display:flex;align-items:flex-end;justify-content:center;
-}
-.hd-modal{
-  background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:520px;
-  max-height:90vh;overflow-y:auto;padding:16px;box-sizing:border-box;
-}
-.hd-title{ font-size:16px;font-weight:700;margin-bottom:8px; }
-.hd-section{ font-size:11px;color:var(--ink-soft);margin:10px 0 4px;font-weight:700;text-transform:uppercase;letter-spacing:.5px; }
-.hd-row{ display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #f0ede8; }
-.hd-row .hd-label{ color:#888; }
-.hd-row .hd-val{ font-weight:600; }
-.hd-timeline{ background:#f7f3ee;border-radius:8px;padding:10px 12px;margin-top:6px;font-size:12px; }
-.hd-tl-row{ display:flex;gap:8px;padding:4px 0; }
-.hd-tl-dot{ width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:4px;flex-shrink:0; }
-@keyframes hdFadeIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
-.hd-content-fade{ animation: hdFadeIn .3s ease; }
-.finance-extra-launchers{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
-.finance-launch-btn{
-  display:flex; justify-content:space-between; align-items:center;
-  padding:10px 12px; border-radius:10px; border:1.5px dashed #cbb98f;
-  background:#fdf8f0; cursor:pointer; font-family:'Kanit',sans-serif; font-size:12.5px; font-weight:600; color:#8a6500;
-  width:100%; text-align:left;
-}
-.finance-launch-btn:hover{ border-color:var(--accent); }
-.fl-status{ font-size:11px; font-weight:700; color:var(--accent); }
-.modal-form-scroll{
-  flex:1; overflow:auto; padding:16px; background:#f0ede8; -webkit-overflow-scrolling:touch;
-}
-.modal-form-inner{
-  background:#fff; max-width:480px; margin:0 auto; border-radius:12px;
-  padding:16px; box-shadow:0 2px 10px rgba(0,0,0,0.1);
-}
-.ref-row{
-  border:1.5px solid var(--line); border-radius:10px; padding:10px; margin-bottom:8px; position:relative;
-}
-.ref-row-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
-.ref-row-head b{ font-family:'Kanit',sans-serif; font-size:12px; color:var(--accent); }
-.ref-row-remove{ background:none; border:none; color:#c0392b; font-size:12px; font-weight:600; cursor:pointer; font-family:'Kanit',sans-serif; }
-.doc-cat-row{
-  display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--line); flex-wrap:wrap;
-}
-.doc-cat-row:last-child{ border-bottom:none; }
-.doc-cat-label{ font-family:'Kanit',sans-serif; font-size:12.5px; font-weight:600; flex:0 0 150px; }
-.doc-cat-row input[type="file"]{ flex:1; min-width:140px; font-size:11px; }
-.doc-cat-status{ font-size:11px; font-weight:600; color:var(--ink-soft); flex:0 0 auto; }
-.doc-cat-status.ok{ color:#1e7e34; }
-.doc-cat-status.err{ color:#c0392b; }
-.doc-cat-group{ padding:8px 0; border-bottom:1px solid var(--line); }
-.doc-cat-group:last-child{ border-bottom:none; }
-.doc-cat-group-label{ font-family:'Kanit',sans-serif; font-size:12.5px; font-weight:600; margin-bottom:4px; }
-.doc-add-slot-btn{
-  font-family:'Kanit',sans-serif; font-size:11px; font-weight:600;
-  padding:5px 12px; border-radius:8px; border:1.5px dashed var(--accent);
-  background:#fff; color:var(--accent); cursor:pointer; margin-top:4px;
-}
-.doc-remove-slot-btn{
-  font-family:'Kanit',sans-serif; font-size:12px; font-weight:700;
-  width:22px; height:22px; border-radius:50%; border:1.5px solid #ccc;
-  background:#fff; color:#c0392b; cursor:pointer; flex:0 0 auto; line-height:1; padding:0;
-}
-.doc-required-badge{
-  font-family:'Kanit',sans-serif; font-size:9.5px; font-weight:700;
-  padding:1px 6px; border-radius:10px; margin-left:4px; white-space:nowrap;
-}
-.doc-required-badge.missing{ background:#fdeaea; color:#c0392b; }
-.doc-required-badge.ok{ background:#e3f7ea; color:#1e7e34; }
-.preview-modal-bg{
-  position:fixed; inset:0; background:#fff; z-index:600;
-  display:flex; flex-direction:column;
-}
-.preview-modal-header{
-  display:flex; justify-content:space-between; align-items:center;
-  padding:10px 14px; border-bottom:1.5px solid var(--line); background:var(--card); flex-shrink:0;
-}
-.preview-modal-header span{ font-family:'Kanit',sans-serif; font-weight:700; font-size:14px; }
-.preview-modal-header button{
-  font-family:'Kanit',sans-serif; font-size:13px; font-weight:600;
-  padding:6px 14px; border-radius:8px; border:1.5px solid #ccc; background:#fff; cursor:pointer;
-}
-.preview-modal-scroll{
-  flex:1; overflow:auto; padding:16px; background:#f0ede8; -webkit-overflow-scrolling:touch;
-}
-.preview-modal-scroll > div{
-  background:#fff; margin:0 auto; box-shadow:0 2px 10px rgba(0,0,0,0.12); padding:12px; width:fit-content;
-}
-.role-btn{
-  flex:1; font-family:'Kanit',sans-serif; font-size:13px; font-weight:600;
-  padding:10px; border-radius:10px; border:1.5px solid var(--line);
-  background:#fff; color:var(--ink); cursor:pointer;
-}
-.role-btn.active{ border-color:var(--accent); background:var(--accent); color:#fff; }
-.case-status-row{ display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
-.case-status-row label{ font-size:11px; color:var(--ink-soft); font-weight:600; }
-.case-status-badge{
-  display:inline-block; padding:3px 12px; border-radius:20px; font-size:12px;
-  font-weight:700; background:#eee; color:#666;
-}
-.case-status-badge.status-good{ background:#e3f7ea; color:#1e7e34; }
-.case-status-badge.status-bad{ background:#fdeaea; color:#c0392b; }
-.case-status-badge.status-wait{ background:#fff4e0; color:#a86400; }
-.case-status-select{
-  font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
-  padding:5px 8px; border-radius:8px; border:1.5px solid var(--line);
-  background:#fff; color:var(--ink);
-}
-.add-update-form{ background:#f7f3ee; border-radius:10px; padding:10px; margin-top:6px; }
-.add-update-form textarea{
-  width:100%; box-sizing:border-box; font-family:'Kanit',sans-serif; font-size:13px;
-  padding:8px; border-radius:8px; border:1.5px solid var(--line); resize:vertical;
-}
-.add-update-form input{
-  width:100%; box-sizing:border-box; font-family:'Kanit',sans-serif; font-size:12px;
-  padding:6px 8px; border-radius:8px; border:1.5px solid var(--line);
-}
-.add-update-form label{ font-size:10px; color:var(--ink-soft); font-weight:600; }
-
-/* ===== History Filter Panel ===== */
-.hist-filter{
-  background:#f7f3ee; border-bottom:1.5px solid var(--line);
-  padding:10px 12px 8px;
-}
-.hist-filter-scroll{
-  display:flex; gap:6px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:6px;
-  -webkit-overflow-scrolling:touch; scrollbar-width:none;
-}
-.hist-filter-scroll::-webkit-scrollbar{ display:none; }
-.hist-filter-group{ display:flex; flex-direction:column; flex:0 0 auto; }
-.hist-filter-group.wide{ flex:0 0 130px; }
-.hist-filter-group.narrow{ flex:0 0 92px; }
-.hist-filter-group.med{ flex:0 0 112px; }
-.hist-filter input, .hist-filter select{
-  font-family:'Kanit',sans-serif; font-size:12px;
-  padding:7px 8px; border-radius:8px; border:1.5px solid var(--line);
-  background:#fff; width:100%; box-sizing:border-box; color:var(--ink);
-}
-.hist-filter input:focus, .hist-filter select:focus{
-  outline:none; border-color:var(--accent);
-}
-.hist-filter label{ font-size:10px; color:var(--ink-soft); margin-bottom:2px; display:block; white-space:nowrap; }
-.hist-filter-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
-.hist-filter-clear{
-  font-family:'Kanit',sans-serif; font-size:11px; font-weight:600;
-  padding:5px 12px; border-radius:8px; border:1.5px solid #ccc;
-  background:#fff; color:#888; cursor:pointer; white-space:nowrap;
-}
-.hist-filter-clear:hover{ border-color:var(--accent); color:var(--accent); }
-.hist-count{ font-size:11px; color:var(--ink-soft); }
-
-/* ===== Quick Search (CRM) ===== */
-.hist-quicksearch{ flex:0 0 170px; }
-.hist-quicksearch-input-wrap{ position:relative; }
-.hist-quicksearch-input-wrap input{ padding-left:26px; }
-.hist-quicksearch-input-wrap::before{
-  content:'🔍'; position:absolute; left:9px; top:50%; transform:translateY(-50%);
-  font-size:12px; pointer-events:none;
-}
-@media (min-width:760px){
-  .hist-filter{ padding:10px 16px 8px; }
-  .hist-quicksearch{ flex:1 1 200px; min-width:170px; max-width:280px; }
-
-  .history-left{ width:320px; }
-}
-
-/* ===== Sales Summary Card (Detail) ===== */
-.sales-summary-card{
-  background:var(--gold-bg); border:1.5px solid var(--gold); border-radius:12px;
-  padding:12px 14px; margin-bottom:14px;
-}
-.ssc-head{
-  font-family:'Kanit',sans-serif; font-size:13px; font-weight:700; color:#7a5b0f;
-  margin-bottom:8px; display:flex; align-items:center; gap:6px;
-}
-.ssc-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px 10px; }
-.ssc-item .k{ font-size:10px; color:#8a7548; font-weight:600; margin-bottom:1px; }
-.ssc-item .v{ font-family:'Kanit',sans-serif; font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.3; }
-.ssc-item .v.accent{ color:var(--accent); font-size:15px; }
-.ssc-item.full{ grid-column:1 / -1; }
-</style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
-</head>
-<body>
-
-<div class="app">
-<div class="topbar" id="topbar">
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <h1>โปรไหนเหมาะ? — RST Promo Finder</h1>
-    <button onclick="openHistory()" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);cursor:pointer;white-space:nowrap">📋 ประวัติ</button>
-  </div>
-  <div class="sub" id="topbarSub">เลือกรุ่นรถ → เลือกกลุ่มลูกค้า → ดูโปรที่สนับสนุนดีที่สุด</div>
-  <div class="brand-toggle">
-    <button class="brand-btn yanmar active" data-brand="yanmar">Yanmar</button>
-    <button class="brand-btn solis" data-brand="solis">Solis</button>
-    <button class="brand-btn combine" data-brand="combine">รถเกี่ยว</button>
-  </div>
-  <div class="select-row">
-    <label for="modelSelect">เลือกรุ่นรถ</label>
-    <select id="modelSelect"></select>
-  </div>
-
-  <div class="select-row">
-    <label id="segmentLabel">กลุ่มลูกค้า</label>
-    <div class="segment-toggle" id="segmentToggle">
-      <button data-seg="ทั่วไป" class="seg-btn active">ทั่วไป</button>
-      <button data-seg="YF,SW" class="seg-btn">YF, SW</button>
-      <button data-seg="RT" class="seg-btn">RT</button>
-      <button data-seg="Dry Crop" class="seg-btn">Dry Crop</button>
-    </div>
-  </div>
-  <div id="criteriaInfo"></div>
-  <div id="landRefInfo"></div>
-  <div class="toggles" id="togglesContainer"></div>
-
-  <div class="price-strip">
-    <span class="label">ราคาขาย (Price)</span>
-    <span class="value" id="priceValue">-</span>
-  </div>
-  <div class="summary-banner">
-    <div class="summary-box">
-      <div class="k">ช่วยดาวน์ (% ของราคารถ)</div>
-      <div class="v" id="summarySupport">-</div>
-    </div>
-    <div class="summary-box">
-      <div class="k">ลูกค้าออกเอง</div>
-      <div class="v" id="summaryCust">-</div>
-    </div>
-  </div>
-  <!-- minor installment now auto-set from payment type; input kept for JS ref only -->
-  <input type="hidden" id="minorInstallmentInput" value="2000">
-  <div class="select-row" style="margin-top:2px;">
-  </div>
-  <button id="viewPromoBtn" class="view-promo-btn" onclick="goToResults()">ดูโปร ▶</button>
-</div>
-
-<main id="mainPanel">
-  <div id="backBar"><button class="back-btn" onclick="goToForm()">← แก้ไขการเลือก</button><span id="backSummary" style="font-size:12px;color:var(--ink-soft);margin-left:8px"></span></div>
-  <div class="select-row" style="margin-top:6px;" id="tractorFinRow">
-    <label>ระยะเวลาผ่อนชำระ (รถแทรกเตอร์)</label>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;" id="tractorYearsRow"></div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;" id="tractorPaymentRow"></div>
-  </div>
-  <div class="select-row" style="margin-top:6px;" id="minorModeSection">
-    <label style="font-size:11px;color:var(--ink-soft);margin-bottom:4px;display:block">รูปแบบงวดย่อย</label>
-    <div style="display:flex;flex-direction:column;gap:4px;" id="minorModeRow">
-      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
-        <input type="radio" name="minorMode" value="normal" checked onchange="setMinorMode(this.value)">
-        <span><b>แบบปกติ</b> — จ่ายงวดย่อยทุกเดือน</span>
-      </label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
-        <input type="radio" name="minorMode" value="advance" onchange="setMinorMode(this.value)">
-        <span><b>จ่ายล่วงหน้า</b> — รวมงวดย่อยจ่ายก่อน</span>
-      </label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
-        <input type="radio" name="minorMode" value="with_down" onchange="setMinorMode(this.value)">
-        <span><b>รวมกับดาวน์</b> — งวดย่อยมาพร้อมดาวน์</span>
-      </label>
-    </div>
-    <div id="minorModeDetail" style="font-size:10.5px;color:var(--accent);margin-top:4px;padding:4px 8px;background:#fdf8f5;border-radius:6px;display:none"></div>
-  </div>
-  <div class="legend">
-    <span><i style="background:var(--accent)"></i>ลูกค้าจ่าย</span>
-    <span><i style="background:var(--support)"></i>ส่วนสนับสนุน (YCT/YSP/ไฟไหม้)</span>
-    <span><i style="background:var(--rst)"></i>RST ออก</span>
-  </div>
-  <div id="results"></div>
-  <div id="eqAnchor" style="scroll-margin-top:8px"></div>
-  <div id="equipmentSection"></div>
-  <button id="showExportBtn" class="btn-export" onclick="goToExport()">📋 ออกใบสรุป ▶</button>
-  <div class="export-panel" id="exportPanelDesktop">
-    <h2>📋 ส่งออกใบสรุป</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-      <div class="field-group" style="margin:0">
-        <label>ชื่อลูกค้า</label>
-        <input type="text" id="custName2" placeholder="เช่น นายสมชาย ใจดี" oninput="refreshExportSummary()">
-      </div>
-      <div class="field-group" style="margin:0">
-        <label>เบอร์โทร</label>
-        <input type="text" id="custPhone" placeholder="0xx-xxx-xxxx" inputmode="tel">
-      </div>
-    </div>
-    <div class="field-group">
-      <label>บ้านเลขที่ / ซอย / หมู่</label>
-      <input type="text" id="custAddrLine" placeholder="เช่น 49 ม.10 ซ.3">
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-      <div class="addr-group" style="margin:0">
-        <label>จังหวัด</label>
-        <input type="text" class="addr-search" id="addrProvince" placeholder="ค้นหาจังหวัด..." autocomplete="off" oninput="addrInput('province',this.value,'')" onfocus="addrFocus('province','')">
-        <div class="addr-dropdown" id="addrDropProvince" style="display:none"></div>
-      </div>
-      <div class="addr-group" style="margin:0">
-        <label>อำเภอ / เขต</label>
-        <input type="text" class="addr-search" id="addrAmphure" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addrInput('amphure',this.value,'')" onfocus="addrFocus('amphure','')" disabled>
-        <div class="addr-dropdown" id="addrDropAmphure" style="display:none"></div>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-      <div class="addr-group" style="margin:0">
-        <label>ตำบล / แขวง</label>
-        <input type="text" class="addr-search" id="addrTambon" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addrInput('tambon',this.value,'')" onfocus="addrFocus('tambon','')" disabled>
-        <div class="addr-dropdown" id="addrDropTambon" style="display:none"></div>
-      </div>
-      <div class="field-group" style="margin:0">
-        <label>ผู้ปิดการขาย</label>
-        <input type="text" id="branchName" placeholder="ชื่อพนักงาน">
-      </div>
-    </div>
-    <div class="field-group">
-      <label>Lead Source (ลูกค้ารู้จักเราจากช่องทางไหน)</label>
-      <select id="leadSource" onchange="syncLeadSource(this)">
-        <option value="">— เลือก —</option>
-        <option value="เข้าพบโดยตรง/Offline (Direct Visit/Offline))">เข้าพบโดยตรง (Direct Visit/Offline)</option>
-        <option value="ลูกค้า Walk-in (Walk-in)">ลูกค้า Walk-in</option>
-        <option value="ค้นหาจาก Google (Google Search)">ค้นหาจาก Google</option>
-        <option value="โฆษณา Google (Google Ads)">Google Ads</option>
-        <option value="Facebook">Facebook</option>
-        <option value="TikTok">TikTok</option>
-        <option value="YouTube">YouTube</option>
-        <option value="LINE OA">LINE OA</option>
-        <option value="งานอีเวนต์/โรดโชว์ (Event/Roadshow)">งานอีเวนต์/โรดโชว์</option>
-        <option value="การแนะนำจากลูกค้า/เครือข่าย (Referral/Network)">การแนะนำจากลูกค้า/เครือข่าย</option>
-        <option value="อื่นๆ โปรดระบุ (Other, please specify)">อื่นๆ โปรดระบุ</option>
-      </select>
-    </div>
-    <input type="hidden" id="custAddr">
-    <div id="exportSummaryBox"></div>
-    <div id="giftSelectorBox"></div>
-    <div class="field-group" style="margin-top:4px">
-      <label>ของแถมอื่นๆ</label>
-      <input type="text" id="customGiftInput" placeholder="เช่น ถุงมือหนัง 1 คู่" oninput="customGiftText=this.value">
-    </div>
-
-    <div class="finance-extra-launchers">
-      <button type="button" class="finance-launch-btn" onclick="openAddressGuarantorModal()">📍 ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน <span class="fl-status" id="addrGtorStatus"></span></button>
-      <button type="button" class="finance-launch-btn" onclick="openFinInfoModal()">💰 ข้อมูลรายได้ลูกค้า <span class="fl-status" id="finInfoStatus"></span></button>
-      <button type="button" class="finance-launch-btn" onclick="openReferenceModal()">📇 บุคคลอ้างอิง <span class="fl-status" id="refStatus"></span></button>
-      <button type="button" class="finance-launch-btn" onclick="openDocsModal(getOrCreateDraftCaseId())">📎 แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน ฯลฯ)</button>
-      <div style="text-align:center;font-size:11.5px"><a href="#" onclick="previewGuarantorForm();return false" style="color:var(--accent);font-family:'Kanit',sans-serif;font-weight:600">🔍 ดูตัวอย่างฟอร์มผู้ค้ำ/อ้างอิง</a></div>
-    </div>
-
-    <div class="export-btns">
-      <button class="btn-pdf" onclick="previewPDF()">🔍 ดูตัวอย่าง</button>
-      <button class="btn-save" onclick="saveAndPrint()">💾 บันทึก & พิมพ์ PDF</button>
-    </div>
-  </div>
-  <div class="footer-note">
-    <b>ข้อมูลจากไฟล์โปรโมชั่น Yanmar อัปเดต / Solis ณ 15 ต.ค. 68</b> — YF,SW = ลูกค้าที่มีรถแทรกเตอร์ Yanmar อยู่แล้ว, RT = ลูกค้าชั้นดี Yanmar (เกณฑ์นี้ใช้เหมือนกันทุกโปรของ Yanmar) ส่วนเงื่อนไข "พื้นที่ทำกิน" และ "ลูกค้าชั้นดีธกส/ผู้นำชุมชน" เป็นคำถามเพิ่มที่ปลดล็อกโปรพิเศษ — แท่งสีคือสัดส่วนของเงินดาวน์รวมในแต่ละโปร
-  </div>
-  <button id="eqScrollBtn" class="eq-scroll-btn" onclick="scrollToEq()" style="display:none">🔧 อุปกรณ์ ▼</button>
-</main>
-<div id="historyPage">
-  <div class="history-topbar">
-    <button class="back-btn" onclick="closeHistory()" style="display:block">← กลับ</button>
-    <h2>📋 ประวัติใบสรุป</h2>
-    <div class="hist-sort-header">
-      <label for="hf_sort">เรียง</label>
-      <select id="hf_sort" onchange="filterHistory()">
-        <option value="date_desc">ล่าสุดก่อน</option>
-        <option value="date_asc">เก่าสุดก่อน</option>
-        <option value="name_asc">ชื่อ ก-ฮ</option>
-        <option value="amount_desc">ยอดจัดมาก-น้อย</option>
-        <option value="amount_asc">ยอดจัดน้อย-มาก</option>
-      </select>
-    </div>
-    <button class="history-tab-btn" onclick="openIdentityModal()" title="ชื่อ/บทบาทของฉัน">👤</button>
-    <button class="history-tab-btn" onclick="openGasConfig()" title="ตั้งค่า GAS">⚙️</button>
-  </div>
-  <div class="gas-config" id="gasConfigBox" style="display:none">
-    <label>Google Apps Script URL</label>
-    <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/xxxxxx/exec">
-    <br>
-    <button class="btn-save-gas" onclick="saveGasUrl()">บันทึก URL</button>
-  </div>
-  <div class="hist-filter">
-    <div class="hist-filter-scroll">
-      <div class="hist-filter-group hist-quicksearch">
-        <label>ค้นหาด่วน</label>
-        <div class="hist-quicksearch-input-wrap">
-          <input type="text" id="hf_quick" placeholder="ชื่อ, เบอร์, ที่อยู่, รุ่น, โปร, สาขา..." oninput="filterHistory()">
-        </div>
-      </div>
-      <div class="hist-filter-group wide">
-        <label>ชื่อลูกค้า</label>
-        <input type="text" id="hf_name" placeholder="ชื่อ-นามสกุล" oninput="filterHistory()">
-      </div>
-      <div class="hist-filter-group narrow">
-        <label>เบอร์โทร</label>
-        <input type="text" id="hf_phone" placeholder="0xx-xxx" inputmode="tel" oninput="filterHistory()">
-      </div>
-      <div class="hist-filter-group narrow">
-        <label>จังหวัด</label>
-        <select id="hf_province" onchange="hfProvinceChange()">
-          <option value="">— ทุกจังหวัด —</option>
-        </select>
-      </div>
-      <div class="hist-filter-group narrow">
-        <label>อำเภอ</label>
-        <select id="hf_amphure" onchange="hfAmphureChange()" disabled>
-          <option value="">— อำเภอ —</option>
-        </select>
-      </div>
-      <div class="hist-filter-group narrow">
-        <label>ตำบล</label>
-        <select id="hf_tambon" onchange="filterHistory()" disabled>
-          <option value="">— ตำบล —</option>
-        </select>
-      </div>
-      <div class="hist-filter-group med">
-        <label>รุ่นรถ</label>
-        <select id="hf_model" onchange="filterHistory()">
-          <option value="">— ทุกรุ่น —</option>
-        </select>
-      </div>
-      <div class="hist-filter-group med">
-        <label>โปร</label>
-        <select id="hf_prog" onchange="filterHistory()">
-          <option value="">— ทุกโปร —</option>
-        </select>
-      </div>
-    </div>
-    <div id="exportCrmDateRangeBox" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;padding:6px 8px;background:#F8F4ED;border-radius:8px">
-      <span style="font-size:11px;color:var(--ink-soft);font-weight:700">📤 ช่วงวันที่บันทึก (สำหรับ Export):</span>
-      <input type="date" id="crmExportFromDate" title="จากวันที่ (บันทึกเมื่อ)" style="font-size:11.5px;padding:4px 6px;border-radius:6px;border:1px solid var(--line)">
-      <span style="font-size:11px;color:var(--ink-soft)">ถึง</span>
-      <input type="date" id="crmExportToDate" title="ถึงวันที่ (บันทึกเมื่อ)" style="font-size:11.5px;padding:4px 6px;border-radius:6px;border:1px solid var(--line)">
-      <a href="#" onclick="document.getElementById('crmExportFromDate').value='';document.getElementById('crmExportToDate').value='';return false" style="font-size:11px;color:var(--accent)">✕ ล้างช่วงวันที่ (=export ทั้งหมด)</a>
-    </div>
-    <div class="hist-filter-footer">
-      <span id="histFilterCount" class="hist-count"></span>
-      <button id="exportCrmTemplateBtn" class="hist-filter-clear" onclick="exportCrmTemplateXLSX()" title="Export ข้อมูลลูกค้า/ลีดใส่แบบฟอร์ม CRM Import (Yanmar) เพื่อนำไป import เข้า kintone — เฉพาะผู้จัดการ (เลือกช่วงวันที่ด้านบนได้ ถ้าไม่เลือกจะ export ทั้งหมด)" style="background:var(--support);color:#fff;border-color:var(--support);display:none">📤 Export → CRM Template</button>
-      <button class="hist-filter-clear" onclick="clearHistoryFilter()">✕ ล้าง</button>
-    </div>
-  </div>
-  <div class="history-body">
-  <div class="history-left">
-  <div id="historyListContainer" class="history-list">
-    <div class="history-loading">กำลังโหลด...</div>
-  </div>
-  </div><!-- end .history-left -->
-  <div class="history-right" id="historyRight">
-    <div class="hist-detail-empty" id="histDetailEmpty">
-      <div style="font-size:32px;margin-bottom:8px">📋</div>
-      เลือกรายการจากด้านซ้าย<br>เพื่อดูรายละเอียด
-    </div>
-    <div id="historyDetailContent" style="display:none"></div>
-  </div>
-  </div><!-- end .history-body -->
-</div>
-
-<div id="exportPanelMobile">
-  <div class="topbar" style="border-radius:0;border-top:none">
-    <button class="btn-export-back" onclick="goToResults()" style="margin-bottom:10px">← กลับ</button>
-    <h1>📋 ส่งออกใบสรุป</h1>
-    <div class="field-group" style="margin-top:10px">
-      <label>ชื่อลูกค้า</label>
-      <input type="text" id="custNameM" placeholder="เช่น นายสมชาย ใจดี" oninput="syncCustomer(this,'custName2')">
-    </div>
-    <div class="field-group">
-      <label>บ้านเลขที่ / ซอย / หมู่</label>
-      <input type="text" id="custAddrLineM" placeholder="เช่น 49 ม.10 ซ.3" oninput="syncAddrLine(this)">
-    </div>
-    <div class="addr-group">
-      <label>จังหวัด</label>
-      <input type="text" class="addr-search" id="addrProvinceM" placeholder="พิมพ์เพื่อค้นหาจังหวัด..." autocomplete="off" oninput="addrInput('province',this.value,'M')" onfocus="addrFocus('province','M')">
-      <div class="addr-dropdown" id="addrDropProvinceM" style="display:none"></div>
-    </div>
-    <div class="addr-group">
-      <label>อำเภอ / เขต</label>
-      <input type="text" class="addr-search" id="addrAmphureM" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addrInput('amphure',this.value,'M')" onfocus="addrFocus('amphure','M')" disabled>
-      <div class="addr-dropdown" id="addrDropAmphureM" style="display:none"></div>
-    </div>
-    <div class="addr-group">
-      <label>ตำบล / แขวง</label>
-      <input type="text" class="addr-search" id="addrTambonM" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addrInput('tambon',this.value,'M')" onfocus="addrFocus('tambon','M')" disabled>
-      <div class="addr-dropdown" id="addrDropTambonM" style="display:none"></div>
-    </div>
-    <div class="field-group">
-      <label>เบอร์โทร</label>
-      <input type="text" id="custPhoneM" placeholder="0xx-xxx-xxxx" inputmode="tel" oninput="syncCustomer(this,'custPhone')">
-    </div>
-    <div class="field-group">
-      <label>ผู้ปิดการขาย</label>
-      <input type="text" id="branchNameM" placeholder="ชื่อพนักงาน" oninput="syncCustomer(this,'branchName')">
-    </div>
-    <div class="field-group">
-      <label>Lead Source (ลูกค้ารู้จักเราจากช่องทางไหน)</label>
-      <select id="leadSourceM" onchange="syncLeadSource(this)">
-        <option value="">— เลือก —</option>
-        <option value="เข้าพบโดยตรง/Offline (Direct Visit/Offline))">เข้าพบโดยตรง (Direct Visit/Offline)</option>
-        <option value="ลูกค้า Walk-in (Walk-in)">ลูกค้า Walk-in</option>
-        <option value="ค้นหาจาก Google (Google Search)">ค้นหาจาก Google</option>
-        <option value="โฆษณา Google (Google Ads)">Google Ads</option>
-        <option value="Facebook">Facebook</option>
-        <option value="TikTok">TikTok</option>
-        <option value="YouTube">YouTube</option>
-        <option value="LINE OA">LINE OA</option>
-        <option value="งานอีเวนต์/โรดโชว์ (Event/Roadshow)">งานอีเวนต์/โรดโชว์</option>
-        <option value="การแนะนำจากลูกค้า/เครือข่าย (Referral/Network)">การแนะนำจากลูกค้า/เครือข่าย</option>
-        <option value="อื่นๆ โปรดระบุ (Other, please specify)">อื่นๆ โปรดระบุ</option>
-      </select>
-    </div>
-    <div id="exportSummaryBoxM"></div>
-    <div id="giftSelectorBoxM"></div>
-    <div class="field-group" style="margin-top:4px">
-      <label>ของแถมอื่นๆ</label>
-      <input type="text" id="customGiftInputM" placeholder="เช่น ถุงมือหนัง 1 คู่" oninput="customGiftText=this.value">
-    </div>
-
-    <div class="finance-extra-launchers">
-      <button type="button" class="finance-launch-btn" onclick="openAddressGuarantorModal()">📍 ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน <span class="fl-status" id="addrGtorStatusM"></span></button>
-      <button type="button" class="finance-launch-btn" onclick="openFinInfoModal()">💰 ข้อมูลรายได้ลูกค้า <span class="fl-status" id="finInfoStatusM"></span></button>
-      <button type="button" class="finance-launch-btn" onclick="openReferenceModal()">📇 บุคคลอ้างอิง <span class="fl-status" id="refStatusM"></span></button>
-      <button type="button" class="finance-launch-btn" onclick="openDocsModal(getOrCreateDraftCaseId())">📎 แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน ฯลฯ)</button>
-      <div style="text-align:center;font-size:11.5px"><a href="#" onclick="previewGuarantorForm();return false" style="color:var(--accent);font-family:'Kanit',sans-serif;font-weight:600">🔍 ดูตัวอย่างฟอร์มผู้ค้ำ/อ้างอิง</a></div>
-    </div>
-
-    <div class="export-btns">
-      <button class="btn-pdf" onclick="previewPDF()">🔍 ดูตัวอย่าง</button>
-      <button class="btn-save" onclick="saveAndPrint()">💾 บันทึก & พิมพ์ PDF</button>
-    </div>
-  </div>
-</div>
-</div>
-
-<script>
-const LOOKUP_KEYS = DATA.yanmar_lookup_keys;
-
-// ===== Interest Rate Tables (from YCT PDF Apr-Jun 2568) =====
-const INTEREST_TABLE = {
-  yanmar: {
-    general: {
-      '6_monthly_3m':0.062,'6_semi':0.077,'6_annual':0.0895,
-      '7_monthly_3m':0.062,'7_semi':0.077,'7_annual':0.0895,
-      '8_semi':0.0875,'8_annual':0.0895,
-      '10_semi':0.0875,'10_annual':0.0895,
-    },
-    rt: {
-      '6_semi':0.0875,'6_annual':0.0875,
-      '7_semi':0.0875,'7_annual':0.0875,
-      '8_semi':0.085,'8_annual':0.0875,
-      '10_semi':0.085,'10_annual':0.0875,
-    },
-    sw: {
-      '6_semi':0.0875,'6_annual':0.0875,
-      '7_semi':0.0875,'7_annual':0.0875,
-      '8_semi':0.085,'8_annual':0.0875,
-      '10_semi':0.085,'10_annual':0.0875,
-    },
-  },
-  solis: {
-    general: {
-      '6_semi':0.0875,'6_annual':0.0895,
-      '7_semi':0.0875,'7_annual':0.0895,
-    },
-    sw: {'6_semi':0.0875,'6_annual':0.0875,'7_semi':0.0875,'7_annual':0.0875},
-    rt: {'6_semi':0.0875,'6_annual':0.0875,'7_semi':0.0875,'7_annual':0.0875},
-    dry_crop: {'6_semi':0.0875,'6_annual':0.0895,'7_semi':0.0875,'7_annual':0.0895},
-  },
-  combine: {
-    general: {'6_annual':0.085,'6_split_70_30':0.0875,'6_split_50_50':0.085},
-    owner_combine: {'6_annual':0.085,'6_split_70_30':0.0875,'6_split_50_50':0.085},
-    owner_tractor: {'6_annual':0.085,'6_split_70_30':0.0875,'6_split_50_50':0.085},
-    rt: {'6_annual':0.085,'6_split_70_30':0.0875,'6_split_50_50':0.085},
-  }
-};
-
-const YEARS_OPTIONS = {
-  yanmar: { general:[6,7,8,10], rt:[6,7,8,10], sw:[6,7,8,10] },
-  solis:  { general:[6,7], sw:[6,7], rt:[6,7], dry_crop:[6,7] },
-  combine: { general:[6], owner_combine:[6], owner_tractor:[6], rt:[6] },
-};
-
-const PAYMENT_OPTIONS = {
-  yanmar: {
-    general: { 6:['monthly_3m','semi','annual'], 7:['monthly_3m','semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
-    rt:      { 6:['semi','annual'], 7:['semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
-    sw:      { 6:['semi','annual'], 7:['semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
-  },
-  solis: {
-    general:  { 6:['semi','annual'], 7:['semi','annual'] },
-    sw:       { 6:['semi','annual'], 7:['semi','annual'] },
-    rt:       { 6:['semi','annual'], 7:['semi','annual'] },
-    dry_crop: { 6:['semi','annual'], 7:['semi','annual'] },
-  },
-  combine: {
-    general: {6:['annual','split_70_30','split_50_50']},
-    owner_combine: {6:['annual','split_70_30','split_50_50']},
-    owner_tractor: {6:['annual','split_70_30','split_50_50']},
-    rt: {6:['annual','split_70_30','split_50_50']},
-  }
-};
-
-const PAYMENT_LABELS = {
-  monthly_3m: 'รายเดือน / ราย 3 เดือน',
-  semi: 'ราย 6 เดือน (2 ครั้ง/ปี)',
-  annual: 'รายปี',
-  split_70_30: 'สองครั้งต่อปี (ม.ค. 70% + พ.ค. 30%)',
-  split_50_50: 'สองครั้งต่อปี (ม.ค. 50% + ก.พ. 50%)',
-};
-
-// ===== ตัวช่วยกลาง สำหรับ payment type ที่มี "งวดใหญ่ 2 ครั้ง/ปี" (semi ของแทรกเตอร์เดิม + split ใหม่ของรถเกี่ยว) =====
-// SPLIT_RATIO: สัดส่วนงวดใหญ่ครั้งที่ 1 กับครั้งที่ 2 ในแต่ละปี (เดิม semi = ครึ่งต่อครึ่งเป๊ะ ยังคงพฤติกรรมเดิมทุกประการ)
-const SPLIT_RATIO = { semi: [0.5, 0.5], split_70_30: [0.7, 0.3], split_50_50: [0.5, 0.5] };
-function isTwoBigPerYear(paymentType){ return paymentType === 'semi' || paymentType === 'split_70_30' || paymentType === 'split_50_50'; }
-function getSplitRatio(paymentType){ return SPLIT_RATIO[paymentType] || [0.5, 0.5]; }
-// จำนวนงวดย่อยก่อนงวดใหญ่ในแต่ละปี: annual=11, สองครั้งต่อปี(ไม่ว่าจะ semi/split ใดๆ)=10, รายเดือน/3เดือน=0
-function getPeriodsMinor(paymentType){
-  if(paymentType === 'monthly_3m') return 0;
-  if(isTwoBigPerYear(paymentType)) return 10;
-  return 11; // annual
-}
-// แยกยอดงวดใหญ่เต็มปี ออกเป็น 2 ก้อนตามสัดส่วนจริง (เดิม semi = ครึ่งเท่ากันเป๊ะ, split_70_30/split_50_50 ใหม่ = ตามสัดส่วนที่ระบุ)
-function splitBigAmounts(fullAmount, paymentType, finType){
-  const ratio = getSplitRatio(paymentType);
-  return [roundInstallment(fullAmount*ratio[0], finType), roundInstallment(fullAmount*ratio[1], finType)];
-}
-// ข้อความสรุปยอดงวดใหญ่: ถ้าจ่ายครั้งเดียว/ปี โชว์ยอดเดียว, ถ้า 2 ครั้ง/ปีเท่ากัน (semi เดิม) โชว์ "ยอด × 2 ครั้ง",
-// ถ้า 2 ครั้ง/ปีแต่ไม่เท่ากัน (split_70_30/split_50_50 ใหม่) โชว์ "ยอด1 + ยอด2" ตรงตามจริง
-function formatBigLabel(fullAmount, paymentType, finType){
-  if(!isTwoBigPerYear(paymentType)) return fmt(roundInstallment(fullAmount, finType));
-  const [a1,a2] = splitBigAmounts(fullAmount, paymentType, finType);
-  return a1===a2 ? (fmt(a1)+' × 2 ครั้ง') : (fmt(a1)+' + '+fmt(a2));
-}
-// ยอด "งวดใหญ่ครั้งแรก" ของปี (ใช้แทนที่จุดที่โค้ดเดิมหาร /2 เฉพาะกรณี semi) — เดิม semi ครึ่งเท่ากันเป๊ะ
-// ตอนนี้ครอบคลุม split_70_30/split_50_50 ด้วย โดยใช้สัดส่วนจริง (ครั้งแรก = ratio[0])
-function firstBigAmount(fullAmount, paymentType, finType){
-  if(!isTwoBigPerYear(paymentType)) return roundInstallment(fullAmount, finType);
-  return splitBigAmounts(fullAmount, paymentType, finType)[0];
-}
-
-// Segment -> interest group mapping
-function getInterestGroup(brand, segment){
-  if(brand==='yanmar'){
-    if(segment==='RT') return 'rt';
-    if(segment==='YF,SW') return 'sw';
-    return 'general';
-  } else if(brand==='combine'){
-    if(segment==='RT') return 'rt';
-    if(segment==='YF,SW') return 'owner_combine';
-    if(segment==='Dry Crop') return 'owner_tractor';
-    return 'general';
-  } else {
-    if(segment==='Dry Crop') return 'dry_crop';
-    if(segment==='RT') return 'rt';
-    if(segment==='YF,SW') return 'sw';
-    return 'general';
-  }
-}
-
-function lookupInterest(brand, segment, years, paymentType){
-  const group = getInterestGroup(brand, segment);
-  const table = INTEREST_TABLE[brand]?.[group] || {};
-  const key = years + '_' + paymentType;
-  return table[key] ?? 0.0895;
-}
-
-function getAvailableYears(brand, segment){
-  const group = getInterestGroup(brand, segment);
-  return YEARS_OPTIONS[brand]?.[group] || [7];
-}
-function getAvailablePayments(brand, segment, years){
-  const group = getInterestGroup(brand, segment);
-  return PAYMENT_OPTIONS[brand]?.[group]?.[years] || ['annual'];
-}
-
-const USED_EQUIPMENT = {"yanmar": {"EF393A / EF393T-45th": [{"name": "ชุดใบมีด 1.60 ม. รุ่น EF39 (มือสอง)", "price": 35000}, {"name": "ผานบุกเบิก 4×22\" รุ่น EF39 (มือสอง)", "price": 28500}, {"name": "ผานพรวน 5×22\" รุ่น EF39 (มือสอง)", "price": 28500}, {"name": "ผานพรวน 6×22\" รุ่น EF39 (มือสอง)", "price": 29500}, {"name": "โรตารี่ 1.60 ม. รุ่น EF39 (มือสอง)", "price": 49000}, {"name": "เฉพาะใบดันดินหน้า 1.60 ม. (มือสอง)", "price": 7500}], "YM351R": [{"name": "ชุดใบมีด 1.80 ม. รุ่น YM351 (มือสอง)", "price": 45000}, {"name": "ผานพรวน 5×24\" รุ่น YM (มือสอง)", "price": 36500}, {"name": "ผานพรวน 6×24\" รุ่น YM (มือสอง)", "price": 37500}, {"name": "โรตารี่ 1.80 ม. รุ่น YM (มือสอง)", "price": 52500}, {"name": "เฉพาะใบดันดินหน้า 1.80 ม. (มือสอง)", "price": 8500}], "YM358R": [{"name": "ชุดใบมีด 1.80 ม. รุ่น YM358 (มือสอง)", "price": 45000}, {"name": "ผานพรวน 5×24\" รุ่น YM ยกเว้นล้อโต (มือสอง)", "price": 36500}, {"name": "ผานพรวน 6×24\" รุ่น YM ยกเว้นล้อโต (มือสอง)", "price": 37500}, {"name": "โรตารี่ 1.80 ม. รุ่น YM ยกเว้นล้อโต (มือสอง)", "price": 52500}, {"name": "เฉพาะใบดันดินหน้า 1.80 ม. (มือสอง)", "price": 8500}], "YM358R-L1": [{"name": "ชุดใบมีด 1.80 ม. รุ่น YM358 (มือสอง)", "price": 45000}, {"name": "เฉพาะใบดันดินหน้า 1.80 ม. (มือสอง)", "price": 8500}], "EF725T": []}, "solis": {}};
-USED_EQUIPMENT.combine = {};
-
-const EQUIPMENT = {"yanmar": {"EF393A / EF393T-45th": [{"name": "ใบมีดดันดินหน้า 1.60 ม.", "price": 55000}, {"name": "ผานบุกเบิก 22\"×4 ใบ", "price": 50000, "special": 42000}, {"name": "ผานพรวน 22\"×5 ใบ", "price": 47500, "special": 38000}, {"name": "ผานพรวน 22\"×6 ใบ", "price": 47500, "special": 39000}, {"name": "โรตารี่ 1.60 ม.", "price": 68900}, {"name": "เครื่องตัดหญ้า 1.20 ม.", "price": 31400}, {"name": "บุ้งกี๋ 3.4 ม.", "price": 177300}, {"name": "เครื่องอัดฟาง 1.35 ม.", "price": 500000}], "YM351R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM351R)", "price": 66100}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000, "special": 53000, "special_models": ["YM351R"]}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500, "special": 61000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000, "special": 58000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000, "special": 54000, "special_models": ["YM351R"]}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 182100}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 187300}], "YM358R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM358R)", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}, {"name": "เครื่องคีบอ้อย (YM358)", "price": 250000}], "YM358R-L1": [{"name": "ใบมีดดันดินหน้า 1.80 ม.", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "ผานพรวน 24\"×6 ใบ (กระบอกยันจานยาว 11\")", "price": 60000}, {"name": "โรตารี่ 2.00 ม.", "price": 78000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}, {"name": "เครื่องคีบอ้อย", "price": 250000}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}], "EF725T": [{"name": "ใบมีดดันดินหน้า 2.10 ม.", "price": 69000}, {"name": "ผานบุกเบิก 26\"×3 ใบ รุ่น EF725T", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ รุ่น EF725T", "price": 73600}, {"name": "โรตารี่ 2.20 ม. รุ่น EF725T", "price": 91400}]}, "solis": {"Solis 26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis22": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis30": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis30-45th": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis50-45th": [{"name": "ใบมีดดันดินหน้า 1.90 ม.", "price": 75000}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 64100}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "คีบอ้อย", "price": 250000}], "YM-Solis75": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000}], "YM-Solis75-45th": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000}], "YM-Solis 65": [], "YM-Solis90": [], "YM-Solis105-45th": [{"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (105 แรง)", "price": 95300}, {"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (110 แรง)", "price": 100200}, {"name": "ผานพรวน 26\"×8 ใบ", "price": 85520}, {"name": "ผานพรวนสับใบ", "price": 126400}, {"name": "วิปเปอร์ 3 ขา", "price": 122300}, {"name": "เครื่องปลูกอ้อย 2 แถว", "price": 109900}, {"name": "เครื่องตัดอ้อย", "price": 330000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}]}};
-EQUIPMENT.combine = {
-  "AW82V": [{"name":"ตัวถังอุ้ม","price":140000}],
-  "YH700": [{"name":"ตัวถังอุ้ม","price":140000}],
-  "YH700 Cabin": [{"name":"ตัวถังอุ้ม","price":140000}],
-  "YH850GUW 2.3": [{"name":"ตัวถังอุ้ม","price":140000}],
-  "YH850 Cabin": [{"name":"ตัวถังอุ้ม","price":140000}],
-  "YH1180G26WU-TH": [{"name":"ตัวถังอุ้ม","price":140000}]
-};
-const fmt = n => (n===null||n===undefined) ? '—' : n.toLocaleString('th-TH', {maximumFractionDigits:0});
-const fmtPct = n => (n*100).toFixed(2).replace(/\.00$/,'') + '%';
-function roundInstallment(n, finType){
-  const floor = Math.floor(n);
-  const threshold = (finType === 'R') ? 0.5 : 0.6; // F (ค่าเริ่มต้น) = ปัดขึ้นที่ 0.6, R = ปัดขึ้นที่ 0.5
-  return (n - floor) >= threshold ? floor + 1 : floor;
-}
-const STANDARD9_GIFTS = [
-  'กล่องเครื่องมือ 1 ชุด','กระบอกอัดจาระบี 1 อัน',
-  'แม่แรงกระปุก 2 ตัน 1 ชุด','ชุดประแจ 1 ชุด',
-  'ด้ามบ็อก + ลูกบ็อก 1 ชุด','สายอ่อนไนล่อนอัดจารบี 12 นิ้ว 1 ชิ้น',
-  'เสื้อยืดแขนยาว 1 ตัว','เสื้อคอโปโล 1 ตัว','น้ำมันเครื่อง 1L 1 แกลลอน'
-];
-// Special gifts = ทอง, เบียร์, น้ำอัดลม, กระจังหน้า/ปลายท่อ → checkbox
-function isCommonGift(g){
-  return STANDARD9_GIFTS.includes(g);
-}
-function isSpecialGift(g){ return !isCommonGift(g); }
-function deltaBadge(diff, goodIfPositive){
-  if(diff===0) return '';
-  const good = goodIfPositive ? diff>0 : diff<0;
-  const cls = good ? 'delta-good' : 'delta-bad';
-  const sign = diff>0 ? '+' : '';
-  const arrow = diff>0 ? '▲' : '▼';
-  return `<span class="delta ${cls}">${arrow} ${sign}${fmt(diff)}</span>`;
-}
-
-
-const CRITERIA_INFO = {
-  'ทั่วไป': [],
-  'YF,SW': [
-    {title:'เกณฑ์ YF (ยันม่าร์แฟน) — มีรถ Yanmar อยู่แล้ว', points:[
-      'มีเอกสารแสดงว่าเป็นเจ้าของ/ผู้ครอบครองรถแทรกเตอร์ รถเกี่ยวนวดข้าว หรือรถขุด ยี่ห้อ Yanmar (ทะเบียนรถ/สัญญาเช่าซื้อ/ใบเสร็จค่างวด)',
-      'โอนสิทธิ์ให้ญาติสายตรงได้ (คู่สมรส/พ่อแม่/ลูก/พี่น้อง) ต้องมีเอกสารแสดงความสัมพันธ์ — โอนให้พี่น้องเจ้าของสิทธิ์ต้องค้ำประกัน',
-      'โอนสิทธิ์ได้ทั้งโปรลดดอกเบี้ยและโปรสนับสนุนเงินดาวน์'
-    ]},
-    {title:'เกณฑ์ SW (เปลี่ยนยี่ห้อ) — เพิ่งเปลี่ยนจากยี่ห้ออื่นมา Yanmar', points:[
-      'มีเอกสารแสดงว่าเป็นเจ้าของรถแทรกเตอร์ทุกยี่ห้อ หรือรถเกี่ยวนวดข้าวคูโบต้า (ทะเบียนรถ + สัญญาเช่าซื้อ/ใบเสร็จล่าสุด)',
-      'ถ้ายังผ่อนอยู่ ต้องเหลือผ่อน ≤2 ปี (รถแทรกเตอร์ทุกยี่ห้อ) หรือ ≤1 ปี (รถเกี่ยวคูโบต้า)',
-      'ถ้าไม่มีหลักฐาน ต้องผ่านการตรวจสอบและรับรองจากเจ้าหน้าที่ภาคสนาม YCT',
-      'โอนสิทธิ์ให้ญาติสายตรงได้ เจ้าของสิทธิ์ต้องค้ำประกัน (รายได้ไม่ถูกนำมาคำนวณสินเชื่อ)'
-    ]},
-  ],
-  'Dry Crop': [],
-  'RT': [
-    {title:'เกณฑ์ RT (ลูกค้าเก่าชั้นดี - Retention)', points:[
-      'ลูกค้าต้องมีจดหมายเชิญจาก YCT ระบุชื่อผู้ได้รับสิทธิ์ ต้องเป็นชื่อเดียวกับผู้ขอสินเชื่อ',
-      'โอนสิทธิ์ให้ญาติสายตรงได้ (คู่สมรส/พ่อ/แม่/พี่/น้อง/ลูก) — โอนให้พี่น้อง เจ้าของสิทธิ์ต้องค้ำประกัน',
-      'ต้องมีหลักฐานแสดงความสัมพันธ์ เช่น ทะเบียนบ้าน/ทะเบียนสมรส กรณีโอนสิทธิ์',
-      'ใช้ร่วมกับโปรแกรมสินเชื่อพิเศษอื่นไม่ได้'
-    ]},
-  ],
-};
-CRITERIA_INFO['combine_ทั่วไป'] = [];
-CRITERIA_INFO['combine_YF,SW'] = [{title:'เกณฑ์ลูกค้ามีรถเกี่ยวยันม่าร์/คูโบต้าอยู่แล้ว', points:[
-  'แสดงหลักฐานเล่มทะเบียนรถ หรือสัญญาเช่าซื้อกรณียังไม่หมดงวด',
-  'กรณีลูกค้าครอบครองรถเกี่ยวที่ยังผ่อนชำระ ต้องเหลือไม่เกิน 2 งวด'
-]}];
-CRITERIA_INFO['combine_Dry Crop'] = [{title:'เกณฑ์ลูกค้ามีรถแทรกเตอร์ยันม่าร์ หรือย้ายค่ายจาก 5 ยี่ห้อ', points:[
-  'แสดงหลักฐานเล่มทะเบียนรถ หรือสัญญาเช่าซื้อกรณียังไม่หมดงวด',
-  'กรณีลูกค้าครอบครองรถแทรกเตอร์ยันม่าร์ที่ยังผ่อนชำระ ต้องเหลือไม่เกิน 3 งวด'
-]}];
-CRITERIA_INFO['combine_RT'] = [];
-
-function renderCriteria(){
-  const key = currentBrand==='combine' ? ('combine_'+currentSegment) : currentSegment;
-  const blocks = CRITERIA_INFO[key] || [];
-  const criteriaInfo = document.getElementById('criteriaInfo');
-  if(blocks.length===0){ criteriaInfo.innerHTML = ''; return; }
-  criteriaInfo.innerHTML = `<details class="criteria-box"><summary>เกณฑ์การเข้ากลุ่มนี้ (เอกสาร/เงื่อนไข)</summary>
-    ${blocks.map(b=>`<div class="criteria-block"><div class="ct">${b.title}</div><ul>${b.points.map(p=>`<li>${p}</li>`).join('')}</ul></div>`).join('')}
-  </details>`;
-}
-
-// ตารางเทียบ "มีที่ดินกี่ไร่ ปลดล็อกโปรอะไรได้บ้าง" เรียงจากน้อยไปมาก ช่วยให้เลือกโปรที่เหมาะกับลูกค้าได้เร็วขึ้น
-// ใช้เฉพาะ segment "ทั่วไป" เพราะเป็น segment เดียวที่มีเงื่อนไขเรื่องจำนวนไร่เข้ามาเกี่ยวข้อง
-const LAND_REF_TABLE = {
-  yanmar: [
-    {rai:'20 ไร่ขึ้นไป', note:'เฉพาะลูกค้า กอช.', unlock:'โปร 25%'},
-    {rai:'30 ไร่ขึ้นไป', note:'ลูกค้าทั่วไป', unlock:'โปร 25%'},
-    {rai:'40 ไร่ขึ้นไป', note:'ตนเอง+เช่ารวมกัน (ไม่รวมพื้นที่คนอื่น)', unlock:'โปร 30% (หรือเข้าทาง ธกส 3A/ผู้นำชุมชน/โรงงานน้ำตาลก็ได้เหมือนกัน)'},
-  ],
-  solis: [
-    {rai:'20 ไร่ขึ้นไป', note:'เฉพาะลูกค้า กอช.', unlock:'โปร 25%'},
-    {rai:'30 ไร่ขึ้นไป', note:'ลูกค้าทั่วไป', unlock:'โปร 25%'},
-  ],
-};
-function renderLandRef(){
-  const box = document.getElementById('landRefInfo');
-  if(!box) return;
-  if(currentSegment !== 'ทั่วไป'){ box.innerHTML = ''; return; }
-  const rows = LAND_REF_TABLE[currentBrand] || [];
-  if(!rows.length){ box.innerHTML = ''; return; }
-  box.innerHTML = `<details class="criteria-box">
-    <summary>📏 มีที่ดินกี่ไร่ ปลดล็อกโปรไหนได้บ้าง (${currentBrand==='yanmar'?'Yanmar':'Solis'})</summary>
-    <table class="land-ref-table">
-      <thead><tr><th>จำนวนไร่</th><th>เงื่อนไข</th><th>ปลดล็อกโปร</th></tr></thead>
-      <tbody>
-        ${rows.map(r=>`<tr><td><b>${r.rai}</b></td><td>${r.note}</td><td>${r.unlock}</td></tr>`).join('')}
-      </tbody>
-    </table>
-    <div style="font-size:10.5px;color:var(--ink-soft);margin-top:4px">*ยิ่งที่ดินเยอะ ยิ่งเข้าเงื่อนไขโปรที่ให้มากขึ้นด้วย (ไม่ได้แปลว่ามีน้อยกว่านี้แล้วปลดล็อกไม่ได้เลย — ให้ดูเงื่อนไขแต่ละโปรอีกที)</div>
-  </details>`;
-}
-
-let currentBrand = 'yanmar';
-let currentSegment = 'ทั่วไป';
-let yfSwSubType = null; // 'Yanmar Fan' | 'Switching' — เลือกเฉพาะตอน currentSegment==='YF,SW' และ currentBrand!=='combine' (ใช้แยกกลุ่มลูกค้าสำหรับ CRM แม้ราคาจะเท่ากัน)
-let extraDown = 0;           // แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (บวกเพิ่มบนยอดดาวน์รวม ไม่แตะสนับสนุน ลดเฉพาะยอดจัดไฟแนนซ์)
-let custSubForSupport = 0;   // แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน)
-let minorInstallment = 2000;
-let minorMode = 'normal'; // 'normal' | 'advance' | 'with_down'
-let toggleState = {land30:false, baac:false};
-
-const modelSelect = document.getElementById('modelSelect');
-const segmentToggle = document.getElementById('segmentToggle');
-const togglesContainer = document.getElementById('togglesContainer');
-const priceValue = document.getElementById('priceValue');
-const summarySupport = document.getElementById('summarySupport');
-const summaryCust = document.getElementById('summaryCust');
-const results = document.getElementById('results');
-const minorInstallmentInput = document.getElementById('minorInstallmentInput');
-
-const TOGGLE_DEFS = {
-  yanmar: {
-    'ทั่วไป': [
-      {key:'land30', label:'มีพื้นที่(ตนเอง/เช่า) รวม 30 ไร่ขึ้นไป (กอช. 20 ไร่)', unlock:'ปลดล็อกโปร 25%'},
-      {key:'baac', label:'ธกส 3A / ผู้นำชุมชน / โรงงานน้ำตาล / หรือที่ดิน 40 ไร่ขึ้นไป', unlock:'ปลดล็อกโปร 30%'},
+// ============================================================
+// RST Promo Finder — ข้อมูลราคา/โปรโมชั่นทั้งหมด (แยกออกมาจากไฟล์หลัก)
+// แก้ไขไฟล์นี้ไฟล์เดียวเวลาราคา/เงื่อนไข/YCT เปลี่ยน ไม่ต้องเปิดไฟล์ HTML หลักเลย
+// โครงสร้าง: DATA.yanmar / DATA.solis แต่ละยี่ห้อมี models (รายชื่อรุ่น) และ programs (รายการโปรแต่ละโปร)
+// แต่ละ program มี entries เป็นราคา/ยอดดาวน์/YCT/YSP ต่อรุ่น ตามเงื่อนไขของโปรนั้นๆ
+// อัปเดตล่าสุด: 13/7/2569 — ตัดโปร "ทั่วไป 30%" (y_general30) ออก (เลิกใช้แล้ว) + แก้เงื่อนไข Bob 30% ที่ตกหล่นให้ครบ
+// ============================================================
+const DATA = {
+  "yanmar": {
+    "models": [
+      "EF393A / EF393T-45th",
+      "YM351R",
+      "YM358R",
+      "YM358R-L1",
+      "EF725T"
     ],
-    'YF,SW': [],
-    'RT': [],
+    "programs": [
+      {
+        "id": "y_general",
+        "name": "ทั่วไป (ไม่เข้าเงื่อนไขพิเศษ)",
+        "groups": [
+          "ทั่วไป"
+        ],
+        "conditions": [
+          "ไม่มีของแถม / มีของแถมตามรายการเซตมาตรฐาน",
+          "สำหรับลูกค้าทั่วไปที่ไม่เข้าเกณฑ์โปรพิเศษอื่น"
+        ],
+        "entries": {
+          "EF393A": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 32500,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 59500,
+            "total": 467000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 884965.0,
+            "annual": 88496.5
+          },
+          "EF393T-45th": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 32500,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 59500,
+            "total": 467000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 884965.0,
+            "annual": 88496.5
+          },
+          "YM351R": {
+            "price": 733000,
+            "down": 147000,
+            "yct": 43500,
+            "fire": 30000,
+            "customer_out": 0,
+            "rst": 73500,
+            "total": 586000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1110470.0,
+            "annual": 111047.0
+          },
+          "YM358R": {
+            "price": 831000,
+            "down": 167000,
+            "yct": 44000,
+            "fire": 50000,
+            "customer_out": 0,
+            "rst": 73000,
+            "total": 664000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1258280.0,
+            "annual": 125828.0
+          },
+          "YM358R-L1": {
+            "price": 892000,
+            "down": 179000,
+            "yct": 47000,
+            "customer_out": 15000,
+            "rst": 117000,
+            "total": 713000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1351135.0,
+            "annual": 135113.5
+          },
+          "EF725T": {
+            "price": 1072000,
+            "down": 215000,
+            "yct": 65000,
+            "fire": 35000,
+            "customer_out": 0,
+            "rst": 115000,
+            "total": 857000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1624015.0,
+            "annual": 162401.5
+          }
+        },
+        "gifts": [
+          "ทองครึ่งสลึง 1 เส้น",
+          "เบียร์ 1 ลัง",
+          "น้ำอัดลม 1 แพค",
+          "กล่องเครื่องมือ 1 ชุด",
+          "กระบอกอัดจาระบี 1 อัน",
+          "แม่แรงกระปุก 2 ตัน 1 ชุด",
+          "ชุดประแจ 1 ชุด",
+          "ด้ามบ็อก + ลูกบ็อก 1 ชุด",
+          "สายอ่อนไนล่อนอัดจารบี 12 นิ้ว 1 ชิ้น",
+          "เสื้อยืดแขนยาว 1 ตัว",
+          "เสื้อคอโปโล 1 ตัว",
+          "น้ำมันเครื่อง 1L 1 แกลลอน",
+          "กระจังหน้า/ปลายท่อ (อย่างใดอย่างนึง) เคสต่อรอง **"
+        ]
+      },
+      {
+        "id": "y_target_general",
+        "name": "Target - ทั่วไป (มีพื้นที่ทำกิน)",
+        "groups": [
+          "ทั่วไป(มีที่ทำกิน)"
+        ],
+        "conditions": [
+          "ผู้สมัครต้องมีพื้นที่เพาะปลูกพืชทางการเกษตร (ไม่จำกัดชนิดพืช) อย่างน้อย 50 ไร่ โดยถือครองกรรมสิทธิ์ของตนเองหรือเช่า",
+          "สามารถนำพื้นที่ทำกินของญาติสายตรงมารวมได้"
+        ],
+        "entries": {
+          "EF393A": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 32500,
+            "ysp": 25000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 34500,
+            "total": 467000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 884965.0,
+            "annual": 88496.5
+          },
+          "EF393T-45th": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 32500,
+            "ysp": 25000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 34500,
+            "total": 467000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 884965.0,
+            "annual": 88496.5
+          },
+          "YM351R": {
+            "price": 733000,
+            "down": 147000,
+            "yct": 43500,
+            "ysp": 30000,
+            "fire": 30000,
+            "customer_out": 0,
+            "rst": 43500,
+            "total": 586000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1110470.0,
+            "annual": 111047.0
+          },
+          "YM358R": {
+            "price": 831000,
+            "down": 167000,
+            "yct": 44000,
+            "ysp": 35000,
+            "fire": 50000,
+            "customer_out": 0,
+            "rst": 38000,
+            "total": 664000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1258280.0,
+            "annual": 125828.0
+          },
+          "YM358R-L1": {
+            "price": 892000,
+            "down": 179000,
+            "yct": 47000,
+            "ysp": 45000,
+            "customer_out": 0,
+            "rst": 87000,
+            "total": 713000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1351135.0,
+            "annual": 135113.5
+          },
+          "EF725T": {
+            "price": 1072000,
+            "down": 215000,
+            "yct": 65000,
+            "ysp": 45000,
+            "fire": 35000,
+            "customer_out": 0,
+            "rst": 70000,
+            "total": 857000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1624015.0,
+            "annual": 162401.5
+          }
+        },
+        "gifts": [
+          "ทองครึ่งสลึง 1 เส้น",
+          "เบียร์ 1 ลัง",
+          "น้ำอัดลม 1 แพค",
+          "กล่องเครื่องมือ 1 ชุด",
+          "กระบอกอัดจาระบี 1 อัน",
+          "แม่แรงกระปุก 2 ตัน 1 ชุด",
+          "ชุดประแจ 1 ชุด",
+          "ด้ามบ็อก + ลูกบ็อก 1 ชุด",
+          "สายอ่อนไนล่อนอัดจารบี 12 นิ้ว 1 ชิ้น",
+          "เสื้อยืดแขนยาว 1 ตัว",
+          "เสื้อคอโปโล 1 ตัว",
+          "น้ำมันเครื่อง 1L 1 แกลลอน",
+          "กระจังหน้า/ปลายท่อ (อย่างใดอย่างนึง) เคสต่อรอง **"
+        ]
+      },
+      {
+        "id": "y_target_rt",
+        "name": "Target - RT",
+        "groups": [
+          "RT"
+        ],
+        "conditions": [
+          "ไม่กำหนดจำนวนไร่"
+        ],
+        "entries": {
+          "EF393A": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 67000,
+            "ysp": 35000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": -10000,
+            "total": 467000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 875625.0,
+            "annual": 87562.5
+          },
+          "EF393T-45th": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 67000,
+            "ysp": 35000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": -10000,
+            "total": 467000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 875625.0,
+            "annual": 87562.5
+          },
+          "YM351R": {
+            "price": 733000,
+            "down": 147000,
+            "yct": 82000,
+            "ysp": 40000,
+            "fire": 30000,
+            "customer_out": 0,
+            "rst": -5000,
+            "total": 586000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1098750.0,
+            "annual": 109875.0
+          },
+          "YM358R": {
+            "price": 831000,
+            "down": 167000,
+            "yct": 98000,
+            "ysp": 50000,
+            "fire": 50000,
+            "customer_out": 0,
+            "rst": -31000,
+            "total": 664000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1245000.0,
+            "annual": 124500.0
+          },
+          "YM358R-L1": {
+            "price": 892000,
+            "down": 179000,
+            "yct": 92000,
+            "ysp": 70000,
+            "customer_out": 0,
+            "rst": 17000,
+            "total": 713000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1336875.0,
+            "annual": 133687.5
+          },
+          "EF725T": {
+            "price": 1072000,
+            "down": 215000,
+            "yct": 108000,
+            "ysp": 50000,
+            "fire": 35000,
+            "customer_out": 0,
+            "rst": 22000,
+            "total": 857000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1606875.0,
+            "annual": 160687.5
+          }
+        },
+        "gifts": [
+          "ทองครึ่งสลึง 1 เส้น",
+          "เบียร์ 1 ลัง",
+          "น้ำอัดลม 1 แพค",
+          "กล่องเครื่องมือ 1 ชุด",
+          "กระบอกอัดจาระบี 1 อัน",
+          "แม่แรงกระปุก 2 ตัน 1 ชุด",
+          "ชุดประแจ 1 ชุด",
+          "ด้ามบ็อก + ลูกบ็อก 1 ชุด",
+          "สายอ่อนไนล่อนอัดจารบี 12 นิ้ว 1 ชิ้น",
+          "เสื้อยืดแขนยาว 1 ตัว",
+          "เสื้อคอโปโล 1 ตัว",
+          "น้ำมันเครื่อง 1L 1 แกลลอน",
+          "กระจังหน้า/ปลายท่อ (อย่างใดอย่างนึง) เคสต่อรอง **"
+        ]
+      },
+      {
+        "id": "y_target_yfsw",
+        "name": "Target - YF, SW",
+        "groups": [
+          "YF,SW"
+        ],
+        "conditions": [
+          "ไม่กำหนดจำนวนไร่"
+        ],
+        "entries": {
+          "EF393A": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 54000,
+            "ysp": 30000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 8000,
+            "total": 467000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 875625.0,
+            "annual": 87562.5
+          },
+          "EF393T-45th": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 54000,
+            "ysp": 30000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 8000,
+            "total": 467000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 875625.0,
+            "annual": 87562.5
+          },
+          "YM351R": {
+            "price": 733000,
+            "down": 147000,
+            "yct": 64500,
+            "ysp": 35000,
+            "fire": 30000,
+            "customer_out": 0,
+            "rst": 17500,
+            "total": 586000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1098750.0,
+            "annual": 109875.0
+          },
+          "YM358R": {
+            "price": 831000,
+            "down": 167000,
+            "yct": 75500,
+            "ysp": 40000,
+            "fire": 50000,
+            "customer_out": 0,
+            "rst": 1500,
+            "total": 664000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1245000.0,
+            "annual": 124500.0
+          },
+          "YM358R-L1": {
+            "price": 892000,
+            "down": 179000,
+            "yct": 80000,
+            "ysp": 60000,
+            "customer_out": 0,
+            "rst": 39000,
+            "total": 713000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1336875.0,
+            "annual": 133687.5
+          },
+          "EF725T": {
+            "price": 1072000,
+            "down": 215000,
+            "yct": 108000,
+            "ysp": 50000,
+            "fire": 35000,
+            "customer_out": 0,
+            "rst": 22000,
+            "total": 857000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1606875.0,
+            "annual": 160687.5
+          }
+        },
+        "gifts": [
+          "ทองครึ่งสลึง 1 เส้น",
+          "เบียร์ 1 ลัง",
+          "น้ำอัดลม 1 แพค",
+          "กล่องเครื่องมือ 1 ชุด",
+          "กระบอกอัดจาระบี 1 อัน",
+          "แม่แรงกระปุก 2 ตัน 1 ชุด",
+          "ชุดประแจ 1 ชุด",
+          "ด้ามบ็อก + ลูกบ็อก 1 ชุด",
+          "สายอ่อนไนล่อนอัดจารบี 12 นิ้ว 1 ชิ้น",
+          "เสื้อยืดแขนยาว 1 ตัว",
+          "เสื้อคอโปโล 1 ตัว",
+          "น้ำมันเครื่อง 1L 1 แกลลอน",
+          "กระจังหน้า/ปลายท่อ (อย่างใดอย่างนึง) เคสต่อรอง **"
+        ]
+      },
+      {
+        "id": "y_bob25",
+        "name": "โปร 25%",
+        "groups": [
+          "General"
+        ],
+        "conditions": [
+          "RT, YF ไม่กำหนดพื้นที่ทำกิน",
+          "SW, ทั่วไป ที่ทำกินไม่น้อยกว่า 30 ไร่",
+          "ลูกค้า กอช. ที่ทำกินไม่ต่ำกว่า 20 ไร่"
+        ],
+        "models_subset": [
+          "EF393T 45th",
+          "YM351R",
+          "YM358R",
+          "YM358R-L1"
+        ],
+        "entries": {
+          "EF393T 45th | General": {
+            "price": 584000,
+            "down": 146000,
+            "yct": 32500,
+            "ysp": 25000,
+            "fire": 38500,
+            "customer_out": 0,
+            "rst": 50000,
+            "total": 438000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 830010.0,
+            "annual": 83001.0
+          },
+          "YM351R | General": {
+            "price": 733000,
+            "down": 184000,
+            "yct": 43500,
+            "ysp": 30000,
+            "fire": 47500,
+            "customer_out": 0,
+            "rst": 63000,
+            "total": 549000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1040355.0,
+            "annual": 104035.5
+          },
+          "YM358R | General": {
+            "price": 831000,
+            "down": 208000,
+            "yct": 44000,
+            "ysp": 35000,
+            "fire": 58000,
+            "customer_out": 0,
+            "rst": 71000,
+            "total": 623000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1180585.0,
+            "annual": 118058.5
+          },
+          "YM358R-L1 | General": {
+            "price": 892000,
+            "down": 223000,
+            "yct": 47000,
+            "ysp": 45000,
+            "fire": 55000,
+            "customer_out": 0,
+            "rst": 76000,
+            "total": 669000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1267755.0,
+            "annual": 126775.5
+          }
+        },
+        "gifts": [
+          "ทองครึ่งสลึง 1 เส้น",
+          "เบียร์ 1 ลัง",
+          "น้ำอัดลม 1 แพค",
+          "กล่องเครื่องมือ 1 ชุด",
+          "กระบอกอัดจาระบี 1 อัน",
+          "แม่แรงกระปุก 2 ตัน 1 ชุด",
+          "ชุดประแจ 1 ชุด",
+          "ด้ามบ็อก + ลูกบ็อก 1 ชุด",
+          "สายอ่อนไนล่อนอัดจารบี 12 นิ้ว 1 ชิ้น",
+          "เสื้อยืดแขนยาว 1 ตัว",
+          "เสื้อคอโปโล 1 ตัว",
+          "น้ำมันเครื่อง 1L 1 แกลลอน",
+          "กระจังหน้า/ปลายท่อ (อย่างใดอย่างนึง) เคสต่อรอง **"
+        ]
+      },
+      {
+        "id": "y_bob30",
+        "name": "โปร 30%",
+        "groups": [
+          "General",
+          "YF,SW",
+          "RT"
+        ],
+        "conditions": [
+          "1. ลูกค้าผู้นำชุมชน กำนัน รอง ผู้ช่วย ฯลฯ",
+          "2. โรงงานน้ำตาล ฯลฯ",
+          "3. ลูกค้า ธกส 3A, 3A+",
+          "4. ลูกค้ากลุ่ม RT,YF,SW",
+          "5. ลูกค้ามีพื้นที่ทำกินอย่างน้อย 40 ไร่ ที่ของตนเองรวมที่เช่า (ไม่สามารถนำพื้นที่ของผู้อื่นมารวมได้)"
+        ],
+        "models_subset": [
+          "EF393T 45th",
+          "YM351R",
+          "YM358R",
+          "YM358R-L1"
+        ],
+        "entries": {
+          "EF393T 45th | General": {
+            "price": 584000,
+            "down": 176000,
+            "yct": 32500,
+            "ysp": 93500,
+            "customer_out": 0,
+            "rst": 50000,
+            "total": 408000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 773160.0,
+            "annual": 77316.0
+          },
+          "EF393T 45th | YF,SW": {
+            "price": 584000,
+            "down": 176000,
+            "yct": 54000,
+            "ysp": 78000,
+            "customer_out": 0,
+            "rst": 44000,
+            "total": 408000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 765000.0,
+            "annual": 76500.0
+          },
+          "EF393T 45th | RT": {
+            "price": 584000,
+            "down": 176000,
+            "yct": 67000,
+            "ysp": 65000,
+            "customer_out": 0,
+            "rst": 44000,
+            "total": 408000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 765000.0,
+            "annual": 76500.0
+          },
+          "YM351R | General": {
+            "price": 733000,
+            "down": 220000,
+            "yct": 43500,
+            "ysp": 113500,
+            "customer_out": 0,
+            "rst": 63000,
+            "total": 513000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 972135.0,
+            "annual": 97213.5
+          },
+          "YM351R | YF,SW": {
+            "price": 733000,
+            "down": 220000,
+            "yct": 64500,
+            "ysp": 100500,
+            "customer_out": 0,
+            "rst": 55000,
+            "total": 513000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 961875.0,
+            "annual": 96187.5
+          },
+          "YM351R | RT": {
+            "price": 733000,
+            "down": 220000,
+            "yct": 82000,
+            "ysp": 83000,
+            "customer_out": 0,
+            "rst": 55000,
+            "total": 513000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 961875.0,
+            "annual": 96187.5
+          },
+          "YM358R | General": {
+            "price": 831000,
+            "down": 250000,
+            "yct": 44000,
+            "ysp": 135000,
+            "customer_out": 0,
+            "rst": 71000,
+            "total": 581000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1100995.0,
+            "annual": 110099.5
+          },
+          "YM358R | YF,SW": {
+            "price": 831000,
+            "down": 250000,
+            "yct": 75500,
+            "ysp": 109000,
+            "customer_out": 0,
+            "rst": 65500,
+            "total": 581000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1089375.0,
+            "annual": 108937.5
+          },
+          "YM358R | RT": {
+            "price": 831000,
+            "down": 250000,
+            "yct": 98000,
+            "ysp": 86500,
+            "customer_out": 0,
+            "rst": 65500,
+            "total": 581000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1089375.0,
+            "annual": 108937.5
+          },
+          "YM358R-L1 | General": {
+            "price": 892000,
+            "down": 268000,
+            "yct": 47000,
+            "ysp": 145000,
+            "customer_out": 0,
+            "rst": 76000,
+            "total": 624000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1182480.0,
+            "annual": 118248.0
+          },
+          "YM358R-L1 | YF,SW": {
+            "price": 892000,
+            "down": 268000,
+            "yct": 80000,
+            "ysp": 121000,
+            "customer_out": 0,
+            "rst": 67000,
+            "total": 624000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1170000.0,
+            "annual": 117000.0
+          },
+          "YM358R-L1 | RT": {
+            "price": 892000,
+            "down": 268000,
+            "yct": 92000,
+            "ysp": 109000,
+            "customer_out": 0,
+            "rst": 67000,
+            "total": 624000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1170000.0,
+            "annual": 117000.0
+          }
+        },
+        "gifts": [
+          "ทองครึ่งสลึง 1 เส้น",
+          "เบียร์ 1 ลัง",
+          "น้ำอัดลม 1 แพค",
+          "กล่องเครื่องมือ 1 ชุด",
+          "กระบอกอัดจาระบี 1 อัน",
+          "แม่แรงกระปุก 2 ตัน 1 ชุด",
+          "ชุดประแจ 1 ชุด",
+          "ด้ามบ็อก + ลูกบ็อก 1 ชุด",
+          "สายอ่อนไนล่อนอัดจารบี 12 นิ้ว 1 ชิ้น",
+          "เสื้อยืดแขนยาว 1 ตัว",
+          "เสื้อคอโปโล 1 ตัว",
+          "น้ำมันเครื่อง 1L 1 แกลลอน",
+          "กระจังหน้า/ปลายท่อ (อย่างใดอย่างนึง) เคสต่อรอง **"
+        ]
+      },
+      {
+        "id": "y_358",
+        "name": "358 Special (เฉพาะ YM358R)",
+        "groups": [
+          "ทั่วไป"
+        ],
+        "conditions": [
+          "ต้องมีที่ทำกินมากกว่า 20 ไร่",
+          "เปิดที่ 25% ฟรีดาวน์ แล้วรอดูเงื่อนไขจาก YCT",
+          "กรณีลูกค้ามีเงิน ยอมจ่ายดาวน์มากขึ้น (35%/38%) จะได้ YSP Top up เพิ่ม"
+        ],
+        "models_subset": [
+          "YM358R"
+        ],
+        "entries": {
+          "38% (Down 316,000)": {
+            "price": 831000,
+            "down": 316000,
+            "yct": 44000,
+            "ysp": 35000,
+            "ysp_topup": 116000,
+            "customer_out": 30000,
+            "rst": 91000,
+            "total": 515000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 975925,
+            "annual": 97592.5
+          },
+          "25% (Down 208,000)": {
+            "price": 831000,
+            "down": 208000,
+            "yct": 44000,
+            "ysp": 35000,
+            "ysp_topup": 35000,
+            "customer_out": 0,
+            "rst": 94000,
+            "total": 623000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1180585,
+            "annual": 118058.5
+          },
+          "30% (Down 250,000)": {
+            "price": 831000,
+            "down": 250000,
+            "yct": 44000,
+            "ysp": 35000,
+            "ysp_topup": 65000,
+            "customer_out": 15000,
+            "rst": 91000,
+            "total": 581000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1100995,
+            "annual": 110099.5
+          },
+          "35% (Down 291,000)": {
+            "price": 831000,
+            "down": 291000,
+            "yct": 44000,
+            "ysp": 35000,
+            "ysp_topup": 95000,
+            "customer_out": 20000,
+            "rst": 97000,
+            "total": 540000,
+            "interest": 0.0895,
+            "years": 10,
+            "total_payback": 1023300,
+            "annual": 102330
+          }
+        }
+      },
+      {
+        "id": "y_tradein",
+        "name": "Trade-in 20% (เกรดรถเก่า)",
+        "groups": [
+          "Trade-in"
+        ],
+        "conditions": [
+          "ต้องมีเอกสารแสดงกรรมสิทธิ์รถเดิม + เอกสารแสดงเกรดรถ",
+          "เกรด AA, AAA: ดอกเบี้ย 8% ผ่อน 8/10 ปี",
+          "เกรด B, A: ดอกเบี้ย 8.5% ผ่อน 9/10 ปี"
+        ],
+        "entries": {
+          "EF393A": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 54000,
+            "ysp": 27000,
+            "rst": 36000
+          },
+          "EF393T-45th": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 54000,
+            "ysp": 27000,
+            "rst": 36000
+          },
+          "YM351R": {
+            "price": 733000,
+            "down": 147000,
+            "yct": 64500,
+            "ysp": 40500,
+            "rst": 42000
+          },
+          "YM358R": {
+            "price": 831000,
+            "down": 167000,
+            "yct": 75500,
+            "ysp": 46500,
+            "rst": 45000
+          },
+          "YM358R-L1": {
+            "price": 892000,
+            "down": 179000,
+            "yct": 80000,
+            "ysp": 58000,
+            "rst": 41000
+          },
+          "EF725T": {
+            "price": 1072000,
+            "down": 215000,
+            "yct": 108000,
+            "ysp": 54000,
+            "rst": 53000
+          }
+        }
+      }
+    ]
   },
-  solis: {
-    'ทั่วไป': [
-      {key:'land30', label:'มีพื้นที่(ตนเอง/เช่า) รวม 30 ไร่ขึ้นไป (กอช. 20 ไร่)', unlock:'ปลดล็อกโปร 25%'},
-      {key:'baac', label:'ธกส 3A / ผู้นำชุมชน / โรงงานน้ำตาล', unlock:'ปลดล็อกโปร 30%'},
+  "solis": {
+    "models": [
+      "Solis 26",
+      "Solis26",
+      "YM-Solis22",
+      "YM-Solis26",
+      "YM-Solis30",
+      "YM-Solis30-45th",
+      "YM-Solis50",
+      "YM-Solis50-45th",
+      "YM-Solis 65",
+      "YM-Solis75",
+      "YM-Solis75-45th",
+      "YM-Solis90",
+      "YM-Solis105",
+      "YM-Solis 105 Cabin"
     ],
-    'YF,SW': [],
-    'RT': [],
+    "programs": [
+      {
+        "id": "s_general",
+        "name": "ไม่เข้าเงื่อนไข (ทั่วไป)",
+        "groups": [
+          "ทั่วไป"
+        ],
+        "conditions": [
+          "ดอกเบี้ย 8.95%, ผ่อน 7 ปี (โดยทั่วไป)"
+        ],
+        "entries": {
+          "Solis 26": {
+            "price": 339000,
+            "down": 85000,
+            "yct": 19000,
+            "customer_out": 20000,
+            "rst": 46000,
+            "total": 254000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 413130.97,
+            "annual": 59018.71
+          },
+          "Solis26": {
+            "price": 339000,
+            "down": 85000,
+            "yct": 19000,
+            "customer_out": 30000,
+            "rst": 36000,
+            "total": 254000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 413130.97,
+            "annual": 59018.71
+          },
+          "YM-Solis22": {
+            "price": 312000,
+            "down": 78000,
+            "yct": 21000,
+            "fire": 15000,
+            "customer_out": 0,
+            "rst": 42000,
+            "total": 234000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 380600.99,
+            "annual": 54371.57
+          },
+          "YM-Solis26": {
+            "price": 380000,
+            "down": 95000,
+            "yct": 24500,
+            "fire": 15000,
+            "customer_out": 0,
+            "rst": 55500,
+            "total": 285000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 463552.53,
+            "annual": 66221.79
+          },
+          "YM-Solis30": {
+            "price": 427000,
+            "down": 86000,
+            "yct": 27000,
+            "fire": 15000,
+            "customer_out": 0,
+            "rst": 44000,
+            "total": 341000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 554636.53,
+            "annual": 79233.79
+          },
+          "YM-Solis30-45th": {
+            "price": 438000,
+            "down": 88000,
+            "yct": 28000,
+            "fire": 15000,
+            "customer_out": 0,
+            "rst": 45000,
+            "total": 350000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 569275.0,
+            "annual": 81325.0
+          },
+          "YM-Solis50": {
+            "price": 742000,
+            "down": 149000,
+            "yct": 44000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 80000,
+            "total": 593000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 964514.53,
+            "annual": 137787.79
+          },
+          "YM-Solis50-45th": {
+            "price": 762000,
+            "down": 153000,
+            "yct": 45000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 83000,
+            "total": 609000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 990538.5,
+            "annual": 141505.5
+          },
+          "YM-Solis 65": {
+            "price": 899000,
+            "down": 180000,
+            "yct": 53000,
+            "fire": 35000,
+            "customer_out": 15000,
+            "rst": 77000,
+            "total": 719000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1169453.53,
+            "annual": 167064.79
+          },
+          "YM-Solis75": {
+            "price": 1008000,
+            "down": 202000,
+            "yct": 58000,
+            "fire": 40000,
+            "customer_out": 0,
+            "rst": 104000,
+            "total": 806000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1310959.02,
+            "annual": 187279.86
+          },
+          "YM-Solis75-45th": {
+            "price": 1029000,
+            "down": 206000,
+            "yct": 59500,
+            "fire": 40000,
+            "customer_out": 0,
+            "rst": 106500,
+            "total": 823000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1338609.51,
+            "annual": 191229.93
+          },
+          "YM-Solis90": {
+            "price": 1327000,
+            "down": 266000,
+            "yct": 76000,
+            "fire": 40000,
+            "customer_out": 35000,
+            "rst": 115000,
+            "total": 1061000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1725716.51,
+            "annual": 246530.93
+          },
+          "YM-Solis105": {
+            "price": 1517000,
+            "down": 304000,
+            "yct": 86000,
+            "fire": 60000,
+            "customer_out": 0,
+            "rst": 158000,
+            "total": 1213000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1972944.47,
+            "annual": 281849.21
+          },
+          "YM-Solis 105 Cabin": {
+            "price": 1717000,
+            "down": 344000,
+            "yct": 97000,
+            "fire": 60000,
+            "customer_out": 0,
+            "rst": 187000,
+            "total": 1373000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 2233184.52,
+            "annual": 319026.36
+          }
+        }
+      },
+      {
+        "id": "s_target_general",
+        "name": "Target - ทั่วไป (กลุ่มข้าว/พืชไร่/พืชรวม)",
+        "groups": [
+          "ทั่วไป(กลุ่มข้าว/พืชไร่/พืชรวม)"
+        ],
+        "conditions": [
+          "กลุ่มข้าว: ผู้สมัครถือกรรมสิทธิ์ของตัวเองหรือที่เช่า อย่างน้อย 50 ไร่",
+          "กลุ่มพืชไร่ (อ้อย มัน ข้าวโพด): ถือกรรมสิทธิ์เป็นของตนเองหรือที่เช่า อย่างน้อย 30 ไร่",
+          "กลุ่มพืชรวม (พืชไร่+ข้าว): ถือพื้นที่พืชไร่อย่างน้อย 20 ไร่ และข้าวอย่างน้อย 10 ไร่ รวม 30 ไร่ (รวมพื้นที่ของญาติสายตรงได้)",
+          "ฟรีดาวน์ 7 คันสุดท้าย (ตามสต็อกที่กำหนด)"
+        ],
+        "entries": {
+          "YM-Solis22": {
+            "price": 312000,
+            "down": 47000,
+            "yct": 0,
+            "fire": 10000,
+            "customer_out": 10000,
+            "rst": 27000,
+            "total": 265000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 431022.48,
+            "annual": 61574.64
+          },
+          "YM-Solis26": {
+            "price": 380000,
+            "down": 57000,
+            "yct": 0,
+            "fire": 10000,
+            "customer_out": 15000,
+            "rst": 32000,
+            "total": 323000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 525359.52,
+            "annual": 75051.36
+          },
+          "YM-Solis30": {
+            "price": 427000,
+            "down": 107000,
+            "yct": 27000,
+            "ysp": 25000,
+            "fire": 15000,
+            "customer_out": 0,
+            "rst": 40000,
+            "total": 320000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 520480.03,
+            "annual": 74354.29
+          },
+          "YM-Solis30-45th": {
+            "price": 438000,
+            "down": 110000,
+            "yct": 28000,
+            "ysp": 25000,
+            "fire": 15000,
+            "customer_out": 0,
+            "rst": 42000,
+            "total": 328000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 533491.98,
+            "annual": 76213.14
+          },
+          "YM-Solis50": {
+            "price": 742000,
+            "down": 186000,
+            "yct": 44000,
+            "ysp": 40000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 77000,
+            "total": 556000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 904333.99,
+            "annual": 129190.57
+          },
+          "YM-Solis50-45th": {
+            "price": 762000,
+            "down": 191000,
+            "yct": 45000,
+            "ysp": 40000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 81000,
+            "total": 571000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 928731.51,
+            "annual": 132675.93
+          },
+          "YM-Solis75": {
+            "price": 1008000,
+            "down": 202000,
+            "yct": 58000,
+            "ysp": 45000,
+            "fire": 40000,
+            "customer_out": 0,
+            "rst": 59000,
+            "total": 806000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1310959.02,
+            "annual": 187279.86
+          },
+          "YM-Solis105": {
+            "price": 1517000,
+            "down": 304000,
+            "yct": 86000,
+            "ysp": 55000,
+            "fire": 60000,
+            "customer_out": 0,
+            "rst": 103000,
+            "total": 1213000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1972944.47,
+            "annual": 281849.21
+          }
+        }
+      },
+      {
+        "id": "s_target_yfsw",
+        "name": "Target - YF, SW",
+        "groups": [
+          "YF,SW"
+        ],
+        "conditions": [
+          "ไม่กำหนดจำนวนไร่"
+        ],
+        "entries": {
+          "Solis 26": {
+            "price": 339000,
+            "down": 85000,
+            "yct": 19000,
+            "customer_out": 20000,
+            "rst": 46000,
+            "total": 254000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 409574.97,
+            "annual": 58510.71
+          },
+          "Solis26": {
+            "price": 339000,
+            "down": 85000,
+            "yct": 19000,
+            "customer_out": 30000,
+            "rst": 36000,
+            "total": 254000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 409574.97,
+            "annual": 58510.71
+          },
+          "YM-Solis22": {
+            "price": 312000,
+            "down": 63000,
+            "yct": 27500,
+            "fire": 10000,
+            "customer_out": 0,
+            "rst": 25500,
+            "total": 249000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 401512.51,
+            "annual": 57358.93
+          },
+          "YM-Solis26": {
+            "price": 380000,
+            "down": 76000,
+            "yct": 31000,
+            "fire": 10000,
+            "customer_out": 0,
+            "rst": 35000,
+            "total": 304000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 490199.99,
+            "annual": 70028.57
+          },
+          "YM-Solis30": {
+            "price": 427000,
+            "down": 86000,
+            "yct": 34000,
+            "ysp": 35000,
+            "fire": 15000,
+            "customer_out": 0,
+            "rst": 2000,
+            "total": 341000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 549862.53,
+            "annual": 78551.79
+          },
+          "YM-Solis30-45th": {
+            "price": 438000,
+            "down": 88000,
+            "yct": 35000,
+            "ysp": 35000,
+            "fire": 15000,
+            "customer_out": 0,
+            "rst": 3000,
+            "total": 350000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 564375.0,
+            "annual": 80625.0
+          },
+          "YM-Solis50": {
+            "price": 742000,
+            "down": 149000,
+            "yct": 55000,
+            "ysp": 50000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 19000,
+            "total": 593000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 956212.53,
+            "annual": 136601.79
+          },
+          "YM-Solis50-45th": {
+            "price": 762000,
+            "down": 153000,
+            "yct": 56500,
+            "ysp": 50000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 21500,
+            "total": 609000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 982012.5,
+            "annual": 140287.5
+          },
+          "YM-Solis75": {
+            "price": 1008000,
+            "down": 202000,
+            "yct": 72500,
+            "ysp": 55000,
+            "fire": 40000,
+            "customer_out": 0,
+            "rst": 34500,
+            "total": 806000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1299675.02,
+            "annual": 185667.86
+          },
+          "YM-Solis 65": {
+            "price": 899000,
+            "down": 180000,
+            "yct": 67000,
+            "ysp": 53000,
+            "fire": 35000,
+            "customer_out": 0,
+            "rst": 25000,
+            "total": 719000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1159387.53,
+            "annual": 165626.79
+          },
+          "YM-Solis90": {
+            "price": 1327000,
+            "down": 266000,
+            "yct": 93000,
+            "fire": 40000,
+            "customer_out": 0,
+            "rst": 133000,
+            "total": 1061000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1710862.51,
+            "annual": 244408.93
+          },
+          "YM-Solis105": {
+            "price": 1517000,
+            "down": 304000,
+            "yct": 107000,
+            "ysp": 65000,
+            "fire": 60000,
+            "customer_out": 0,
+            "rst": 72000,
+            "total": 1213000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1955962.47,
+            "annual": 279423.21
+          },
+          "YM-Solis 105 Cabin": {
+            "price": 1717000,
+            "down": 344000,
+            "yct": 120500,
+            "ysp": 65000,
+            "fire": 60000,
+            "customer_out": 0,
+            "rst": 98500,
+            "total": 1373000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 2213962.52,
+            "annual": 316280.36
+          }
+        }
+      },
+      {
+        "id": "s_target_rt",
+        "name": "Target - RT",
+        "groups": [
+          "RT"
+        ],
+        "conditions": [
+          "ไม่กำหนดจำนวนไร่"
+        ],
+        "entries": {
+          "Solis 26": {
+            "price": 339000,
+            "down": 85000,
+            "yct": 19000,
+            "customer_out": 20000,
+            "rst": 46000,
+            "total": 254000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 409574.97,
+            "annual": 58510.71
+          },
+          "Solis26": {
+            "price": 339000,
+            "down": 85000,
+            "yct": 19000,
+            "customer_out": 30000,
+            "rst": 36000,
+            "total": 254000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 409574.97,
+            "annual": 58510.71
+          },
+          "YM-Solis22": {
+            "price": 312000,
+            "down": 63000,
+            "yct": 30500,
+            "fire": 10000,
+            "customer_out": 0,
+            "rst": 22500,
+            "total": 249000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 401512.51,
+            "annual": 57358.93
+          },
+          "YM-Solis26": {
+            "price": 380000,
+            "down": 76000,
+            "yct": 35000,
+            "customer_out": 0,
+            "rst": 41000,
+            "total": 304000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 490199.99,
+            "annual": 70028.57
+          },
+          "YM-Solis30": {
+            "price": 427000,
+            "down": 86000,
+            "yct": 38000,
+            "ysp": 35000,
+            "fire": 15000,
+            "customer_out": 0,
+            "rst": -2000,
+            "total": 341000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 549862.53,
+            "annual": 78551.79
+          },
+          "YM-Solis30-45th": {
+            "price": 438000,
+            "down": 88000,
+            "yct": 39500,
+            "ysp": 35000,
+            "fire": 15000,
+            "customer_out": 0,
+            "rst": -1500,
+            "total": 350000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 564375.0,
+            "annual": 80625.0
+          },
+          "YM-Solis50": {
+            "price": 742000,
+            "down": 149000,
+            "yct": 62500,
+            "ysp": 50000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 11500,
+            "total": 593000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 956212.53,
+            "annual": 136601.79
+          },
+          "YM-Solis50-45th": {
+            "price": 762000,
+            "down": 153000,
+            "yct": 64000,
+            "ysp": 50000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 14000,
+            "total": 609000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 982012.5,
+            "annual": 140287.5
+          },
+          "YM-Solis75": {
+            "price": 1008000,
+            "down": 202000,
+            "yct": 82000,
+            "ysp": 55000,
+            "fire": 40000,
+            "customer_out": 0,
+            "rst": 25000,
+            "total": 806000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1299675.02,
+            "annual": 185667.86
+          },
+          "YM-Solis 65": {
+            "price": 899000,
+            "down": 180000,
+            "yct": 75500,
+            "ysp": 53000,
+            "fire": 35000,
+            "customer_out": 0,
+            "rst": 16500,
+            "total": 719000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1159387.53,
+            "annual": 165626.79
+          },
+          "YM-Solis90": {
+            "price": 1327000,
+            "down": 266000,
+            "yct": 106500,
+            "fire": 40000,
+            "customer_out": 0,
+            "rst": 119500,
+            "total": 1061000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1710862.51,
+            "annual": 244408.93
+          },
+          "YM-Solis105": {
+            "price": 1517000,
+            "down": 304000,
+            "yct": 122000,
+            "ysp": 65000,
+            "fire": 60000,
+            "customer_out": 0,
+            "rst": 57000,
+            "total": 1213000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1955962.47,
+            "annual": 279423.21
+          },
+          "YM-Solis 105 Cabin": {
+            "price": 1717000,
+            "down": 344000,
+            "yct": 137000,
+            "ysp": 65000,
+            "fire": 60000,
+            "customer_out": 0,
+            "rst": 82000,
+            "total": 1373000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 2213962.52,
+            "annual": 316280.36
+          }
+        }
+      },
+      {
+        "id": "s_bob25",
+        "name": "โปร 25% (เฉพาะรุ่นที่กำหนด)",
+        "groups": [
+          "General"
+        ],
+        "conditions": [
+          "1. RT, YF ไม่กำหนดพื้นที่ทำกิน",
+          "2. SW, ทั่วไป ที่ทำกินไม่น้อยกว่า 30 ไร่",
+          "3. ลูกค้า กอช. ที่ทำกินไม่ต่ำกว่า 20 ไร่"
+        ],
+        "models_subset": [
+          "YM-Solis30",
+          "YM-Solis30-45th",
+          "YM-Solis50-45th",
+          "YM-Solis75",
+          "YM-Solis105",
+          "YM-Solis110",
+          "YM-Solis105-45th"
+        ],
+        "entries": {
+          "YM-Solis30 | General": {
+            "price": 427000,
+            "down": 107000,
+            "yct": 27000,
+            "ysp": 25000,
+            "fire": 19000,
+            "customer_out": 0,
+            "rst": 36000,
+            "total": 320000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 520480.03,
+            "annual": 74354.29
+          },
+          "YM-Solis30-45th | General": {
+            "price": 438000,
+            "down": 110000,
+            "yct": 28000,
+            "ysp": 25000,
+            "fire": 20000,
+            "customer_out": 0,
+            "rst": 37000,
+            "total": 328000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 533491.98,
+            "annual": 76213.14
+          },
+          "YM-Solis50 | General": {
+            "price": 742000,
+            "down": 186000,
+            "yct": 44000,
+            "ysp": 40000,
+            "fire": 13000,
+            "customer_out": 0,
+            "rst": 89000,
+            "total": 556000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 904333.99,
+            "annual": 129190.57
+          },
+          "YM-Solis50-45th | General": {
+            "price": 762000,
+            "down": 191000,
+            "yct": 45000,
+            "ysp": 40000,
+            "fire": 14000,
+            "customer_out": 0,
+            "rst": 92000,
+            "total": 571000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 928731.51,
+            "annual": 132675.93
+          },
+          "YM-Solis 65 | General": {
+            "price": 899000,
+            "down": 225000,
+            "yct": 53000,
+            "ysp": 43000,
+            "fire": 44000,
+            "customer_out": 0,
+            "rst": 85000,
+            "total": 674000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1096260.97,
+            "annual": 156608.71
+          },
+          "YM-Solis75 | General": {
+            "price": 1008000,
+            "down": 252000,
+            "yct": 58000,
+            "ysp": 45000,
+            "fire": 8000,
+            "customer_out": 20000,
+            "rst": 121000,
+            "total": 756000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1229634.0,
+            "annual": 175662.0
+          },
+          "YM-Solis75-45th | General": {
+            "price": 1029000,
+            "down": 258000,
+            "yct": 59500,
+            "ysp": 45000,
+            "fire": 9500,
+            "customer_out": 0,
+            "rst": 144000,
+            "total": 771000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1254031.52,
+            "annual": 179147.36
+          },
+          "YM-Solis105 | General": {
+            "price": 1517000,
+            "down": 380000,
+            "yct": 86000,
+            "ysp": 55000,
+            "fire": 30000,
+            "customer_out": 0,
+            "rst": 209000,
+            "total": 1137000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1849330.49,
+            "annual": 264190.07
+          }
+        }
+      },
+      {
+        "id": "s_bob30",
+        "name": "โปร 30% (VHM/SMVH/BAAC, ผู้นำชุมชน/โรงงานน้ำตาล/ธกส 3A)",
+        "groups": [
+          "General",
+          "YF,SW",
+          "RT"
+        ],
+        "conditions": [
+          "1. ลูกค้าผู้นำชุมชน กำนัน รอง ผู้ช่วย ฯลฯ",
+          "2. โรงงานน้ำตาล ฯลฯ",
+          "3. ลูกค้า ธกส 3A, 3A+",
+          "4. ลูกค้ากลุ่ม RT,YF,SW",
+          "5. ลูกค้ามีพื้นที่ทำกินอย่างน้อย 40 ไร่ ที่ของตนเองรวมที่เช่า (ไม่สามารถนำพื้นที่ของผู้อื่นมารวมได้)"
+        ],
+        "models_subset": [
+          "YM-Solis30",
+          "YM-Solis30-45th",
+          "YM-Solis50-45th",
+          "YM-Solis75-45th"
+        ],
+        "entries": {
+          "YM-Solis30 | General": {
+            "price": 427000,
+            "down": 129000,
+            "yct": 27000,
+            "ysp": 25000,
+            "fire": 41000,
+            "customer_out": 0,
+            "rst": 36000,
+            "total": 298000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 484697.01,
+            "annual": 69242.43
+          },
+          "YM-Solis30 | YF,SW": {
+            "price": 427000,
+            "down": 129000,
+            "yct": 34000,
+            "ysp": 35000,
+            "fire": 29000,
+            "customer_out": 0,
+            "rst": 31000,
+            "total": 298000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 480525.01,
+            "annual": 68646.43
+          },
+          "YM-Solis30 | RT": {
+            "price": 427000,
+            "down": 129000,
+            "yct": 38000,
+            "ysp": 35000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 31000,
+            "total": 298000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 484697.01,
+            "annual": 69242.43
+          },
+          "YM-Solis30-45th | General": {
+            "price": 438000,
+            "down": 132000,
+            "yct": 28000,
+            "ysp": 25000,
+            "fire": 42000,
+            "customer_out": 0,
+            "rst": 37000,
+            "total": 306000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 497709.03,
+            "annual": 71101.29
+          },
+          "YM-Solis30-45th | YF,SW": {
+            "price": 438000,
+            "down": 132000,
+            "yct": 35000,
+            "ysp": 35000,
+            "fire": 30000,
+            "customer_out": 0,
+            "rst": 32000,
+            "total": 306000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 493425.03,
+            "annual": 70489.29
+          },
+          "YM-Solis30-45th | RT": {
+            "price": 438000,
+            "down": 132000,
+            "yct": 39500,
+            "ysp": 35000,
+            "fire": 25500,
+            "customer_out": 0,
+            "rst": 32000,
+            "total": 306000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 497709.03,
+            "annual": 71101.29
+          },
+          "YM-Solis50 | General": {
+            "price": 742000,
+            "down": 223000,
+            "yct": 44000,
+            "ysp": 40000,
+            "fire": 50000,
+            "customer_out": 15000,
+            "rst": 74000,
+            "total": 519000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 844153.52,
+            "annual": 120593.36
+          },
+          "YM-Solis50 | YF,SW": {
+            "price": 742000,
+            "down": 223000,
+            "yct": 55000,
+            "ysp": 50000,
+            "fire": 58000,
+            "customer_out": 0,
+            "rst": 60000,
+            "total": 519000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 836887.52,
+            "annual": 119555.36
+          },
+          "YM-Solis50 | RT": {
+            "price": 742000,
+            "down": 223000,
+            "yct": 62500,
+            "ysp": 50000,
+            "fire": 29500,
+            "customer_out": 0,
+            "rst": 81000,
+            "total": 519000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 844153.52,
+            "annual": 120593.36
+          },
+          "YM-Solis50-45th | General": {
+            "price": 762000,
+            "down": 229000,
+            "yct": 45000,
+            "ysp": 40000,
+            "fire": 52000,
+            "customer_out": 0,
+            "rst": 92000,
+            "total": 533000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 866924.52,
+            "annual": 123846.36
+          },
+          "YM-Solis50-45th | YF,SW": {
+            "price": 762000,
+            "down": 229000,
+            "yct": 56500,
+            "ysp": 50000,
+            "fire": 37500,
+            "customer_out": 0,
+            "rst": 85000,
+            "total": 533000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 859462.52,
+            "annual": 122780.36
+          },
+          "YM-Solis50-45th | RT": {
+            "price": 762000,
+            "down": 229000,
+            "yct": 64000,
+            "ysp": 50000,
+            "fire": 34500,
+            "customer_out": 0,
+            "rst": 80500,
+            "total": 533000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 866924.52,
+            "annual": 123846.36
+          },
+          "YM-Solis75 | General": {
+            "price": 1008000,
+            "down": 303000,
+            "yct": 58000,
+            "ysp": 45000,
+            "fire": 59000,
+            "customer_out": 20000,
+            "rst": 121000,
+            "total": 705000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1146682.53,
+            "annual": 163811.79
+          },
+          "YM-Solis75 | YF,SW": {
+            "price": 1008000,
+            "down": 303000,
+            "yct": 72500,
+            "ysp": 55000,
+            "fire": 50500,
+            "customer_out": 0,
+            "rst": 125000,
+            "total": 705000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1136812.53,
+            "annual": 162401.79
+          },
+          "YM-Solis75 | RT": {
+            "price": 1008000,
+            "down": 303000,
+            "yct": 82000,
+            "ysp": 55000,
+            "fire": 35000,
+            "customer_out": 0,
+            "rst": 131000,
+            "total": 705000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1146682.53,
+            "annual": 163811.79
+          },
+          "YM-Solis75-45th | General": {
+            "price": 1029000,
+            "down": 309000,
+            "yct": 59500,
+            "ysp": 45000,
+            "fire": 60500,
+            "customer_out": 0,
+            "rst": 144000,
+            "total": 720000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1171079.98,
+            "annual": 167297.14
+          },
+          "YM-Solis75-45th | YF,SW": {
+            "price": 1029000,
+            "down": 309000,
+            "yct": 73000,
+            "ysp": 55000,
+            "fire": 52500,
+            "customer_out": 0,
+            "rst": 128500,
+            "total": 720000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1160999.98,
+            "annual": 165857.14
+          },
+          "YM-Solis75-45th | RT": {
+            "price": 1029000,
+            "down": 309000,
+            "yct": 83500,
+            "ysp": 55000,
+            "fire": 37000,
+            "customer_out": 0,
+            "rst": 133500,
+            "total": 720000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1171079.98,
+            "annual": 167297.14
+          },
+          "YM-Solis 65 | General": {
+            "price": 899000,
+            "down": 270000,
+            "yct": 53000,
+            "ysp": 43000,
+            "fire": 65000,
+            "customer_out": 15000,
+            "rst": 94000,
+            "total": 629000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1023068.48,
+            "annual": 146152.64
+          },
+          "YM-Solis 65 | YF,SW": {
+            "price": 899000,
+            "down": 270000,
+            "yct": 67000,
+            "ysp": 53000,
+            "fire": 72000,
+            "customer_out": 0,
+            "rst": 78000,
+            "total": 629000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1014262.48,
+            "annual": 144894.64
+          },
+          "YM-Solis 65 | RT": {
+            "price": 899000,
+            "down": 270000,
+            "yct": 75500,
+            "ysp": 53000,
+            "fire": 63500,
+            "customer_out": 0,
+            "rst": 78000,
+            "total": 629000,
+            "interest": 0.0895,
+            "years": 7,
+            "total_payback": 1023068.48,
+            "annual": 146152.64
+          }
+        }
+      }
+    ]
   },
-};
-TOGGLE_DEFS.combine = { 'ทั่วไป':[], 'YF,SW':[], 'RT':[], 'Dry Crop':[] };
-const SEGMENT_LABELS = {
-  yanmar: {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT','Dry Crop':'Dry Crop'},
-  solis:  {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT','Dry Crop':'Dry Crop'},
-  combine:{'ทั่วไป':'ทั่วไป (ดาวน์30%)','Dry Crop':'มีรถแทรกเตอร์ (ดาวน์25%)','YF,SW':'มีรถเกี่ยวข้าว (ดาวน์20%)','RT':'ลูกค้าเก่าชั้นดี (ดาวน์10%)'}
-};
-// ลำดับการแสดงปุ่มกลุ่มลูกค้า ต่อแบรนด์ (ใช้ CSS order ปรับมุมมองอย่างเดียว ไม่แตะ DOM/ลำดับของแบรนด์อื่น)
-// รถเกี่ยว: ทั่วไป, มีรถแทรกเตอร์, มีรถเกี่ยวข้าว, ลูกค้าเก่าชั้นดี — ตามที่ขอ; ยันม่าร์/โซลิสไม่ระบุ = ใช้ลำดับเดิมในหน้า HTML
-const SEGMENT_ORDER = {
-  combine: {'ทั่วไป':0, 'Dry Crop':1, 'YF,SW':2, 'RT':3},
-};
-// กลุ่ม YF,SW และ RT ปลดล็อก Bob 30% ได้เองอัตโนมัติอยู่แล้ว (เข้าเงื่อนไข "ลูกค้ากลุ่ม RT,YF,SW" โดยตรง) จึงไม่ต้องมี checkbox ให้ติ๊กซ้ำในกลุ่มนี้
-const TOGGLE_NOTE = {
-  'YF,SW': 'กลุ่ม YF,SW ปลดล็อกโปร 30% ให้อัตโนมัติแล้ว (เป็นโปรที่ดีที่สุดสำหรับกลุ่มนี้)',
-  'RT': 'กลุ่ม RT ปลดล็อกโปร 30% ให้อัตโนมัติแล้ว (เป็นโปรที่ดีที่สุดสำหรับกลุ่มนี้)',
-};
-
-// ===== Generic segment + toggle logic (shared by Yanmar & Solis) =====
-const PROGRAM_IDS = {
-  yanmar: { general:'y_general', target_yfsw:'y_target_yfsw', target_rt:'y_target_rt', bob25:'y_bob25', bob30:'y_bob30', special358:'y_358' },
-  solis:  { general:'s_general', target_yfsw:'s_target_yfsw', target_rt:'s_target_rt', bob25:'s_bob25', bob30:'s_bob30' },
-  combine: { general:'c_general', target_yfsw:'c_owner_combine', target_rt:'c_rt', target_tractor_owner:'c_owner_tractor' },
-};
-
-function getKeys(brand, model){
-  if(brand==='yanmar') return LOOKUP_KEYS[model];
-  if(brand==='combine') return [model];
-  return [model];
-}
-
-function findEntries(brand, model, segment, toggles){
-  const programs = DATA[brand].programs;
-  const ids = PROGRAM_IDS[brand];
-  const keys = getKeys(brand, model);
-  const rows = [];
-
-  function byId(id){ return id ? programs.find(x=>x.id===id) : null; }
-  function getDirect(id){
-    const p = byId(id);
-    if(!p) return;
-    const key = keys.find(k=>p.entries[k]);
-    if(key) rows.push({program:p, group:null, entry:p.entries[key], variant:null});
-  }
-  function getSubsetGroup(id, groupCandidates){
-    const p = byId(id);
-    if(!p || !p.models_subset) return;
-    const subsetKey = keys.find(k=>p.models_subset.includes(k));
-    if(!subsetKey) return;
-    const groups = Array.isArray(groupCandidates) ? groupCandidates : [groupCandidates];
-    for(const g of groups){
-      const e = p.entries[`${subsetKey} | ${g}`];
-      if(e){ rows.push({program:p, group:g, entry:e, variant:null}); return; }
-    }
-  }
-
-  getDirect(ids.general);
-
-  if(brand==='yanmar' && model==='YM358R' && ids.special358){
-    const p358 = byId(ids.special358);
-    Object.keys(p358.entries).forEach(variant=>{
-      rows.push({program:p358, group:null, entry:p358.entries[variant], variant});
-    });
-  }
-
-  if(segment==='ทั่วไป'){
-    if(toggles.land30) getSubsetGroup(ids.bob25, 'General');
-    if(toggles.baac) getSubsetGroup(ids.bob30, 'General');
-  } else if(segment==='YF,SW'){
-    getDirect(ids.target_yfsw);
-    getSubsetGroup(ids.bob25, 'YF,SW');
-    getSubsetGroup(ids.bob30, ['YF,SW,RT','YF,SW']); // กลุ่ม YF,SW ปลดล็อก Bob 30% ได้เองอยู่แล้ว (เข้าเงื่อนไขข้อ 4) ไม่ต้องรอติ๊ก
-  } else if(segment==='RT'){
-    getDirect(ids.target_rt);
-    getSubsetGroup(ids.bob25, 'RT');
-    getSubsetGroup(ids.bob30, ['YF,SW,RT','RT']); // กลุ่ม RT ปลดล็อก Bob 30% ได้เองอยู่แล้ว (เข้าเงื่อนไขข้อ 4) ไม่ต้องรอติ๊ก
-  } else if(segment==='Dry Crop'){
-    if(brand==='combine'){
-      getDirect(ids.target_tractor_owner);
-    } else if(toggles.baac){
-      getSubsetGroup(ids.bob30, 'Dry Crop');
-    }
-  }
-  return rows;
-}
-
-// ===== shared card rendering =====
-function cardHtml(r, badge, compareTo, editable){
-  const e = r.entry;
-  const down = e.down || 0;
-
-  if(e.pending){
-    const title = r.program.name + (r.variant ? ` — ${r.variant}` : '');
-    const groupLabel = r.variant ? null : r.group;
-    return `
-    <div class="card">
-      <div class="card-head"><h3>${title}</h3></div>
-      ${groupLabel ? `<span class="group-tag">${groupLabel}</span>` : ''}
-      <div class="numbers">
-        <div class="num-box"><div class="k">เงินดาวน์รวม</div><div class="v">${fmt(down + (Math.max(0,Number(extraDown)||0)))}</div></div>
-        <div class="num-box"><div class="k">YSP</div><div class="v">${fmt(e.ysp)}</div></div>
-      </div>
-    </div>`;
-  }
-
-  const extra = Math.max(0, Number(extraDown) || 0);
-  const support = (e.ysp||0)+(e.yct||0)+(e.fire||0)+(e.ysp_topup||0);
-  const rst = e.rst ?? 0;
-  const totalSupportBase = down - (e.customer_out ?? 0);
-  // แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน) — จำกัดไม่ให้เกินยอดสนับสนุนที่มีจริง
-  const subForSupport = editable ? Math.max(0, Math.min(Number(custSubForSupport)||0, totalSupportBase)) : 0;
-  const cust = (e.customer_out ?? 0) + extra + subForSupport;
-  const downDisp = down + extra;
-  const totalSupport = Math.max(0, totalSupportBase - subForSupport);
-  const supportForBar = Math.max(0, support - subForSupport);
-
-  let custDelta = '', supportDelta = '', rstDelta = '';
-  if(compareTo){
-    const bestCust = compareTo.customer_out ?? 0;
-    const bestSupport = (compareTo.down ?? 0) - bestCust;
-    const bestRst = compareTo.rst ?? 0;
-    custDelta = deltaBadge(cust - bestCust, false);
-    supportDelta = deltaBadge(totalSupport - bestSupport, true);
-    rstDelta = deltaBadge(rst - bestRst, false);
-  }
-
-  let custPct=0, suppPct=0, rstPct=0;
-  if(downDisp>0){
-    custPct = Math.max(0, cust)/downDisp*100;
-    suppPct = Math.max(0, supportForBar)/downDisp*100;
-    rstPct = Math.max(0, Math.min(100-custPct-suppPct, (rst/downDisp*100)));
-    if(rstPct<0) rstPct = 0;
-  }
-
-  const title = r.program.name + (r.variant ? ` — ${r.variant}` : '');
-  const groupLabel = r.variant ? null : r.group;
-
-  const condItems = (r.program.conditions||[]).map(c=>`<li>${c}</li>`).join('');
-  const noteItem = e.note ? `<li>${e.note}</li>` : '';
-
-  const gifts = r.program.gifts;
-  let giftsBlock = '';
-  let standardGiftsBlock = '';
-  if(gifts){
-    const mainGifts = gifts.filter(g=>!isCommonGift(g));
-    const commonGifts = gifts.filter(isCommonGift);
-    const mainList = mainGifts.length ? `<ul class="gifts-main">${mainGifts.map(g=>`<li>${g}</li>`).join('')}</ul>` : '';
-    giftsBlock = `<div class="card-gifts"><div class="gifts-title">\ud83c\udf81 ของแถม</div>${mainList}</div>`;
-    if(commonGifts.length){
-      standardGiftsBlock = `<div class="standard-gifts"><b>ของแถมมาตรฐาน:</b><ul>${commonGifts.map(g=>`<li>${g}</li>`).join('')}</ul></div>`;
-    }
-  }
-
-  const detailsBlock = (condItems || noteItem || standardGiftsBlock) ? `<details><summary></summary><ul>${condItems}${noteItem}</ul>${standardGiftsBlock}</details>` : '';
-
-  const finTotalBase = e.total ?? Math.max(0, (e.price||0) - down);
-  const finTotal = Math.max(0, finTotalBase - extra);
-  // Use user-selected years/payment, falling back to entry default
-  const entryYears = e.years ?? (currentBrand==='yanmar' ? 10 : (currentBrand==='combine' ? 6 : 7));
-  const finYears = tractorYears ?? entryYears;
-  const entryInterest = e.interest ?? 0.0895;
-  const finInterest = (tractorYears && tractorPayment)
-    ? lookupInterest(currentBrand, currentSegment, finYears, tractorPayment)
-    : entryInterest;
-  const finAnnual = finTotal * (1/finYears + finInterest);
-
-  const minorBase = getMinorFromPayment(tractorPayment);
-  const periodsMinor = getPeriodsMinor(tractorPayment);
-  const bigMonthsPerYear = isTwoBigPerYear(tractorPayment) ? 2 : 1;
-  // แบบ 1: minor ทุกปี, แบบ 2&3: งวดใหญ่คือ annual เต็ม ไม่หัก minor
-  const minor = (minorMode === 'normal') ? minorBase : 0;
-  // bigPayment = งวดใหญ่ที่จ่ายจริง
-  // แบบปกติ: annual - minor*periods (ทุกปี)
-  // แบบ advance/with_down: ปีที่ 1 ถึง N-1 = annual เต็ม, ปีสุดท้าย = annual - minor*periods
-  const bigPaymentFull = Math.max(0, finAnnual - minor*periodsMinor);
-  // สำหรับ card chip: แสดง "งวดใหญ่ปกติ" ซึ่งคือยอดที่จ่ายส่วนใหญ่ของปี
-  const bigPaymentNormal = firstBigAmount(bigPaymentFull, tractorPayment, tractorFinType);
-  const bigPaymentMajority = (minorMode==='advance'||minorMode==='with_down')
-    ? firstBigAmount(finAnnual, tractorPayment, tractorFinType)
-    : bigPaymentNormal;
-  const bigPayment = bigPaymentMajority;
-
-  const totalChip = `<span class="chip">ยอดจัด <b>${fmt(Math.round(finTotal))}</b></span>`;
-  const payFreqLabel = PAYMENT_LABELS[tractorPayment] || 'รายปี';
-  let minorNote = '';
-  const periodsBeforeBig = getPeriodsMinor(tractorPayment);
-  if(minorMode === 'normal' && minorBase > 0){
-    minorNote = ' + งวดย่อย <b>' + fmt(minorBase) + '</b> × ' + periodsBeforeBig + ' เดือน';
-  } else if(minorMode === 'advance' && minorBase > 0){
-    // ปีแรก = annual เต็ม (bigFull), ปีที่เหลือ = annual เต็ม, ปีสุดท้าย = bigHalf (หัก minor)
-    const bigFull = firstBigAmount(finAnnual, tractorPayment, tractorFinType);
-    const lastPay = firstBigAmount(bigPaymentFull, tractorPayment, tractorFinType);
-    const minorTotal = minorBase * periodsBeforeBig;
-    minorNote = ' <span style="font-size:10px;color:#888">'
-      + 'ปีแรก: งวดย่อย ' + fmt(minorBase) + '×' + periodsBeforeBig + '=' + fmt(minorTotal)
-      + ' + งวดใหญ่ ' + fmt(bigFull)
-      + ' | ปีที่ 2–' + (tractorYears||10-1) + ': ' + fmt(bigFull) + '/ปี'
-      + ' | ปีสุดท้าย: ' + fmt(lastPay)
-      + '</span>';
-  } else if(minorMode === 'with_down' && minorBase > 0){
-    const wdTotal = minorBase * periodsBeforeBig;
-    const wdBigFull = firstBigAmount(finAnnual, tractorPayment, tractorFinType);
-    const wdLastPay = firstBigAmount(bigPaymentFull, tractorPayment, tractorFinType);
-    minorNote = ' <span style="font-size:10px;color:#888">'
-      + '+ดาวน์ ' + fmt(wdTotal) + ' บาท'
-      + ' | ทุกปี: ' + fmt(wdBigFull) + '/ปี'
-      + ' | ปีสุดท้าย: ' + fmt(wdLastPay)
-      + '</span>';
-  }
-
-  let paymentDesc = '';
-  const isSemi = isTwoBigPerYear(tractorPayment);
-  // F/R badge สำหรับรถ (แสดงใน chip)
-  const tractorFRHtml = `<span onclick="event.stopPropagation()" style="display:inline-flex;gap:2px;margin-left:6px;vertical-align:middle">
-    <button onclick="tractorFinType='F';renderResults()" style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1.5px solid ${tractorFinType==='F'?'var(--accent)':'#ccc'};background:${tractorFinType==='F'?'var(--accent)':'#fff'};color:${tractorFinType==='F'?'#fff':'#999'};cursor:pointer">F</button>
-    <button onclick="tractorFinType='R';renderResults()" style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1.5px solid ${tractorFinType==='R'?'#1e7e34':'#ccc'};background:${tractorFinType==='R'?'#1e7e34':'#fff'};color:${tractorFinType==='R'?'#fff':'#999'};cursor:pointer">R</button>
-  </span>`;
-  const bigLabel = formatBigLabel(bigPayment, tractorPayment, tractorFinType);
-  if(minorMode === 'normal' && minorBase > 0){
-    paymentDesc = ' · งวดใหญ่ <b>' + bigLabel + '</b> บาท' + minorNote;
-  } else if(minorMode === 'advance' && minorBase > 0){
-    // แสดง annual เต็ม (ปีแรกและปีทั่วไป)
-    const fullLabel = formatBigLabel(finAnnual, tractorPayment, tractorFinType);
-    paymentDesc = ' · <b>' + fullLabel + '</b> บาท/ปี' + minorNote;
-  } else if(minorMode === 'with_down' && minorBase > 0){
-    const fullLabel2 = formatBigLabel(finAnnual, tractorPayment, tractorFinType);
-    paymentDesc = ' · <b>' + fullLabel2 + '</b> บาท/ปี' + minorNote;
-  } else {
-    const noMinorLabel = formatBigLabel(finAnnual, tractorPayment, tractorFinType);
-    paymentDesc = ' · <b>' + noMinorLabel + '</b> บาท/งวด';
-  }
-  const paymentChip = `<span class="chip">ผ่อน <b>${finYears} ปี</b> · ${payFreqLabel} @ <b>${fmtPct(finInterest)}</b>${paymentDesc} ${tractorFRHtml}</span>`;
-
-  let savingsChip = '';
-  if(extra>0){
-    const finAnnualBase = finTotalBase * (1/finYears + finInterest);
-    const bigPaymentBase = minorMode==='normal'
-      ? Math.max(0, finAnnualBase - minorBase*11)
-      : finAnnualBase;
-    const saved = bigPaymentBase - bigPayment;
-    savingsChip = `<span class="chip">วางเพิ่ม <b>${fmt(extra)}</b> บาท → งวดใหญ่ลดลง <b>${fmt(roundInstallment(saved, tractorFinType))}</b> บาท/ปี (จากเดิม ${fmt(roundInstallment(bigPaymentBase, tractorFinType))} บาท/ปี)</span>`;
-  }
-
-  return `
-    <div class="card ${badge?'best':''}">
-      ${badge ? `<div class="best-badge">${badge}</div>` : ''}
-      <div class="card-head"><h3>${title}</h3></div>
-      ${groupLabel ? `<span class="group-tag">${groupLabel}</span>` : ''}
-      <div class="card-body">
-        <div class="card-main">
-          <div class="bar">
-            <div class="seg-cust" style="width:${custPct}%" title="ลูกค้าจ่าย: ${fmt(cust)}"></div>
-            <div class="seg-support" style="width:${suppPct}%" title="ส่วนสนับสนุน (YCT/YSP/ไฟไหม้) เฉพาะส่วนนี้: ${fmt(support)} — ไม่รวม RST">${suppPct>8 ? fmt(support) : ''}</div>
-            <div class="seg-rst" style="width:${rstPct}%" title="RST ออก: ${fmt(rst)}"></div>
-          </div>
-          <div class="numbers">
-            <div class="num-box cust full"><div class="k">ส่วนสนับสนุนรวม (ลูกค้าได้รับ)</div><div class="v">${fmt(totalSupport)} บาท${supportDelta}</div></div>
-            <div class="num-box"><div class="k">เงินดาวน์รวม</div><div class="v">${fmt(downDisp)}${extra>0 ? `<div class="vv">(เดิม ${fmt(down)} + วางเพิ่ม ${fmt(extra)})</div>` : ''}</div></div>
-            <div class="num-box"><div class="k">ลูกค้าออกเอง</div><div class="v">${fmt(cust)}${custDelta}</div></div>
-            <div class="num-box"><div class="k">RST ออก</div><div class="v">${fmt(rst)}${rstDelta}</div></div>
-            ${editable ? `<div class="num-box full extra-down-box"><div class="k">แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (ถ้ามี)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="extraDownInput" value="${extra||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">กรอกเฉพาะ "ส่วนที่ลูกค้าอยากจ่ายเพิ่ม" เพื่อลดค่างวด — เพิ่มยอดดาวน์รวมขึ้น ไม่กระทบส่วนสนับสนุน/ต้นทุน RST</div></div>
-            <div class="num-box full extra-down-box"><div class="k">แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="subForSupportInput" value="${subForSupport||''}" placeholder="0" max="${totalSupportBase}"></div><div class="vv" style="margin-top:2px">ลูกค้าออกเองแทนสนับสนุนบางส่วน (สูงสุด ${fmt(totalSupportBase)} บาท) — ยอดดาวน์รวมไม่เปลี่ยน แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน ไม่ลดยอดจัดไฟแนนซ์</div></div>` : ''}
-          </div>
-          <div class="breakdown">
-            ${e.yct ? `<span class="chip">YCT <b>${fmt(e.yct)}</b></span>`:''}
-            ${e.ysp ? `<span class="chip">YSP <b>${fmt(e.ysp)}</b></span>`:''}
-            ${e.ysp_topup ? `<span class="chip">YSP Top up <b>${fmt(e.ysp_topup)}</b></span>`:''}
-            ${e.fire ? `<span class="chip">Pro ไฟไหม้ <b>${fmt(e.fire)}</b></span>`:''}
-            ${totalChip}
-            ${paymentChip}
-            ${savingsChip}
-          </div>
-        </div>
-        ${giftsBlock}
-      </div>
-      ${detailsBlock}
-    </div>`;
-}
-
-function dedupeWithinSameCustomerOut(rows, model){
-  // Hide B if another option A is at least as good on ALL THREE of:
-  //  - "ลูกค้าออก" (lower is better)
-  //  - "ส่วนสนับสนุนรวม" = เงินดาวน์ - ลูกค้าออก (higher is better)
-  //  - "RST" (lower is better)
-  // and strictly better on at least one. A lower RST alone is enough to keep an option visible
-  // even if another gives more support, since RST is a real factor for the company.
-  const pending = rows.filter(r=>r.entry.pending);
-  const usable = rows.filter(r=>!r.entry.pending);
-  const kept = usable.filter(r=>{
-    const cust = r.entry.customer_out ?? 0;
-    const support = (r.entry.down ?? 0) - cust;
-    const rst = r.entry.rst ?? 0;
-    return !usable.some(other=>{
-      if(other===r) return false;
-      const oc = other.entry.customer_out ?? 0;
-      const osup = (other.entry.down ?? 0) - oc;
-      const ors = other.entry.rst ?? 0;
-      const notWorse = oc<=cust && osup>=support && ors<=rst;
-      const strictlyBetter = oc<cust || osup>support || ors<rst;
-      return notWorse && strictlyBetter;
-    });
-  });
-  return [...kept, ...pending];
-}
-
-function pickBestAndRest(rows){
-  // 1) lowest "ลูกค้าออก" first
-  // 2) then highest "เงินดาวน์รวม" (= มากกว่า % ดาวน์ 30%>25%>20% = ช่วยดาวน์มากกว่า)
-  // 3) then lowest RST
-  rows.sort((a,b)=>{
-    const ca = a.entry.pending ? Infinity : (a.entry.customer_out ?? 0);
-    const cb = b.entry.pending ? Infinity : (b.entry.customer_out ?? 0);
-    if(ca!==cb) return ca-cb;
-    const da = a.entry.pending ? -Infinity : (a.entry.down ?? 0);
-    const db = b.entry.pending ? -Infinity : (b.entry.down ?? 0);
-    if(da!==db) return db-da;
-    const ra = a.entry.pending ? Infinity : (a.entry.rst ?? 0);
-    const rb = b.entry.pending ? Infinity : (b.entry.rst ?? 0);
-    return ra-rb;
-  });
-  const usable = rows.filter(r=>!r.entry.pending);
-  const best = usable[0] || rows[0];
-  const rest = rows.filter(r=>r!==best);
-  return {best, rest};
-}
-
-function renderResultsCommon(rawRows, model){
-  let rows = rawRows;
-  const priceRow = rows.find(r=>typeof r.entry.price==='number' && r.entry.price>0);
-  const price = priceRow ? priceRow.entry.price : 0;
-  priceValue.textContent = price ? '฿' + fmt(price) : '-';
-
-  if(rows.length===0){
-    results.innerHTML = '<div class="empty">ไม่พบโปรสำหรับรุ่นและกลุ่มลูกค้านี้</div>';
-    summarySupport.textContent = '-';
-    summaryCust.textContent = '-';
-    return;
-  }
-
-  rows = dedupeWithinSameCustomerOut(rows, model);
-  const {best, rest} = pickBestAndRest(rows);
-
-  if(!best.entry.pending && price>0){
-    const down = best.entry.down || 0;
-    const cust = best.entry.customer_out ?? 0;
-    const supportPct = Math.round((down-cust)/price*100);
-    summarySupport.textContent = supportPct + '%';
-    summaryCust.textContent = fmt(cust) + ' บาท';
-  } else {
-    summarySupport.textContent = '-';
-    summaryCust.textContent = '-';
-  }
-
-  // โปรที่เลือก: default = best, แต่ให้ user เลือกได้
-  const allCards = [best, ...rest];
-  const selIdx = (typeof selectedPromoIdx!=='undefined' && selectedPromoIdx < allCards.length) ? selectedPromoIdx : 0;
-  const chosen = allCards[selIdx] || best;
-  const chosenIsRest = selIdx > 0;
-
-  function makeSelectBtn(idx, label, isSelected){
-    return `<button onclick="selectPromo(${idx})" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:7px;border:1.5px solid ${isSelected?'var(--accent)':'#ccc'};background:${isSelected?'var(--accent)':'#fff'};color:${isSelected?'#fff':'#888'};cursor:pointer;margin-bottom:4px">
-      ${isSelected?'✓ กำลังใช้โปรนี้':label}
-    </button>`;
-  }
-
-  // แสดง selected promo banner ถ้าไม่ได้ใช้โปรแนะนำ
-  const selectedBanner = selIdx > 0 ? `<div style="background:#fff3e0;border:1.5px solid var(--accent);border-radius:10px;padding:8px 12px;margin-bottom:8px;font-size:12px;display:flex;align-items:center;gap:8px">
-    <span style="font-size:16px">⭐</span>
-    <div><b style="color:var(--accent)">โปรที่เลือก: ${chosen?.program?.name||''}</b><br>
-    <span style="color:#888;font-size:11px">กดปุ่ม "เลือกโปรนี้ (แนะนำ)" ด้านล่างเพื่อกลับไปใช้โปรแนะนำ</span></div>
-  </div>` : '';
-
-  let html = '';
-  // โปรที่แสดงบนสุด = โปรที่เลือก
-  // ปุ่มบนสุด: ถ้าเลือกโปรแนะนำอยู่ = "กำลังใช้", ถ้าไม่ใช่ = "ใช้โปรแนะนำแทน" → selectPromo(0)
-  html += `<button onclick="selectPromo(${selIdx===0?selIdx:0})" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:7px;border:1.5px solid ${selIdx===0?'var(--accent)':'#e0a800'};background:${selIdx===0?'var(--accent)':'#fff8e1'};color:${selIdx===0?'#fff':'#8a6500'};cursor:pointer;margin-bottom:4px">
-    ${selIdx===0?'✓ กำลังใช้โปรนี้':'↩ ใช้โปรแนะนำแทน'}
-  </button>`;
-  const notRecommended = selIdx > 0 ? `<div style="font-size:10px;color:#c97a00;margin-bottom:2px">⚠️ โปรนี้ไม่ใช่โปรแนะนำ — กดปุ่มด้านบนเพื่อกลับไปใช้โปรแนะนำ</div>` : '';
-  html += notRecommended + cardHtml(chosen, selIdx===0?'แนะนำสำหรับกลุ่มนี้':'⭐ โปรที่เลือก', null, true);
-
-  // ดูโปรอื่น: แสดงทุกโปรยกเว้นโปรที่เลือกอยู่
-  const otherCards = allCards.filter((_,i)=>i!==selIdx);
-  if(otherCards.length>0){
-    const _mid = 'mc_' + Date.now();
-    const otherHtml = otherCards.map((r,i)=>{
-      const origIdx = allCards.indexOf(r);
-      const isRecommended = origIdx===0;
-      return `<div>
-        ${makeSelectBtn(origIdx, isRecommended?'ใช้โปรแนะนำ':'เลือกโปรนี้', false)}
-        ${cardHtml(r, isRecommended?'แนะนำสำหรับกลุ่มนี้':null, best.entry)}
-      </div>`;
-    }).join('');
-    html += `<button class="more-summary" id="moreBtn_${_mid}" onclick="toggleMore('${_mid}')">ดูโปรอื่นสำหรับกลุ่มนี้ (${otherCards.length}) ▾</button><div class="more-cards" id="${_mid}" style="display:none">${otherHtml}</div>`;
-  }
-  results.innerHTML = html;
-  renderTractorSelectors();
-  updateMinorModeDetail();
-  refreshExportSummary();
-  // render equipment with params from best card
-  const _fi = getCurrentFinParams();
-  renderEquipment(currentBrand, modelSelect.value, _fi.interest, _fi.years);
-  updateEqScrollBtn();
-  const extraInput = document.getElementById('extraDownInput');
-  if(extraInput){
-    extraInput.addEventListener('input', ()=>{
-      const digits = extraInput.value.replace(/[^0-9]/g, '');
-      extraDown = Math.max(0, Number(digits) || 0);
-      const cursorPos = extraInput.selectionStart;
-      renderResults();
-      const newInput = document.getElementById('extraDownInput');
-      if(newInput){
-        newInput.focus();
-        newInput.setSelectionRange(cursorPos, cursorPos);
-      }
-    });
-  }
-  const subInput = document.getElementById('subForSupportInput');
-  if(subInput){
-    subInput.addEventListener('input', ()=>{
-      const digits = subInput.value.replace(/[^0-9]/g, '');
-      custSubForSupport = Math.max(0, Number(digits) || 0);
-      const cursorPos = subInput.selectionStart;
-      renderResults();
-      const newInput = document.getElementById('subForSupportInput');
-      if(newInput){
-        newInput.focus();
-        newInput.setSelectionRange(cursorPos, cursorPos);
-      }
-    });
-  }
-}
-
-// ===== UI wiring =====
-function setBrand(brand){
-  currentBrand = brand;
-  tractorYears = null; tractorPayment = 'annual';
-  eqYears = null; eqPayment = 'annual';
-  document.documentElement.style.setProperty('--accent', brand==='yanmar' ? 'var(--yanmar)' : brand==='solis' ? 'var(--solis)' : 'var(--combine)');
-  document.querySelectorAll('.brand-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand===brand));
-  document.getElementById('segmentLabel').textContent = 'กลุ่มลูกค้า';
-  const dryCropBtn = segmentToggle.querySelector('[data-seg="Dry Crop"]');
-  dryCropBtn.style.display = brand==='yanmar' ? 'none' : '';
-  segmentToggle.querySelectorAll('.seg-btn').forEach(b=>{
-    const labels = SEGMENT_LABELS[brand] || {};
-    if(labels[b.dataset.seg]) b.textContent = labels[b.dataset.seg];
-    // ลำดับปุ่ม: เฉพาะแบรนด์ที่ระบุใน SEGMENT_ORDER เท่านั้นที่ปรับ (ไม่กระทบลำดับเดิมของยันม่าร์/โซลิส)
-    const orderMap = SEGMENT_ORDER[brand];
-    b.style.order = orderMap ? orderMap[b.dataset.seg] : '';
-  });
-  populateModels();
-}
-
-function populateModels(){
-  const models = DATA[currentBrand].models;
-  modelSelect.innerHTML = models.map(m=>`<option value="${m}">${m}</option>`).join('');
-  modelSelect.selectedIndex = 0;
-  currentSegment = 'ทั่วไป';
-  yfSwSubType = null;
-  toggleState = {land30:false, baac:false};
-  renderSegmentButtons();
-  renderCriteria();
-  renderToggles();
-  renderResults();
-}
-
-function renderSegmentButtons(){
-  segmentToggle.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.seg===currentSegment));
-}
-
-function renderToggles(){
-  renderLandRef();
-  const defs = (TOGGLE_DEFS[currentBrand] && TOGGLE_DEFS[currentBrand][currentSegment]) || [];
-  const note = currentBrand === 'combine' ? null : TOGGLE_NOTE[currentSegment];
-  // กลุ่ม YF,SW (Yanmar Fan / Switching) ราคาเท่ากันเลยไม่แยกในระบบราคา แต่ CRM ต้องรู้ว่าเป็นกลุ่มไหนจริง
-  // ใช้กับทุกแบรนด์ รวมรถเกี่ยว/combine ด้วย (สำหรับรถเกี่ยว YF,SW = "มีรถเกี่ยวข้าวอยู่แล้ว" — คำถามเดียวกัน
-  // แค่เปลี่ยนเป็นถามยี่ห้อรถเกี่ยวที่มีอยู่เดิมแทน ว่าเป็น Yanmar หรือยี่ห้ออื่น)
-  const showYfSwPicker = currentSegment === 'YF,SW';
-  const yfSwEquipWord = currentBrand === 'combine' ? 'รถเกี่ยว' : 'รถ';
-  const yfSwPickerHtml = showYfSwPicker ? `
-    <div class="yfsw-picker" style="margin:8px 0 4px">
-      <div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px">👥 ลูกค้ากลุ่มนี้เป็นแบบไหน? (สำหรับบันทึก CRM — ไม่กระทบราคา)</div>
-      <div style="display:flex;gap:8px">
-        <button type="button" onclick="selectYfSwSubType('Yanmar Fan')"
-          style="flex:1;padding:8px;border-radius:8px;border:2px solid ${yfSwSubType==='Yanmar Fan'?'var(--accent)':'var(--line)'};background:${yfSwSubType==='Yanmar Fan'?'var(--accent)':'#fff'};color:${yfSwSubType==='Yanmar Fan'?'#fff':'var(--ink)'};font-weight:700;font-size:12.5px;cursor:pointer">
-          🚜 Yanmar Fan<br><span style="font-weight:400;font-size:10.5px">มี${yfSwEquipWord} Yanmar อยู่แล้ว</span>
-        </button>
-        <button type="button" onclick="selectYfSwSubType('Switching')"
-          style="flex:1;padding:8px;border-radius:8px;border:2px solid ${yfSwSubType==='Switching'?'var(--accent)':'var(--line)'};background:${yfSwSubType==='Switching'?'var(--accent)':'#fff'};color:${yfSwSubType==='Switching'?'#fff':'var(--ink)'};font-weight:700;font-size:12.5px;cursor:pointer">
-          🔄 Switching<br><span style="font-weight:400;font-size:10.5px">มี${yfSwEquipWord}ยี่ห้ออื่นอยู่</span>
-        </button>
-      </div>
-      ${!yfSwSubType ? '<div style="font-size:10.5px;color:#B8860B;margin-top:4px">⚠ ยังไม่เลือก — เลือกไว้ก่อนบันทึก จะได้ export เข้า CRM ได้ถูกกลุ่ม</div>' : ''}
-    </div>` : '';
-  if(defs.length === 0 && note){
-    togglesContainer.innerHTML = yfSwPickerHtml + `<div class="toggle-auto-note">✓ ${note}</div>`;
-    return;
-  }
-  if(defs.length === 0 && showYfSwPicker){
-    togglesContainer.innerHTML = yfSwPickerHtml;
-    return;
-  }
-  togglesContainer.innerHTML = defs.map(t=>`
-    <label class="toggle-row">
-      <input type="checkbox" data-key="${t.key}" ${toggleState[t.key] ? 'checked':''}>
-      <span class="tx"><b>${t.label}</b><span class="unlock">${t.unlock}</span></span>
-    </label>
-  `).join('');
-  togglesContainer.querySelectorAll('input[type=checkbox]').forEach(cb=>{
-    cb.addEventListener('change', ()=>{
-      toggleState[cb.dataset.key] = cb.checked;
-      renderResults();
-      maybeAutoStep2();
-    });
-  });
-}
-
-function selectYfSwSubType(val){
-  yfSwSubType = (yfSwSubType === val) ? null : val; // กดซ้ำ = ยกเลิกเลือก
-  renderToggles();
-  if(typeof refreshExportSummary === 'function') refreshExportSummary();
-}
-
-function renderResults(){
-  const model = modelSelect.value;
-  const rows = findEntries(currentBrand, model, currentSegment, toggleState);
-  renderResultsCommon(rows, model);
-}
-
-document.querySelectorAll('.brand-btn').forEach(b=>{
-  b.addEventListener('click', ()=>setBrand(b.dataset.brand));
-});
-segmentToggle.querySelectorAll('.seg-btn').forEach(b=>{
-  b.addEventListener('click', ()=>{
-    currentSegment = b.dataset.seg;
-    yfSwSubType = null;
-    tractorYears = null; tractorPayment = 'annual';
-    eqYears = null; eqPayment = 'annual';
-  eqPaymentUserSet = false;
-  eqMinorMode = 'normal'; eqMinorModeUserSet = false;
-  eqMinorMode = 'normal'; eqMinorModeUserSet = false;
-    selectedPromoIdx = 0;
-  eqPaymentUserSet = false;
-    renderSegmentButtons();
-    renderCriteria();
-    renderToggles();
-    renderResults();
-    maybeAutoStep2();
-  });
-});
-modelSelect.addEventListener('change', ()=>{
-  toggleState = {land30:false, baac:false};
-  yfSwSubType = null;
-  eqSelByMode = { new:{}, used:{} }; eqFinByMode = { new:{}, used:{} };
-  eqDown = 0; selectedPromoIdx = 0;
-  eqMode = 'new';
-  selectedEqSet = eqSelByMode.new; eqFinanceType = eqFinByMode.new;
-  tractorFinType = 'F';
-  eqPaymentUserSet = false;
-  renderToggles();
-  renderResults();
-});
-
-minorInstallmentInput.addEventListener('input', ()=>{
-  minorInstallment = Number(minorInstallmentInput.value) || 0;
-  renderResults();
-});
-
-
-// ===== Equipment Section =====
-
-let tractorYears = null;   // null = use entry default
-let selectedSpecialGifts = {};
-let customGiftText = '';
-let selectedPromoIdx = 0; // {giftName: true} for special gifts selected
-let tractorPayment = 'annual';
-let eqYears = null;
-let eqPayment = 'annual';
-let eqPaymentUserSet = false;
-let eqMinorMode = 'normal'; // sync กับ minorMode ของรถ
-let eqMinorModeUserSet = false;
-
-// เก็บรายการที่เลือกแยกตามโหมด (ใหม่ / มือสอง) ไม่ล้างทิ้งเวลาสลับโหมด
-// เพื่อให้เลือกอุปกรณ์ทั้งมือหนึ่งและมือสองพร้อมกันได้ในเคสเดียว
-let eqSelByMode = { new:{}, used:{} };   // {mode: {idx: useSpecial}}
-let eqFinByMode = { new:{}, used:{} };   // {mode: {idx: 'F'|'R'}}
-let eqMode = 'new'; // 'new' | 'used' — โหมดที่กำลังดูอยู่ตอนนี้
-let selectedEqSet = eqSelByMode[eqMode]; // อ้างอิงถึง object เดียวกับ eqSelByMode[eqMode] เสมอ
-let eqFinanceType = eqFinByMode[eqMode]; // อ้างอิงถึง object เดียวกับ eqFinByMode[eqMode] เสมอ
-let tractorFinType = 'F'; // default F
-let eqDown = 0;
-
-
-
-function scrollToEq(){
-  const el = document.getElementById('eqAnchor');
-  if(!el) return;
-  const top = el.getBoundingClientRect().top + window.scrollY;
-  window.scrollTo({top: top, behavior:'smooth'});
-}
-function updateEqScrollBtn(){
-  const btn = document.getElementById('eqScrollBtn');
-  if(!btn) return;
-  const eq = document.getElementById('equipmentSection');
-  const hasEq = eq && eq.innerHTML.trim().length > 0;
-  btn.style.display = (hasEq && window.innerWidth < 760) ? 'block' : 'none';
-}
-
-function toggleMore(id){
-  const el = document.getElementById(id);
-  const btn = document.getElementById('moreBtn_' + id);
-  const open = el.style.display === 'none';
-  el.style.display = open ? 'block' : 'none';
-  btn.innerHTML = open
-    ? btn.innerHTML.replace('▾','▴')
-    : btn.innerHTML.replace('▴','▾');
-  if(open) setTimeout(()=> el.scrollIntoView({behavior:'smooth', block:'start'}), 50);
-}
-
-function goToResults(){
-  document.querySelector('.app').classList.remove('step3');
-  document.querySelector('.app').classList.add('step2');
-  initAddrDropdowns();
-  const model = document.getElementById('modelSelect').value;
-  const seg = currentSegment;
-  const brand = currentBrand === 'yanmar' ? 'Yanmar' : (currentBrand === 'solis' ? 'Solis' : 'รถเกี่ยว');
-  const sum = document.getElementById('backSummary');
-  if(sum) sum.textContent = brand + ' · ' + model + ' · ' + seg;
-  refreshExportSummary();
-  window.scrollTo(0,0);
-}
-function goToForm(){
-  document.querySelector('.app').classList.remove('step2');
-  document.querySelector('.app').classList.remove('step3');
-  window.scrollTo(0,0);
-}
-function maybeAutoStep2(){
-  // ไม่ auto-jump บนมือถือ — ให้กดปุ่ม "ดูโปร" เอง
-  // desktop ก็ไม่ต้อง jump เพราะโชว์ทั้งสองฝั่งพร้อมกันอยู่แล้ว
-}
-
-
-
-function getMinorFromPayment(paymentType){
-  if(paymentType === 'monthly_3m') return 0;
-  if(paymentType === 'semi') return 1000;
-  return currentBrand === 'combine' ? 3000 : 2000; // annual
-}
-
-function setMinorMode(mode){
-  minorMode = mode;
-  if(!eqMinorModeUserSet) eqMinorMode = mode;
-  renderResults();
-  updateMinorModeDetail();
-}
-
-function updateMinorModeDetail(){
-  const el = document.getElementById('minorModeDetail');
-  if(!el) return;
-  const minor = getMinorFromPayment(tractorPayment);
-  if(minorMode === 'normal' || minor === 0){ el.style.display='none'; return; }
-  el.style.display = 'block';
-  const periods = getPeriodsMinor(tractorPayment);
-  const totalMinor = minor * periods;
-  const annual = minor * periods + (tractorYears ? 0 : 0); // approximate
-  if(minorMode === 'advance'){
-    el.innerHTML = '<b>ปีแรก:</b> งวดย่อย ' + fmt(minor) + '×' + periods + '=' + fmt(totalMinor) + ' + งวดใหญ่เต็ม'
-      + ' &nbsp;|&nbsp; <b>ปีที่ 2 ถึงก่อนสุดท้าย:</b> งวดใหญ่เต็ม'
-      + ' &nbsp;|&nbsp; <b>ปีสุดท้าย:</b> งวดใหญ่เต็ม − ' + fmt(totalMinor) + ' (minor ที่จ่ายไปแล้ว)';
-  } else if(minorMode === 'with_down'){
-    el.innerHTML = 'บวก <b>' + fmt(totalMinor) + ' บาท</b> (' + fmt(minor) + '×' + periods + ') เข้าใน "จ่ายจริง"'
-      + ' &nbsp;|&nbsp; <b>ทุกปี:</b> งวดใหญ่เต็ม'
-      + ' &nbsp;|&nbsp; <b>ปีสุดท้าย:</b> งวดใหญ่เต็ม − ' + fmt(totalMinor);
-  }
-}
-
-function selectPromo(idx){
-  selectedPromoIdx = idx;
-  selectedSpecialGifts = {};
-  renderResults();
-  refreshExportSummary();
-  // Scroll chosen card (always top of results) into view
-  setTimeout(()=>{
-    const el = document.getElementById('results');
-    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
-  }, 80);
-}
-function renderTractorSelectors(){
-  const yearsRow = document.getElementById('tractorYearsRow');
-  const payRow = document.getElementById('tractorPaymentRow');
-  if(!yearsRow || !payRow) return;
-
-  const years = getAvailableYears(currentBrand, currentSegment);
-  // default first available
-  if(!tractorYears || !years.includes(tractorYears)) tractorYears = years[years.length-1];
-  const payments = getAvailablePayments(currentBrand, currentSegment, tractorYears);
-  if(!payments.includes(tractorPayment)) tractorPayment = payments[payments.length-1];
-
-  // Auto-set minor installment from payment type
-  minorInstallment = getMinorFromPayment(tractorPayment);
-
-  // Compute preview for active selection (use first entry of best card for price hint)
-  function previewAnnual(y, p){
-    const interest = lookupInterest(currentBrand, currentSegment, y, p);
-    const minorPrev = minorMode==='normal' ? getMinorFromPayment(p) : 0;
-    const periodsPrev = getPeriodsMinor(p);
-    // ดึง finTotal จากโปรที่กำลังเลือกอยู่จริง
-    const rows = findEntries(currentBrand, modelSelect.value, currentSegment, toggleState);
-    const deduped = dedupeWithinSameCustomerOut(rows, modelSelect.value);
-    const {best, rest} = pickBestAndRest(deduped);
-    const allCards = [best, ...rest];
-    const chosenE = (allCards[selectedPromoIdx] || best)?.entry;
-    if(!chosenE) return null;
-    const extra = Math.max(0, Number(extraDown)||0);
-    const finTotal = Math.max(0, (chosenE.total ?? ((chosenE.price||0) - (chosenE.down||0))) - extra);
-    if(finTotal <= 0) return null;
-    const annual = finTotal * (1/y + interest);
-    const bigPayPerYr = Math.max(0, annual - minorPrev*periodsPrev);
-    const bigPay = firstBigAmount(bigPayPerYr, p, tractorFinType);
-    const annualRounded = firstBigAmount(annual, p, tractorFinType);
-    return {bigPay, minor: minorPrev, interest, annualRounded};
-  }
-
-  yearsRow.innerHTML = years.map(y=>{
-    const prev = previewAnnual(y, tractorPayment);
-    const showAmt = prev ? (minorMode==='normal' ? prev.bigPay : prev.annualRounded) : null;
-    const label = y + ' ปี' + (showAmt!=null ? ` <span class="fin-preview">${fmt(showAmt)}</span>` : '');
-    return `<button class="fin-btn${tractorYears===y?' active':''}" onclick="setTractorYears(${y})">${label}</button>`;
-  }).join('');
-  payRow.innerHTML = payments.map(p=>{
-    const prev = previewAnnual(tractorYears, p);
-    const minorBase2 = getMinorFromPayment(p);
-    const periods2 = getPeriodsMinor(p);
-    const minorLabel = (minorMode==='normal' && minorBase2>0) ? ` <span class="fin-preview">+${fmt(minorBase2)}×${periods2}</span>` : '';
-    const showAmt = prev ? (minorMode==='normal' ? prev.bigPay : prev.annualRounded) : null;
-    const bigLabel = showAmt!=null ? ` <span class="fin-preview">${fmt(showAmt)}</span>` : '';
-    return `<button class="fin-btn${tractorPayment===p?' active':''}" onclick="setTractorPayment('${p}')">${PAYMENT_LABELS[p]}${bigLabel}${minorLabel}</button>`;
-  }).join('');
-}
-
-function setTractorYears(y){
-  tractorYears = y;
-  const payments = getAvailablePayments(currentBrand, currentSegment, y);
-  if(!payments.includes(tractorPayment)) tractorPayment = payments[payments.length-1];
-  // Auto-sync eqYears
-  if(!eqPaymentUserSet){
-    const eqYrsAvail = getAvailableYears(currentBrand, currentSegment);
-    if(eqYrsAvail.includes(y)) eqYears = y;
-    const eqPays = getAvailablePayments(currentBrand, currentSegment, eqYears||y);
-    if(eqPays.includes(tractorPayment)) eqPayment = tractorPayment;
-  }
-  renderTractorSelectors();
-  renderResults();
-}
-function setTractorPayment(p){
-  tractorPayment = p;
-  if(!eqPaymentUserSet){
-    const availYrs = eqYears || tractorYears || getAvailableYears(currentBrand, currentSegment).slice(-1)[0];
-    const eqPayments = getAvailablePayments(currentBrand, currentSegment, availYrs);
-    if(eqPayments.includes(p)) eqPayment = p;
-  }
-  if(!eqMinorModeUserSet) eqMinorMode = minorMode;
-  renderTractorSelectors();
-  renderResults();
-}
-
-
-function renderEqSelectors(brand, segment, finInterest, finYears){
-  // Eq selectors appear inside equipmentSection when items selected
-  return ''; // rendered inline in renderEquipment
-}
-
-function buildEqSelectorHtml(brand, segment){
-  const years = getAvailableYears(brand, segment);
-  if(!eqYears || !years.includes(eqYears)) eqYears = years[years.length-1];
-  const payments = getAvailablePayments(brand, segment, eqYears);
-  if(!payments.includes(eqPayment)) eqPayment = payments[payments.length-1];
-
-  // compute current total for preview — รวมทั้งมือหนึ่งและมือสองที่เลือกไว้
-  function eqAnnualPreview(y, p){
-    const merged = getAllSelectedEquipment(brand, document.getElementById('modelSelect').value);
-    const finTotal = Math.max(0, merged.total - (eqDown||0));
-    if(finTotal === 0) return null;
-    const interest = brand === 'combine' ? 0.09 : lookupInterest(brand, segment, y, p);
-    return Math.round(finTotal * (1/y + interest));
-  }
-
-  const yearsHtml = years.map(y=>{
-    const prev = eqAnnualPreview(y, eqPayment);
-    const label = y + ' ปี' + (prev ? ` <span class="fin-preview">${fmt(prev)}</span>` : '');
-    return `<button class="fin-btn${eqYears===y?' active':''}" onclick="setEqYears(${y})">${label}</button>`;
-  }).join('');
-  const payHtml = payments.map(p=>{
-    const prev = eqAnnualPreview(eqYears, p);
-    const label = PAYMENT_LABELS[p] + (prev ? ` <span class="fin-preview">${fmt(prev)}</span>` : '');
-    return `<button class="fin-btn${eqPayment===p?' active':''}" onclick="setEqPayment('${p}')">${label}</button>`;
-  }).join('');
-  // Minor mode selector สำหรับอุปกรณ์
-  const minorLabels = {'normal':'แบบปกติ','advance':'จ่ายล่วงหน้า','with_down':'รวมดาวน์'};
-  const eqMinorHtml = ['normal','advance','with_down'].map(m=>
-    `<button class="fin-btn${eqMinorMode===m?' active':''}" onclick="setEqMinorMode('${m}')">${minorLabels[m]}</button>`
-  ).join('');
-
-  return `<div style="margin-bottom:8px">
-    <div style="font-size:10.5px;color:var(--ink-soft);margin-bottom:3px">ระยะเวลาผ่อนชำระ (อุปกรณ์)</div>
-    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">${yearsHtml}</div>
-    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">${payHtml}</div>
-    <div style="font-size:10.5px;color:var(--ink-soft);margin-bottom:3px;margin-top:2px">รูปแบบงวดย่อย (อุปกรณ์)</div>
-    <div style="display:flex;gap:5px;flex-wrap:wrap">${eqMinorHtml}</div>
-  </div>`;
-}
-
-function setEqMode(mode){
-  eqMode = mode;
-  // สลับไปดูรายการของโหมดนี้ แต่ "ไม่ล้าง" ของที่เลือกไว้ในอีกโหมดหนึ่ง
-  // เพื่อให้เลือกอุปกรณ์มือหนึ่งและมือสองพร้อมกันได้
-  if(!eqSelByMode[mode]) eqSelByMode[mode] = {};
-  if(!eqFinByMode[mode]) eqFinByMode[mode] = {};
-  selectedEqSet = eqSelByMode[mode];
-  eqFinanceType = eqFinByMode[mode];
-  rerenderEq();
-}
-function setEqMinorMode(m){
-  eqMinorMode = m;
-  eqMinorModeUserSet = true;
-  rerenderEq();
-}
-function setEqYears(y){
-  eqYears = y;
-  const payments = getAvailablePayments(currentBrand, currentSegment, y);
-  if(!payments.includes(eqPayment)) eqPayment = payments[payments.length-1];
-  rerenderEq();
-}
-function setEqPayment(p){
-  eqPayment = p;
-  eqPaymentUserSet = true;
-  rerenderEq();
-}
-
-
-// ===== Export System =====
-function goToExport(){
-  const app = document.querySelector('.app');
-  app.classList.remove('step2');
-  app.classList.add('step3');
-  refreshExportSummary();
-  // Trigger data load if not started
-  loadThaiGeo();
-  window.scrollTo(0,0);
-}
-function syncCustomer(el, targetId){
-  const t = document.getElementById(targetId);
-  if(t) t.value = el.value;
-  refreshExportSummary();
-}
-
-function syncLeadSource(el){
-  const otherId = el.id === 'leadSource' ? 'leadSourceM' : 'leadSource';
-  const other = document.getElementById(otherId);
-  if(other) other.value = el.value;
-  refreshExportSummary();
-}
-
-function collectExportData(){
-  if(_recordOverride) return _recordOverride;
-  const custName  = (document.getElementById('custName2')?.value || document.getElementById('custNameM')?.value || '').trim();
-  updateCustAddr();
-  const custAddr  = (document.getElementById('custAddr')?.value || '').trim();
-  const custPhone = (document.getElementById('custPhoneM')?.value || document.getElementById('custPhone')?.value || '').trim();
-  const branch    = (document.getElementById('branchNameM')?.value || document.getElementById('branchName')?.value || '').trim();
-  const custCurrentAddr = (document.getElementById('custCurrentAddr')?.value || '').trim();
-  const gtorName    = (document.getElementById('gtorName')?.value || '').trim();
-  const gtorAddr    = (document.getElementById('gtorAddr')?.value || '').trim();
-  const gtorPhone   = (document.getElementById('gtorPhone')?.value || '').trim();
-  const refs = (typeof refList !== 'undefined' ? refList : []).filter(r => r.name || r.phone || r.relation);
-
-  const model = modelSelect.value;
-  const brand = currentBrand === 'yanmar' ? 'Yanmar' : (currentBrand === 'solis' ? 'Solis' : 'รถเกี่ยว');
-  const seg   = currentSegment;
-
-  // Get best card entry
-  const rows = findEntries(currentBrand, model, currentSegment, toggleState);
-  const deduped = dedupeWithinSameCustomerOut(rows, model);
-  const {best, rest} = pickBestAndRest(deduped);
-  const allForExport = [best, ...rest];
-  const chosen = allForExport[selectedPromoIdx] || best;
-  const e = chosen?.entry || {};
-  const progName = chosen?.program?.name || '-';
-
-  const price     = e.price || 0;
-  const down      = (e.down || 0) + Math.max(0, extraDown);
-  const totalSupportBase = Math.max(0, (e.down||0) - (e.customer_out||0));
-  const subForSupport = Math.max(0, Math.min(Number(custSubForSupport)||0, totalSupportBase));
-  const support   = Math.max(0, ((e.yct||0) + (e.ysp||0) + (e.fire||0) + (e.ysp_topup||0)) - subForSupport);
-  const baseMinorCollect = getMinorFromPayment(tractorPayment);
-  const periodsBeforeBigCollect = getPeriodsMinor(tractorPayment);
-  const minorAdvanceTotal = baseMinorCollect * periodsBeforeBigCollect;
-  // แบบ 3: งวดย่อยรวมดาวน์ → บวกเพิ่มใน custOut (จ่ายจริง)
-  const minorWithDown = minorMode === 'with_down' ? minorAdvanceTotal : 0;
-  const custOut = Math.max(0, (e.customer_out||0) + Math.max(0, extraDown) + subForSupport + minorWithDown);
-  const rst       = e.rst || 0;
-  const finYears  = tractorYears || e.years || (currentBrand==='yanmar'?10:(currentBrand==='combine'?6:7));
-  const finRate   = lookupInterest(currentBrand, currentSegment, finYears, tractorPayment);
-  const finTotal  = Math.max(0, (e.total ?? (price-e.down||0)) - Math.max(0,extraDown));
-  const annualFull= finTotal * (1/finYears + finRate);
-  const minor       = getMinorFromPayment(tractorPayment);
-  const periodsMinorCollect = getPeriodsMinor(tractorPayment);
-  // bigPay = งวดใหญ่ปีสุดท้าย (ปีที่จ่ายน้อยกว่าเพราะ minor หมดแล้ว)
-  // ปกติ: bigPay = annual - minor*periods (ทุกปี)
-  // ล่วงหน้า/รวมดาวน์: ปีที่ 1 ถึง N-1 = annual เต็ม, ปีสุดท้าย = annual - minor*periods
-  const bigPayFull  = Math.max(0, annualFull - minor * periodsMinorCollect);
-  const bigPay      = firstBigAmount(bigPayFull, tractorPayment, tractorFinType);
-
-  // Equipment — รวมทั้งที่เลือกไว้ในโหมดใหม่และมือสอง (เลือกพร้อมกันได้)
-  // กลุ่มลูกค้าสำหรับ CRM (Retention/Yanmar Fan/Switching/General) — คนละเรื่องกับ seg ที่ใช้คำนวณราคา
-  // ทั่วไป -> General, RT -> Retention, YF,SW -> ตามที่เลือกไว้ (Yanmar Fan/Switching), Dry Crop(รถเกี่ยว) -> ไม่ระบุ
-  let crmCustRelType = '';
-  if(seg === 'ทั่วไป') crmCustRelType = 'General';
-  else if(seg === 'RT') crmCustRelType = 'Retention';
-  else if(seg === 'YF,SW') crmCustRelType = yfSwSubType || '';
-  const leadSource = (document.getElementById('leadSource')?.value || document.getElementById('leadSourceM')?.value || '').trim();
-
-  const eqMerged = getAllSelectedEquipment(currentBrand, model);
-  const selectedEqList = eqMerged.items;
-  let eqTotalPrice = eqMerged.total;
-  const eqFinYears = eqYears || finYears;
-  const eqFinRate  = currentBrand === 'combine' ? 0.09 : lookupInterest(currentBrand, currentSegment, eqFinYears, eqPayment);
-  const eqDown2    = Math.max(0, eqDown);
-  // แยก F และ R
-  const eqFPrice = selectedEqList.filter(i=>i.finType==='F').reduce((s,i)=>s+i.price, 0);
-  const eqRPrice = selectedEqList.filter(i=>i.finType==='R').reduce((s,i)=>s+i.price, 0);
-  // ดาวน์ตัดจาก R ก่อน ถ้าเกินค่อยตัด F
-  const eqDownR  = Math.min(eqDown2, eqRPrice);
-  const eqDownF  = Math.max(0, eqDown2 - eqDownR);
-  const eqFFinTotal = Math.max(0, eqFPrice - eqDownF);
-  const eqRFinTotal = Math.max(0, eqRPrice - eqDownR);
-  const eqFinTotal  = Math.max(0, eqTotalPrice - eqDown2);
-  const eqAnnualFull = eqFinTotal > 0 ? eqFinTotal * (1/eqFinYears + eqFinRate) : 0;
-  const eqFAnnual = eqFFinTotal > 0 ? roundInstallment(eqFFinTotal * (1/eqFinYears + eqFinRate), 'F') : 0;
-  const eqRAnnual = eqRFinTotal > 0 ? roundInstallment(eqRFinTotal * (1/eqFinYears + eqFinRate), 'R') : 0;
-  // อุปกรณ์ไม่มีงวดย่อย
-  const eqMinorBase = 0;
-  const eqPeriodsMinor = getPeriodsMinor(eqPayment);
-  const eqBigPayFull = Math.max(0, eqAnnualFull);
-  // รวม F+R ที่ปัดเศษแยกกันแล้ว แทนการปัดเศษยอดรวมซ้ำ (กันยอดรวมไม่ตรงกับผลรวมของ F+R)
-  const eqAnnual = eqFAnnual + eqRAnnual;
-
-  // Gifts
-  const allGifts = chosen?.program?.gifts || [];
-  const standardGifts = allGifts.filter(g => isCommonGift(g));
-  const specialGifts  = allGifts.filter(g => !isCommonGift(g));
-  const checkedSpecial = specialGifts.filter(g => selectedSpecialGifts[g] !== false);
-  const gifts = [...checkedSpecial, ...standardGifts];
-  // เพิ่มของแถมที่พิมพ์เอง
-  const _customGift = (document.getElementById('customGiftInput')?.value || document.getElementById('customGiftInputM')?.value || customGiftText || '').trim();
-  if(_customGift) gifts.unshift('✏️ ' + _customGift);
-
-  // ถ้ากำลังแก้ไขเคสเดิม (แก้รุ่นรถ/โปรใหม่ทั้งใบ) ให้สร้างสรุปเปลี่ยนแปลงไว้บันทึกใน Timeline ด้วย
-  let editSummaryNote = '';
-  const finalId = _editingRecordId || _draftCaseId || undefined;
-  if(_editingRecordId && _editingRecordSnapshot){
-    const old = _editingRecordSnapshot;
-    const newModel = model, newProg = progName, newFinTotal = Math.round(finTotal), newBigPay = bigPay;
-    const parts = [];
-    if((old.model||'') !== newModel) parts.push('รุ่น: "'+(old.model||'-')+'" → "'+newModel+'"');
-    if((old.progName||'') !== newProg) parts.push('โปร: "'+(old.progName||'-')+'" → "'+newProg+'"');
-    if(Math.round(Number(old.finTotal)||0) !== newFinTotal) parts.push('ยอดจัด: "'+fmt(Number(old.finTotal)||0)+'" → "'+fmt(newFinTotal)+'"');
-    if(Math.round(Number(old.bigPay)||0) !== Math.round(newBigPay)) parts.push('งวดใหญ่: "'+fmt(Number(old.bigPay)||0)+'" → "'+fmt(newBigPay)+'"');
-    editSummaryNote = parts.length ? ('แก้ไขรุ่นรถ/โปรใหม่ทั้งใบ: ' + parts.join(' | ')) : 'แก้ไขรุ่นรถ/โปรใหม่ทั้งใบ (คีย์ซ้ำด้วยข้อมูลเดิม)';
-  }
-
-  return {
-    custName, custAddr, custPhone, branch, model, brand, seg, progName,
-    custCurrentAddr, gtorName, gtorAddr, gtorPhone, refs,
-    finInfo,
-    id: finalId,
-    editSummaryNote: editSummaryNote || undefined,
-    byName: _editingRecordId ? userName : undefined,
-    byRole: _editingRecordId ? userRole : undefined,
-    price, down, support, custOut, rst,
-    supportTotal: support + rst, // ยอดสนับสนุนรวมที่ถูกต้อง (รวม RST ด้วย) ใช้แสดงแทน support เดี่ยวๆ กันโชว์ไม่ตรง
-    yctAmt: e.yct||0, yspAmt: e.ysp||0, fireAmt: e.fire||0, yspTopupAmt: e.ysp_topup||0, subForSupport,
-    finYears, finRate, finTotal: Math.round(finTotal), annualFull: Math.round(annualFull),
-    minorMode, minorAdvanceTotal,
-    minor, bigPay, bigPayFull: firstBigAmount(bigPayFull, tractorPayment, tractorFinType), tractorPayment,
-    eqItems: selectedEqList, eqTotalPrice, eqTotalF: eqFPrice, eqTotalR: eqRPrice,
-    eqAnnualF: eqFAnnual, eqAnnualR: eqRAnnual, eqDown: eqDown2, eqDownF, eqDownR,
-    eqFinTotal: Math.round(eqFinTotal), eqAnnual, eqAnnualFull: Math.round(eqAnnualFull),
-    eqFAnnual, eqRAnnual, eqFFinTotal: Math.round(eqFFinTotal), eqRFinTotal: Math.round(eqRFinTotal),
-    tractorFinType, eqFinYears, eqFinRate, eqPayment, eqMinorMode, eqMinorBase,
-    gifts,
-    yct: e.yct||0, ysp: e.ysp||0, fire: e.fire||0,
-    totalDown: down, date: new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}),
-    crmCustRelType, leadSource,
-  };
-}
-
-
-function renderGiftSelector(){
-  const d = collectExportData();
-  // Use raw program gifts (before filtering) so unchecked items still show
-  const rows = findEntries(currentBrand, modelSelect.value, currentSegment, toggleState);
-  const deduped = dedupeWithinSameCustomerOut(rows, modelSelect.value);
-  const {best: rb, rest: rr} = pickBestAndRest(deduped);
-  const allCards2 = [rb, ...rr];
-  const chosenCard = allCards2[selectedPromoIdx] || rb;
-  const gifts = chosenCard?.program?.gifts || [];
-  if(!gifts || gifts.length === 0){
-    ['giftSelectorBox','giftSelectorBoxM'].forEach(id=>{
-      const el = document.getElementById(id);
-      if(el) el.innerHTML = '';
-    });
-    return;
-  }
-
-  const standardGifts = gifts.filter(isCommonGift);
-  const specialGifts  = gifts.filter(g=>!isCommonGift(g));
-
-  // init selectedSpecialGifts ถ้ายังไม่มี
-  specialGifts.forEach(g=>{ if(!(g in selectedSpecialGifts)) selectedSpecialGifts[g] = false; }); // default untick
-
-  const standardHtml = standardGifts.length ? `
-    <div class="gift-standard">
-      <b>✅ ของแถมมาตรฐาน 9 รายการ</b> (ทุกคันได้เหมือนกัน)<br>
-      <span style="color:#888">${standardGifts.join(' · ')}</span>
-    </div>` : '';
-
-  const specialHtml = specialGifts.length ? `
-    <div class="gift-special-list">
-      ${specialGifts.map(g=>{
-        const checked = selectedSpecialGifts[g] !== false;
-        const icon = checked
-          ? `<svg width="18" height="18" viewBox="0 0 18 18"><rect width="18" height="18" rx="4" fill="var(--accent)"/><path d="M4 9l4 4 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-          : `<svg width="18" height="18" viewBox="0 0 18 18"><rect x=".5" y=".5" width="17" height="17" rx="3.5" stroke="var(--line)"/></svg>`;
-        return `<div class="gift-check-row${checked?' checked':''}" onclick="toggleSpecialGift(encodeURIComponent('${g.replace(/'/g,'APOS')}'))">
-          ${icon}
-          <span style="flex:1;${checked?'':'color:#bbb;text-decoration:line-through'}">${g}</span>
-          <span style="font-size:10px;font-weight:600;color:${checked?'var(--accent)':'#ccc'}">${checked?'ได้รับ':'— ไม่รับ'}</span>
-        </div>`;
-      }).join('')}
-    </div>` : '';
-
-  const html = `<div class="gift-selector">
-    <div class="gs-title">🎁 ของแถม — เลือกรายการที่ลูกค้าได้รับ</div>
-    ${standardHtml}
-    ${specialHtml}
-  </div>`;
-
-  ['giftSelectorBox','giftSelectorBoxM'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.innerHTML = html;
-  });
-}
-
-function toggleSpecialGift(encoded){
-  const name = decodeURIComponent(encoded).replace(/APOS/g,"'");
-  if(name in selectedSpecialGifts) selectedSpecialGifts[name] = !selectedSpecialGifts[name];
-  else selectedSpecialGifts[name] = false;
-  renderGiftSelector();
-}
-
-function refreshExportSummary(){
-  const d = collectExportData();
-  const html = `<div class="export-summary">
-    <div class="es-row"><span class="es-label">รุ่นรถ</span><span class="es-val">${d.model}</span></div>
-    <div class="es-row"><span class="es-label">โปร</span><span class="es-val">${d.progName}</span></div>
-    ${d.crmCustRelType !== undefined ? `<div class="es-row"><span class="es-label">กลุ่มลูกค้า (CRM)</span><span class="es-val" style="${!d.crmCustRelType && d.seg==='YF,SW' ? 'color:#B8860B' : ''}">${d.crmCustRelType || (d.seg==='YF,SW' ? '⚠ ยังไม่เลือก Yanmar Fan/Switching' : '-')}</span></div>` : ''}
-    ${d.leadSource !== undefined ? `<div class="es-row"><span class="es-label">Lead Source (CRM)</span><span class="es-val" style="${!d.leadSource ? 'color:#B8860B' : ''}">${d.leadSource || '⚠ ยังไม่เลือก'}</span></div>` : ''}
-    <div class="es-row"><span class="es-label">ราคารถ</span><span class="es-val">${fmt(d.price)} บาท</span></div>
-    <div class="es-row"><span class="es-label">เงินดาวน์รวม</span><span class="es-val">${fmt(d.down)} บาท</span></div>
-    <div class="es-row"><span class="es-label">ยอดจัด (รถ)</span><span class="es-val">${fmt(d.finTotal)} บาท</span></div>
-    <div class="es-row"><span class="es-label">งวดใหญ่ (รถ)</span><span class="es-val">${fmt(d.bigPay)} บาท/${d.finYears} ปี</span></div>
-    ${d.eqItems.length>0?`<div class="es-row"><span class="es-label">ยอดจัด (อุปกรณ์)</span><span class="es-val">${fmt(d.eqFinTotal)} บาท</span></div>`:''}
-    ${d.eqAnnual>0?`<div class="es-row"><span class="es-label">งวดอุปกรณ์</span><span class="es-val">${fmt(d.eqAnnual)} บาท/${d.eqFinYears} ปี</span></div>`:''}
-  </div>`;
-  ['exportSummaryBox','exportSummaryBoxM'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.innerHTML = html;
-  });
-  renderGiftSelector();
-}
-
-// ===== PDF / Print =====
-// true ระหว่างที่ preview modal กำลังโชว์ "หลังบันทึกสำเร็จ" — พอผู้ใช้กดปิด ค่อยรีเซ็ตฟอร์มไปเริ่มรายการใหม่
-// (แยกจากกรณีกด "ดูตัวอย่าง" เฉยๆ ก่อนบันทึก ซึ่งปิดแล้วไม่ต้องรีเซ็ตอะไร)
-let _reloadAfterPreviewClose = false;
-
-function saveAndPrint(){
-  const d = collectExportData();
-  const phoneDigits = (d.custPhone||'').replace(/\D/g,'');
-  if(phoneDigits.length !== 10){
-    alert('กรุณากรอกเบอร์โทรผู้ซื้อให้ครบ 10 หลัก ก่อนบันทึก (ตอนนี้กรอก ' + phoneDigits.length + ' หลัก)');
-    const phoneM = document.getElementById('custPhoneM');
-    const phoneD = document.getElementById('custPhone');
-    const target = (phoneM && phoneM.offsetParent) ? phoneM : phoneD;
-    if(target) target.focus();
-    return;
-  }
-  // ผู้ค้ำประกัน — ไม่บังคับต้องกรอก แต่ถ้ากรอกแล้วต้องครบ 10 หลัก
-  const gtorPhoneDigits = (d.gtorPhone||'').replace(/\D/g,'');
-  if(gtorPhoneDigits.length > 0 && gtorPhoneDigits.length !== 10){
-    alert('เบอร์โทรผู้ค้ำประกันกรอกไม่ครบ 10 หลัก (ตอนนี้กรอก ' + gtorPhoneDigits.length + ' หลัก)');
-    openAddressGuarantorModal();
-    setTimeout(()=>{ const el = document.getElementById('gtorPhone'); if(el) el.focus(); }, 50);
-    return;
-  }
-  // บุคคลอ้างอิง — ไม่บังคับต้องกรอก แต่ถ้ากรอกแล้วต้องครบ 10 หลัก (เช็คทีละคน)
-  const refsList = (typeof refList !== 'undefined' ? refList : []);
-  for(let i=0; i<refsList.length; i++){
-    const rPhoneDigits = (refsList[i].phone||'').replace(/\D/g,'');
-    if(rPhoneDigits.length > 0 && rPhoneDigits.length !== 10){
-      alert('เบอร์โทรผู้อ้างอิงคนที่ ' + (i+1) + ' กรอกไม่ครบ 10 หลัก (ตอนนี้กรอก ' + rPhoneDigits.length + ' หลัก)');
-      openReferenceModal();
-      setTimeout(()=>{
-        const row = document.querySelector('#referenceListContainer .ref-row[data-idx="'+i+'"]');
-        const el = row ? row.querySelector('input[inputmode="tel"]') : null;
-        if(el) el.focus();
-      }, 50);
-      return;
-    }
-  }
-  const saveBtns = document.querySelectorAll('button[onclick="saveAndPrint()"]');
-  saveBtns.forEach(b=>{
-    b.disabled = true;
-    if(!b.dataset.origText) b.dataset.origText = b.textContent;
-    b.textContent = '⏳ กำลังบันทึก...';
-  });
-  saveToHistory(d, function(err){
-    saveBtns.forEach(b=>{ b.disabled = false; b.textContent = b.dataset.origText; });
-    if(err){
-      alert('❌ บันทึกไม่สำเร็จ: ' + (err.message || 'ไม่ทราบสาเหตุ') + '\n\nข้อมูลที่กรอกไว้ยังอยู่ครบ ลองกดบันทึกอีกครั้งได้เลย (เช็คสัญญาณเน็ตด้วยถ้ายังไม่ผ่าน)');
-      return;
-    }
-    // บันทึกสำเร็จแน่นอนแล้ว (ได้คำตอบจากเซิร์ฟเวอร์จริง ไม่ใช่ยิงแบบไม่รู้ผลเหมือนเดิม)
-    // โชว์ใบสรุปแบบดูในหน้าเว็บ (ซูมนิ้วได้ปกติ ทำงานชัวร์บนมือถือ) แทนการเรียก print dialog ทันที
-    _reloadAfterPreviewClose = true;
-    previewPDF();
-    // เครื่องที่มีจอใหญ่/น่าจะต่อเครื่องพิมพ์อยู่ เปิดหน้าต่างพิมพ์เพิ่มให้อัตโนมัติ
-    // ส่วนมือถือข้ามขั้นนี้ เพราะ print dialog บนมือถือมักไม่เสถียรและอาจไปบังหน้าจอก่อนได้เห็นใบสรุป
-    if(window.innerWidth >= 760){
-      setTimeout(()=> exportPDF(), 300);
-    }
-  });
-}
-
-function buildPrintHtml(d){
-  const totalRacarom = d.price + d.eqTotalPrice;
-
-  // Build installment schedule: total periods = finYears*12
-  // ใช้ d.bigPay / d.annualFull ที่คำนวณไว้แล้วด้านบนตรงๆ (ไม่คำนวณซ้ำ) เพื่อให้ตารางตรงกับยอดสรุปเป๊ะเสมอ
-  function buildSchedule(d){
-    const finYears = d.finYears, minor = d.minor, paymentType = d.tractorPayment, mode = d.minorMode||'normal';
-    const tft = d.tractorFinType;
-    const rows = [];
-    const totalPeriods = finYears * 12;
-    // เดิม semi หาร /2 เท่ากันเป๊ะทั้งสองก้อน — ตอนนี้รองรับ split_70_30/split_50_50 ที่สัดส่วน 2 ก้อนไม่เท่ากัน
-    // จึงต้องแยกเป็น "ก้อนที่ 1" (เดือน 6 ในตาราง) กับ "ก้อนที่ 2" (เดือน 12) ให้ถูกต้องตามจริง
-    const [bigHalf1, bigHalf2] = isTwoBigPerYear(paymentType) ? splitBigAmounts(d.bigPay, paymentType, tft) : [d.bigPay, d.bigPay];
-    const [annualHalf1, annualHalf2] = isTwoBigPerYear(paymentType) ? splitBigAmounts(d.annualFull, paymentType, tft) : [d.annualFull, d.annualFull]; // สำหรับแบบ 2/3
-
-    function isBigMonth(m){ return m===12 || (isTwoBigPerYear(paymentType) && m===6); }
-    function pickBig(m, v1, v2){ return (isTwoBigPerYear(paymentType) && m===6) ? v1 : v2; }
-
-    for(let i=1; i<=totalPeriods; i++){
-      const monthInYear = ((i-1)%12)+1;
-      const yearNum = Math.ceil(i/12);
-      let amt;
-      if(paymentType === 'monthly_3m'){
-        amt = roundInstallment(d.annualFull/12, tft);
-      } else if(mode === 'normal'){
-        // งวดใหญ่ที่เดือน 6,12 (semi) หรือ 12 (annual); งวดย่อยเดือนอื่น
-        amt = isBigMonth(monthInYear) ? pickBig(monthInYear, bigHalf1, bigHalf2) : minor;
-      } else if(mode === 'advance'){
-        // ปีแรก: minor ทุกเดือน + annualHalf (งวดใหญ่เต็ม)
-        // ปีที่ 2 ถึงก่อนสุดท้าย: annualHalf เต็ม ไม่มี minor
-        // ปีสุดท้าย: bigHalf เท่านั้น (minor หมดไปแล้ว)
-        if(yearNum === finYears){
-          amt = isBigMonth(monthInYear) ? pickBig(monthInYear, bigHalf1, bigHalf2) : 0;
-        } else if(yearNum === 1){
-          amt = isBigMonth(monthInYear) ? pickBig(monthInYear, annualHalf1, annualHalf2) : minor;
-        } else {
-          amt = isBigMonth(monthInYear) ? pickBig(monthInYear, annualHalf1, annualHalf2) : 0;
-        }
-      } else if(mode === 'with_down'){
-        // แบบ 3: งวดย่อยรวมดาวน์แล้ว ไม่มี minor ในตาราง
-        // ทุกปี = annualHalf เต็ม ยกเว้นปีสุดท้าย = bigHalf
-        if(yearNum === finYears){
-          amt = isBigMonth(monthInYear) ? pickBig(monthInYear, bigHalf1, bigHalf2) : 0;
-        } else {
-          amt = isBigMonth(monthInYear) ? pickBig(monthInYear, annualHalf1, annualHalf2) : 0;
-        }
-      } else {
-        // monthly_3m หรือ mode ที่ไม่รู้จัก
-        amt = isBigMonth(monthInYear) ? pickBig(monthInYear, bigHalf1, bigHalf2) : minor;
-      }
-      rows.push({period: i, amt, yearNum, monthInYear});
-    }
-    return rows;
-  }
-  const schedule = buildSchedule(d);
-  // eqMonthlyAmt defined after scheduleTableHtml
-
-  // Format schedule as 5-column table (match the handwritten form layout)
-  // eqBigPay = งวดใหญ่อุปกรณ์ต่อปี (ไม่แบ่งเดือน)
-  // eqMinor = งวดย่อยอุปกรณ์ต่อเดือน (ถ้ามี)
-  // แต่ละงวดในตาราง: งวดเล็ก = minor(รถ) | งวดใหญ่ = bigPay(รถ) + eqAnnual(อุปกรณ์รวม)
-  // *** ไม่มี eqMonthly — อุปกรณ์รวมเฉพาะงวดใหญ่ปีละครั้ง ***
-
-  function scheduleTableHtml(rows, eqFAmt, eqRAmt){
-    const eqAnnualAmt = (eqFAmt||0) + (eqRAmt||0);
-    const _pt = d.tractorPayment;   // ใช้แค่เพื่อตาราง schedule งวดรถ
-    const _eqPt = d.eqPayment || _pt;
-    const isSemiPay = isTwoBigPerYear(_pt);
-    const eqIsSemi = isTwoBigPerYear(_eqPt);
-    const eqTimesPerYear = _eqPt==='monthly_3m' ? 12 : isTwoBigPerYear(_eqPt) ? 2 : 1;
-    const eqMode = d.eqMinorMode || 'normal';
-    const eqMinorPerPeriod = d.eqMinorBase || 0;
-    // bigPay อุปกรณ์ต่อ period (หักงวดย่อยเฉพาะแบบ normal)
-    const eqBigPerYear = eqAnnualAmt;
-    const eqPerBigMonth = eqAnnualAmt > 0 ? Math.round(eqBigPerYear / eqTimesPerYear) : 0;
-    const eqFPerBig = eqFAmt > 0 ? roundInstallment(eqFAmt / eqTimesPerYear, 'F') : 0;
-    const eqRPerBig = eqRAmt > 0 ? roundInstallment(eqRAmt / eqTimesPerYear, 'R') : 0;
-    const yearsTotal = Math.ceil(rows.length / 12);
-    // แบ่งเป็น 2 แถว: ปี 1-5 แถวบน, ปี 6-10 แถวล่าง
-    const firstHalf  = Math.min(5, yearsTotal);
-    const secondHalf = Math.max(0, yearsTotal - 5);
-
-    function renderHalf(startYear, count){
-      if(count===0) return '';
-      let colsHtml = '';
-      for(let c=0; c<count; c++){
-        const yearNum = startYear + c;
-        const slice = rows.slice((yearNum-1)*12, yearNum*12);
-        colsHtml += `<td style="vertical-align:top;padding:0 2px;width:${100/count}%">
-          <div style="text-align:center;font-size:7pt;font-weight:bold;color:#c9813a;background:#fff3e0;padding:1.5px 0;border-radius:4px 4px 0 0;border:0.5px solid #e0c090;border-bottom:none">ปีที่ ${yearNum}</div>
-          <table style="width:100%;border-collapse:collapse;font-size:7.5pt;line-height:1.4;border:0.5px solid #e8e0d5">`;
-        slice.forEach(r=>{
-          const monthInYear = ((r.period-1)%12)+1;
-          // เดือนที่จ่ายงวดอุปกรณ์ตาม payment type
-          const isBigCell = _pt==='monthly_3m'
-            ? true  // ทุกเดือน
-            : isTwoBigPerYear(_pt)
-              ? (monthInYear===6 || monthInYear===12)
-              : monthInYear===12;  // annual
-          const bg = isBigCell ? 'background:#fff3e0;' : (r.period%2===0?'background:#fafafa':'');
-          const fw = isBigCell ? 'font-weight:bold;' : '';
-          const showEq = (eqFAmt > 0 || eqRAmt > 0) && isBigCell && r.amt > 0;
-          if(r.amt === 0) {
-            // งวดว่าง
-            colsHtml += `<tr><td style="padding:0.5px 2px;color:#ddd;width:18px;font-size:6pt">${monthInYear}</td><td style="padding:0.5px 2px;text-align:right;color:#ddd;font-size:6pt">—</td></tr>`;
-          } else if(showEq){
-            colsHtml += `<tr style="${bg}">
-              <td style="padding:1px 2px;color:#666;width:18px;${fw}">${monthInYear}</td>
-              <td style="padding:1px 2px;text-align:right;${fw}">${fmt(r.amt)}${eqFPerBig>0?` <span style="font-size:6pt;color:var(--accent);font-weight:normal">F+${fmt(eqFPerBig)}</span>`:''}${eqRPerBig>0?`<br><span style="font-size:6pt;color:#1e7e34;font-weight:normal">R+${fmt(eqRPerBig)}</span>`:''}${eqAnnualAmt>0&&eqFPerBig===0&&eqRPerBig===0?`<br><span style="font-size:6.5pt;color:#1e7e34;font-weight:normal">+${fmt(eqPerBigMonth)}</span>`:''}</td>
-            </tr>`;
-          } else {
-            colsHtml += `<tr style="${bg}">
-              <td style="padding:1px 2px;color:#666;width:18px;${fw}">${monthInYear}</td>
-              <td style="padding:1px 2px;text-align:right;${fw}">${fmt(r.amt)}</td>
-            </tr>`;
+  "combine": {
+    "models": [
+      "AW82V",
+      "YH700",
+      "YH700 Cabin",
+      "YH850GUW 2.3",
+      "YH850 Cabin",
+      "YH1180G26WU-TH"
+    ],
+    "programs": [
+      {
+        "id": "c_general",
+        "name": "โปรลูกค้าทั่วไป ดาวน์30%",
+        "groups": [
+          "ทั่วไป"
+        ],
+        "conditions": [],
+        "entries": {
+          "AW82V": {
+            "price": 1237000,
+            "down": 372000,
+            "yct": 97000,
+            "ysp": 200000,
+            "rst": 75000,
+            "customer_out": 0,
+            "total": 865000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1306150.02,
+            "annual": 217691.67
+          },
+          "YH700": {
+            "price": 1292000,
+            "down": 388000,
+            "yct": 129000,
+            "ysp": 100000,
+            "rst": 109000,
+            "customer_out": 50000,
+            "total": 904000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1365040.02,
+            "annual": 227506.67
+          },
+          "YH700 Cabin": {
+            "price": 1409000,
+            "down": 423000,
+            "yct": 102500,
+            "ysp": 110000,
+            "rst": 50500,
+            "customer_out": 160000,
+            "total": 986000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1488859.98,
+            "annual": 248143.33
+          },
+          "YH850GUW 2.3": {
+            "price": 1562000,
+            "down": 469000,
+            "yct": 147000,
+            "ysp": 120000,
+            "rst": 62000,
+            "customer_out": 140000,
+            "total": 1093000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1650430.02,
+            "annual": 275071.67
+          },
+          "YH850 Cabin": {
+            "price": 1658000,
+            "down": 498000,
+            "yct": 130000,
+            "ysp": 130000,
+            "rst": 68000,
+            "customer_out": 170000,
+            "total": 1160000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1751599.98,
+            "annual": 291933.33
+          },
+          "YH1180G26WU-TH": {
+            "price": 1779000,
+            "down": 534000,
+            "yct": 133500,
+            "ysp": 200000,
+            "rst": 70500,
+            "customer_out": 130000,
+            "total": 1245000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1879950.0,
+            "annual": 313325.0
           }
-        });
-        colsHtml += `</table></td>`;
-      }
-      return `<table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:3px"><tr>${colsHtml}</tr></table>`;
-    }
-
-    return renderHalf(1, firstHalf) + (secondHalf>0 ? renderHalf(6, secondHalf) : '');
-  }
-
-  const printHtml = `
-    <div style="font-family:'Sarabun',sans-serif;font-size:7.5pt;color:#000;width:100%;max-width:194mm;margin:0 auto;padding:0;box-sizing:border-box">
-      <div style="text-align:center;margin-bottom:3px">
-        <div style="font-size:13pt;font-weight:bold">รวมสินไทยแทรกเตอร์ ${d.branch ? '— '+d.branch : ''}</div>
-        <div style="font-size:9pt;color:#555">ใบสรุปเช่าซื้อ วันที่ ${d.date}</div>
-      </div>
-      <hr style="border:0.5px solid #ccc;margin:2px 0">
-
-      <table style="width:100%;border-collapse:collapse;margin-bottom:2px">
-        <tr>
-          <td style="width:50%;padding:2px 0"><b>ชื่อลูกค้า:</b> ${d.custName||'....................................'}</td>
-          <td style="width:50%;padding:2px 0"><b>กลุ่มลูกค้า:</b> ${d.seg} (${d.brand})</td>
-        </tr>
-        <tr>
-          <td colspan="2" style="padding:2px 0"><b>ที่อยู่:</b> ${d.custAddr||'........................................................................................................'}</td>
-        </tr>
-        <tr>
-          <td style="padding:2px 0"><b>เบอร์โทร:</b> ${d.custPhone||'....................................'}</td>
-          <td style="padding:2px 0"><b>โปร:</b> <b style="color:#c9813a">${d.progName}</b></td>
-        </tr>
-      </table>
-
-      <table style="width:100%;border-collapse:collapse;border:0.5px solid #bbb;margin-bottom:3px">
-        <thead><tr style="background:#f0ede8">
-          <th style="padding:2px 5px;text-align:left;font-size:9.5pt;border:0.5px solid #bbb">ประเภทสินค้า</th>
-          <th style="padding:2px 5px;text-align:left;font-size:9.5pt;border:0.5px solid #bbb">รุ่น</th>
-          <th style="padding:2px 5px;text-align:right;font-size:9.5pt;border:0.5px solid #bbb">ราคา</th>
-        </tr></thead>
-        <tbody>
-          <tr>
-            <td style="padding:1px 4px;border:0.5px solid #bbb">รถแทรกเตอร์</td>
-            <td style="padding:1px 4px;border:0.5px solid #bbb">${d.model}</td>
-            <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(d.price)}</td>
-          </tr>
-          ${d.eqItems.length>0 ? d.eqItems.map(eq=>`<tr>
-            <td style="padding:1px 4px;border:0.5px solid #bbb;font-weight:bold;color:${eq.finType==='F'?'#c9813a':'#1e7e34'}">${eq.finType||'R'}</td>
-            <td style="padding:1px 4px;border:0.5px solid #bbb">${eq.name}</td>
-            <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(eq.price)}</td>
-          </tr>`).join('') : ''}
-          <tr style="background:#f0ede8;font-weight:bold">
-            <td colspan="2" style="padding:1px 4px;border:0.5px solid #bbb">ราคารวมทั้งสิ้น</td>
-            <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(totalRacarom)}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <table style="width:100%;border-collapse:collapse;margin-bottom:3px;font-size:7.5pt">
-        <tr>
-          <td style="width:50%;vertical-align:top;padding-right:6px;border-right:1.5px solid #e8d8c0">
-            <div style="font-weight:bold;color:#c9813a;background:#fff8f0;padding:2px 4px;border-radius:4px;margin-bottom:3px;font-size:8.5pt">🚜 รถแทรกเตอร์</div>
-            <table style="width:100%;font-size:8pt">
-              <tr><td style="padding:1px 0;font-weight:bold">${d.model}</td><td style="text-align:right;font-weight:bold">${fmt(d.price)}</td></tr>
-              <tr><td style="padding:1px 0;font-weight:bold">ดาวน์รวม</td><td style="text-align:right;font-weight:bold">${fmt(d.down)}</td></tr>
-              <tr><td style="color:#888;padding:1px 0">ช่วยดาวน์</td><td style="text-align:right;color:#888">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</td></tr>
-              ${d.eqItems.length>1 ? Array(d.eqItems.length-1).fill('<tr><td style="padding:1px 0"> </td><td></td></tr>').join('') : ''}
-              <tr><td style="padding:1px 0;font-weight:bold">จ่ายจริง</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.custOut)}</td></tr>
-              <tr><td style="color:#888;padding:1px 0">ยอดจัด</td><td style="text-align:right;color:#888">${fmt(d.finTotal)}</td></tr>
-              <tr style="background:#fff3e0"><td style="padding:1px 0;font-weight:bold">งวดใหญ่/ปี</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.bigPay)}</td></tr>
-              ${d.minor>0?`<tr><td style="padding:1px 0;font-weight:bold">งวดย่อย/เดือน</td><td style="text-align:right;font-weight:bold">${fmt(d.minor)} × ${getPeriodsMinor(d.tractorPayment)}</td></tr>`:''}
-              <tr><td style="color:#888;padding:1px 0">${d.finYears} ปี @ ${(d.finRate*100).toFixed(2)}%</td><td></td></tr>
-            </table>
-          </td>
-          <td style="width:50%;vertical-align:top;padding-left:6px">
-            ${d.eqItems.length>0 ? `
-            <div style="font-weight:bold;color:#1e7e34;background:#f0fff4;padding:2px 4px;border-radius:4px;margin-bottom:3px;font-size:8.5pt">🔧 อุปกรณ์</div>
-            <table style="width:100%;font-size:8pt">
-              ${d.eqItems.map(eq=>`<tr><td style="padding:1px 0;font-weight:bold">${eq.name}</td><td style="text-align:right;font-weight:bold">${fmt(eq.price)}</td></tr>`).join('')}
-              <tr><td style="padding:1px 0;font-weight:bold">ดาวน์รวม</td><td style="text-align:right;font-weight:bold">${fmt(d.eqTotalPrice)}</td></tr>
-              <tr><td style="color:#888;padding:1px 0"> </td><td></td></tr>
-              <tr><td style="padding:1px 0;font-weight:bold">จ่ายจริง</td><td style="text-align:right;font-weight:bold;color:#1e7e34">${fmt(d.eqDown)}</td></tr>
-              <tr><td style="color:#888;padding:1px 0">ยอดจัด</td><td style="text-align:right;color:#888">${fmt(d.eqFinTotal)}</td></tr>
-              ${(d.eqAnnualF||0)>0?`<tr style="background:#fff3e0"><td style="padding:1px 0;font-weight:bold;color:var(--accent)">F งวด/ปี</td><td style="text-align:right;font-weight:bold;color:var(--accent)">${fmt(d.eqAnnualF)}</td></tr>`:''}
-              ${(d.eqAnnualR||0)>0?`<tr style="background:#f0fff4"><td style="padding:1px 0;font-weight:bold;color:#1e7e34">R งวด/ปี</td><td style="text-align:right;font-weight:bold;color:#1e7e34">${fmt(d.eqAnnualR)}</td></tr>`:''}
-              ${!(d.eqAnnualF||0)&&!(d.eqAnnualR||0)?`<tr style="background:#f0fff4"><td style="padding:1px 0;font-weight:bold">งวดใหญ่/ปี</td><td style="text-align:right;font-weight:bold;color:#1e7e34">${fmt(d.eqAnnual)}</td></tr>`:''}
-              <tr><td style="color:#888;padding:1px 0">${d.eqFinYears} ปี @ ${(d.eqFinRate*100).toFixed(2)}%</td><td></td></tr>
-            </table>` : '<div style="color:#ccc;font-size:8pt;padding-top:8px">— ไม่มีอุปกรณ์ —</div>'}
-          </td>
-        </tr>
-      </table>
-
-      <div style="font-size:7.5pt;font-weight:bold;margin-bottom:1px">ตารางงวดชำระ — ${d.finYears} ปี (${d.finYears*12} งวด)${d.eqAnnual>0?(()=>{
-        const pt=d.tractorPayment;
-        const times = pt==='monthly_3m'?12:isTwoBigPerYear(pt)?2:1;
-        const perTime = Math.round(d.eqAnnual/times);
-        const suffix = pt==='monthly_3m'?'/เดือน':isTwoBigPerYear(pt)?'/ครั้ง × 2':'/ปี';
-        return ` + อุปกรณ์ <span style='color:#1e7e34'>${fmt(perTime)}${suffix}</span>`;
-      })():''}</div>
-      ${scheduleTableHtml(schedule, d.eqAnnualF||0, d.eqAnnualR||0)}
-
-
-      ${(()=>{
-        const specials = d.gifts.filter(g => !isCommonGift(g) && !g.startsWith('✏️'));
-        const standard = d.gifts.filter(g => isCommonGift(g));
-        const custom = d.gifts.filter(g => g.startsWith('✏️'));
-        let out = '';
-        if(specials.length) out += `<div style="margin-top:4px;font-size:8pt"><b>ของแถมพิเศษ:</b> <span style="color:#c9813a">${specials.join(' · ')}</span></div>`;
-        if(custom.length) out += `<div style="margin-top:2px;font-size:8pt"><b>ของแถมอื่นๆ:</b> <span style="color:#555">${custom.map(g=>g.replace('✏️ ','')).join(' · ')}</span></div>`;
-        if(standard.length) out += `<div style="margin-top:2px;font-size:8pt"><b>ของแถมมาตรฐาน ${standard.length} รายการ:</b> <span style="color:#888">${standard.join(' · ')}</span></div>`;
-        return out;
-      })()}
-
-      <hr style="border:0.5px solid #ccc;margin:3px 0">
-      <table style="width:100%">
-        <tr>
-          <td style="text-align:center;font-size:9pt">ลงชื่อ .................................<br>ผู้แนะนำ</td>
-          <td style="text-align:center;font-size:9pt">${d.branch ? `<div style="font-weight:bold;margin-bottom:2px">${d.branch}</div><div style="border-bottom:0.5px solid #000;margin:0 10px 2px"></div>` : 'ลงชื่อ ..................................<br>'}<span style="font-size:8.5pt">ผู้ขาย / ผู้ปิดการขาย</span></td>
-          <td style="text-align:center;font-size:9pt">ลงชื่อ .................................<br>ลูกค้า</td>
-        </tr>
-      </table>
-    </div>`;
-
-  return printHtml;
-}
-
-function exportPDF(){
-  const d = collectExportData();
-  document.getElementById('printArea').innerHTML = buildPrintHtml(d);
-  // Temporarily show print area only
-  document.body.classList.add('printing');
-  window.print();
-  document.body.classList.remove('printing');
-}
-
-// ดูตัวอย่างในหน้าเว็บปกติ (ไม่ผ่านหน้าต่างพิมพ์ของเครื่อง) — ซูมนิ้วได้ปกติบนมือถือ
-function previewPDF(){
-  const d = collectExportData();
-  document.getElementById('previewModalScroll').innerHTML = buildPrintHtml(d);
-  document.getElementById('previewModalBg').style.display = 'flex';
-  const titleEl = document.getElementById('previewModalTitle');
-  if(titleEl){
-    titleEl.textContent = _reloadAfterPreviewClose
-      ? '✅ บันทึกสำเร็จ — นี่คือใบสรุปที่บันทึกไว้'
-      : '👁 ตัวอย่างใบสรุป';
-  }
-}
-function closePreviewModal(){
-  document.getElementById('previewModalBg').style.display = 'none';
-  if(_reloadAfterPreviewClose){
-    _reloadAfterPreviewClose = false;
-    // บันทึกเรียบร้อยและดูใบสรุปแล้ว — รีเซ็ตข้อมูลที่เลือก/กรอกทั้งหมด แล้วกลับไปหน้าเริ่มต้น
-    location.reload();
-  }
-}
-
-// ===== แบบฟอร์มข้อมูลเพิ่มเติม (ที่อยู่ปัจจุบัน / ผู้ค้ำประกัน / ผู้อ้างอิง) แยกจากใบสรุปค่างวด =====
-function buildGuarantorFormHtml(d){
-  const blank = '........................................................................................................';
-  const blankShort = '....................................';
-  // รองรับเคสเก่าก่อนหน้านี้ที่ยังเป็นฟิลด์เดี่ยว (refName/refPhone/refRelation) ให้แปลงเป็น array เดียวกัน
-  const refs = Array.isArray(d.refs) && d.refs.length ? d.refs
-    : (d.refName ? [{name:d.refName, phone:d.refPhone, relation:d.refRelation}] : []);
-  const refsHtml = refs.length ? refs.map((r,i)=>`
-        <tr><td colspan="2" style="padding:4px 0 0;font-weight:bold;color:#1e7e34">ผู้อ้างอิงคนที่ ${i+1}</td></tr>
-        <tr><td style="width:30%;padding:2px 0"><b>ชื่อ-นามสกุล:</b></td><td style="padding:2px 0">${r.name||blankShort}</td></tr>
-        <tr><td style="padding:2px 0"><b>เบอร์โทร:</b></td><td style="padding:2px 0">${r.phone||blankShort}</td></tr>
-        <tr><td style="padding:2px 0"><b>ความสัมพันธ์กับผู้ซื้อ:</b></td><td style="padding:2px 0">${r.relation||blankShort}</td></tr>
-    `).join('') : `
-        <tr><td style="width:30%;padding:2px 0"><b>ชื่อ-นามสกุล:</b></td><td style="padding:2px 0">${blankShort}</td></tr>
-        <tr><td style="padding:2px 0"><b>เบอร์โทร:</b></td><td style="padding:2px 0">${blankShort}</td></tr>
-        <tr><td style="padding:2px 0"><b>ความสัมพันธ์กับผู้ซื้อ:</b></td><td style="padding:2px 0">${blankShort}</td></tr>
-    `;
-  return `
-    <div style="font-family:'Sarabun',sans-serif;font-size:8pt;color:#000;width:100%;max-width:194mm;margin:0 auto;padding:0;box-sizing:border-box">
-      <div style="text-align:center;margin-bottom:4px">
-        <div style="font-size:13pt;font-weight:bold">รวมสินไทยแทรกเตอร์ ${d.branch ? '— '+d.branch : ''}</div>
-        <div style="font-size:9pt;color:#555">แบบฟอร์มข้อมูลเพิ่มเติม (ที่อยู่ปัจจุบัน / ผู้ค้ำประกัน / ผู้อ้างอิง)</div>
-        <div style="font-size:8pt;color:#888">วันที่ ${d.date||''}</div>
-      </div>
-      <hr style="border:0.5px solid #ccc;margin:4px 0">
-
-      <div style="font-weight:bold;background:#f0ede8;padding:3px 6px;border-radius:4px;margin-bottom:4px">ข้อมูลผู้ซื้อ</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:9pt">
-        <tr><td style="width:30%;padding:2px 0"><b>ชื่อ-นามสกุล:</b></td><td style="padding:2px 0">${d.custName||blankShort}</td></tr>
-        <tr><td style="padding:2px 0"><b>เบอร์โทร:</b></td><td style="padding:2px 0">${d.custPhone||blankShort}</td></tr>
-        <tr><td style="padding:2px 0;vertical-align:top"><b>ที่อยู่ตามทะเบียน:</b></td><td style="padding:2px 0">${d.custAddr||blank}</td></tr>
-        <tr><td style="padding:2px 0;vertical-align:top"><b>ที่อยู่ปัจจุบัน:</b></td><td style="padding:2px 0">${d.custCurrentAddr||blank}</td></tr>
-      </table>
-
-      <div style="font-weight:bold;background:#fff3e0;padding:3px 6px;border-radius:4px;margin-bottom:4px">ข้อมูลผู้ค้ำประกัน</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:9pt">
-        <tr><td style="width:30%;padding:2px 0"><b>ชื่อ-นามสกุล:</b></td><td style="padding:2px 0">${d.gtorName||blankShort}</td></tr>
-        <tr><td style="padding:2px 0"><b>เบอร์โทร:</b></td><td style="padding:2px 0">${d.gtorPhone||blankShort}</td></tr>
-        <tr><td style="padding:2px 0;vertical-align:top"><b>ที่อยู่:</b></td><td style="padding:2px 0">${d.gtorAddr||blank}</td></tr>
-      </table>
-
-      ${buildFinInfoPrintHtml(d.finInfo)}
-
-      <div style="font-weight:bold;background:#f0fff4;padding:3px 6px;border-radius:4px;margin-bottom:4px">ข้อมูลผู้อ้างอิง</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:9pt">
-        ${refsHtml}
-      </table>
-
-      <hr style="border:0.5px solid #ccc;margin:6px 0">
-      <table style="width:100%">
-        <tr>
-          <td style="text-align:center;font-size:9pt">ลงชื่อ .................................<br>ผู้ค้ำประกัน</td>
-          <td style="text-align:center;font-size:9pt">ลงชื่อ .................................<br>ผู้ซื้อ</td>
-          <td style="text-align:center;font-size:9pt">${d.branch ? `<div style="font-weight:bold;margin-bottom:2px">${d.branch}</div><div style="border-bottom:0.5px solid #000;margin:0 10px 2px"></div>` : 'ลงชื่อ ..................................<br>'}<span style="font-size:8.5pt">ผู้บันทึกข้อมูล</span></td>
-        </tr>
-      </table>
-    </div>`;
-}
-
-// สร้างตารางข้อมูลรายได้ลูกค้าสำหรับใบพิมพ์ (ทำเกษตร/งานประจำ/รายได้เสริม/เครื่องจักรที่มีอยู่แล้ว/หนี้สิน)
-function buildFinInfoPrintHtml(fi){
-  const blankShort = '....................................';
-  if(!fi) return '';
-  const plots = (fi.farmPlots||[]).filter(p=>p.cropType||p.rai||p.titleHolder);
-  const machines = (fi.machines||[]).filter(m=>m.type||m.model||m.qty||m.note);
-  const debts = (fi.debts||[]).filter(d=>d.creditor||d.amount);
-  const hasAny = plots.length || machines.length || debts.length || fi.hasJob || fi.hasSideIncome;
-  if(!hasAny) return '';
-
-  const plotsRows = plots.length ? plots.map(p=>`
-      <tr><td style="padding:2px 0">${p.cropType||'-'}</td><td style="padding:2px 0;text-align:center">${p.rai||'-'} ไร่</td><td style="padding:2px 0">เอกสารสิทธิ์: ${p.titleHolder||'-'}</td></tr>
-    `).join('') : `<tr><td colspan="3" style="padding:2px 0;color:#888">${blankShort}</td></tr>`;
-
-  const jobLine = fi.hasJob === 'yes'
-    ? `มี — ${fi.jobDetail||'-'} (${fi.jobIncome?fmt(Number(fi.jobIncome)||0)+' บาท/เดือน':'-'})`
-    : (fi.hasJob === 'no' ? 'ไม่มี' : '-');
-  const sideLine = fi.hasSideIncome === 'yes'
-    ? `มี — ${fi.sideIncomeDetail||'-'} (${fi.sideIncomeAmount?fmt(Number(fi.sideIncomeAmount)||0)+' บาท/เดือน':'-'})`
-    : (fi.hasSideIncome === 'no' ? 'ไม่มี' : '-');
-
-  const machinesRows = machines.length ? machines.map(m=>`
-      <tr><td style="padding:2px 0">${m.type||'-'}</td><td style="padding:2px 0">${m.model||'-'}</td><td style="padding:2px 0;text-align:center">${m.qty||'-'} คัน</td><td style="padding:2px 0">${m.note||'-'}</td></tr>
-    `).join('') : '';
-
-  const debtsRows = debts.length ? debts.map(d=>`
-      <tr><td style="padding:2px 0">${d.creditor||'-'}</td><td style="padding:2px 0;text-align:right">${d.amount?fmt(Number(d.amount)||0):'-'} บาท</td></tr>
-    `).join('') : '';
-
-  return `
-      <div style="font-weight:bold;background:#eef4fb;padding:3px 6px;border-radius:4px;margin-bottom:4px">ข้อมูลรายได้ลูกค้า</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:4px;font-size:9pt">
-        <tr><td colspan="3" style="padding:2px 0;font-weight:bold;color:#555">ทำเกษตร</td></tr>
-        ${plotsRows}
-        <tr><td style="padding:4px 0"><b>งานประจำ:</b></td><td colspan="2" style="padding:4px 0">${jobLine}</td></tr>
-        <tr><td style="padding:2px 0"><b>รายได้เสริม:</b></td><td colspan="2" style="padding:2px 0">${sideLine}</td></tr>
-      </table>
-      ${machines.length ? `<table style="width:100%;border-collapse:collapse;margin-bottom:4px;font-size:9pt">
-        <tr><td colspan="4" style="padding:2px 0;font-weight:bold;color:#555">เครื่องจักรกลที่มีอยู่แล้ว</td></tr>
-        ${machinesRows}
-      </table>` : ''}
-      ${debts.length ? `<table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:9pt">
-        <tr><td colspan="2" style="padding:2px 0;font-weight:bold;color:#555">หนี้สิน</td></tr>
-        ${debtsRows}
-      </table>` : ''}
-  `;
-}
-
-function previewGuarantorForm(){
-  const d = collectExportData();
-  document.getElementById('previewModalScroll').innerHTML = buildGuarantorFormHtml(d);
-  document.getElementById('previewModalBg').style.display = 'flex';
-}
-function printGuarantorForm(){
-  const d = collectExportData();
-  document.getElementById('printArea').innerHTML = buildGuarantorFormHtml(d);
-  document.body.classList.add('printing');
-  window.print();
-  document.body.classList.remove('printing');
-}
-function _guarantorFormFromRecord(rec){
-  _recordOverride = rec;
-  printGuarantorForm();
-  _recordOverride = null;
-}
-function reprintGuarantorForm(id){
-  jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
-    if(err || data.status !== 'ok'){ alert('โหลดไม่ได้: ' + (err?.message||data?.message)); return; }
-    _guarantorFormFromRecord(data.record);
-  });
-}
-
-// ===== แนบเอกสารประกอบ: modal เปิด/ปิด + รายการหมวดเอกสาร =====
-// รองรับ 2 ฝั่ง: ผู้ซื้อ (buyer) และผู้ค้ำประกัน (guarantor) — แยกลายเซ็น/ไฟล์ที่แนบไว้คนละชุดกันคนละบทบาท
-let currentDocsCaseId = null;
-let currentDocsIsDraft = false;
-let currentDocsRole = 'buyer';
-let signatureDataUrlByRole = { buyer:null, guarantor:null };
-let sigSignatureImgElByRole = { buyer:null, guarantor:null };
-let _draftCaseId = null;
-
-// สร้างรหัสเคสชั่วคราวไว้ใช้แนบเอกสารได้ตั้งแต่ก่อนกดบันทึกจริง
-// พอกดบันทึกจริง จะส่ง id เดียวกันนี้ไปให้ backend ใช้เป็นรหัสเคสตัวจริงเลย (ไฟล์ที่แนบไว้จะตรงกันอัตโนมัติ)
-function getOrCreateDraftCaseId(){
-  if(!_draftCaseId){
-    _draftCaseId = 'RST_' + new Date().toISOString().replace(/[-:TZ.]/g,'').slice(0,17) + '_' + Math.floor(Math.random()*1000);
-  }
-  return _draftCaseId;
-}
-function resolveCustNameForDocs(){
-  if(!currentDocsIsDraft) return (window._docsCustNameFixed || '').trim();
-  return (document.getElementById('custName2')?.value || document.getElementById('custNameM')?.value || '').trim();
-}
-
-let attachedCategoriesByRole = { buyer: new Set(), guarantor: new Set() };
-
-function openDocsModal(id, role){
-  currentDocsCaseId = id;
-  currentDocsRole = role || 'buyer';
-  const histRec = (typeof _allHistoryRecords !== 'undefined') ? _allHistoryRecords.find(r => String(r.id) === String(id)) : null;
-  currentDocsIsDraft = !histRec;
-  window._docsCustNameFixed = histRec ? (histRec.custName || '') : '';
-  signatureDataUrlByRole[currentDocsRole] = null;
-  sigSignatureImgElByRole[currentDocsRole] = null;
-  attachedCategoriesByRole[currentDocsRole] = new Set();
-  document.getElementById('docSignaturePreview').innerHTML = '';
-  document.getElementById('docsPdfArea').innerHTML = '';
-  document.getElementById('docsModalTitle').textContent = currentDocsRole === 'guarantor' ? '📎 แนบเอกสารประกอบ — ผู้ค้ำประกัน' : '📎 แนบเอกสารประกอบ — ผู้ซื้อ';
-  renderDocCategoryList();
-  document.getElementById('docsModalBg').style.display = 'flex';
-  refreshAttachedCategories(id, currentDocsRole);
-}
-function closeDocsModal(){
-  document.getElementById('docsModalBg').style.display = 'none';
-}
-// เช็คว่าหมวดไหนถูกแนบไปแล้วบ้าง (ทั้งจากรอบก่อนที่เคยอัปโหลดไว้ + ที่แนบใหม่ในรอบนี้) ไว้ตัดสินว่าหมวดที่บังคับแนบครบหรือยัง
-function refreshAttachedCategories(id, role){
-  if(!gasUrl) return;
-  gasPostReadable('listDocCategories', {id}, function(err, data){
-    if(err || !data || data.status !== 'ok') return;
-    const names = data.names || [];
-    const cats = role === 'guarantor' ? DOC_CATEGORIES_GUARANTOR : DOC_CATEGORIES;
-    names.forEach(function(n){
-      const nameNoExt = n.replace(/\.[^.]+$/, '');
-      const isGuarantorFile = nameNoExt.indexOf('_ผู้ค้ำ') > -1;
-      if((role === 'guarantor') !== isGuarantorFile) return;
-      cats.forEach(function(cat){
-        if(nameNoExt.indexOf(cat.label) > -1) attachedCategoriesByRole[role].add(cat.key);
-      });
-    });
-    updateRequiredBadges();
-  });
-}
-function updateRequiredBadges(){
-  const cats = getActiveCategories();
-  cats.filter(c => c.required).forEach(function(cat){
-    const done = attachedCategoriesByRole[currentDocsRole].has(cat.key);
-    const badgeId = 'reqBadge_' + cat.key;
-    let badge = document.getElementById(badgeId);
-    if(!badge) return;
-    badge.textContent = done ? '✓ แนบแล้ว (จำเป็น)' : '⚠ จำเป็นต้องแนบ';
-    badge.className = 'doc-required-badge ' + (done ? 'ok' : 'missing');
-  });
-}
-let docPageStoreByRole = { buyer:{}, guarantor:{} };
-let dynamicSlotCountByRole = { buyer:{}, guarantor:{} };
-function renderDocCategoryList(){
-  docPageStoreByRole[currentDocsRole] = {};
-  dynamicSlotCountByRole[currentDocsRole] = {};
-  const cats = getActiveCategories();
-  const c = document.getElementById('docCategoryList');
-  c.innerHTML = cats.map(cat => {
-    const reqBadge = cat.required ? `<span class="doc-required-badge missing" id="reqBadge_${cat.key}">⚠ จำเป็นต้องแนบ</span>` : '';
-    if(cat.count === 'dynamic'){
-      const gradeField = cat.hasGrade ? `
-        <div class="field-group" style="margin:4px 0 8px">
-          <label style="font-size:10px">เกรดลูกค้า (ถ้ามี)</label>
-          <input type="text" id="grade_${cat.key}" placeholder="เช่น A, B, C">
-        </div>` : '';
-      return `
-        <div class="doc-cat-group" id="docGroup_${cat.key}">
-          <div class="doc-cat-group-label">${cat.label} ${reqBadge}</div>
-          ${gradeField}
-          <div id="docSlots_${cat.key}"></div>
-          <button type="button" class="doc-add-slot-btn" onclick="addDynamicSlot('${cat.key}')">➕ เพิ่มรูป</button>
-        </div>`;
-    }
-    const n = cat.count || 1;
-    let rows = '';
-    for(let i=1; i<=n; i++){
-      const slotKey = n > 1 ? cat.key + '_' + i : cat.key;
-      const slotLabel = (n > 1 ? cat.label + ' (ใบที่ ' + i + ')' : cat.label) + (i===1 ? ' ' + reqBadge : '');
-      rows += `
-        <div class="doc-cat-row" id="docRow_${slotKey}">
-          <div class="doc-cat-label">${slotLabel}</div>
-          <input type="file" accept="image/*" id="docFile_${slotKey}" onchange="onDocFileSelected('${slotKey}','${cat.key}')">
-          <div class="doc-cat-status" id="docStatus_${slotKey}">ยังไม่แนบ</div>
-        </div>`;
-    }
-    return rows;
-  }).join('');
-  // เริ่มต้นให้หมวดที่เพิ่มได้หลายใบ มีช่องแรกไว้ให้เลย 1 ช่อง
-  cats.filter(cat => cat.count === 'dynamic').forEach(cat => addDynamicSlot(cat.key));
-  updateRequiredBadges();
-}
-function addDynamicSlot(catKey){
-  const slotCounts = dynamicSlotCountByRole[currentDocsRole];
-  slotCounts[catKey] = (slotCounts[catKey] || 0) + 1;
-  const idx = slotCounts[catKey];
-  const slotKey = catKey + '_' + idx;
-  const container = document.getElementById('docSlots_' + catKey);
-  if(!container) return;
-  const row = document.createElement('div');
-  row.className = 'doc-cat-row';
-  row.id = 'docRow_' + slotKey;
-  row.innerHTML = `
-    <div class="doc-cat-label">ใบที่ ${idx}</div>
-    <input type="file" accept="image/*" id="docFile_${slotKey}" onchange="onDocFileSelected('${slotKey}','${catKey}')">
-    <div class="doc-cat-status" id="docStatus_${slotKey}">ยังไม่แนบ</div>
-    <button type="button" class="doc-remove-slot-btn" onclick="removeDynamicSlot('${catKey}', ${idx})" title="ยกเลิกช่องนี้">✕</button>`;
-  container.appendChild(row);
-}
-// ยกเลิกช่องที่กดเพิ่มไว้ (เผื่อกดเพิ่มแล้วไม่ได้ใส่รูป หรือใส่ไปแล้วอยากลบออก)
-function removeDynamicSlot(catKey, idx){
-  const slotKey = catKey + '_' + idx;
-  const row = document.getElementById('docRow_' + slotKey);
-  if(row) row.remove();
-  // หมวดที่เพิ่มได้หลายใบ อัปโหลดแยกเป็นไฟล์อิสระทันทีที่แนบ (ไม่รอรวมกับใบอื่นอีกต่อไป)
-  // กดยกเลิกช่องนี้แค่เอาช่องกรอกออกจากจอ ถ้าใบนี้อัปโหลดไปแล้วจริง ไฟล์จะยังอยู่ใน Drive แยกเป็นหน้าของมันเอง
-  // (ลบไฟล์ที่อัปโหลดไปแล้วออกจาก Drive โดยตรง ต้องไปลบเองในหน้า Drive)
-}
-
-// ===== เครื่องมือตัดกรอบแบบใช้ซ้ำได้ (ใช้ทั้งตัดลายเซ็น และตัดกรอบเอกสารก่อนวางบนพื้นขาว) =====
-let cropImg = null;
-let cropRect = null;
-let cropDragging = false;
-let cropStart = null;
-let cropCallback = null;
-
-function openCropModal(imageDataUrl, title, hint, callback){
-  cropCallback = callback;
-  document.getElementById('cropModalTitle').textContent = title;
-  document.getElementById('cropModalHint').textContent = hint;
-  const img = new Image();
-  img.onload = function(){
-    cropImg = img;
-    cropRect = null;
-    const canvas = document.getElementById('cropCanvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    drawCropCanvas();
-    setupCropDrag(canvas);
-    document.getElementById('cropModalBg').style.display = 'flex';
-  };
-  img.src = imageDataUrl;
-}
-function drawCropCanvas(){
-  const canvas = document.getElementById('cropCanvas');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(cropImg, 0, 0, canvas.width, canvas.height);
-  if(cropRect){
-    ctx.strokeStyle = '#D85A30';
-    ctx.lineWidth = Math.max(2, canvas.width*0.004);
-    ctx.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
-    ctx.fillStyle = 'rgba(216,90,48,0.15)';
-    ctx.fillRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
-  }
-}
-function setupCropDrag(canvas){
-  function getPos(e){
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-    return { x: cx*scaleX, y: cy*scaleY };
-  }
-  function start(e){ e.preventDefault(); cropDragging = true; cropStart = getPos(e); cropRect = { x:cropStart.x, y:cropStart.y, w:0, h:0 }; }
-  function move(e){
-    if(!cropDragging) return;
-    e.preventDefault();
-    const p = getPos(e);
-    cropRect = { x:Math.min(cropStart.x,p.x), y:Math.min(cropStart.y,p.y), w:Math.abs(p.x-cropStart.x), h:Math.abs(p.y-cropStart.y) };
-    drawCropCanvas();
-  }
-  function end(){ cropDragging = false; }
-  canvas.onmousedown = start; canvas.onmousemove = move; canvas.onmouseup = end; canvas.onmouseleave = end;
-  canvas.ontouchstart = start; canvas.ontouchmove = move; canvas.ontouchend = end;
-}
-function confirmGenericCrop(){
-  if(!cropRect || cropRect.w < 10 || cropRect.h < 10){
-    alert('กรุณาลากเลือกกรอบก่อน (ลากจากมุมหนึ่งไปอีกมุม)');
-    return;
-  }
-  const out = document.createElement('canvas');
-  out.width = Math.round(cropRect.w);
-  out.height = Math.round(cropRect.h);
-  out.getContext('2d').drawImage(cropImg, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, out.width, out.height);
-  const dataUrl = out.toDataURL('image/jpeg', 0.92);
-  document.getElementById('cropModalBg').style.display = 'none';
-  if(cropCallback) cropCallback(dataUrl);
-}
-function cancelGenericCrop(){
-  document.getElementById('cropModalBg').style.display = 'none';
-}
-
-function onSignatureFileSelected(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const prev = document.getElementById('docSignaturePreview');
-  prev.textContent = '⏳ กำลังเตรียมรูป...';
-  compressImageFile(file, 1200, 0.78).then(compressed => {
-    signatureDataUrlByRole[currentDocsRole] = compressed.dataUrl;
-    const img = new Image();
-    img.src = compressed.dataUrl;
-    sigSignatureImgElByRole[currentDocsRole] = img;
-    prev.innerHTML = `<div style="font-size:11px;color:#1e7e34;margin-bottom:4px">✓ ใช้รูปนี้เป็นพื้นหลังทั้งหน้า</div><img src="${compressed.dataUrl}" style="max-width:150px;border:1px solid var(--line);border-radius:6px;display:block"><button type="button" onclick="document.getElementById('docSignatureInput').click()" style="margin-top:4px;font-size:11px;background:none;border:none;color:var(--accent);cursor:pointer;text-decoration:underline">เลือกรูปใหม่</button>`;
-  }).catch(()=>{ prev.textContent = '❌ อ่านรูปไม่ได้ ลองใหม่'; });
-}
-
-async function onDocFileSelected(slotKey, catKey){
-  const input = document.getElementById('docFile_'+slotKey);
-  const file = input.files[0];
-  if(!file) return;
-  const role = currentDocsRole;
-  const cat = getActiveCategory(catKey);
-  const isDynamic = cat.count === 'dynamic';
-  const isMulti = isDynamic || (cat.count || 1) > 1;
-  const pageIndex = isMulti ? parseInt(slotKey.split('_').pop(), 10) : 1;
-  let baseLabel = cat.label;
-  if(cat.hasGrade){
-    const grade = (document.getElementById('grade_'+catKey)?.value || '').trim();
-    if(grade) baseLabel += ' - เกรด ' + grade;
-  }
-  const label = isMulti ? (baseLabel + ' หน้า ' + pageIndex) : baseLabel;
-  const statusEl = document.getElementById('docStatus_'+slotKey);
-  statusEl.className = 'doc-cat-status';
-  statusEl.textContent = '⏳ กำลังเตรียมรูป...';
-
-  function finalizePage(dataUrl){
-    const img = new Image();
-    img.onload = function(){
-      const normCanvas = canvasFromImage(img);
-      if(isDynamic){
-        // หมวดที่เพิ่มได้หลายใบแบบไม่จำกัด (โฉนด/ทะเบียนเกษตร/เอกสารต่างค่าย) — อัปโหลดแยกเป็นไฟล์อิสระทันที
-        // ให้ 1 รูป = 1 หน้า PDF ไม่ต้องรวมย่อหลายรูปเข้าหน้าเดียวกัน (อ่านยาก/รูปเล็กเกินไป)
-        statusEl.className = 'doc-cat-status ok';
-        statusEl.textContent = '✓ แนบแล้ว';
-        const finalDataUrl = normCanvas.toDataURL('image/jpeg', 0.9);
-        uploadDocToServer(slotKey, label, finalDataUrl.split(',')[1], 'image/jpeg', slotKey + '.jpg', catKey, role);
-        return;
-      }
-      const store = docPageStoreByRole[role];
-      if(!store[catKey]) store[catKey] = [];
-      store[catKey][pageIndex-1] = normCanvas;
-      const filled = store[catKey].filter(Boolean).length;
-      const needed = cat.count || 1;
-      if(filled >= needed){
-        statusEl.className = 'doc-cat-status ok';
-        statusEl.textContent = '✓ แนบแล้ว';
-        combineAndUploadCategory(catKey, cat, role);
-      } else {
-        statusEl.className = 'doc-cat-status ok';
-        statusEl.textContent = '✓ แนบแล้ว (รออีก ' + (needed-filled) + ' หน้า)';
-      }
-    };
-    img.onerror = function(){
-      statusEl.className = 'doc-cat-status err';
-      statusEl.textContent = '❌ เตรียมรูปไม่สำเร็จ ลองใหม่';
-    };
-    img.src = dataUrl;
-  }
-
-  try{
-    const compressed = await compressImageFile(file, 1600, 0.8);
-    if(cat.needsSignature){
-      // เฉพาะบัตรประชาชน/ทะเบียนบ้านเท่านั้น ที่ต้องตัดกรอบก่อน (จะเอาไปประกบกับลายเซ็น)
-      openCropModal(compressed.dataUrl, '✂️ ตัดกรอบ' + label, 'ลากให้ชิดขอบเอกสารที่สุด อย่าให้เห็นโต๊ะ/พื้นหลังหลงเหลือเลยแม้แต่นิดเดียว', function(croppedDataUrl){
-        statusEl.textContent = '⏳ กำลังเตรียมรูป...';
-        finalizePage(croppedDataUrl);
-      });
-    } else {
-      // เอกสารอื่นๆ ใช้รูปที่ถ่ายมาตรงๆ ไม่ต้องตัดกรอบ
-      finalizePage(compressed.dataUrl);
-    }
-  } catch(e){
-    statusEl.className = 'doc-cat-status err';
-    statusEl.textContent = '❌ อ่านรูปไม่ได้ ลองใหม่';
-  }
-}
-
-// สุ่มดูสีพื้นหลัง/ขอบกระดาษของรูป (แถบบางๆ รอบขอบภาพ) เพื่อเอาไว้เทียบสี/ใช้เป็นสีพื้นหลังของหน้ารวม
-function sampleEdgeColor(canvas){
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
-  const t = Math.max(3, Math.round(Math.min(w,h)*0.02));
-  const regions = [avgColorOfRegion(ctx,0,0,w,t), avgColorOfRegion(ctx,0,h-t,w,t), avgColorOfRegion(ctx,0,0,t,h), avgColorOfRegion(ctx,w-t,0,t,h)].filter(Boolean);
-  if(!regions.length) return {r:255,g:255,b:255};
-  return {
-    r: regions.reduce((s,c)=>s+c.r,0)/regions.length,
-    g: regions.reduce((s,c)=>s+c.g,0)/regions.length,
-    b: regions.reduce((s,c)=>s+c.b,0)/regions.length
-  };
-}
-function avgColorOfRegion(ctx, x, y, w, h){
-  if(w<=0 || h<=0) return null;
-  const d = ctx.getImageData(x, y, w, h).data;
-  let r=0,g=0,b=0,n=0;
-  for(let i=0; i<d.length; i+=4){ r+=d[i]; g+=d[i+1]; b+=d[i+2]; n++; }
-  return n ? {r:r/n, g:g/n, b:b/n} : null;
-}
-// ขยับโทนสีทั้งภาพเข้าหาสีเป้าหมาย (ใช้ปรับให้พื้นหลังของแต่ละรูปเข้ากับโทนสีที่เลือกไว้ ไม่ใช่ปรับให้ขาวจ้า)
-function shiftColorTone(canvas, fromColor, toColor, strength){
-  strength = strength == null ? 0.8 : strength;
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
-  const imgData = ctx.getImageData(0, 0, w, h);
-  const data = imgData.data;
-  const dr = (toColor.r - fromColor.r) * strength;
-  const dg = (toColor.g - fromColor.g) * strength;
-  const db = (toColor.b - fromColor.b) * strength;
-  for(let i=0; i<data.length; i+=4){
-    data[i]   = Math.min(255, Math.max(0, data[i]   + dr));
-    data[i+1] = Math.min(255, Math.max(0, data[i+1] + dg));
-    data[i+2] = Math.min(255, Math.max(0, data[i+2] + db));
-  }
-  ctx.putImageData(imgData, 0, 0);
-}
-function canvasFromImage(img){
-  const c = document.createElement('canvas');
-  c.width = img.width; c.height = img.height;
-  c.getContext('2d').drawImage(img, 0, 0);
-  return c;
-}
-function cloneCanvas(canvas){
-  const c = document.createElement('canvas');
-  c.width = canvas.width; c.height = canvas.height;
-  c.getContext('2d').drawImage(canvas, 0, 0);
-  return c;
-}
-
-// ตัดพื้นที่ว่างสีขาวส่วนเกินออกไป เหลือแค่บริเวณที่มีเนื้อหาจริง (ตัวบัตร + ลายเซ็น) เท่านั้น
-function autoTrimToContent(canvas, marginRatio){
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
-  const bg = avgColorOfRegion(ctx, 0, 0, Math.round(w*0.08), Math.round(h*0.04)) || {r:255,g:255,b:255};
-  const imgData = ctx.getImageData(0, 0, w, h);
-  const data = imgData.data;
-  const threshold = 30;
-  const step = 4;
-  let minX=w, minY=h, maxX=0, maxY=0, found=false;
-  for(let y=0; y<h; y+=step){
-    for(let x=0; x<w; x+=step){
-      const i = (y*w+x)*4;
-      const diff = Math.abs(data[i]-bg.r) + Math.abs(data[i+1]-bg.g) + Math.abs(data[i+2]-bg.b);
-      if(diff > threshold){
-        found = true;
-        if(x<minX) minX=x; if(x>maxX) maxX=x;
-        if(y<minY) minY=y; if(y>maxY) maxY=y;
-      }
-    }
-  }
-  if(!found || maxX<=minX || maxY<=minY) return canvas;
-  const margin = Math.round(Math.min(w,h) * (marginRatio==null ? 0.035 : marginRatio));
-  minX = Math.max(0, minX-margin); minY = Math.max(0, minY-margin);
-  maxX = Math.min(w, maxX+margin); maxY = Math.min(h, maxY+margin);
-  const out = document.createElement('canvas');
-  out.width = maxX-minX; out.height = maxY-minY;
-  out.getContext('2d').drawImage(canvas, minX, minY, maxX-minX, maxY-minY, 0, 0, out.width, out.height);
-  return out;
-}
-// เพิ่มความสว่างของทั้งภาพขึ้นอีกนิด (แบบเรียบๆ ทั้งภาพ ให้ดูสว่างขึ้นแบบภาพแสกน)
-function brightenCanvas(canvas, amount){
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
-  const imgData = ctx.getImageData(0, 0, w, h);
-  const data = imgData.data;
-  for(let i=0; i<data.length; i+=4){
-    data[i]   = Math.min(255, data[i]   + amount);
-    data[i+1] = Math.min(255, data[i+1] + amount);
-    data[i+2] = Math.min(255, data[i+2] + amount);
-  }
-  ctx.putImageData(imgData, 0, 0);
-  return canvas;
-}
-
-// ตัดพื้นหลังกระดาษออกทั้งหมด (เทียบทุกพิกเซลกับค่าเฉลี่ยพื้นที่รอบๆตัวเอง ไม่ใช่ค่าคงที่ตัวเดียว ทนต่อแสงไม่สม่ำเสมอในภาพถ่าย)
-// แต่ "คงสีปากกาลายเซ็นไว้" ไม่บังคับให้เป็นขาว-ดำ — จุดที่เป็นพื้นหลังกลายเป็นขาวสนิท จุดที่เป็นลายเซ็นยังเห็นสีปากกาเดิม
-// inkIntensity: ผู้ใช้ปรับเองได้ (1 = ปกติ, มากกว่า 1 = ลายเซ็นเข้ม/ชัดขึ้น กันจางหาย, น้อยกว่า 1 = จางลง)
-function scannerizeImage(canvas, threshold, sensitivity, inkIntensity){
-  threshold = threshold == null ? 6 : threshold;      // ตัดสัญญาณรบกวนเล็กๆของกล้อง ไม่ใช้จับเป็นลายเซ็น
-  sensitivity = sensitivity == null ? 35 : sensitivity; // ยิ่งค่าน้อย ยิ่งไวจับลายเซ็นจางๆได้ง่ายขึ้น
-  inkIntensity = inkIntensity == null ? 1 : inkIntensity;
-  const w = canvas.width, h = canvas.height;
-  const ctx = canvas.getContext('2d');
-  const src = ctx.getImageData(0, 0, w, h);
-
-  // ประมาณ "พื้นหลังเฉลี่ยบริเวณนั้นๆ" อย่างเร็ว ด้วยการย่อภาพให้เล็กมากแล้วขยายกลับ (เท่ากับการเบลอ แต่เร็วกว่ามาก)
-  const smallW = Math.max(8, Math.round(w/24));
-  const smallH = Math.max(8, Math.round(h/24));
-  const smallCanvas = document.createElement('canvas');
-  smallCanvas.width = smallW; smallCanvas.height = smallH;
-  smallCanvas.getContext('2d').drawImage(canvas, 0, 0, smallW, smallH);
-  const bgCanvas = document.createElement('canvas');
-  bgCanvas.width = w; bgCanvas.height = h;
-  const bgCtx = bgCanvas.getContext('2d');
-  bgCtx.imageSmoothingEnabled = true;
-  bgCtx.drawImage(smallCanvas, 0, 0, w, h);
-  const bg = bgCtx.getImageData(0, 0, w, h);
-
-  const out = ctx.createImageData(w, h);
-  const sd = src.data, bd = bg.data, od = out.data;
-  for(let i=0; i<sd.length; i+=4){
-    const graySrc = 0.299*sd[i] + 0.587*sd[i+1] + 0.114*sd[i+2];
-    const grayBg  = 0.299*bd[i] + 0.587*bd[i+1] + 0.114*bd[i+2];
-    const diff = grayBg - graySrc; // บวก = จุดนี้เข้มกว่าพื้นรอบๆ (น่าจะเป็นตัวหนังสือ/ลายเซ็น)
-    let inkStrength = 0;
-    if(diff > threshold){
-      inkStrength = Math.min(1, ((diff - threshold) / sensitivity) * inkIntensity);
-    }
-    // ผสมระหว่าง "สีเดิมของปากกา" (ตอน inkStrength=1) กับ "ขาวสนิท" (ตอน inkStrength=0) แบบไล่เฉด ไม่ตัดขาดฉับพลัน
-    let r = sd[i] * inkStrength + 255 * (1 - inkStrength);
-    let g = sd[i+1] * inkStrength + 255 * (1 - inkStrength);
-    let b = sd[i+2] * inkStrength + 255 * (1 - inkStrength);
-    // เพิ่มความอิ่มสีของลายเซ็นให้ชัดขึ้น (กันสีปากกาดูซีด/เพี้ยนจากการไล่เฉดไปทางขาว)
-    if(inkStrength > 0.04){
-      const satFactor = 1 + 0.7 * inkStrength;
-      const avg = (r + g + b) / 3;
-      r = avg + (r - avg) * satFactor;
-      g = avg + (g - avg) * satFactor;
-      b = avg + (b - avg) * satFactor;
-    }
-    od[i]   = Math.min(255, Math.max(0, Math.round(r)));
-    od[i+1] = Math.min(255, Math.max(0, Math.round(g)));
-    od[i+2] = Math.min(255, Math.max(0, Math.round(b)));
-    od[i+3] = 255;
-  }
-  ctx.putImageData(out, 0, 0);
-  return canvas;
-}
-
-// วางรูปเอกสาร (ที่ตัดกรอบแล้ว) ลงบนรูปกระดาษลายเซ็นตัวจริง โดยตัดพื้นหลังกระดาษออกให้เหลือแต่ลายเซ็น/ตัวหนังสือ
-// บนพื้นขาวสนิทแบบภาพที่ผ่านเครื่องสแกน — cardBrightness/inkIntensity ปรับได้จากสไลเดอร์ ไม่ยึดค่าคงที่ตายตัวอีกต่อไป
-// ไม่แก้ไข canvas ต้นฉบับใน pageCanvases เลย (clone ก่อนทุกครั้ง) เพื่อให้เรียกซ้ำได้หลายรอบตอนพรีวิวสไลเดอร์
-function placeDocsOnSignaturePage(pageCanvases, sigImg, cardBrightness, inkIntensity){
-  cardBrightness = cardBrightness == null ? 30 : cardBrightness;
-  inkIntensity = inkIntensity == null ? 1 : inkIntensity;
-
-  const canvas = document.createElement('canvas');
-  canvas.width = sigImg.width;
-  canvas.height = sigImg.height;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(sigImg, 0, 0);
-  scannerizeImage(canvas, undefined, undefined, inkIntensity); // ตัดพื้นหลังกระดาษออกทั้งหมด เหลือแต่ลายเซ็น/ตัวหนังสือ บนพื้นขาวสนิท
-
-  const margin = Math.round(canvas.width * 0.08);
-  const docWidth = Math.round((canvas.width - margin*2) * 0.9);
-  const gap = Math.round(canvas.width * 0.025);
-  let y = Math.round(canvas.height * 0.04);
-
-  pageCanvases.forEach(rawPageCanvas => {
-    const pageCanvas = cloneCanvas(rawPageCanvas); // ไม่แก้ของเดิม กันเพี้ยนสะสมตอนพรีวิวซ้ำ
-    brightenCanvas(pageCanvas, cardBrightness);
-    const scale = docWidth / pageCanvas.width;
-    const docHeight = Math.round(pageCanvas.height * scale);
-    const x = Math.round((canvas.width - docWidth) / 2);
-    ctx.drawImage(pageCanvas, x, y, docWidth, docHeight);
-    y += docHeight + gap;
-  });
-
-  const trimmed = autoTrimToContent(canvas, 0);
-  return trimmed.toDataURL('image/jpeg', 0.92);
-}
-
-// สำหรับหมวดที่ไม่มีลายเซ็น (โฉนด/เอกสารแปลงเกษตร ฯลฯ) — วางบนพื้นสีเดียวกับโทนของเอกสารเอง
-function stackPagesOnPlainCanvas(pageCanvases){
-  pageCanvases = pageCanvases.map(cloneCanvas);
-  const bgColors = pageCanvases.map(sampleEdgeColor);
-  const targetBg = {
-    r: bgColors.reduce((s,c)=>s+c.r,0)/bgColors.length,
-    g: bgColors.reduce((s,c)=>s+c.g,0)/bgColors.length,
-    b: bgColors.reduce((s,c)=>s+c.b,0)/bgColors.length
-  };
-  pageCanvases.forEach(c => shiftColorTone(c, sampleEdgeColor(c), targetBg, 0.5));
-  const margin = Math.round(pageCanvases[0].width * 0.05);
-  const gap = Math.max(16, Math.round(pageCanvases[0].width * 0.03));
-  const maxW = Math.max.apply(null, pageCanvases.map(c=>c.width));
-  const scaledPages = pageCanvases.map(c=>{
-    const scale = maxW / c.width;
-    return { canvas:c, w:maxW, h:Math.round(c.height*scale) };
-  });
-  const totalH = scaledPages.reduce((s,p)=>s+p.h,0) + gap*(scaledPages.length-1);
-  const canvas = document.createElement('canvas');
-  canvas.width = maxW + margin*2;
-  canvas.height = margin*2 + totalH;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = `rgb(${Math.round(targetBg.r)},${Math.round(targetBg.g)},${Math.round(targetBg.b)})`;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  let y = margin;
-  scaledPages.forEach(p=>{ ctx.drawImage(p.canvas, margin, y, p.w, p.h); y += p.h + gap; });
-  brightenCanvas(canvas, 12);
-  return canvas.toDataURL('image/jpeg', 0.9);
-}
-
-// เมื่อครบทุกหน้าของหมวดนั้นแล้ว — ถ้าหมวดนี้ต้องมีลายเซ็น เปิดหน้าปรับแสงให้ผู้ใช้เลือกเองก่อนอัปโหลด
-// ถ้าไม่ต้องมีลายเซ็น (โฉนด ฯลฯ) อัปโหลดแบบอัตโนมัติไปเลยเหมือนเดิม
-function combineAndUploadCategory(catKey, cat, role){
-  role = role || currentDocsRole;
-  const store = docPageStoreByRole[role];
-  const pages = (store[catKey] || []).filter(Boolean);
-  if(!pages.length) return; // ไม่มีหน้าเหลือให้รวม (ถูกกดยกเลิกออกไปหมดแล้ว)
-  const sigImg = sigSignatureImgElByRole[role];
-  const useSigPage = cat.needsSignature && sigImg && sigImg.complete;
-  if(useSigPage){
-    openBrightnessAdjustModal(catKey, cat, role);
-    return;
-  }
-  const finalDataUrl = stackPagesOnPlainCanvas(pages);
-  const isDynamic = cat.count === 'dynamic';
-  const isMulti = isDynamic || (cat.count || 1) > 1;
-  let label = cat.label;
-  if(cat.hasGrade){
-    const grade = (document.getElementById('grade_'+catKey)?.value || '').trim();
-    if(grade) label += ' - เกรด ' + grade;
-  }
-  const primarySlot = isMulti ? (catKey + '_1') : catKey;
-  uploadDocToServer(primarySlot, label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg', catKey, role);
-  if(isMulti){
-    const totalSlots = isDynamic ? pages.filter(Boolean).length : cat.count;
-    for(let i=2; i<=totalSlots; i++){
-      const el = document.getElementById('docStatus_'+catKey+'_'+i);
-      if(el) el.textContent = 'รวมกับหน้า 1 แล้ว';
-    }
-  }
-}
-
-// ===== ปุ่มปรับแสงเอง: แยกสไลเดอร์บัตร/เอกสาร กับ สไลเดอร์ความเข้มลายเซ็น =====
-let brightnessAdjustCtx = { catKey:null, cat:null, role:'buyer' };
-let brightnessPreviewDebounce = null;
-
-function openBrightnessAdjustModal(catKey, cat, role){
-  brightnessAdjustCtx = { catKey, cat, role: role || currentDocsRole };
-  document.getElementById('cardBrightnessSlider').value = 30;
-  document.getElementById('inkIntensitySlider').value = 100;
-  document.getElementById('cardBrightnessVal').textContent = 30;
-  document.getElementById('inkIntensityVal').textContent = 100;
-  document.getElementById('brightnessModalBg').style.display = 'flex';
-  renderBrightnessPreview();
-}
-function onBrightnessSliderChange(){
-  document.getElementById('cardBrightnessVal').textContent = document.getElementById('cardBrightnessSlider').value;
-  document.getElementById('inkIntensityVal').textContent = document.getElementById('inkIntensitySlider').value;
-  clearTimeout(brightnessPreviewDebounce);
-  brightnessPreviewDebounce = setTimeout(renderBrightnessPreview, 120);
-}
-function renderBrightnessPreview(){
-  const { catKey, role } = brightnessAdjustCtx;
-  const cardBrightness = Number(document.getElementById('cardBrightnessSlider').value);
-  const inkIntensity = Number(document.getElementById('inkIntensitySlider').value) / 100;
-  const pages = (docPageStoreByRole[role][catKey]||[]).filter(Boolean);
-  const dataUrl = placeDocsOnSignaturePage(pages, sigSignatureImgElByRole[role], cardBrightness, inkIntensity);
-  const previewCanvas = document.getElementById('brightnessPreviewCanvas');
-  const img = new Image();
-  img.onload = function(){
-    previewCanvas.width = img.width;
-    previewCanvas.height = img.height;
-    previewCanvas.getContext('2d').drawImage(img, 0, 0);
-  };
-  img.src = dataUrl;
-}
-function confirmBrightnessAdjust(){
-  const { catKey, cat, role } = brightnessAdjustCtx;
-  const cardBrightness = Number(document.getElementById('cardBrightnessSlider').value);
-  const inkIntensity = Number(document.getElementById('inkIntensitySlider').value) / 100;
-  const pages = (docPageStoreByRole[role][catKey]||[]).filter(Boolean);
-  const finalDataUrl = placeDocsOnSignaturePage(pages, sigSignatureImgElByRole[role], cardBrightness, inkIntensity);
-  document.getElementById('brightnessModalBg').style.display = 'none';
-  const isMulti = (cat.count || 1) > 1;
-  const primarySlot = isMulti ? (catKey + '_1') : catKey;
-  uploadDocToServer(primarySlot, cat.label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg', catKey, role);
-  if(isMulti){
-    for(let i=2; i<=cat.count; i++){
-      const el = document.getElementById('docStatus_'+catKey+'_'+i);
-      if(el) el.textContent = 'รวมกับหน้า 1 แล้ว';
-    }
-  }
-}
-function cancelBrightnessAdjust(){
-  document.getElementById('brightnessModalBg').style.display = 'none';
-  const { catKey } = brightnessAdjustCtx;
-  const statusEl = document.getElementById('docStatus_'+catKey+'_1') || document.getElementById('docStatus_'+catKey);
-  if(statusEl) statusEl.textContent = 'ยังไม่อัปโหลด (ยกเลิกการปรับแสง)';
-}
-
-function uploadDocToServer(slotKey, label, base64, mimeType, fileName, catKey, role){
-  const statusEl = document.getElementById('docStatus_'+slotKey);
-  statusEl.className = 'doc-cat-status';
-  statusEl.textContent = '⏳ กำลังอัปโหลด...';
-  if(!gasUrl){
-    statusEl.className = 'doc-cat-status err';
-    statusEl.textContent = '❌ ยังไม่ได้ตั้งค่า GAS URL';
-    alert('ยังไม่ได้ตั้งค่า URL ของ Google Apps Script (GAS) — ไปตั้งค่าที่หน้าประวัติ ⚙️ ก่อน');
-    return;
-  }
-  role = role || currentDocsRole;
-  let done = false;
-  const timeoutId = setTimeout(function(){
-    if(done) return;
-    done = true;
-    statusEl.className = 'doc-cat-status err';
-    statusEl.textContent = '❌ หมดเวลารอ (เช็คเน็ต/URL GAS)';
-    alert('แนบเอกสาร "' + label + '" ไม่สำเร็จ: หมดเวลารอการตอบกลับ ลองใหม่อีกครั้ง หรือเช็คว่า deploy เวอร์ชันล่าสุดแล้วหรือยัง');
-  }, 25000);
-  gasPostReadable('uploadDoc', {
-    id: currentDocsCaseId,
-    custName: resolveCustNameForDocs(),
-    category: label,
-    role: role,
-    fileName: fileName || (slotKey + '.jpg'),
-    mimeType: mimeType,
-    dataBase64: base64
-  }, function(err, data){
-    if(done) return;
-    done = true;
-    clearTimeout(timeoutId);
-    if(err || !data || data.status !== 'ok'){
-      const msg = (data && data.message) || (err && err.message) || 'ไม่ทราบสาเหตุ';
-      statusEl.className = 'doc-cat-status err';
-      statusEl.textContent = '❌ อัปโหลดไม่สำเร็จ';
-      alert('แนบเอกสาร "' + label + '" ไม่สำเร็จ: ' + msg);
-      return;
-    }
-    statusEl.className = 'doc-cat-status ok';
-    statusEl.textContent = '✓ แนบแล้ว';
-    if(catKey){
-      attachedCategoriesByRole[role].add(catKey);
-      if(role === currentDocsRole) updateRequiredBadges();
-    }
-  });
-}
-
-// ===== รวมเอกสารทั้งหมดของเคสเป็น PDF เดียว =====
-function requestDocsPdf(){
-  if(!currentDocsCaseId) return;
-  const missing = getActiveCategories().filter(c => c.required && !attachedCategoriesByRole[currentDocsRole].has(c.key));
-  if(missing.length){
-    alert('กรุณาแนบเอกสารที่จำเป็นให้ครบก่อนถึงจะรวมเป็น PDF ได้:\n' + missing.map(c=>'• '+c.label).join('\n'));
-    return;
-  }
-  const area = document.getElementById('docsPdfArea');
-  area.textContent = '⏳ กำลังรวมไฟล์เป็น PDF (อาจใช้เวลาสักครู่)...';
-  gasPostReadable('buildDocsPdf', {id: currentDocsCaseId}, function(err, data){
-    if(err || !data || data.status !== 'ok'){
-      area.textContent = '❌ รวมไฟล์ไม่สำเร็จ: ' + (data?.message || err?.message || 'ไม่ทราบสาเหตุ');
-      return;
-    }
-    area.innerHTML = `<a href="${data.pdfUrl}" target="_blank" class="btn-save" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box">📄 เปิด/ดาวน์โหลด PDF</a>`;
-  });
-}
-
-// ===== XLSX Export =====
-function exportXLSX(){
-  const d = collectExportData();
-  if(!_recordOverride) saveToHistory(d);
-  if(typeof XLSX === 'undefined'){ alert('กำลังโหลด Excel library...'); return; }
-
-  const wb = XLSX.utils.book_new();
-  const ws_data = [
-    ['ใบสรุปเช่าซื้อ — รวมสินไทยแทรกเตอร์ ' + (d.branch||'')],
-    ['วันที่', d.date],
-    [],
-    ['ข้อมูลลูกค้า'],
-    ['ชื่อ', d.custName],
-    ['ที่อยู่', d.custAddr],
-    ['เบอร์โทร', d.custPhone],
-    [],
-    ['ข้อมูลสินค้า'],
-    ['แบรนด์', d.brand],
-    ['รุ่น', d.model],
-    ['กลุ่มลูกค้า', d.seg],
-    ['โปร', d.progName],
-    ['ราคารถ', d.price],
-    ...d.eqItems.map((eq,i)=>[`อุปกรณ์ ${i+1}`, eq.name, eq.price]),
-    ['ราคารวมทั้งสิ้น', d.price + d.eqTotalPrice],
-    [],
-    ['ข้อมูลการเงิน'],
-    ['เงินดาวน์รวม', d.down],
-    ['ช่วยดาวน์รวม (YCT/YSP/ไฟไหม้/RST)', d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0))],
-    ...(d.yctAmt ? [['  - YCT', d.yctAmt]] : []),
-    ...(d.yspAmt ? [['  - YSP/Pro', d.yspAmt]] : []),
-    ...(d.fireAmt ? [['  - ไฟไหม้', d.fireAmt]] : []),
-    ...(d.yspTopupAmt ? [['  - YSP เพิ่มเติม', d.yspTopupAmt]] : []),
-    ['  - RST ออก', d.rst||0],
-    ['จ่ายดาวน์จริง', d.custOut],
-    ['RST ออก', d.rst],
-    ['ยอดจัด (รถ)', d.finTotal],
-    ['ดอกเบี้ย', (d.finRate*100).toFixed(2)+'%'],
-    ['ระยะเวลา (ปี)', d.finYears],
-    ['รูปแบบผ่อน', PAYMENT_LABELS[d.tractorPayment]],
-    ['งวดใหญ่ต่อปี', d.bigPay],
-    ['งวดย่อยต่อเดือน (11 เดือน)', d.minor],
-    ...(d.eqItems.length>0 ? [
-      [],
-      ['อุปกรณ์ — ยอดจัด', d.eqFinTotal],
-      ['อุปกรณ์ — ดาวน์', d.eqDown],
-      ['อุปกรณ์ — ดอกเบี้ย', (d.eqFinRate*100).toFixed(2)+'%'],
-      ['อุปกรณ์ — ระยะเวลา (ปี)', d.eqFinYears],
-      ['อุปกรณ์ — งวดต่อปี', d.eqAnnual],
-    ] : []),
-    [],
-    ['ของแถม'],
-    ...d.gifts.map(g=>[g]),
-  ];
-
-  const ws = XLSX.utils.aoa_to_sheet(ws_data);
-  ws['!cols'] = [{wch:28},{wch:40},{wch:16}];
-  XLSX.utils.book_append_sheet(wb, ws, 'ใบสรุป');
-
-  // Installment schedule sheet
-  const sched_data = [['งวดที่','ยอด (บาท)','หมายเหตุ']];
-  const totalPeriods = d.finYears * 12;
-  for(let i=1; i<=totalPeriods; i++){
-    const monthInYear = ((i-1)%12)+1;
-    let amt, note='';
-    if(d.tractorPayment==='monthly_3m'){ amt=Math.round(d.annualFull/12); }
-    else { amt=(monthInYear===12)?d.bigPay:d.minor; note=(monthInYear===12)?'งวดใหญ่':'งวดย่อย'; }
-    sched_data.push([i, amt, note]);
-  }
-  const ws2 = XLSX.utils.aoa_to_sheet(sched_data);
-  ws2['!cols'] = [{wch:10},{wch:16},{wch:12}];
-  XLSX.utils.book_append_sheet(wb, ws2, 'ตารางงวด');
-
-  const fname = (d.custName||'ลูกค้า').replace(/[^ก-๙a-zA-Z0-9]/g,'_') + '_' + d.model.replace(/[^a-zA-Z0-9]/g,'') + '.xlsx';
-  XLSX.writeFile(wb, fname);
-}
-
-
-// ===== Export -> CRM Import Form Template (Yanmar Sales Lead) =====
-// ดึงประวัติเคสทั้งหมด (จาก GAS backend) แล้ว map เข้าคอลัมน์ของ "CRM Import Form" template
-// (ชีต "กรอกข้อมูล") เพื่อนำไปเปิดใน Excel/Google Sheets แล้ว import เข้า kintone ต่อ (ผ่านชีต Import_kintone
-// ที่มีสูตรดึงจากชีต "กรอกข้อมูล" อยู่แล้วในตัว template — เปิดไฟล์ใน Excel/Sheets สักครั้งเพื่อให้สูตรคำนวณค่าล่าสุดก่อน import)
-//
-// หมายเหตุ field ที่แอพนี้ไม่ได้เก็บข้อมูลไว้ (ต้องกรอกเพิ่มเองใน Excel ก่อน import):
-//   - Dealer: ใส่ค่าคงที่ "บ้านและที่ดินรวมสินไทย (RST)" ทุกแถว (ตามที่ยืนยันไว้ — ข้อมูลทั้งหมดเป็นของ RST เอง)
-//   - กลุ่มลูกค้า (ใหม่/เก่า) และ สถานะลูกค้า (Retention/Yanmar Fan/Switching/General): แอพไม่มีการเก็บ ปล่อยว่าง
-//   - Lead Source / Lead Event: แอพไม่มีการเก็บ ปล่อยว่าง
-//   - Tractor (ยี่ห้อรถที่ลูกค้ามีอยู่เดิม): แอพไม่มีการเก็บ ปล่อยว่าง
-//   - ประเภทลูกค้า: เดาจากคำนำหน้าชื่อ (นาย/นาง/นางสาว ฯลฯ = บุคคลธรรมดา, ไม่งั้น = นิติบุคคล) — ถ้าชื่อลูกค้าพิมพ์
-//     ไม่มีคำนำหน้า (เช่นพิมพ์ชื่อเล่น/ชื่อเดียว) จะถูกเดาว่าเป็นนิติบุคคลผิดได้ ควรเช็คซ้ำก่อน import
-//   - จำนวนไร่รวม/Farming Type/ชนิดพืช/DD_Owner: ดึงจากข้อมูล "ข้อมูลการเงิน > แปลงที่ดิน" ถ้ามีบันทึกไว้ตอนออกใบสรุป
-//     (บางเคสไม่ได้กรอกตอนนั้น จะว่าง) — รายละเอียดแปลงที่ดินดิบใส่ไว้ในช่อง "Other/หมายเหตุ" ให้เช็คได้ด้วย
-const CRM_DEALER_CONST = 'บ้านและที่ดินรวมสินไทย (RST)';
-const CRM_EMAIL_CONST = 't311728.market@gmail.com';
-const CRM_STATUS_CONST = 'ลูกค้าใหม่ (New Customer)';
-const CRM_NAME_PREFIXES = ['นาย','นาง','นางสาว','น.ส.','ด.ช.','ด.ญ.','คุณ','เด็กชาย','เด็กหญิง'];
-function crmCustomerType(name){
-  name = (name||'').trim();
-  for(const p of CRM_NAME_PREFIXES){ if(name.startsWith(p)) return 'บุคคลธรรมดา (Individual)'; }
-  return 'นิติบุคคล (Company)';
-}
-function crmParseAddress(addr){
-  addr = addr || '';
-  const t = addr.match(/ต\.\s*(\S+)/);
-  const a = addr.match(/อ\.\s*(\S+)/);
-  const p = addr.match(/จ\.\s*(\S+)/);
-  return { provinceRaw: p?p[1]:'', amphoe: a?a[1]:'', tambon: t?t[1]:'' };
-}
-function crmMatchProvince(thaiName, provinces){
-  if(!thaiName) return '';
-  for(const p of provinces){
-    const th = p.split(' (')[0];
-    if(th === thaiName || th.includes(thaiName) || thaiName.includes(th)) return p;
-  }
-  return '';
-}
-const CRM_CROP_RULES = [
-  [['ข้าวโพดหวาน'], 'ข้าวโพดหวาน (Maize)'],
-  [['อ้อย'], 'อ้อย (Sugarcane)'],
-  [['มันสำปะหลัง','มัน'], 'มันสำปะหลัง (Cassava)'],
-  [['ข้าวโพด'], 'ข้าวโพด (Corn)'],
-  [['ผัก'], 'พืชผัก (Vegetable)'],
-  [['นา','ข้าว'], 'ข้าว (Paddy)'],
-];
-function crmCropType(farmPlots){
-  const crops = (farmPlots||[]).map(p=>p.cropType||'').filter(Boolean);
-  if(!crops.length) return '';
-  const joined = crops.join(' ');
-  for(const [keys,label] of CRM_CROP_RULES){
-    if(keys.some(k=>joined.includes(k))) return label;
-  }
-  return 'อื่นๆ (Other)';
-}
-function crmFarmingType(farmPlots){
-  const crops = (farmPlots||[]).map(p=>p.cropType||'').filter(Boolean);
-  if(!crops.length) return '';
-  const joined = crops.join(' ');
-  const hasPaddy = joined.includes('นา') || (joined.includes('ข้าว') && !joined.includes('ข้าวโพด'));
-  const hasDry = ['ยาง','แตง','พริก','มัน','อ้อย','ข้าวโพด','ผัก'].some(k=>joined.includes(k));
-  if(hasPaddy && hasDry) return 'พืชไร่และนาข้าว (Dry & Paddy)';
-  if(hasPaddy) return 'นาข้าว (Paddy)';
-  if(hasDry) return 'พืชไร่ (Dry)';
-  return '';
-}
-function crmDdOwner(farmPlots){
-  const holders = (farmPlots||[]).map(p=>p.titleHolder||'').filter(Boolean).join(' ');
-  const hasOwn = holders.includes('ตนเอง');
-  const hasRent = holders.includes('เช่า');
-  if(hasOwn && hasRent) return 'มีทั้ง 2 แบบ';
-  if(hasOwn) return 'ที่ดินกรรมสิทธิ์ของตนเอง (Own land)';
-  if(hasRent) return 'ที่ดินเช่า (Rental land)';
-  return '';
-}
-function crmTotalRai(farmPlots){
-  let total = 0, found = false;
-  (farmPlots||[]).forEach(p=>{
-    const v = parseFloat(String(p.rai||'').trim());
-    if(!isNaN(v)){ total += v; found = true; }
-  });
-  return found ? total : '';
-}
-function crmFarmNote(farmPlots){
-  const parts = [];
-  (farmPlots||[]).forEach(p=>{
-    const crop = (p.cropType||'').trim();
-    const rai = (p.rai||'').trim();
-    const holder = (p.titleHolder||'').trim();
-    if(!crop && !rai && !holder) return;
-    let seg = crop || '(ไม่ระบุพืช)';
-    if(rai) seg += ' ' + rai + ' ไร่';
-    if(holder) seg += ' [' + holder + ']';
-    parts.push(seg);
-  });
-  return parts.join('; ');
-}
-function crmRelTypeFromRec(rec){
-  // เคสใหม่ (หลังอัปเดตนี้) จะมี rec.crmCustRelType บันทึกมาให้ตรงๆ อยู่แล้ว (มาจากตัวเลือก Yanmar Fan/Switching
-  // หรือ auto จาก General/Retention ตอนออกใบสรุป) — เคสเก่าก่อนอัปเดตนี้ไม่มี field นี้ เลย fallback เดาจาก seg แทน
-  if(rec.crmCustRelType) return rec.crmCustRelType;
-  if(rec.seg === 'ทั่วไป') return 'General';
-  if(rec.seg === 'RT') return 'Retention';
-  return ''; // seg === 'YF,SW' (เคสเก่า) เดาไม่ได้ว่า Yanmar Fan หรือ Switching ต้องเลือกเอง
-}
-function buildCrmTemplateRow(rec, no, provinces){
-  const addr = crmParseAddress(rec.custAddr);
-  const provFull = crmMatchProvince(addr.provinceRaw, provinces);
-  const fp = (rec.finInfo && rec.finInfo.farmPlots) || [];
-  const noteParts = [];
-  const fn = crmFarmNote(fp);
-  if(fn) noteParts.push('แปลงที่ดิน: ' + fn);
-  if(rec.caseStatus) noteParts.push('สถานะเคส (Promo Finder): ' + rec.caseStatus);
-  if(rec.id) noteParts.push('อ้างอิง ID: ' + rec.id);
-  const crmRelType = crmRelTypeFromRec(rec);
-  if(!crmRelType) noteParts.push('⚠ ไม่ทราบกลุ่มลูกค้า (Retention/Yanmar Fan/Switching/General) — เช็คมือก่อน import');
-  if(!rec.leadSource) noteParts.push('⚠ ไม่มี Lead Source (เคสเก่าก่อนอัปเดต) — เช็คมือก่อน import');
-  return [
-    no,
-    rec.custName || '',
-    rec.custPhone || '',
-    CRM_DEALER_CONST,
-    provFull,
-    addr.amphoe,
-    addr.tambon,
-    crmRelType,                      // กลุ่มลูกค้า — จาก crmCustRelType ที่บันทึกไว้ตอนออกใบสรุป (หรือเดาจาก seg เคสเก่า)
-    CRM_STATUS_CONST,                // สถานะลูกค้า — ใส่ค่าคงที่ "ลูกค้าใหม่ (New Customer)" ทุกแถวตามที่ยืนยันไว้
-    crmCustomerType(rec.custName),
-    rec.branch || '',                // Sale (ผู้ดูแล/พนักงานขายที่บันทึกเคสนี้)
-    CRM_EMAIL_CONST,                 // ผู้สร้าง (Email) — ใส่ค่าคงที่ทุกแถวตามที่ยืนยันไว้
-    crmTotalRai(fp),
-    crmFarmingType(fp),
-    crmCropType(fp),
-    crmDdOwner(fp),
-    '',                              // Tractor (ยี่ห้อเดิมของลูกค้า) — แอพไม่ได้เก็บ
-    rec.leadSource || '',            // Lead Source — จากตัวเลือกที่บันทึกไว้ตอนออกใบสรุป (เคสเก่าก่อนอัปเดตนี้จะว่าง)
-    '',                              // Lead Event — แอพไม่ได้เก็บ
-    noteParts.join(' | '),
-  ];
-}
-
-// กรองประวัติตามช่วงวันที่ "บันทึกเมื่อ" (savedAt, รูปแบบ yyyy-MM-dd HH:mm:ss จาก backend) — ใช้ตอน Export CRM
-// ไม่เลือกช่วงวันที่เลย (ว่างทั้งคู่) = export ทั้งหมดเหมือนเดิม
-function filterRecordsByDateRange(records){
-  const fromVal = document.getElementById('crmExportFromDate')?.value || '';
-  const toVal = document.getElementById('crmExportToDate')?.value || '';
-  if(!fromVal && !toVal) return records;
-  return records.filter(rec=>{
-    const d = String(rec.savedAt || rec.date || '').slice(0,10);
-    if(!d || isNaN(Date.parse(d))) return false; // ไม่รู้วันที่บันทึก ตัดออกถ้ามีการกรองช่วงวันที่ไว้
-    if(fromVal && d < fromVal) return false;
-    if(toVal && d > toVal) return false;
-    return true;
-  });
-}
-function exportCrmTemplateXLSX(){
-  if(!userName || !userRole){ openIdentityModal(); alert('กรุณาใส่ชื่อและเลือกบทบาทก่อน (ต้องเป็นบทบาท "ผู้จัดการ" ถึงจะ Export ได้)'); return; }
-  if(!isManagerUser()){ alert('ฟังก์ชัน Export เข้า CRM นี้ใช้ได้เฉพาะบทบาท "ผู้จัดการ" เท่านั้น (ตอนนี้บทบาทของคุณคือ ' + (userRole||'-') + ') — ถ้าต้องเปลี่ยนบทบาท กด 👤 ด้านบน'); return; }
-  function doExport(){
-    if(typeof XLSX === 'undefined'){ alert('กำลังโหลด Excel library... ลองอีกครั้งใน 2-3 วิ'); return; }
-    if(typeof CRM_TEMPLATE_XLSX_B64 === 'undefined'){ alert('ไม่พบไฟล์ crm_template_data.js — ใส่ไฟล์นี้ไว้โฟลเดอร์เดียวกับ HTML ด้วย'); return; }
-    const allRecords = (_allHistoryRecords || []).slice();
-    if(!allRecords.length){ alert('ยังไม่มีประวัติเคสให้ export (หรือยังโหลดไม่เสร็จ ลองใหม่อีกครั้ง)'); return; }
-    const records = filterRecordsByDateRange(allRecords);
-    if(!records.length){
-      alert('ไม่มีเคสในช่วงวันที่ที่เลือก (ทั้งหมดมี ' + allRecords.length + ' เคส) ลองปรับช่วงวันที่ใหม่ หรือกด "✕ ล้างช่วงวันที่" เพื่อ export ทั้งหมด');
-      return;
-    }
-
-    let wb;
-    try{
-      wb = XLSX.read(CRM_TEMPLATE_XLSX_B64, {type:'base64'});
-    }catch(e){
-      alert('เปิด template ไม่สำเร็จ: ' + e.message);
-      return;
-    }
-    const listSheet = wb.Sheets['Lists'];
-    const provinces = [];
-    if(listSheet){
-      for(let r = 2; ; r++){
-        const cell = listSheet['K'+r];
-        if(!cell || cell.v === undefined || cell.v === null || cell.v === '') break;
-        provinces.push(String(cell.v));
-      }
-    }
-
-    // เรียงเคสเก่าสุดก่อน (ให้ No. ไล่ตามลำดับเวลาบันทึก อ่านง่ายตอน import)
-    const sorted = sortHistoryRecords ? sortHistoryRecords(records, 'date_asc') : records;
-
-    const rows = sorted.map((rec, i) => buildCrmTemplateRow(rec, i+1, provinces));
-
-    const ws = wb.Sheets['กรอกข้อมูล'];
-    if(!ws){ alert('ไม่พบชีต "กรอกข้อมูล" ใน template'); return; }
-    XLSX.utils.sheet_add_aoa(ws, rows, {origin:'A5'});
-
-    // ขยาย !ref ของชีตให้ครอบคลุมแถวที่เพิ่งเติม เผื่อจำนวนเคสเกิน 203 แถวที่เตรียมไว้เดิม (row 5-207)
-    const lastDataRow = 4 + rows.length;
-    const ref = XLSX.utils.decode_range(ws['!ref']);
-    if(ref.e.r < lastDataRow - 1){ ref.e.r = lastDataRow - 1; ws['!ref'] = XLSX.utils.encode_range(ref); }
-
-    const todayStr = new Date().toISOString().slice(0,10);
-    XLSX.writeFile(wb, 'CRM_Import_Form_' + todayStr + '.xlsx');
-    const countNote = records.length !== allRecords.length ? (' (จากทั้งหมด ' + allRecords.length + ' เคส — กรองตามช่วงวันที่ที่เลือกไว้)') : '';
-    alert('Export สำเร็จ ' + rows.length + ' รายการ' + countNote + '\n\nเช็คก่อน import เข้า kintone:\n- เปิดไฟล์ใน Excel/Google Sheets 1 ครั้งก่อน เพื่อให้ชีต Import_kintone คำนวณค่าล่าสุด\n- Dealer / สถานะลูกค้า(ใหม่-เก่า) / Lead Source / Lead Event / Tractor(ยี่ห้อเดิม) แอพนี้ไม่มีข้อมูล ต้องกรอกเพิ่มเอง\n- กลุ่มลูกค้า (Retention/Yanmar Fan/Switching/General): เคสใหม่ดึงจากตัวเลือกตอนออกใบสรุปให้แล้ว แต่เคสเก่าก่อนอัปเดตนี้อาจว่าง (เช็คแถวที่มี ⚠ ในช่อง Other/หมายเหตุ)\n- ประเภทลูกค้าเดาจากคำนำหน้าชื่อ ช่วยเช็คซ้ำก่อน import');
-  }
-
-  if(!_historyLoadedFull){
-    loadFullHistory(doExport);
-  } else {
-    doExport();
-  }
-}
-
-
-// ===== History System =====
-const GAS_URL_KEY = 'rst_promo_gas_url';
-const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxnthS6N5IT4i0XjUt_ru9yv-jeoqNM0_oxkS9r8t1NlqNw9FjF43Q0PwOBlcUzfeU1/exec';
-let gasUrl = localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL;
-
-// ===== User Identity (ชื่อ + บทบาท) =====
-const USER_NAME_KEY = 'rst_promo_user_name';
-const USER_ROLE_KEY = 'rst_promo_user_role'; // 'sales' | 'finance' | 'supervisor' — บทบาททั้งหมดที่มีในระบบ: เซลล์/ไฟแนนซ์/ผู้จัดการ (ใช้ค่า 'supervisor' แทน 'ผู้จัดการ' ในโค้ด)
-let userName = localStorage.getItem(USER_NAME_KEY) || '';
-let userRole = localStorage.getItem(USER_ROLE_KEY) || '';
-let _pendingRole = userRole;
-updateExportCrmButtonVisibility();
-
-function isFinanceUser(){ return userRole === 'finance'; }
-function isManagerUser(){ return userRole === 'supervisor'; } // "ผู้จัดการ" ในหน้าเลือกบทบาท = role 'supervisor' เดิมที่มีอยู่แล้วในระบบ
-function updateExportCrmButtonVisibility(){
-  const btn = document.getElementById('exportCrmTemplateBtn');
-  if(btn) btn.style.display = isManagerUser() ? '' : 'none';
-  const dateBox = document.getElementById('exportCrmDateRangeBox');
-  if(dateBox) dateBox.style.display = isManagerUser() ? 'flex' : 'none';
-}
-function roleLabel(role){ return role==='finance' ? 'ไฟแนนซ์' : (role==='supervisor' ? 'ผู้จัดการ' : 'เซลล์'); }
-// สิทธิ์แก้ไขข้อมูลเคสที่บันทึกไปแล้ว (กรณีกรอกผิด) — ไฟแนนซ์กับผู้จัดการเท่านั้น
-function canEditRecords(){ return userRole === 'finance' || userRole === 'supervisor'; }
-
-function openIdentityModal(){
-  document.getElementById('identityNameInput').value = userName;
-  _pendingRole = userRole || 'sales';
-  updateRoleButtons();
-  document.getElementById('identityModalBg').style.display = 'flex';
-}
-function closeIdentityModal(){
-  // ต้องมีทั้งชื่อและบทบาทก่อนถึงจะปิดได้ (บังคับตั้งค่าครั้งแรก)
-  if(!userName || !userRole) return;
-  document.getElementById('identityModalBg').style.display = 'none';
-}
-function pickRole(role){
-  _pendingRole = role;
-  updateRoleButtons();
-}
-function updateRoleButtons(){
-  const sb = document.getElementById('roleBtnSales'), fb = document.getElementById('roleBtnFinance'), pb = document.getElementById('roleBtnSupervisor');
-  if(sb) sb.classList.toggle('active', _pendingRole==='sales');
-  if(fb) fb.classList.toggle('active', _pendingRole==='finance');
-  if(pb) pb.classList.toggle('active', _pendingRole==='supervisor');
-}
-function saveIdentity(){
-  const name = document.getElementById('identityNameInput').value.trim();
-  if(!name || !_pendingRole){ alert('กรุณากรอกชื่อและเลือกบทบาทให้ครบ'); return; }
-  userName = name; userRole = _pendingRole;
-  localStorage.setItem(USER_NAME_KEY, userName);
-  localStorage.setItem(USER_ROLE_KEY, userRole);
-  document.getElementById('identityModalBg').style.display = 'none';
-  updateExportCrmButtonVisibility();
-  // auto-fill ชื่อผู้ปิดการขายให้เซลล์ (ถ้ายังว่างอยู่) จะได้ไม่ต้องพิมพ์ซ้ำทุกเคส
-  if(userRole === 'sales'){
-    const bn = document.getElementById('branchName'); if(bn && !bn.value) bn.value = userName;
-    const bnM = document.getElementById('branchNameM'); if(bnM && !bnM.value) bnM.value = userName;
-  }
-  // ถ้ากำลังดูรายละเอียดเคสอยู่ ให้รีเฟรชสิทธิ์การมองเห็นปุ่ม/dropdown ทันที
-  if(document.querySelector('.app').classList.contains('history')) loadHistory();
-}
-
-function escapeHtml(str){
-  return String(str==null?'':str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-function openHistory(){
-  document.querySelector('.app').classList.add('history');
-  document.querySelector('.app').classList.remove('step2','step3');
-  window.scrollTo(0,0);
-  updateExportCrmButtonVisibility();
-  if(!userName || !userRole) openIdentityModal();
-  loadHistory();
-}
-function closeHistory(){
-  document.querySelector('.app').classList.remove('history');
-  window.scrollTo(0,0);
-}
-function openGasConfig(){
-  const box = document.getElementById('gasConfigBox');
-  box.style.display = box.style.display==='none' ? 'block' : 'none';
-  document.getElementById('gasUrlInput').value = gasUrl;
-}
-function saveGasUrl(){
-  gasUrl = document.getElementById('gasUrlInput').value.trim();
-  localStorage.setItem(GAS_URL_KEY, gasUrl);
-  document.getElementById('gasConfigBox').style.display = 'none';
-  loadHistory();
-}
-
-// ---- JSONP helper (ใช้แทน fetch เพื่อหลีกเลี่ยง CORS) ----
-// ---- Unified GAS request: JSONP ก่อน, fallback fetch ถ้าเปิดผ่าน https ----
-function gasGet(url, params, callback){
-  const sep = url.includes('?') ? '&' : '?';
-  const qs = Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
-  const fullUrl = url + sep + qs;
-
-  // Try JSONP first (works from file:// too)
-  const cbName = '_gasCallback_' + Date.now();
-  const script = document.createElement('script');
-  let done = false;
-
-  const finish = (err, data) => {
-    if(done) return; done = true;
-    clearTimeout(timer);
-    delete window[cbName];
-    script.remove();
-    callback(err, data);
-  };
-
-  const timer = setTimeout(()=>{
-    if(done) return;
-    // JSONP timed out — try plain fetch (works on https)
-    if(location.protocol === 'https:' || location.hostname === 'localhost'){
-      fetch(fullUrl + '&_t2=' + Date.now())
-        .then(r=>r.json())
-        .then(data=>finish(null,data))
-        .catch(err=>finish(new Error('โหลดไม่ได้: ' + err.message)));
-    } else {
-      finish(new Error('JSONP timeout — ต้องเปิดผ่าน https (GitHub Pages) หรือ localhost'));
-    }
-  }, 6000);
-
-  window[cbName] = (data) => finish(null, data);
-  script.onerror = () => {
-    if(done) return;
-    clearTimeout(timer);
-    // fallback to fetch immediately on script error
-    if(location.protocol === 'https:' || location.hostname === 'localhost'){
-      done = true;
-      delete window[cbName];
-      script.remove();
-      fetch(fullUrl)
-        .then(r=>r.json())
-        .then(data=>callback(null,data))
-        .catch(err=>callback(new Error('fetch failed: ' + err.message)));
-    } else {
-      finish(new Error('ไม่สามารถโหลด GAS — ลองเปิดผ่าน GitHub Pages หรือ localhost'));
-    }
-  };
-
-  script.src = fullUrl + '&callback=' + cbName + '&_t=' + Date.now();
-  document.head.appendChild(script);
-}
-
-// legacy wrapper
-function jsonpRequest(url, callback){
-  const sep = url.includes('?') ? '&' : '?';
-  // extract existing params
-  const [base, qs] = url.split('?');
-  const params = {};
-  if(qs) qs.split('&').forEach(p=>{ const [k,v]=p.split('='); if(k) params[k]=decodeURIComponent(v||''); });
-  gasGet(base, params, callback);
-}
-
-function gasPost(action, payload, callback){
-  // POST via fetch (ใช้ได้เมื่อเปิดผ่าน https หรือ localhost)
-  // GAS POST ไม่มี CORS issue เพราะใช้ no-cors mode (fire-and-forget)
-  if(!gasUrl) return callback && callback(new Error('no GAS URL'));
-  fetch(gasUrl, {
-    method:'POST', mode:'no-cors',
-    headers:{'Content-Type':'text/plain'},
-    body: JSON.stringify(payload)
-  }).then(()=> callback && callback(null, {status:'ok'}))
-    .catch(err => callback && callback(err));
-}
-
-// เหมือน gasPost แต่ "อ่านผลลัพธ์กลับได้" (ไม่ใช้ no-cors) — ใช้กับ action ที่ต้องรู้ผลจริง เช่น
-// อัปโหลดเอกสารสำเร็จไหม / ลิงก์ PDF คืออะไร ใช้ Content-Type: text/plain เหมือนเดิม
-// เพื่อเลี่ยง CORS preflight ที่ Apps Script รับมือไม่ได้
-function gasPostReadable(action, payload, callback){
-  if(!gasUrl) return callback && callback(new Error('no GAS URL'));
-  fetch(gasUrl, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify(Object.assign({action}, payload))
-  }).then(r => r.json())
-    .then(data => callback && callback(null, data))
-    .catch(err => callback && callback(err));
-}
-
-function saveToHistory(record, callback){
-  if(!gasUrl){
-    console.warn('GAS URL not set');
-    if(callback) callback(new Error('ยังไม่ได้ตั้งค่า GAS URL — กด ⚙️ ด้านบนเพื่อใส่ URL'));
-    return;
-  }
-  // ใช้ gasPostReadable แทน gasPost(no-cors) เพื่อให้รู้ผลจริงว่าบันทึกสำเร็จหรือไม่
-  // (no-cors แบบเดิม ยิงแบบไม่รู้ผล ถ้าบันทึกไม่สำเร็จก็จะไม่มีทางรู้เลย)
-  gasPostReadable('save', {record}, (err, data)=>{
-    if(err || !data || data.status !== 'ok'){
-      console.error('Save failed:', err || data);
-      if(callback) callback(err || new Error((data && data.message) || 'บันทึกไม่สำเร็จ ไม่ทราบสาเหตุ'));
-      return;
-    }
-    // อัปเดต id จริงที่เซิร์ฟเวอร์สร้างให้ (ถ้ามี) แล้วเติมเข้า cache ประวัติในเครื่องทันที
-    // เพื่อให้เปิดหน้าประวัติแล้วเห็นเคสที่เพิ่งบันทึกได้เลย ไม่ต้องรอโหลดใหม่/กังวลเรื่องลำดับ
-    if(data.id) record.id = data.id;
-    if(!record.savedAt) record.savedAt = new Date().toISOString();
-    _allHistoryRecords = [record, ..._allHistoryRecords.filter(r=>String(r.id)!==String(record.id))];
-    if(callback) callback(null, data);
-  });
-}
-
-// ===== แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน/โฉนด ฯลฯ) =====
-const DOC_CATEGORIES = [
-  {key:'idcard',    label:'บัตรประชาชน',      needsSignature:true, count:1, required:true},
-  {key:'houseReg',  label:'ทะเบียนบ้าน',       needsSignature:true, count:2, required:true},
-  {key:'landTitle', label:'โฉนดที่ดิน (มีหน้า-หลัง/หลายใบได้)', needsSignature:false, count:'dynamic'},
-  {key:'farmReg',   label:'ทะเบียนเกษตร (อาจมีหลายใบ)',        needsSignature:false, count:'dynamic'},
-  {key:'otherBrand',label:'เอกสารต่างค่าย (เช่น ใบเสร็จ การ์ดผ่อนชำระ อื่นๆ)', needsSignature:false, count:'dynamic', hasGrade:true},
-  {key:'carBook',   label:'เล่มรถ (ถ้ามี)',                        needsSignature:false, count:1},
-  {key:'statement', label:'สเตทเม้นท์/ใบรับรองเงินเดือน (ถ้ามี)',   needsSignature:false, count:1},
-  {key:'leaderCard',label:'บัตรผู้นำ (ถ้ามี)',                     needsSignature:false, count:1},
-  {key:'baac',      label:'ใบ ธกส. (ถ้ามี)',                       needsSignature:false, count:1},
-  {key:'nsfCheck',  label:'หน้าจอยืนยันตรวจสิทธิ กอช.',            needsSignature:false, count:1, required:true},
-  {key:'other',     label:'อื่นๆ',             needsSignature:false, count:1}
-];
-// ฝั่งผู้ค้ำประกัน ใช้รายการเดียวกับผู้ซื้อ แต่ไม่ต้องมีหน้าจอยืนยันสิทธิ กอช. (เป็นของผู้ซื้อเท่านั้น)
-// required ของบัตร/ทะเบียนบ้าน ยังบังคับอยู่เหมือนผู้ซื้อ เพราะติดมากับ object เดิม (filter ไม่กระทบ)
-const DOC_CATEGORIES_GUARANTOR = DOC_CATEGORIES.filter(c => c.key !== 'nsfCheck');
-function getActiveCategories(){ return currentDocsRole === 'guarantor' ? DOC_CATEGORIES_GUARANTOR : DOC_CATEGORIES; }
-function getActiveCategory(catKey){ return getActiveCategories().find(c => c.key === catKey); }
-
-// ย่อขนาด + บีบอัดรูปก่อนอัปโหลด ประหยัดโควต้า Drive และโหลดเร็วขึ้นมาก
-function compressImageFile(file, maxDim, quality){
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = function(e){
-      const img = new Image();
-      img.onload = function(){
-        let w = img.width, h = img.height;
-        if(w > maxDim || h > maxDim){
-          const scale = maxDim / Math.max(w, h);
-          w = Math.round(w * scale); h = Math.round(h * scale);
         }
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        const dataUrl = canvas.toDataURL('image/jpeg', quality || 0.72);
-        resolve({ base64: dataUrl.split(',')[1], mimeType:'image/jpeg', dataUrl, width:w, height:h });
-      };
-      img.onerror = () => reject(new Error('อ่านรูปไม่ได้'));
-      img.src = e.target.result;
-    };
-    reader.onerror = () => reject(new Error('อ่านไฟล์ไม่ได้'));
-    reader.readAsDataURL(file);
-  });
-}
-
-const HISTORY_FAST_LIMIT = 80;   // โหลดแค่ล่าสุด 80 รายการก่อน ให้เปิดหน้าประวัติได้เร็วขึ้นมาก
-const HISTORY_FULL_LIMIT = 1000; // กด "โหลดทั้งหมด" แล้วค่อยดึงเต็มจำนวน
-let _historyLoadedFull = false;
-
-function loadHistory(limit, onDone){
-  const container = document.getElementById('historyListContainer');
-  if(!gasUrl){
-    container.innerHTML = `<div class="gas-config" style="margin:16px 0">
-      <label>⚠️ ยังไม่ได้ตั้งค่า GAS URL — กด ⚙️ ด้านบนเพื่อใส่ URL</label>
-    </div>`;
-    return;
-  }
-  const useLimit = limit || HISTORY_FAST_LIMIT;
-  _historyLoadedFull = useLimit >= HISTORY_FULL_LIMIT;
-  container.innerHTML = '<div class="history-loading">⏳ กำลังโหลด...</div>';
-  jsonpRequest(gasUrl + '?action=list&limit=' + useLimit, function(err, data){
-    if(err || data.status !== 'ok'){
-      container.innerHTML = `<div class="history-empty">⚠️ โหลดไม่ได้<br><small>${err?.message||data?.message||'ไม่ทราบสาเหตุ'}</small><br><small>เช็ค: Deploy → Access: Anyone (anonymous)?</small></div>`;
-      return;
-    }
-    renderHistoryList(data.records);
-    if(onDone) onDone();
-  });
-}
-function loadFullHistory(onDone){
-  loadHistory(HISTORY_FULL_LIMIT, onDone);
-}
-
-let _allHistoryRecords = [];
-
-function filterHistory(){
-  const fQuick   = (document.getElementById('hf_quick')?.value||'').trim().toLowerCase();
-  const fName    = (document.getElementById('hf_name')?.value||'').trim().toLowerCase();
-  const fPhone   = (document.getElementById('hf_phone')?.value||'').trim();
-  const fProv    = (document.getElementById('hf_province')?.value||'').trim();
-  const fAmph    = (document.getElementById('hf_amphure')?.value||'').trim();
-  const fTambon  = (document.getElementById('hf_tambon')?.value||'').trim();
-  const fModel   = (document.getElementById('hf_model')?.value||'');
-  const fProg    = (document.getElementById('hf_prog')?.value||'');
-  const fSort    = (document.getElementById('hf_sort')?.value||'date_desc');
-
-  // ถ้ามีการค้นหา/กรองอยู่ แต่ยังโหลดมาไม่ครบทุกเคส ให้โหลดให้ครบก่อนอัตโนมัติ กันค้นหาแล้วตกหล่นเคสเก่า
-  const hasActiveFilter = !!(fQuick || fName || fPhone || fProv || fAmph || fTambon || fModel || fProg);
-  if(hasActiveFilter && !_historyLoadedFull){
-    loadFullHistory(filterHistory);
-    return;
-  }
-
-  let filtered = _allHistoryRecords.filter(r=>{
-    const addr = (r.custAddr||'').toLowerCase();
-    if(fQuick){
-      const haystack = [r.custName, r.custPhone, r.custAddr, r.brand, r.model, r.seg, r.progName, r.branch]
-        .filter(Boolean).join(' ').toLowerCase();
-      if(!haystack.includes(fQuick)) return false;
-    }
-    if(fName   && !(r.custName||'').toLowerCase().includes(fName)) return false;
-    if(fPhone  && !(r.custPhone||'').includes(fPhone)) return false;
-    if(fProv   && !addr.includes('จ.'+fProv)) return false;
-    if(fAmph   && !addr.includes('อ.'+fAmph)) return false;
-    if(fTambon && !addr.includes('ต.'+fTambon)) return false;
-    if(fModel  && (r.model||'') !== fModel) return false;
-    if(fProg   && (r.progName||'') !== fProg) return false;
-    return true;
-  });
-
-  filtered = sortHistoryRecords(filtered, fSort);
-
-  const countEl = document.getElementById('histFilterCount');
-  if(countEl) countEl.textContent = filtered.length < _allHistoryRecords.length
-    ? `แสดง ${filtered.length} จาก ${_allHistoryRecords.length} รายการ`
-    : `ทั้งหมด ${_allHistoryRecords.length} รายการ`;
-
-  renderHistoryCards(filtered);
-}
-
-function sortHistoryRecords(records, sortKey){
-  const arr = records.slice();
-  switch(sortKey){
-    case 'date_asc':
-      arr.sort((a,b)=> (a.savedAt||'').localeCompare(b.savedAt||''));
-      break;
-    case 'name_asc':
-      arr.sort((a,b)=> (a.custName||'').localeCompare(b.custName||'', 'th'));
-      break;
-    case 'amount_desc':
-      arr.sort((a,b)=> (Number(b.finTotal)||0) - (Number(a.finTotal)||0));
-      break;
-    case 'amount_asc':
-      arr.sort((a,b)=> (Number(a.finTotal)||0) - (Number(b.finTotal)||0));
-      break;
-    case 'date_desc':
-    default:
-      arr.sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
-      break;
-  }
-  return arr;
-}
-
-function clearHistoryFilter(){
-  ['hf_name','hf_phone','hf_quick'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  ['hf_model','hf_prog','hf_province'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  const sortEl=document.getElementById('hf_sort'); if(sortEl) sortEl.value='date_desc';
-  const amphEl=document.getElementById('hf_amphure'), tambonEl=document.getElementById('hf_tambon');
-  if(amphEl){ amphEl.innerHTML='<option value="">— อำเภอ —</option>'; amphEl.disabled=true; }
-  if(tambonEl){ tambonEl.innerHTML='<option value="">— ตำบล —</option>'; tambonEl.disabled=true; }
-  filterHistory();
-}
-
-
-function populateFilterDropdowns(){
-  const models = [...new Set(_allHistoryRecords.map(r=>r.model).filter(Boolean))].sort();
-  const progs  = [...new Set(_allHistoryRecords.map(r=>r.progName).filter(Boolean))].sort();
-  // จังหวัด: parse จาก custAddr "จ.xxx"
-  const provinces = [...new Set(_allHistoryRecords.map(r=>{
-    const m = (r.custAddr||'').match(/จ\.([^\s,]+)/); return m?m[1]:null;
-  }).filter(Boolean))].sort();
-
-  const mSel = document.getElementById('hf_model');
-  const pSel = document.getElementById('hf_prog');
-  const provSel = document.getElementById('hf_province');
-  if(mSel) mSel.innerHTML = '<option value="">— ทุกรุ่น —</option>' + models.map(m=>`<option>${m}</option>`).join('');
-  if(pSel) pSel.innerHTML = '<option value="">— ทุกโปร —</option>' + progs.map(p=>`<option>${p}</option>`).join('');
-  if(provSel) provSel.innerHTML = '<option value="">— ทุกจังหวัด —</option>' + provinces.map(p=>`<option>${p}</option>`).join('');
-}
-
-function hfProvinceChange(){
-  const prov = document.getElementById('hf_province')?.value || '';
-  const amphSel = document.getElementById('hf_amphure');
-  const tambonSel = document.getElementById('hf_tambon');
-  // กรอง amphure จาก records ที่ตรงจังหวัด
-  const filteredRec = prov ? _allHistoryRecords.filter(r=>(r.custAddr||'').includes('จ.'+prov)) : _allHistoryRecords;
-  const amphures = [...new Set(filteredRec.map(r=>{
-    const m = (r.custAddr||'').match(/อ\.([^\s,]+)/); return m?m[1]:null;
-  }).filter(Boolean))].sort();
-  if(amphSel){
-    amphSel.innerHTML = '<option value="">— อำเภอ —</option>' + amphures.map(a=>`<option>${a}</option>`).join('');
-    amphSel.disabled = !prov;
-    amphSel.value = '';
-  }
-  if(tambonSel){ tambonSel.innerHTML = '<option value="">— ตำบล —</option>'; tambonSel.disabled = true; tambonSel.value=''; }
-  filterHistory();
-}
-
-function hfAmphureChange(){
-  const prov = document.getElementById('hf_province')?.value || '';
-  const amph = document.getElementById('hf_amphure')?.value || '';
-  const tambonSel = document.getElementById('hf_tambon');
-  const filteredRec = _allHistoryRecords.filter(r=>{
-    const addr = r.custAddr||'';
-    return (!prov||addr.includes('จ.'+prov)) && (!amph||addr.includes('อ.'+amph));
-  });
-  const tambons = [...new Set(filteredRec.map(r=>{
-    const m = (r.custAddr||'').match(/ต\.([^\s,]+)/); return m?m[1]:null;
-  }).filter(Boolean))].sort();
-  if(tambonSel){
-    tambonSel.innerHTML = '<option value="">— ตำบล —</option>' + tambons.map(t=>`<option>${t}</option>`).join('');
-    tambonSel.disabled = !amph;
-    tambonSel.value='';
-  }
-  filterHistory();
-}
-
-function renderHistoryList(records){
-  _allHistoryRecords = records || [];
-  populateFilterDropdowns();
-  const countEl = document.getElementById('histFilterCount');
-  if(countEl) countEl.textContent = `ทั้งหมด ${_allHistoryRecords.length} รายการ`;
-  const container = document.getElementById('historyListContainer');
-  if(!records || records.length === 0){
-    container.innerHTML = '<div class="history-empty">ยังไม่มีประวัติ<br><small>Export ครั้งแรกแล้วจะโชว์ที่นี่</small></div>';
-    return;
-  }
-  renderHistoryCards(sortHistoryRecords(records, 'date_desc'));
-}
-
-function renderHistoryCards(records){
-  const container = document.getElementById('historyListContainer');
-  if(!records || records.length === 0){
-    container.innerHTML = '<div class="history-empty">ไม่พบรายการที่ค้นหา</div>';
-    return;
-  }
-  container.innerHTML = records.map(r => `
-    <div class="history-card" id="hc_${r.id}" onclick="viewHistoryDetail('${r.id}')">
-      <div class="hc-top">
-        <div class="hc-name">${r.custName || '(ไม่ระบุชื่อ)'}</div>
-        <div class="hc-date">${r.savedAt?.slice(0,16) || ''}</div>
-      </div>
-      <div class="hc-model">${r.brand} · ${r.model} · ${r.seg}</div>
-      <div class="hc-nums">
-        โปร: <b>${r.progName}</b> &nbsp;·&nbsp;
-        ยอดจัด: <b>${fmt(Number(r.finTotal)||0)}</b> &nbsp;·&nbsp;
-        งวดใหญ่: <b>${fmt(Number(r.bigPay)||0)}</b> บาท/${r.finYears}ปี
-        ${r.eqTotal ? ` &nbsp;·&nbsp; อุปกรณ์: <b>${fmt(Number(r.eqTotal)||0)}</b>` : ''}
-      </div>
-      ${r.custPhone ? `<div class="hc-nums" style="margin-top:2px">📞 ${r.custPhone} ${r.branch ? '· '+r.branch : ''}</div>` : ''}
-      <div class="hc-actions">
-        <button class="btn-reprint" onclick="event.stopPropagation();reprintRecord('${r.id}')">🖨 พิมพ์ซ้ำ</button>
-        <button class="btn-del" onclick="event.stopPropagation();deleteRecord('${r.id}')">ลบ</button>
-      </div>
-    </div>
-  `).join('') + (!_historyLoadedFull ? `
-    <button class="btn-reprint" style="width:100%;margin-top:8px" onclick="loadFullHistory()">🔽 โหลดประวัติทั้งหมด (แสดงแค่ล่าสุด ${HISTORY_FAST_LIMIT} รายการอยู่ตอนนี้ เพื่อให้เปิดหน้าเร็วขึ้น)</button>
-  ` : '');
-}
-
-function viewHistoryDetail(id){
-  // highlight selected card clearly
-  document.querySelectorAll('.history-card').forEach(c=>c.classList.remove('selected'));
-  const card = document.getElementById('hc_'+id);
-  if(card) card.classList.add('selected');
-
-  const emptyElNow = document.getElementById('histDetailEmpty');
-  const contentElNow = document.getElementById('historyDetailContent');
-  const rightElNow = document.getElementById('historyRight');
-  if(emptyElNow) emptyElNow.style.display = 'none';
-  if(contentElNow) contentElNow.style.display = 'block';
-  if(window.innerWidth < 760 && rightElNow) rightElNow.classList.add('active');
-  if(rightElNow) rightElNow.scrollTop = 0;
-
-  // ใช้ข้อมูลที่โหลดมาแล้วในลิสต์ก่อน (ไม่ต้องรอ GAS ซ้ำ — เร็วเกือบทันที)
-  const cached = _allHistoryRecords.find(r => String(r.id) === String(id));
-  if(cached){
-    renderHistoryDetailHtml(id, cached, '');
-    // summary ไม่มี eqItems ละเอียด/updates เต็ม — ดึงมาเติมแบบเงียบๆ เบื้องหลัง
-    fetchAndPatchFullDetail(id);
-    return;
-  }
-
-  // ถ้าไม่เจอในแคช (กรณีหายาก) ค่อย fallback ไปโหลดจาก GAS แบบเดิม
-  if(contentElNow) contentElNow.innerHTML = '<div class="history-loading">⏳ กำลังโหลดรายละเอียด...</div>';
-  jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
-    if(err || data.status !== 'ok'){ alert('โหลดไม่ได้: ' + (err?.message||data?.message)); return; }
-    renderHistoryDetailHtml(id, data.record, (data.row||[])[1]||'');
-  });
-}
-
-// ===== สถานะเคส (ไฟแนนซ์เท่านั้นที่เปลี่ยนได้) =====
-// แก้ไข/เพิ่มรายการสถานะได้ตรงนี้ที่เดียว
-const CASE_STATUSES = [
-  'รอดำเนินการ','รอเอกสารลูกค้า','ส่งไฟแนนซ์แล้ว','รออนุมัติ',
-  'อนุมัติแล้ว','ไม่อนุมัติ','รอลูกค้าตัดสินใจใหม่','ยกเลิกเคส','ส่งมอบแล้ว/ปิดเคส'
-];
-function statusSlug(s){
-  if(['อนุมัติแล้ว','ส่งมอบแล้ว/ปิดเคส'].includes(s)) return 'good';
-  if(['ไม่อนุมัติ','ยกเลิกเคส'].includes(s)) return 'bad';
-  return 'wait';
-}
-const MINOR_LABELS = {normal:'แบบปกติ', advance:'จ่ายล่วงหน้า', with_down:'รวมกับดาวน์'};
-
-// เก็บ "ใบสรุป ณ ตอนนั้น" ของแต่ละรายการใน Timeline ไว้ชั่วคราว (เฉพาะระหว่างเปิดหน้านี้อยู่)
-// เพื่อให้กดปุ่มดูใบสรุปของรอบที่คุยแต่ละครั้งได้ โดยไม่ต้องยัด JSON ก้อนใหญ่ลงใน attribute ของปุ่มตรงๆ
-let _tlSnapshotStore = {};
-let _tlSnapshotSeq = 0;
-function registerTlSnapshot(snap){
-  const key = 'tl' + (_tlSnapshotSeq++);
-  _tlSnapshotStore[key] = snap;
-  return key;
-}
-function viewTimelineSnapshot(key, ts){
-  const snap = _tlSnapshotStore[key];
-  if(!snap){ alert('ไม่พบข้อมูลใบสรุปของรอบนี้แล้ว (อาจต้องโหลดหน้าใหม่)'); return; }
-  _recordOverride = snap;
-  previewPDF();
-  _recordOverride = null;
-  const t = document.getElementById('previewModalTitle');
-  if(t) t.textContent = '📜 ใบสรุป ณ ตอนที่บันทึกไว้ — ' + (ts||'');
-}
-
-function renderTimelineEntries(updates){
-  if(!updates || !updates.length) return '';
-  return updates.slice().reverse().map(u => {
-    const snapBtn = u.snapshot
-      ? `<br><button type="button" onclick="viewTimelineSnapshot('${registerTlSnapshot(u.snapshot)}','${escapeHtml(u.ts||'')}')" style="margin-top:4px;font-family:'Kanit',sans-serif;font-size:11px;font-weight:600;padding:3px 10px;border-radius:7px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);cursor:pointer">🖨 ดูใบสรุปการขาย ณ รอบนี้</button>`
-      : '';
-    return `
-    <div class="hd-tl-row">
-      <div class="hd-tl-dot"></div>
-      <div>
-        <b>${u.type==='status' ? 'เปลี่ยนสถานะ' : (u.type==='edit' ? 'แก้ไขข้อมูล' : 'บันทึกการคุย')}</b> — ${escapeHtml(u.ts||'')}<br>
-        <span style="font-size:12px">${escapeHtml(u.note||'')}</span>
-        ${u.newDown!=null ? `<br><span style="font-size:11px;color:var(--accent)">ดาวน์ใหม่: ${fmt(u.newDown)} บาท</span>` : ''}
-        ${u.newYears!=null ? `<br><span style="font-size:11px;color:var(--accent)">งวดใหม่: ${u.newYears} ปี</span>` : ''}
-        ${u.nextFollowUp ? `<br><span style="font-size:11px;color:#888">นัดครั้งถัดไป: ${escapeHtml(u.nextFollowUp)}</span>` : ''}
-        <br><span style="color:#888;font-size:11px">โดย ${escapeHtml(u.byName||'-')} (${roleLabel(u.byRole)})</span>
-        ${snapBtn}
-      </div>
-    </div>
-  `;
-  }).join('');
-}
-
-function changeCaseStatus(id, status){
-  const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
-  if(rec) rec.caseStatus = status;
-  gasPost('updateStatus', {action:'updateStatus', id, status, byName:userName, byRole:userRole}, (err)=>{
-    if(err) alert('บันทึกสถานะไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
-  });
-  const tlEl = document.getElementById('hdTimeline_'+id);
-  if(tlEl){
-    const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
-    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([{ts:nowStr, byName:userName, byRole:userRole, type:'status', status, note:'เปลี่ยนสถานะเป็น "'+status+'"'}]));
-  }
-}
-
-// ===== แก้ไขข้อมูลลูกค้า (กรณีกรอกผิด) — เฉพาะไฟแนนซ์/ผู้จัดการ =====
-let _editRecordId = null;
-let _editRecordSnapshot = null;
-function openEditRecordModal(id){
-  if(!canEditRecords()){ alert('เฉพาะไฟแนนซ์และผู้จัดการเท่านั้นที่แก้ไขข้อมูลได้'); return; }
-  _editRecordId = id;
-  jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
-    if(err || data.status !== 'ok'){ alert('โหลดข้อมูลไม่ได้: ' + (err?.message||data?.message)); return; }
-    const d = data.record;
-    _editRecordSnapshot = d;
-    document.getElementById('editCustName').value = d.custName || '';
-    // ใส่ที่อยู่เดิมไว้ในช่องข้อความก่อน (ไม่ล้างข้อมูลเดิมทิ้ง) แล้วให้เลือกจังหวัด/อำเภอ/ตำบลเพิ่มเติมได้ถ้าต้องการ
-    document.getElementById('addr2_editRecord_line').value = d.custAddr || '';
-    document.getElementById('editCustAddrHidden').value = d.custAddr || '';
-    addrState2.editRecord = {province:null,provinceId:null,amphure:null,amphureId:null,tambon:null,tambonId:null};
-    ['province','amphure','tambon'].forEach(function(lvl){
-      const el = document.getElementById('addr2_editRecord_'+lvl);
-      if(el){ el.value=''; el.disabled = lvl!=='province'; el.placeholder = lvl==='province' ? 'ค้นหาจังหวัด...' : (lvl==='amphure' ? 'เลือกจังหวัดก่อน' : 'เลือกอำเภอก่อน'); }
-    });
-    document.getElementById('editCustPhone').value = d.custPhone || '';
-    document.getElementById('editBranch').value = d.branch || '';
-    document.getElementById('editRecordModalBg').style.display = 'flex';
-  });
-}
-function closeEditRecordModal(){
-  document.getElementById('editRecordModalBg').style.display = 'none';
-  _editRecordId = null;
-}
-// พาไปหน้าคีย์ข้อมูลใหม่ทั้งใบ (เลือกรุ่นรถ/โปรใหม่ได้) โดยเติมข้อมูลลูกค้าเดิมไว้ให้ก่อน
-// ตอนกด "บันทึก & พิมพ์ PDF" ท้ายสุด ระบบจะอัปเดตทับเคสเดิม ไม่สร้างเคสใหม่ซ้ำ (เพราะตั้ง _editingRecordId ไว้)
-let _editingRecordId = null;
-let _editingRecordSnapshot = null;
-function editProductAndPromo(){
-  if(!_editRecordId || !_editRecordSnapshot) return;
-  const d = _editRecordSnapshot;
-  _editingRecordId = _editRecordId;
-  _editingRecordSnapshot = d;
-  closeEditRecordModal();
-  closeHistoryDetail();
-  document.querySelector('.app').classList.remove('history','step2','step3');
-  document.getElementById('custName2').value = d.custName || '';
-  document.getElementById('custNameM').value = d.custName || '';
-  document.getElementById('custAddrLine').value = d.custAddr || '';
-  document.getElementById('custAddrLineM').value = d.custAddr || '';
-  document.getElementById('custPhone').value = d.custPhone || '';
-  document.getElementById('custPhoneM').value = d.custPhone || '';
-  const _lsEl = document.getElementById('leadSource'); if(_lsEl) _lsEl.value = d.leadSource || '';
-  const _lsElM = document.getElementById('leadSourceM'); if(_lsElM) _lsElM.value = d.leadSource || '';
-  setBrand((d.brand||'').toLowerCase().indexOf('solis') > -1 ? 'solis' : 'yanmar');
-  window.scrollTo(0,0);
-  alert('กำลังแก้ไขข้อมูลของ "' + (d.custName||'-') + '" — เลือกรุ่นรถ/โปรใหม่ได้เลยตามปกติ พอกด "บันทึก & พิมพ์ PDF" ท้ายสุด ระบบจะอัปเดตทับเคสเดิมให้อัตโนมัติ ไม่สร้างเคสใหม่ซ้ำ');
-}
-function submitEditRecord(){
-  if(!_editRecordId) return;
-  updateAddr2('editRecord'); // เผื่อพิมพ์ในช่อง line ล่าสุดแล้วยังไม่ trigger update
-  const editPhoneDigits = (document.getElementById('editCustPhone').value || '').replace(/\D/g,'');
-  if(editPhoneDigits.length !== 10){
-    alert('กรุณากรอกเบอร์โทรผู้ซื้อให้ครบ 10 หลัก (ตอนนี้กรอก ' + editPhoneDigits.length + ' หลัก)');
-    const el = document.getElementById('editCustPhone');
-    if(el) el.focus();
-    return;
-  }
-  const changes = {
-    custName: document.getElementById('editCustName').value.trim(),
-    custAddr: (document.getElementById('editCustAddrHidden').value || document.getElementById('addr2_editRecord_line').value || '').trim(),
-    custPhone: document.getElementById('editCustPhone').value.trim(),
-    branch: document.getElementById('editBranch').value.trim()
-  };
-  const id = _editRecordId;
-  gasPostReadable('editRecord', {id, changes, byName:userName, byRole:userRole}, function(err, data){
-    if(err || !data || data.status !== 'ok'){
-      alert('บันทึกการแก้ไขไม่สำเร็จ: ' + ((data && data.message) || (err && err.message) || 'ไม่ทราบสาเหตุ'));
-      return;
-    }
-    closeEditRecordModal();
-    // อัปเดต cache รายการในเครื่อง ให้หน้าจอตรงกับของจริงทันที ไม่ต้องรอโหลดใหม่
-    const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
-    if(rec){
-      rec.custName = changes.custName; rec.custAddr = changes.custAddr;
-      rec.custPhone = changes.custPhone; rec.branch = changes.branch;
-    }
-    viewHistoryDetail(id); // โหลดรายละเอียดใหม่ทั้งหมด (รวม Timeline ที่มี log ค่าเดิมติดมาด้วย)
-  });
-}
-
-function showAddUpdateForm(id){
-  const area = document.getElementById('hdAddUpdateArea_'+id);
-  if(!area) return;
-  const rec = _allHistoryRecords.find(r => String(r.id) === String(id)) || {};
-  // ทุกบทบาท (เซลล์/ไฟแนนซ์/ผู้จัดการ) เพิ่ม "บันทึกคุยกับลูกค้า" ได้หมด
-  // แต่การ "ปรับโครงสร้างเงินดาวน์" (มีผลเปลี่ยนยอดจัด/งวดผ่อนจริงของเคส) เฉพาะไฟแนนซ์เท่านั้นถึงจะเห็น/กรอกได้
-  const downAdjustHtml = isFinanceUser() ? `
-      <div style="border-top:1px dashed var(--line);margin:10px 0 8px"></div>
-      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px">ปรับโครงสร้างเงินดาวน์ (ถ้ามี) — จะแก้ตัวเลขจริงของเคส + บันทึกค่าเดิมไว้ใน Timeline ให้ด้วย (เฉพาะไฟแนนซ์)</div>
-
-      <label>ยอดที่ต้องการเพิ่มดาวน์</label>
-      <input type="number" id="auExtraDown_${id}" placeholder="บาท" value="0" oninput="updateDownPreview('${id}')" onkeyup="updateDownPreview('${id}')">
-      <div style="font-size:10px;color:var(--accent);margin-top:2px">👆 พิมพ์ตัวเลขแล้วดูผลด้านล่างได้ทันที (ยังไม่กดบันทึกก็เห็นได้)</div>
-
-      <div id="auDownPreview_${id}" style="background:#F8F4ED;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:12px"></div>
-
-      <div id="auSourceArea_${id}" style="display:none">
-        <div style="font-size:11px;color:var(--ink-soft);margin:6px 0">ส่วนที่เพิ่มดาวน์นี้ มาจากไหนบ้าง (รวมกันต้องเท่ากับยอดที่เพิ่ม)</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
-          <div><label style="font-size:10.5px">หลังบ้าน</label><input type="number" id="auSrcBackOffice_${id}" value="0" oninput="updateDownPreview('${id}')"></div>
-          <div><label style="font-size:10.5px">ลูกค้าออกเพิ่ม</label><input type="number" id="auSrcCustOut_${id}" value="0" oninput="updateDownPreview('${id}')"></div>
-          <div><label style="font-size:10.5px">RST ออกเพิ่ม</label><input type="number" id="auSrcRst_${id}" value="0" oninput="updateDownPreview('${id}')"></div>
-        </div>
-        <div id="auSourceCheck_${id}" style="font-size:11px;margin-top:4px"></div>
-      </div>` : '';
-  area.innerHTML = `
-    <div class="add-update-form">
-      <label>บันทึกที่คุยกับลูกค้า</label>
-      <textarea id="auNote_${id}" rows="3" placeholder="เช่น ลูกค้าขอเลื่อนนัดโอนเงิน..."></textarea>
-      <label style="margin-top:6px;display:block">นัดครั้งถัดไป (ถ้ามี)</label>
-      <input type="date" id="auFollow_${id}">
-      ${downAdjustHtml}
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn-reprint" style="flex:1" onclick="submitUpdateNote('${id}')">บันทึก</button>
-        <button class="btn-del" onclick="cancelAddUpdateForm('${id}')">ยกเลิก</button>
-      </div>
-    </div>`;
-  if(isFinanceUser()) updateDownPreview(id); // แสดงตัวเลขปัจจุบันให้เห็นทันทีตั้งแต่เปิดฟอร์ม ไม่ต้องรอพิมพ์ก่อนถึงจะเห็นว่ากดอะไรได้บ้าง
-}
-// คำนวณค่างวดใหม่แบบง่าย (ไม่ทราบ tractorFinType ของเคสเดิม จึงใช้ Math.round ธรรมดาแทนการปัดแบบ F/R-type เป๊ะๆ)
-// Sheets บางทีเก็บ finRate เป็นตัวเลขทศนิยมล้วนๆ (เช่น 0.0895) เพราะตีความข้อความ "8.95%" ที่ส่งไปเป็นค่าเปอร์เซ็นต์จริง
-// ไม่ใช่ข้อความ — ต้องเช็คว่าค่าที่ได้มาเป็นทศนิยมอยู่แล้วหรือเป็นข้อความ "8.95%" ก่อน ค่อยตัดสินใจว่าต้องหาร 100 หรือไม่
-function _parseFinRate(raw){
-  if(raw == null || raw === '') return 0;
-  if(typeof raw === 'number') return raw; // เป็นทศนิยมอยู่แล้ว (เช่น 0.0895) ไม่ต้องหาร 100 ซ้ำ
-  const s = String(raw).trim();
-  const n = parseFloat(s);
-  if(isNaN(n)) return 0;
-  return s.indexOf('%') > -1 ? n/100 : n;
-}
-function _recalcBigPay(rec, finTotalVal){
-  const finYears = Number(rec.finYears) || 1;
-  const finRate = _parseFinRate(rec.finRate);
-  const periodsBeforeBigCollect = getPeriodsMinor(rec.tractorPayment);
-  const minorPerPeriod = Number(rec.minor) || 0;
-  const annual = finTotalVal * (1/finYears + finRate);
-  const bigPayPerYr = Math.max(0, annual - minorPerPeriod*periodsBeforeBigCollect);
-  return Math.round(firstBigAmount(bigPayPerYr, rec.tractorPayment, 'R'));
-}
-function updateDownPreview(id){
-  const rec = _allHistoryRecords.find(r => String(r.id) === String(id)) || {};
-  const extra = Math.max(0, Number(document.getElementById('auExtraDown_'+id)?.value || 0));
-  const previewEl = document.getElementById('auDownPreview_'+id);
-  const sourceArea = document.getElementById('auSourceArea_'+id);
-  if(extra <= 0){
-    if(previewEl) previewEl.style.display = 'none';
-    if(sourceArea) sourceArea.style.display = 'none';
-    return;
-  }
-  const oldDown = Number(rec.down||0);
-  const oldFinTotal = Number(rec.finTotal||0);
-  const oldBigPay = Number(rec.bigPay||0);
-  const oldSupport = Number(rec.support||0);
-  const oldCustOut = Number(rec.custOut||0);
-  const newDown = oldDown + extra;
-  const newFinTotal = Math.max(0, oldFinTotal - extra);
-  const newBigPay = _recalcBigPay(rec, newFinTotal);
-  const backOfficePrev = Math.max(0, Number(document.getElementById('auSrcBackOffice_'+id)?.value || 0));
-  const custOutAddPrev = Math.max(0, Number(document.getElementById('auSrcCustOut_'+id)?.value || 0));
-  const newSupportPrev = oldSupport + backOfficePrev;
-  const newCustOutPrev = oldCustOut + custOutAddPrev;
-
-  if(previewEl){
-    previewEl.style.display = 'block';
-    previewEl.innerHTML = `
-      <div style="display:flex;justify-content:space-between"><span>ดาวน์รวมใหม่</span><b>${fmt(oldDown)} → ${fmt(newDown)}</b></div>
-      <div style="display:flex;justify-content:space-between"><span>ยอดจัดใหม่</span><b>${fmt(oldFinTotal)} → ${fmt(newFinTotal)}</b></div>
-      <div style="display:flex;justify-content:space-between;color:var(--accent)"><span>งวดใหญ่ใหม่/ปี</span><b>${fmt(oldBigPay)} → ${fmt(newBigPay)} (ลด ${fmt(Math.max(0,oldBigPay-newBigPay))})</b></div>
-      ${backOfficePrev>0 ? `<div style="display:flex;justify-content:space-between;color:#1e7e34"><span>ช่วยดาวน์ใหม่ (รวมหลังบ้าน +${fmt(backOfficePrev)})</span><b>${fmt(oldSupport)} → ${fmt(newSupportPrev)}</b></div>` : ''}
-      ${custOutAddPrev>0 ? `<div style="display:flex;justify-content:space-between"><span>ลูกค้าออกเองใหม่ (+${fmt(custOutAddPrev)})</span><b>${fmt(oldCustOut)} → ${fmt(newCustOutPrev)}</b></div>` : ''}
-      <div style="font-size:10px;color:#888;margin-top:2px">*ค่างวดใหม่เป็นค่าประมาณ (ปัดเศษแบบทั่วไป อาจต่างจากตอนจัดจริงเล็กน้อย)</div>
-    `;
-  }
-  if(sourceArea) sourceArea.style.display = 'block';
-
-  const backOffice = Number(document.getElementById('auSrcBackOffice_'+id)?.value || 0);
-  const custOutAdd = Number(document.getElementById('auSrcCustOut_'+id)?.value || 0);
-  const rstAdd = Number(document.getElementById('auSrcRst_'+id)?.value || 0);
-  const allocated = backOffice + custOutAdd + rstAdd;
-  const checkEl = document.getElementById('auSourceCheck_'+id);
-  if(checkEl){
-    checkEl.innerHTML = (allocated === extra)
-      ? `<span style="color:#1e7e34">✓ จัดสรรครบแล้ว (${fmt(allocated)} / ${fmt(extra)})</span>`
-      : `<span style="color:#c0392b">⚠ จัดสรรแล้ว ${fmt(allocated)} / ${fmt(extra)} (ยังไม่ครบ ${fmt(Math.abs(extra-allocated))})</span>`;
-  }
-}
-function cancelAddUpdateForm(id){
-  const area = document.getElementById('hdAddUpdateArea_'+id);
-  if(area) area.innerHTML = `<button class="btn-reprint" style="width:100%" onclick="showAddUpdateForm('${id}')">📝 เพิ่มบันทึกคุยกับลูกค้า</button>`;
-}
-function submitUpdateNote(id){
-  const noteEl = document.getElementById('auNote_'+id);
-  const note = (noteEl?.value || '').trim();
-  if(!note){ alert('กรุณากรอกบันทึกก่อน'); return; }
-  const nextFollowUp = document.getElementById('auFollow_'+id)?.value || '';
-  const entry = {
-    byName:userName, byRole:userRole, note,
-    newDown: null,
-    newYears: null,
-    nextFollowUp
-  };
-  const tlEl = document.getElementById('hdTimeline_'+id);
-  if(tlEl){
-    const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
-    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([Object.assign({ts:nowStr, type:'note'}, entry)]));
-  }
-  cancelAddUpdateForm(id);
-  gasPost('addUpdate', {action:'addUpdate', id, entry}, (err)=>{
-    if(err) alert('บันทึกไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
-  });
-
-  // ปรับโครงสร้างเงินดาวน์ (ถ้ามีการกรอกยอดเพิ่มดาวน์) — สามแหล่งรวมกันต้องเท่ากับยอดที่เพิ่ม
-  // เฉพาะไฟแนนซ์เท่านั้น (กันไว้อีกชั้น แม้ปกติ UI จะไม่แสดงช่องนี้ให้บทบาทอื่นอยู่แล้วก็ตาม)
-  if(!isFinanceUser()) return;
-  const rec = _allHistoryRecords.find(r => String(r.id) === String(id)) || {};
-  const extra = Math.max(0, Number(document.getElementById('auExtraDown_'+id)?.value || 0));
-  if(extra <= 0) return;
-
-  const backOffice = Math.max(0, Number(document.getElementById('auSrcBackOffice_'+id)?.value || 0));
-  const custOutAdd = Math.max(0, Number(document.getElementById('auSrcCustOut_'+id)?.value || 0));
-  const rstAdd = Math.max(0, Number(document.getElementById('auSrcRst_'+id)?.value || 0));
-  const allocated = backOffice + custOutAdd + rstAdd;
-  if(allocated !== extra){
-    alert('กรุณาจัดสรรแหล่งที่มาของเงินเพิ่มดาวน์ให้ครบ ' + fmt(extra) + ' บาทก่อนบันทึก (ตอนนี้จัดสรรไป ' + fmt(allocated) + ' บาท)');
-    return;
-  }
-
-  const oldDown = Number(rec.down||0);
-  const oldFinTotal = Number(rec.finTotal||0);
-  const oldSupport = Number(rec.support||0);
-  const oldCustOut = Number(rec.custOut||0);
-  const oldRst = Number(rec.rst||0);
-  const oldBackOfficeAdjustTotal = Number(rec.backOfficeAdjustTotal||0);
-
-  const newDown = oldDown + extra;
-  const newFinTotal = Math.max(0, oldFinTotal - extra);
-  const newSupport = oldSupport + backOffice;
-  const newCustOut = oldCustOut + custOutAdd;
-  const newRst = oldRst + rstAdd;
-  const newBigPay = _recalcBigPay(rec, newFinTotal);
-  // สะสมยอดช่วยดาวน์ที่มาจากหลังบ้านทุกรอบที่เคยปรับ ไว้โชว์แยกในหน้าประวัติ (ไม่ใช่แค่รอบล่าสุด)
-  const newBackOfficeAdjustTotal = oldBackOfficeAdjustTotal + backOffice;
-
-  const changes = { down: newDown, support: newSupport, custOut: newCustOut, rst: newRst, finTotal: newFinTotal, bigPay: newBigPay, backOfficeAdjustTotal: newBackOfficeAdjustTotal };
-  const extraNote = ' (เพิ่มดาวน์ ' + fmt(extra) + ' บาท: หลังบ้าน ' + fmt(backOffice) + ' + ลูกค้า ' + fmt(custOutAdd) + ' + RST ' + fmt(rstAdd) + ')';
-  gasPostReadable('editRecord', {id, changes, byName:userName, byRole:userRole, extraNote}, function(err2, data2){
-    if(err2 || !data2 || data2.status !== 'ok'){
-      alert('ปรับโครงสร้างเงินดาวน์ไม่สำเร็จ: ' + ((data2 && data2.message) || (err2 && err2.message) || 'ไม่ทราบสาเหตุ'));
-      return;
-    }
-    // อัปเดต cache ในเครื่องให้ครบทุกฟิลด์ที่เปลี่ยน (เดิมอัปเดตแค่ down/custOut/rst ทำให้ช่วยดาวน์/ยอดจัด/งวดใหญ่
-    // ที่โชว์ในหน้าประวัติไม่ตรงกับของจริงจนกว่าจะโหลดหน้าใหม่)
-    if(rec){
-      rec.down = newDown; rec.support = newSupport; rec.custOut = newCustOut; rec.rst = newRst;
-      rec.finTotal = newFinTotal; rec.bigPay = newBigPay; rec.backOfficeAdjustTotal = newBackOfficeAdjustTotal;
-    }
-    viewHistoryDetail(id); // โหลดใหม่ให้ตัวเลข/Timeline ตรงกับของจริงทั้งหมด
-  });
-}
-
-let _detailFetchToken = 0;
-function fetchAndPatchFullDetail(id){
-  const myToken = ++_detailFetchToken;
-  jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
-    if(err || !data || data.status !== 'ok') return; // เงียบไว้ — summary ที่โชว์ไปแล้วยังใช้ได้
-    if(myToken !== _detailFetchToken) return; // ผู้ใช้เปลี่ยนไปดูเคสอื่นแล้ว
-    const full = data.record;
-    const idx = _allHistoryRecords.findIndex(r => String(r.id) === String(id));
-    if(idx > -1) _allHistoryRecords[idx] = Object.assign({}, _allHistoryRecords[idx], full);
-
-    if(Array.isArray(full.eqItems) && full.eqItems.length){
-      const eqBlock = document.getElementById('hdEqItems_'+id);
-      if(eqBlock) eqBlock.innerHTML = full.eqItems.map(eq=>`<div class="hd-row"><span class="hd-label">อุปกรณ์ (${eq.finType||'R'})</span><span class="hd-val">${eq.name} — ${fmt(eq.price)}</span></div>`).join('');
-    }
-    const mmEl = document.getElementById('hdMinorMode_'+id);
-    if(mmEl && full.minorMode) mmEl.textContent = MINOR_LABELS[full.minorMode] || 'แบบปกติ';
-
-    const gtorWrap = document.getElementById('hdGuarantor_'+id);
-    if(gtorWrap && !gtorWrap.innerHTML.trim()){
-      gtorWrap.innerHTML = renderGuarantorInner(id, full);
-    }
-
-    const tlLoading = document.getElementById('hdTimelineLoading_'+id);
-    if(tlLoading) tlLoading.outerHTML = renderTimelineEntries(full.updates||[]) || '<div class="hd-tl-row"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">ยังไม่มีการอัปเดตเพิ่มเติม</div></div>';
-
-    if(full.caseStatus){
-      const badgeEl = document.getElementById('hdStatusBadge_'+id);
-      const selectEl = document.getElementById('hdStatusSelect_'+id);
-      if(badgeEl){ badgeEl.textContent = full.caseStatus; badgeEl.className = 'case-status-badge status-'+statusSlug(full.caseStatus); }
-      if(selectEl) selectEl.value = full.caseStatus;
-    }
-  });
-}
-
-
-function renderGuarantorInner(id, d){
-  const refs = Array.isArray(d.refs) && d.refs.length ? d.refs
-    : (d.refName ? [{name:d.refName, phone:d.refPhone, relation:d.refRelation}] : []);
-  if(!(d.custCurrentAddr || d.gtorName || refs.length)) return '';
-  return `
-    <div class="hd-section">ที่อยู่ปัจจุบัน / ผู้ค้ำ / ผู้อ้างอิง</div>
-    ${d.custCurrentAddr ? `<div class="hd-row"><span class="hd-label">ที่อยู่ปัจจุบัน</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${escapeHtml(d.custCurrentAddr)}</span></div>` : ''}
-    ${d.gtorName ? `<div class="hd-row"><span class="hd-label">ผู้ค้ำ</span><span class="hd-val">${escapeHtml(d.gtorName)}${d.gtorPhone?' · '+escapeHtml(d.gtorPhone):''}</span></div>` : ''}
-    ${refs.map(r=>`<div class="hd-row"><span class="hd-label">ผู้อ้างอิง</span><span class="hd-val">${escapeHtml(r.name||'-')}${r.relation?' ('+escapeHtml(r.relation)+')':''}</span></div>`).join('')}
-    <button class="btn-reprint" style="width:100%;margin-top:6px" onclick="reprintGuarantorForm('${id}')">🖨 พิมพ์ฟอร์มผู้ค้ำ/อ้างอิง</button>
-  `;
-}
-function renderGuarantorSectionWrap(id, d){
-  return `<div id="hdGuarantor_${id}">${renderGuarantorInner(id, d)}</div>`;
-}
-
-// แสดงข้อมูลรายได้ลูกค้าในหน้ารายละเอียดประวัติ (ถ้าเคยกรอกไว้)
-function renderFinInfoSectionWrap(d){
-  const fi = d.finInfo;
-  if(!fi) return '';
-  const plots = (fi.farmPlots||[]).filter(p=>p.cropType||p.rai||p.titleHolder);
-  const machines = (fi.machines||[]).filter(m=>m.type||m.model||m.qty||m.note);
-  const debts = (fi.debts||[]).filter(x=>x.creditor||x.amount);
-  const hasAny = plots.length || machines.length || debts.length || fi.hasJob || fi.hasSideIncome;
-  if(!hasAny) return '';
-
-  const plotsHtml = plots.length
-    ? plots.map(p=>`<div class="hd-row"><span class="hd-label">${p.cropType||'-'}</span><span class="hd-val">${p.rai||'-'} ไร่ · เอกสารสิทธิ์: ${p.titleHolder||'-'}</span></div>`).join('')
-    : '';
-  const jobLine = fi.hasJob === 'yes'
-    ? `มี — ${fi.jobDetail||'-'} (${fi.jobIncome?fmt(Number(fi.jobIncome)||0)+' บาท/เดือน':'-'})`
-    : (fi.hasJob === 'no' ? 'ไม่มี' : '—');
-  const sideLine = fi.hasSideIncome === 'yes'
-    ? `มี — ${fi.sideIncomeDetail||'-'} (${fi.sideIncomeAmount?fmt(Number(fi.sideIncomeAmount)||0)+' บาท/เดือน':'-'})`
-    : (fi.hasSideIncome === 'no' ? 'ไม่มี' : '—');
-  const machinesHtml = machines.length
-    ? machines.map(m=>`<div class="hd-row"><span class="hd-label">${m.type||'-'}</span><span class="hd-val">${m.model||'-'} × ${m.qty||'-'} คัน${m.note?' · '+m.note:''}</span></div>`).join('')
-    : '';
-  const debtsHtml = debts.length
-    ? debts.map(x=>`<div class="hd-row"><span class="hd-label">${x.creditor||'-'}</span><span class="hd-val">${x.amount?fmt(Number(x.amount)||0)+' บาท':'-'}</span></div>`).join('')
-    : '';
-
-  return `
-      <div class="hd-section">ข้อมูลรายได้ลูกค้า</div>
-      ${plotsHtml}
-      <div class="hd-row"><span class="hd-label">งานประจำ</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${jobLine}</span></div>
-      <div class="hd-row"><span class="hd-label">รายได้เสริม</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${sideLine}</span></div>
-      ${machinesHtml}
-      ${debtsHtml}
-  `;
-}
-
-function renderHistoryDetailHtml(id, d, rowNote){
-    const content = document.getElementById('historyDetailContent');
-    const PAYMENT_LABELS_LOCAL = PAYMENT_LABELS;
-    const minorLabels = MINOR_LABELS;
-    content.innerHTML = `
-      <div class="hd-content-fade">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div class="hd-title">📋 ${d.custName||'(ไม่ระบุชื่อ)'}</div>
-        <button onclick="closeHistoryDetail()" style="font-family:'Kanit',sans-serif;font-size:20px;background:none;border:none;cursor:pointer;color:#888">✕</button>
-      </div>
-      ${canEditRecords() ? `<button class="btn-reprint" style="width:100%;margin-bottom:10px" onclick="openEditRecordModal('${id}')">✏️ แก้ไขข้อมูลลูกค้า (กรณีกรอกผิด)</button>` : ''}
-
-      <div class="sales-summary-card">
-        <div class="ssc-head">🧾 สรุปการขาย (ดูไวใช้งานต่อได้เลย)</div>
-        <div class="ssc-grid">
-          <div class="ssc-item"><div class="k">ลูกค้า</div><div class="v">${d.custName||'—'}</div></div>
-          <div class="ssc-item"><div class="k">เบอร์โทร</div><div class="v">${d.custPhone||'—'}</div></div>
-          <div class="ssc-item"><div class="k">รุ่นที่ซื้อ</div><div class="v">${d.brand||''} ${d.model||''}</div></div>
-          <div class="ssc-item"><div class="k">โปรที่ใช้</div><div class="v">${d.progName||'—'}</div></div>
-          <div class="ssc-item"><div class="k">ยอดจัดไฟแนนซ์</div><div class="v accent">${fmt(d.finTotal||0)} บาท</div></div>
-          <div class="ssc-item"><div class="k">งวดใหญ่/ปี</div><div class="v accent">${fmt(d.bigPay||0)} บาท</div></div>
-          <div class="ssc-item"><div class="k">ระยะเวลาผ่อน</div><div class="v">${d.finYears||'—'} ปี</div></div>
-          <div class="ssc-item"><div class="k">วันที่ปิดการขาย</div><div class="v">${d.date || (d.savedAt?.slice(0,10)) || '—'}</div></div>
-          <div class="ssc-item full"><div class="k">สาขา/ผู้ปิดการขาย</div><div class="v">${d.branch||'—'}</div></div>
-        </div>
-        <div class="case-status-row">
-          <label>สถานะเคส</label>
-          ${isFinanceUser()
-            ? `<select class="case-status-select" id="hdStatusSelect_${id}" onchange="changeCaseStatus('${id}', this.value)">${CASE_STATUSES.map(s=>`<option value="${escapeHtml(s)}" ${((d.caseStatus||'รอดำเนินการ')===s)?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select>`
-            : `<span class="case-status-badge status-${statusSlug(d.caseStatus||'รอดำเนินการ')}" id="hdStatusBadge_${id}">${escapeHtml(d.caseStatus||'รอดำเนินการ')}</span>`
+      },
+      {
+        "id": "c_owner_combine",
+        "name": "โปรลูกค้ามีรถเกี่ยวนวดข้าวยันม่าร์,คูโบต้า ดาวน์20%",
+        "groups": [
+          "YF,SW"
+        ],
+        "conditions": [
+          "แสดงหลักฐานเล่มทะเบียนรถ หรือสัญญาเช่าซื้อกรณียังไม่หมดงวด",
+          "กรณีลูกค้าครอบครองรถเกี่ยวที่ยังผ่อนชำระ ต้องเหลือไม่เกิน 2 งวด"
+        ],
+        "entries": {
+          "AW82V": {
+            "price": 1237000,
+            "down": 248000,
+            "yct": 122500,
+            "ysp": 200000,
+            "rst": 49500,
+            "customer_out": 0,
+            "total": 989000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1493389.98,
+            "annual": 248898.33
+          },
+          "YH700": {
+            "price": 1292000,
+            "down": 259000,
+            "yct": 155000,
+            "ysp": 100000,
+            "rst": 4000,
+            "customer_out": 0,
+            "total": 1033000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1559830.02,
+            "annual": 259971.67
+          },
+          "YH700 Cabin": {
+            "price": 1409000,
+            "down": 282000,
+            "yct": 140000,
+            "ysp": 110000,
+            "rst": 32000,
+            "customer_out": 0,
+            "total": 1127000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1701769.98,
+            "annual": 283628.33
+          },
+          "YH850GUW 2.3": {
+            "price": 1562000,
+            "down": 313000,
+            "yct": 186500,
+            "ysp": 120000,
+            "rst": 6500,
+            "customer_out": 0,
+            "total": 1249000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1885990.02,
+            "annual": 314331.67
+          },
+          "YH850 Cabin": {
+            "price": 1658000,
+            "down": 332000,
+            "yct": 170500,
+            "ysp": 130000,
+            "rst": 31500,
+            "customer_out": 0,
+            "total": 1326000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 2002260.0,
+            "annual": 333710.0
+          },
+          "YH1180G26WU-TH": {
+            "price": 1779000,
+            "down": 356000,
+            "yct": 195500,
+            "ysp": 200000,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 1423000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 2148730.02,
+            "annual": 358121.67
           }
-        </div>
-      </div>
-
-      <div class="hd-section">ข้อมูลลูกค้า</div>
-      <div class="hd-row"><span class="hd-label">เบอร์โทร</span><span class="hd-val">${d.custPhone||'—'}</span></div>
-      <div class="hd-row"><span class="hd-label">ที่อยู่</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${d.custAddr||'—'}</span></div>
-      <div class="hd-row"><span class="hd-label">สาขา/ผู้ปิดการขาย</span><span class="hd-val">${d.branch||'—'}</span></div>
-
-      ${renderGuarantorSectionWrap(id, d)}
-
-      ${renderFinInfoSectionWrap(d)}
-
-      <div class="hd-section">เอกสารประกอบ</div>
-      <button class="btn-reprint" style="width:100%" onclick="openDocsModal('${id}', 'buyer')">📎 แนบ/ดูเอกสารประกอบ — ผู้ซื้อ</button>
-      <button class="btn-reprint" style="width:100%;margin-top:6px" onclick="openDocsModal('${id}', 'guarantor')">📎 แนบ/ดูเอกสารประกอบ — ผู้ค้ำประกัน</button>
-      ${d.docsPdfUrl ? `<a href="${d.docsPdfUrl}" target="_blank" class="btn-reprint" style="width:100%;display:block;text-align:center;text-decoration:none;box-sizing:border-box;margin-top:6px">📄 เปิด PDF ที่รวมไว้ล่าสุด (ทุกเอกสารในเคสนี้)</a>` : ''}
-
-      <div class="hd-section">รายละเอียดการซื้อ</div>
-      <div class="hd-row"><span class="hd-label">แบรนด์/รุ่น</span><span class="hd-val">${d.brand} ${d.model}</span></div>
-      <div class="hd-row"><span class="hd-label">กลุ่มลูกค้า</span><span class="hd-val">${d.seg}</span></div>
-      <div class="hd-row"><span class="hd-label">โปร</span><span class="hd-val" style="color:var(--accent)">${d.progName}</span></div>
-      <div class="hd-row"><span class="hd-label">ราคารถ</span><span class="hd-val">${fmt(d.price||0)} บาท</span></div>
-      <div id="hdEqItems_${id}">${(d.eqItems||[]).length>0 ? (d.eqItems.map(eq=>`<div class="hd-row"><span class="hd-label">อุปกรณ์ (${eq.finType||'R'})</span><span class="hd-val">${eq.name} — ${fmt(eq.price)}</span></div>`).join('')) : ''}</div>
-
-      <div class="hd-section">การเงิน</div>
-
-      <div style="background:#F8F4ED;border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:12px">
-        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:11px;color:var(--ink-soft);margin-bottom:4px">ช่วยดาวน์ — แยกตามที่มา</div>
-        <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YCT</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yctAmt||0)}</span></div>
-        <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YSP/Pro</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yspAmt||0)}</span></div>
-        <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">ไฟไหม้</span><span class="hd-val" style="font-size:11.5px">${fmt(d.fireAmt||0)}</span></div>
-        ${d.yspTopupAmt ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">YSP เพิ่มเติม</span><span class="hd-val" style="font-size:11.5px">${fmt(d.yspTopupAmt)}</span></div>` : ''}
-        <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px">RST ออก</span><span class="hd-val" style="font-size:11.5px">${fmt(d.rst||0)}</span></div>
-        <div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px;color:#1e7e34">หลังบ้าน (ปรับเพิ่มจากบันทึกคุย)</span><span class="hd-val" style="font-size:11.5px;color:#1e7e34">${fmt(d.backOfficeAdjustTotal||0)}</span></div>
-        ${d.subForSupport ? `<div class="hd-row" style="padding:2px 0"><span class="hd-label" style="font-size:11.5px;color:#c0392b">หัก: ลูกค้าจ่ายแทนสนับสนุน</span><span class="hd-val" style="font-size:11.5px;color:#c0392b">-${fmt(d.subForSupport)}</span></div>` : ''}
-        <div class="hd-row" style="padding:4px 0 0;border-top:1px solid var(--line);margin-top:4px"><span class="hd-label" style="font-size:11.5px;font-weight:700;color:var(--ink)">รวมช่วยดาวน์</span><span class="hd-val" style="font-size:12.5px;color:var(--accent)">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</span></div>
-      </div>
-
-      <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:11px;color:var(--ink-soft);margin:8px 0 2px">สรุปย่อ</div>
-      <div class="hd-row"><span class="hd-label">ดาวน์รวม</span><span class="hd-val">${fmt(d.down||0)}</span></div>
-      <div class="hd-row"><span class="hd-label">โปรที่ใช้</span><span class="hd-val" style="color:var(--accent)">${d.progName||'—'}</span></div>
-      <div class="hd-row"><span class="hd-label">ลูกค้าจ่ายจริง</span><span class="hd-val" style="color:var(--accent)">${fmt(d.custOut||0)}</span></div>
-      <div class="hd-row"><span class="hd-label">ช่วยดาวน์รวม</span><span class="hd-val">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</span></div>
-      <div class="hd-row"><span class="hd-label">ค่างวดใหญ่/ปี</span><span class="hd-val" style="color:var(--accent);font-size:15px">${fmt(d.bigPay||0)} บาท</span></div>
-
-      <div class="hd-section" style="margin-top:12px">รายละเอียดเพิ่มเติม</div>
-      <div class="hd-row"><span class="hd-label">ยอดจัด</span><span class="hd-val">${fmt(d.finTotal||0)}</span></div>
-      <div class="hd-row"><span class="hd-label">รูปแบบการผ่อน</span><span class="hd-val">${PAYMENT_LABELS_LOCAL[d.tractorPayment]||d.tractorPayment||'—'}</span></div>
-      <div class="hd-row"><span class="hd-label">รูปแบบงวดย่อย</span><span class="hd-val" id="hdMinorMode_${id}">${minorLabels[d.minorMode]||'แบบปกติ'}</span></div>
-      <div class="hd-row"><span class="hd-label">งวดย่อย/เดือน</span><span class="hd-val">${fmt(d.minor||0)} บาท × ${getPeriodsMinor(d.tractorPayment)} เดือน</span></div>
-      <div class="hd-row"><span class="hd-label">ระยะเวลา</span><span class="hd-val">${d.finYears} ปี @ ${((d.finRate||0)*100).toFixed(2)}%</span></div>
-
-
-      <div class="hd-section">Timeline</div>
-      <div class="hd-timeline" id="hdTimeline_${id}">
-        ${Array.isArray(d.updates)
-          ? renderTimelineEntries(d.updates)
-          : `<div class="hd-tl-row" id="hdTimelineLoading_${id}"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">⏳ กำลังโหลดบันทึกเพิ่มเติม...</div></div>`
         }
-        <div class="hd-tl-row"><div class="hd-tl-dot"></div><div><b>เซ็นสัญญา</b> — ${d.date||''}<br><span style="color:#888;font-size:11px">บันทึกโดย ${d.branch||'—'} · ${rowNote||''}</span></div></div>
-      </div>
-      <div id="hdAddUpdateArea_${id}" style="margin-top:8px">
-        <button class="btn-reprint" style="width:100%" onclick="showAddUpdateForm('${id}')">📝 เพิ่มบันทึกคุยกับลูกค้า</button>
-      </div>
-
-      <div style="display:flex;gap:8px;margin-top:14px">
-        <button class="btn-reprint" style="flex:1" onclick="closeHistoryDetail();reprintRecord('${id}')">🖨 พิมพ์ใบสรุป</button>
-        <button class="btn-del" onclick="closeHistoryDetail()">← รายการ</button>
-      </div>
-      </div>
-    `;
-    // scroll ขึ้นบนสุดของรายละเอียดใหม่ ให้เห็นชัดว่ามีการโหลดข้อมูลใหม่แล้ว
-    const rightEl = document.getElementById('historyRight');
-    if(rightEl) rightEl.scrollTop = 0;
-}
-
-function closeHistoryDetail(){
-  const emptyEl = document.getElementById('histDetailEmpty');
-  const contentEl = document.getElementById('historyDetailContent');
-  const rightEl = document.getElementById('historyRight');
-  if(emptyEl) emptyEl.style.display = 'block';
-  if(contentEl) contentEl.style.display = 'none';
-  if(rightEl) rightEl.classList.remove('active');
-}
-function reprintRecord(id){
-  jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
-    if(err || data.status !== 'ok'){ alert('โหลดไม่ได้: ' + (err?.message||data?.message)); return; }
-    _printFromRecord(data.record);
-  });
-}
-
-function reExportXLSX(id){
-  jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
-    if(err || data.status !== 'ok'){ alert('โหลดไม่ได้: ' + (err?.message||data?.message)); return; }
-    _xlsxFromRecord(data.record);
-  });
-}
-
-function deleteRecord(id){
-  if(!confirm('ลบรายการนี้?')) return;
-  gasPost('delete', {action:'delete', id}, function(err){
-    if(err){ alert('ลบไม่ได้: ' + err.message); return; }
-    document.getElementById('hc_'+id)?.remove();
-    // reload to confirm
-    setTimeout(loadHistory, 800);
-  });
-}
-
-// Print/XLSX from stored record data (using existing exportPDF/exportXLSX but with override)
-let _recordOverride = null;
-function _printFromRecord(rec){
-  _recordOverride = rec;
-  exportPDF();
-  _recordOverride = null;
-}
-function _xlsxFromRecord(rec){
-  _recordOverride = rec;
-  exportXLSX();
-  _recordOverride = null;
-}
-
-
-// ===== Thai Address Cascading Dropdowns =====
-const PRIORITY_PROVINCES = ['ศรีสะเกษ','อุบลราชธานี','อำนาจเจริญ','ยโสธร','ร้อยเอ็ด','กาฬสินธุ์'];
-let thaiGeoData = null;
-let thaiGeoLoading = false;
-let addrState = { province:null, provinceId:null, amphure:null, amphureId:null, tambon:null, tambonId:null };
-let addrDropOpen = null; // currently open dropdown id
-
-async function loadThaiGeo(){
-  if(thaiGeoData) return thaiGeoData;
-  if(thaiGeoLoading) return new Promise(resolve=>{
-    const wait = setInterval(()=>{ if(thaiGeoData||!thaiGeoLoading){ clearInterval(wait); resolve(thaiGeoData); }}, 200);
-  });
-  thaiGeoLoading = true;
-
-  // Try multiple sources in order
-  const SOURCES = [
-    'thailand_geo.json',  // same repo — fastest, works offline after first load
-    'https://cdn.jsdelivr.net/gh/bamaticha/rst-code@main/thailand_geo.json',
-    'https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest/province_with_district_and_sub_district.json',
-  ];
-
-  for(const url of SOURCES){
-    try{
-      const controller = new AbortController();
-      const timer = setTimeout(()=>controller.abort(), 15000);
-      const res = await fetch(url, {signal: controller.signal});
-      clearTimeout(timer);
-      if(!res.ok) continue;
-      const raw = await res.json();
-      // Normalize: compact format {id,n,a:[{id,n,t:[{id,n}]}]} or full format with districts/amphure
-      if(raw[0]?.n !== undefined){
-        // Already compact
-        thaiGeoData = raw;
-      } else {
-        // Full format — normalize to compact
-        thaiGeoData = raw.map(p=>({
-          id:p.id, n:p.name_th,
-          a:(p.districts||p.amphure||[]).map(a=>({
-            id:a.id, n:a.name_th,
-            t:(a.sub_districts||a.tambon||[]).map(t=>({id:t.id,n:t.name_th}))
-          }))
-        }));
+      },
+      {
+        "id": "c_owner_tractor",
+        "name": "โปรลูกค้ามีรถแทรกเตอร์ยันม่าร์,ลูกค้าย้ายค่ายรถแทรกเตอร์5ยี่ห้อ ดาวน์25%",
+        "groups": [
+          "Dry Crop"
+        ],
+        "conditions": [
+          "แสดงหลักฐานเล่มทะเบียนรถ หรือสัญญาเช่าซื้อกรณียังไม่หมดงวด",
+          "กรณีลูกค้าครอบครองรถแทรกเตอร์ยันม่าร์ที่ยังผ่อนชำระ ต้องเหลือไม่เกิน 3 งวด"
+        ],
+        "entries": {
+          "AW82V": {
+            "price": 1237000,
+            "down": 310000,
+            "yct": 122500,
+            "ysp": 200000,
+            "rst": 49500,
+            "customer_out": 0,
+            "total": 927000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1399770.0,
+            "annual": 233295.0
+          },
+          "YH700": {
+            "price": 1292000,
+            "down": 323000,
+            "yct": 155000,
+            "ysp": 100000,
+            "rst": 68000,
+            "customer_out": 0,
+            "total": 969000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1463190.0,
+            "annual": 243865.0
+          },
+          "YH700 Cabin": {
+            "price": 1409000,
+            "down": 353000,
+            "yct": 140000,
+            "ysp": 110000,
+            "rst": 43000,
+            "customer_out": 60000,
+            "total": 1056000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1594560.0,
+            "annual": 265760.0
+          },
+          "YH850GUW 2.3": {
+            "price": 1562000,
+            "down": 391000,
+            "yct": 186500,
+            "ysp": 120000,
+            "rst": 34500,
+            "customer_out": 50000,
+            "total": 1171000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1768210.02,
+            "annual": 294701.67
+          },
+          "YH850 Cabin": {
+            "price": 1658000,
+            "down": 415000,
+            "yct": 170500,
+            "ysp": 130000,
+            "rst": 54500,
+            "customer_out": 60000,
+            "total": 1243000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1876930.02,
+            "annual": 312821.67
+          },
+          "YH1180G26WU-TH": {
+            "price": 1779000,
+            "down": 445000,
+            "yct": 195500,
+            "ysp": 200000,
+            "rst": 69500,
+            "customer_out": 0,
+            "total": 1334000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 2014339.98,
+            "annual": 335723.33
+          }
+        }
+      },
+      {
+        "id": "c_rt",
+        "name": "โปรลูกค้าเก่าชั้นดีรถเกี่ยว ดาวน์ต่ำ10%",
+        "groups": [
+          "RT"
+        ],
+        "conditions": [],
+        "entries": {
+          "AW82V": {
+            "price": 1237000,
+            "down": 124000,
+            "yct": 70000,
+            "ysp": 200000,
+            "rst": 75000,
+            "customer_out": 0,
+            "total": 1113000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1680630.0,
+            "annual": 280105.0
+          },
+          "YH700": {
+            "price": 1292000,
+            "down": 130000,
+            "yct": 100000,
+            "ysp": 100000,
+            "rst": 109000,
+            "customer_out": 0,
+            "total": 1162000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1754620.02,
+            "annual": 292436.67
+          },
+          "YH700 Cabin": {
+            "price": 1409000,
+            "down": 141000,
+            "yct": 80000,
+            "ysp": 110000,
+            "rst": 50500,
+            "customer_out": 0,
+            "total": 1268000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 1914679.98,
+            "annual": 319113.33
+          },
+          "YH850GUW 2.3": {
+            "price": 1562000,
+            "down": 157000,
+            "yct": 120000,
+            "ysp": 120000,
+            "rst": 62000,
+            "customer_out": 0,
+            "total": 1405000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 2121550.02,
+            "annual": 353591.67
+          },
+          "YH850 Cabin": {
+            "price": 1658000,
+            "down": 166000,
+            "yct": 100000,
+            "ysp": 130000,
+            "rst": 68000,
+            "customer_out": 0,
+            "total": 1492000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 2252920.02,
+            "annual": 375486.67
+          },
+          "YH1180G26WU-TH": {
+            "price": 1779000,
+            "down": 178000,
+            "yct": 120000,
+            "ysp": 200000,
+            "rst": 70500,
+            "customer_out": 0,
+            "total": 1601000,
+            "interest": 0.085,
+            "years": 6,
+            "total_payback": 2417509.98,
+            "annual": 402918.33
+          }
+        }
       }
-      thaiGeoLoading = false;
-      return thaiGeoData;
-    } catch(e){ continue; }
+    ]
+  },
+  "yanmar_lookup_keys": {
+    "EF393A / EF393T-45th": [
+      "EF393A",
+      "EF393T-45th",
+      "EF393T45th / EF393A",
+      "EF393T 45th"
+    ],
+    "YM351R": [
+      "YM351R"
+    ],
+    "YM358R": [
+      "YM358R"
+    ],
+    "YM358R-L1": [
+      "YM358R-L1"
+    ],
+    "EF725T": [
+      "EF725T"
+    ]
   }
-
-  // All failed
-  thaiGeoLoading = false;
-  ['','M'].forEach(s=>{
-    const el = document.getElementById('addrProvince'+s);
-    if(el) el.placeholder='⚠️ โหลดไม่ได้ — กรอกเองได้เลย';
-  });
-  return null;
-}
-
-async function initAddrDropdowns(){
-  // Start loading in background — enable inputs after done
-  loadThaiGeo();
-}
-
-// Close all dropdowns when tapping elsewhere
-document.addEventListener('touchstart', function(e){
-  if(!e.target.closest('.addr-group')){ closeAllDropdowns(); }
-}, {passive:true});
-document.addEventListener('click', function(e){
-  if(!e.target.closest('.addr-group')){ closeAllDropdowns(); }
-});
-
-// ===== Tap-vs-scroll disambiguation for .addr-opt (dropdown option) elements =====
-// Problem this fixes: options used to fire selection on touchend the instant a finger
-// lifted off them, even when the finger only landed there mid-scroll. Now we track how
-// far the finger moved between touchstart and touchend on the option, and only treat it
-// as a real tap (and select it) if the movement stayed under a small threshold.
-let _addrOptTouch = null;
-const ADDR_OPT_TAP_TOLERANCE = 10; // px — finger can drift this much and still count as a tap
-
-document.addEventListener('touchstart', function(e){
-  const opt = e.target.closest('.addr-opt');
-  if(!opt) { _addrOptTouch = null; return; }
-  const t = e.touches[0];
-  _addrOptTouch = { x:t.clientX, y:t.clientY, moved:false, opt };
-}, {passive:true});
-
-document.addEventListener('touchmove', function(e){
-  if(!_addrOptTouch) return;
-  const t = e.touches[0];
-  if(Math.abs(t.clientX-_addrOptTouch.x) > ADDR_OPT_TAP_TOLERANCE || Math.abs(t.clientY-_addrOptTouch.y) > ADDR_OPT_TAP_TOLERANCE){
-    _addrOptTouch.moved = true;
-  }
-}, {passive:true});
-
-document.addEventListener('touchend', function(e){
-  const opt = e.target.closest('.addr-opt');
-  const wasTap = opt && _addrOptTouch && _addrOptTouch.opt === opt && !_addrOptTouch.moved;
-  if(wasTap){
-    e.preventDefault(); // stop the synthetic click that would otherwise double-fire the pick
-    fireAddrOptPick(opt);
-  }
-  _addrOptTouch = null;
-});
-
-// Mouse/keyboard click (desktop, or any environment without touch) still works normally.
-// On touch devices this won't double-fire because a genuine tap already called
-// preventDefault() above, which suppresses the follow-up synthetic click event.
-document.addEventListener('click', function(e){
-  const opt = e.target.closest('.addr-opt');
-  if(opt) fireAddrOptPick(opt);
-});
-
-function fireAddrOptPick(opt){
-  const picker = opt.dataset.picker;
-  const id = Number(opt.dataset.id);
-  const name = opt.dataset.name;
-  if(picker === 'addr'){
-    addrPick(opt.dataset.level, id, name, opt.dataset.suffix || '');
-  } else if(picker === 'addr2'){
-    addr2Pick(opt.dataset.key, opt.dataset.level, id, name);
-  }
-}
-
-function closeAllDropdowns(){
-  document.querySelectorAll('.addr-dropdown').forEach(d=>d.style.display='none');
-  addrDropOpen = null;
-}
-
-function highlightMatch(text, query){
-  if(!query) return text;
-  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  return text.replace(new RegExp('('+escaped+')','gi'),'<b>$1</b>');
-}
-
-function addrFocus(level, suffix=''){
-  const el = document.getElementById('addr'+cap(level)+suffix);
-  const val = el?.value||'';
-  if(!thaiGeoData){
-    if(el) el.placeholder = '⏳ กำลังโหลด...';
-    loadThaiGeo().then(d=>{
-      if(d && el){ el.placeholder = level==='province'?'พิมพ์หรือกดเพื่อเลือกจังหวัด':''; }
-      addrShowDrop(level, val, suffix);
-    });
-    return;
-  }
-  addrShowDrop(level, val, suffix);
-}
-
-function addrInput(level, query, suffix=''){
-  if(!thaiGeoData){ loadThaiGeo().then(()=>addrShowDrop(level,query,suffix)); return; }
-  addrShowDrop(level, query, suffix);
-}
-
-function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
-
-function addrShowDrop(level, query, suffix){
-  const data = thaiGeoData;
-  if(!data) return;
-  const dropId = 'addrDrop'+cap(level)+suffix;
-  const drop = document.getElementById(dropId);
-  if(!drop) return;
-
-  // Close other open dropdowns
-  document.querySelectorAll('.addr-dropdown').forEach(d=>{ if(d.id!==dropId) d.style.display='none'; });
-
-  let items = [];
-  if(level==='province'){
-    items = data.map(p=>({id:p.id, name:p.n||p.name_th}));
-  } else if(level==='amphure'){
-    if(!addrState.provinceId) return;
-    const prov = data.find(p=>p.id===addrState.provinceId);
-    const amps = prov?.a || prov?.amphure || [];
-    items = amps.map(a=>({id:a.id, name:a.n||a.name_th}));
-  } else {
-    if(!addrState.amphureId) return;
-    const prov = data.find(p=>p.id===addrState.provinceId);
-    const amps = prov?.a || prov?.amphure || [];
-    const amph = amps.find(a=>a.id===addrState.amphureId);
-    const tams = amph?.t || amph?.tambon || [];
-    items = tams.map(t=>({id:t.id, name:t.n||t.name_th}));
-  }
-
-  const q = query.trim();
-  const filtered = q ? items.filter(i=>i.name.includes(q)) : items;
-  if(!filtered.length){ drop.style.display='none'; return; }
-
-  // Build option HTML — tap vs scroll disambiguated by delegated listener below (see handleAddrOptPick)
-  function optHtml(id, name){
-    const hl = highlightMatch(name, q);
-    return `<div class="addr-opt" data-picker="addr" data-level="${level}" data-id="${id}" data-name="${escapeHtml(name)}" data-suffix="${suffix}">${hl}</div>`;
-  }
-
-  let inner = '';
-  if(level==='province'){
-    const pri = filtered.filter(i=>PRIORITY_PROVINCES.includes(i.name));
-    const rest = filtered.filter(i=>!PRIORITY_PROVINCES.includes(i.name));
-    if(pri.length && !q){ inner += `<div class="addr-priority">${pri.map(i=>optHtml(i.id,i.name)).join('')}</div>`; }
-    inner += rest.map(i=>optHtml(i.id,i.name)).join('');
-  } else {
-    inner = filtered.slice(0,100).map(i=>optHtml(i.id,i.name)).join('');
-  }
-
-  drop.innerHTML = inner;
-  drop.style.display = 'block';
-  addrDropOpen = dropId;
-}
-
-function addrSelect(level, id, name, suffix=''){
-  const inputEl = document.getElementById('addr' + level.charAt(0).toUpperCase() + level.slice(1) + suffix);
-  const dropEl = document.getElementById('addrDrop' + level.charAt(0).toUpperCase() + level.slice(1) + suffix);
-  if(inputEl) inputEl.value = name;
-  if(dropEl) dropEl.style.display = 'none';
-
-  if(level === 'province'){
-    addrState.province = name; addrState.provinceId = id;
-    addrState.amphure = null; addrState.amphureId = null;
-    addrState.tambon = null; addrState.tambonId = null;
-    ['','M'].forEach(s=>{
-      const a = document.getElementById('addrAmphure'+s);
-      const t = document.getElementById('addrTambon'+s);
-      if(a){ a.disabled=false; a.value=''; a.placeholder='พิมพ์เพื่อค้นหาอำเภอ...'; }
-      if(t){ t.disabled=true; t.value=''; t.placeholder='เลือกอำเภอก่อน'; }
-      const da = document.getElementById('addrDropAmphure'+s);
-      const dt = document.getElementById('addrDropTambon'+s);
-      if(da) da.style.display='none';
-      if(dt) dt.style.display='none';
-      // sync to other panel
-      if(suffix==='' && s==='M' && document.getElementById('addrProvince'+s))
-        document.getElementById('addrProvince'+s).value = name;
-      if(suffix==='M' && s==='' && document.getElementById('addrProvince'+s))
-        document.getElementById('addrProvince'+s).value = name;
-    });
-  } else if(level === 'amphure'){
-    addrState.amphure = name; addrState.amphureId = id;
-    addrState.tambon = null; addrState.tambonId = null;
-    ['','M'].forEach(s=>{
-      const t = document.getElementById('addrTambon'+s);
-      if(t){ t.disabled=false; t.value=''; t.placeholder='พิมพ์เพื่อค้นหาตำบล...'; }
-      const dt = document.getElementById('addrDropTambon'+s);
-      if(dt) dt.style.display='none';
-      if(suffix==='' && document.getElementById('addrAmphure'+s) && s==='M')
-        document.getElementById('addrAmphure'+s).value = name;
-      if(suffix==='M' && document.getElementById('addrAmphure'+s) && s==='')
-        document.getElementById('addrAmphure'+s).value = name;
-    });
-  } else if(level === 'tambon'){
-    addrState.tambon = name; addrState.tambonId = id;
-    ['','M'].forEach(s=>{
-      if(suffix==='' && document.getElementById('addrTambon'+s) && s==='M')
-        document.getElementById('addrTambon'+s).value = name;
-      if(suffix==='M' && document.getElementById('addrTambon'+s) && s==='')
-        document.getElementById('addrTambon'+s).value = name;
-    });
-  }
-  updateCustAddr();
-  refreshExportSummary();
-}
-
-// addrBlur removed — using document-level touch/click handler instead
-function addrBlur(level, suffix=''){ /* no-op — handled by document listener */ }
-
-function addrPick(level, id, name, suffix=''){
-  addrSelect(level, id, name, suffix);
-}
-
-function updateCustAddr(){
-  const line = document.getElementById('custAddrLine')?.value || document.getElementById('custAddrLineM')?.value || '';
-  const parts = [line, addrState.tambon ? 'ต.'+addrState.tambon : '', addrState.amphure ? 'อ.'+addrState.amphure : '', addrState.province ? 'จ.'+addrState.province : ''];
-  const addr = parts.filter(Boolean).join(' ');
-  const hidden = document.getElementById('custAddr');
-  if(hidden) hidden.value = addr;
-}
-
-function syncAddrLine(el){
-  const other = document.getElementById(el.id === 'custAddrLine' ? 'custAddrLineM' : 'custAddrLine');
-  if(other) other.value = el.value;
-  updateCustAddr();
-}
-
-// ===== Generalized Address Picker (สำหรับที่อยู่ปัจจุบัน + ผู้ค้ำประกัน) =====
-// ใช้ thaiGeoData/loadThaiGeo/highlightMatch/PRIORITY_PROVINCES ร่วมกับตัวเลือกที่อยู่หลักของผู้ซื้อ
-// แต่แยก state ออกมาต่างหาก (addrState2) เพื่อไม่ให้กระทบที่อยู่ผู้ซื้อเดิม
-let addrState2 = {
-  current: {province:null,provinceId:null,amphure:null,amphureId:null,tambon:null,tambonId:null},
-  gtor:    {province:null,provinceId:null,amphure:null,amphureId:null,tambon:null,tambonId:null},
-  editRecord: {province:null,provinceId:null,amphure:null,amphureId:null,tambon:null,tambonId:null}
 };
-
-function addr2Focus(key, level){
-  const el = document.getElementById('addr2_'+key+'_'+level);
-  const val = el?.value || '';
-  if(!thaiGeoData){
-    if(el) el.placeholder = '⏳ กำลังโหลด...';
-    loadThaiGeo().then(d=>{
-      if(d && el){ el.placeholder = level==='province' ? 'พิมพ์หรือกดเพื่อเลือกจังหวัด' : ''; }
-      addr2ShowDrop(key, level, val);
-    });
-    return;
-  }
-  addr2ShowDrop(key, level, val);
-}
-function addr2Input(key, level, query){
-  if(!thaiGeoData){ loadThaiGeo().then(()=>addr2ShowDrop(key, level, query)); return; }
-  addr2ShowDrop(key, level, query);
-}
-function addr2ShowDrop(key, level, query){
-  const data = thaiGeoData;
-  if(!data) return;
-  const st = addrState2[key];
-  const dropId = 'addr2Drop_'+key+'_'+level;
-  const drop = document.getElementById(dropId);
-  if(!drop) return;
-  document.querySelectorAll('.addr-dropdown').forEach(d=>{ if(d.id!==dropId) d.style.display='none'; });
-
-  let items = [];
-  if(level==='province'){
-    items = data.map(p=>({id:p.id, name:p.n||p.name_th}));
-  } else if(level==='amphure'){
-    if(!st.provinceId) return;
-    const prov = data.find(p=>p.id===st.provinceId);
-    const amps = prov?.a || prov?.amphure || [];
-    items = amps.map(a=>({id:a.id, name:a.n||a.name_th}));
-  } else {
-    if(!st.amphureId) return;
-    const prov = data.find(p=>p.id===st.provinceId);
-    const amps = prov?.a || prov?.amphure || [];
-    const amph = amps.find(a=>a.id===st.amphureId);
-    const tams = amph?.t || amph?.tambon || [];
-    items = tams.map(t=>({id:t.id, name:t.n||t.name_th}));
-  }
-
-  const q = query.trim();
-  const filtered = q ? items.filter(i=>i.name.includes(q)) : items;
-  if(!filtered.length){ drop.style.display='none'; return; }
-
-  function optHtml(id, name){
-    const hl = highlightMatch(name, q);
-    return `<div class="addr-opt" data-picker="addr2" data-key="${key}" data-level="${level}" data-id="${id}" data-name="${escapeHtml(name)}">${hl}</div>`;
-  }
-  let inner = '';
-  if(level==='province'){
-    const pri = filtered.filter(i=>PRIORITY_PROVINCES.includes(i.name));
-    const rest = filtered.filter(i=>!PRIORITY_PROVINCES.includes(i.name));
-    if(pri.length && !q){ inner += `<div class="addr-priority">${pri.map(i=>optHtml(i.id,i.name)).join('')}</div>`; }
-    inner += rest.map(i=>optHtml(i.id,i.name)).join('');
-  } else {
-    inner = filtered.slice(0,100).map(i=>optHtml(i.id,i.name)).join('');
-  }
-  drop.innerHTML = inner;
-  drop.style.display = 'block';
-}
-function addr2Pick(key, level, id, name){
-  const st = addrState2[key];
-  const inputEl = document.getElementById('addr2_'+key+'_'+level);
-  const dropEl = document.getElementById('addr2Drop_'+key+'_'+level);
-  if(inputEl) inputEl.value = name;
-  if(dropEl) dropEl.style.display = 'none';
-
-  if(level === 'province'){
-    st.province = name; st.provinceId = id;
-    st.amphure = null; st.amphureId = null;
-    st.tambon = null; st.tambonId = null;
-    const a = document.getElementById('addr2_'+key+'_amphure');
-    const t = document.getElementById('addr2_'+key+'_tambon');
-    if(a){ a.disabled=false; a.value=''; a.placeholder='พิมพ์เพื่อค้นหาอำเภอ...'; }
-    if(t){ t.disabled=true; t.value=''; t.placeholder='เลือกอำเภอก่อน'; }
-  } else if(level === 'amphure'){
-    st.amphure = name; st.amphureId = id;
-    st.tambon = null; st.tambonId = null;
-    const t = document.getElementById('addr2_'+key+'_tambon');
-    if(t){ t.disabled=false; t.value=''; t.placeholder='พิมพ์เพื่อค้นหาตำบล...'; }
-  } else if(level === 'tambon'){
-    st.tambon = name; st.tambonId = id;
-  }
-  updateAddr2(key);
-}
-function updateAddr2(key){
-  const st = addrState2[key];
-  const line = document.getElementById('addr2_'+key+'_line')?.value || '';
-  const parts = [line, st.tambon ? 'ต.'+st.tambon : '', st.amphure ? 'อ.'+st.amphure : '', st.province ? 'จ.'+st.province : ''];
-  const addr = parts.filter(Boolean).join(' ');
-  const targetMap = { current:'custCurrentAddr', gtor:'gtorAddr', editRecord:'editCustAddrHidden' };
-  const targetId = targetMap[key] || (key + 'Addr');
-  const hidden = document.getElementById(targetId);
-  if(hidden) hidden.value = addr;
-}
-
-// ===== Modal เปิด/ปิด: ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน =====
-function openAddressGuarantorModal(){
-  initAddrDropdowns(); // เผื่อยังไม่เคยโหลด thaiGeoData
-  document.getElementById('addrGtorModalBg').style.display = 'flex';
-}
-function closeAddressGuarantorModal(){
-  document.getElementById('addrGtorModalBg').style.display = 'none';
-  updateAddrGtorStatus();
-}
-function updateAddrGtorStatus(){
-  const hasData = (document.getElementById('custCurrentAddr')?.value || document.getElementById('gtorName')?.value || document.getElementById('gtorPhone')?.value || document.getElementById('gtorAddr')?.value);
-  const txt = hasData ? '✓ กรอกแล้ว' : '';
-  ['addrGtorStatus','addrGtorStatusM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = txt; });
-}
-
-// ===== บุคคลอ้างอิง (เพิ่มได้หลายคน) =====
-let refList = [];
-function refRowHtml(idx, ref){
-  return `
-    <div class="ref-row" data-idx="${idx}">
-      <div class="ref-row-head">
-        <b>ผู้อ้างอิงคนที่ ${idx+1}</b>
-        <button type="button" class="ref-row-remove" onclick="removeReferenceRow(${idx})">✕ ลบ</button>
-      </div>
-      <div class="field-group" style="margin-bottom:6px">
-        <label>ชื่อ-นามสกุล</label>
-        <input type="text" value="${escapeHtml(ref.name||'')}" placeholder="ชื่อ-นามสกุล" oninput="refList[${idx}].name=this.value">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <div class="field-group" style="margin:0">
-          <label>เบอร์โทร</label>
-          <input type="text" value="${escapeHtml(ref.phone||'')}" placeholder="0xx-xxx-xxxx" inputmode="tel" oninput="refList[${idx}].phone=this.value">
-        </div>
-        <div class="field-group" style="margin:0">
-          <label>ความสัมพันธ์กับผู้ซื้อ</label>
-          <input type="text" value="${escapeHtml(ref.relation||'')}" placeholder="เช่น พี่น้อง" oninput="refList[${idx}].relation=this.value">
-        </div>
-      </div>
-    </div>`;
-}
-function renderReferenceList(){
-  const c = document.getElementById('referenceListContainer');
-  if(!c) return;
-  if(!refList.length) refList.push({name:'',phone:'',relation:''});
-  c.innerHTML = refList.map((r,i)=>refRowHtml(i,r)).join('');
-}
-function addReferenceRow(){
-  refList.push({name:'',phone:'',relation:''});
-  renderReferenceList();
-}
-function removeReferenceRow(idx){
-  refList.splice(idx,1);
-  renderReferenceList();
-}
-function openReferenceModal(){
-  renderReferenceList();
-  document.getElementById('referenceModalBg').style.display = 'flex';
-}
-function closeReferenceModal(){
-  document.getElementById('referenceModalBg').style.display = 'none';
-  updateRefStatus();
-}
-function updateRefStatus(){
-  const filled = refList.filter(r=>r.name||r.phone||r.relation).length;
-  const txt = filled>0 ? `✓ ${filled} คน` : '';
-  ['refStatus','refStatusM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = txt; });
-}
-
-// ===== ข้อมูลรายได้ลูกค้า (ทำเกษตร/งานประจำ/รายได้เสริม/เครื่องจักรที่มีอยู่แล้ว/หนี้สิน) =====
-let finInfo = {
-  farmPlots: [],       // {cropType, rai, titleHolder}
-  hasJob: '',          // 'yes' | 'no' | ''
-  jobDetail: '',
-  jobIncome: '',
-  hasSideIncome: '',   // 'yes' | 'no' | ''
-  sideIncomeDetail: '',
-  sideIncomeAmount: '',
-  machines: [],        // {type, model, qty, note} — เครื่องจักรกลที่มีอยู่แล้วก่อนซื้อคันนี้
-  debts: []            // {creditor, amount}
-};
-
-function farmPlotRowHtml(idx, p){
-  return `
-    <div class="ref-row" data-idx="${idx}">
-      <div class="ref-row-head">
-        <b>แปลงที่ ${idx+1}</b>
-        <button type="button" class="ref-row-remove" onclick="removeFarmPlotRow(${idx})">✕ ลบ</button>
-      </div>
-      <div class="field-group" style="margin-bottom:6px">
-        <label>ทำเกษตรอะไร (เช่น ทำนา, ปลูกอ้อย, มันสำปะหลัง)</label>
-        <input type="text" value="${escapeHtml(p.cropType||'')}" placeholder="เช่น ทำนา" oninput="finInfo.farmPlots[${idx}].cropType=this.value">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <div class="field-group" style="margin:0">
-          <label>จำนวนไร่</label>
-          <input type="text" inputmode="decimal" value="${escapeHtml(p.rai||'')}" placeholder="เช่น 7" oninput="finInfo.farmPlots[${idx}].rai=this.value">
-        </div>
-        <div class="field-group" style="margin:0">
-          <label>เอกสารสิทธิ์ชื่อใคร</label>
-          <input type="text" value="${escapeHtml(p.titleHolder||'')}" placeholder="เช่น ชื่อแม่" oninput="finInfo.farmPlots[${idx}].titleHolder=this.value">
-        </div>
-      </div>
-    </div>`;
-}
-function renderFarmPlotList(){
-  const c = document.getElementById('farmPlotListContainer');
-  if(!c) return;
-  if(!finInfo.farmPlots.length) finInfo.farmPlots.push({cropType:'',rai:'',titleHolder:''});
-  c.innerHTML = finInfo.farmPlots.map((p,i)=>farmPlotRowHtml(i,p)).join('');
-}
-function addFarmPlotRow(){ finInfo.farmPlots.push({cropType:'',rai:'',titleHolder:''}); renderFarmPlotList(); }
-function removeFarmPlotRow(idx){ finInfo.farmPlots.splice(idx,1); renderFarmPlotList(); }
-
-function machineRowHtml(idx, m){
-  return `
-    <div class="ref-row" data-idx="${idx}">
-      <div class="ref-row-head">
-        <b>เครื่องที่ ${idx+1}</b>
-        <button type="button" class="ref-row-remove" onclick="removeMachineRow(${idx})">✕ ลบ</button>
-      </div>
-      <div class="field-group" style="margin-bottom:6px">
-        <label>ประเภท (รถแทรกเตอร์ / รถเกี่ยว / รถขุด / อื่นๆ)</label>
-        <input type="text" value="${escapeHtml(m.type||'')}" placeholder="เช่น รถแทรกเตอร์" oninput="finInfo.machines[${idx}].type=this.value">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <div class="field-group" style="margin:0">
-          <label>ยี่ห้อ/รุ่น</label>
-          <input type="text" value="${escapeHtml(m.model||'')}" placeholder="เช่น Yanmar EF393" oninput="finInfo.machines[${idx}].model=this.value">
-        </div>
-        <div class="field-group" style="margin:0">
-          <label>จำนวน (คัน)</label>
-          <input type="text" inputmode="numeric" value="${escapeHtml(m.qty||'')}" placeholder="1" oninput="finInfo.machines[${idx}].qty=this.value">
-        </div>
-      </div>
-      <div class="field-group" style="margin-top:6px">
-        <label>หมายเหตุ (เช่น ผ่อนอยู่/ปลอดภาระ, ยอดคงเหลือ)</label>
-        <input type="text" value="${escapeHtml(m.note||'')}" placeholder="เช่น เหลือยอด 136,631" oninput="finInfo.machines[${idx}].note=this.value">
-      </div>
-    </div>`;
-}
-function renderMachineList(){
-  const c = document.getElementById('machineListContainer');
-  if(!c) return;
-  if(!finInfo.machines.length) finInfo.machines.push({type:'',model:'',qty:'',note:''});
-  c.innerHTML = finInfo.machines.map((m,i)=>machineRowHtml(i,m)).join('');
-}
-function addMachineRow(){ finInfo.machines.push({type:'',model:'',qty:'',note:''}); renderMachineList(); }
-function removeMachineRow(idx){ finInfo.machines.splice(idx,1); renderMachineList(); }
-
-function debtRowHtml(idx, d){
-  return `
-    <div class="ref-row" data-idx="${idx}">
-      <div class="ref-row-head">
-        <b>หนี้สินที่ ${idx+1}</b>
-        <button type="button" class="ref-row-remove" onclick="removeDebtRow(${idx})">✕ ลบ</button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <div class="field-group" style="margin:0">
-          <label>หนี้สิน/เจ้าหนี้</label>
-          <input type="text" value="${escapeHtml(d.creditor||'')}" placeholder="เช่น ธกส." oninput="finInfo.debts[${idx}].creditor=this.value">
-        </div>
-        <div class="field-group" style="margin:0">
-          <label>ยอดคงเหลือ (บาท)</label>
-          <input type="text" inputmode="numeric" value="${escapeHtml(d.amount||'')}" placeholder="0" oninput="finInfo.debts[${idx}].amount=this.value">
-        </div>
-      </div>
-    </div>`;
-}
-function renderDebtList(){
-  const c = document.getElementById('debtListContainer');
-  if(!c) return;
-  if(!finInfo.debts.length) finInfo.debts.push({creditor:'',amount:''});
-  c.innerHTML = finInfo.debts.map((d,i)=>debtRowHtml(i,d)).join('');
-}
-function addDebtRow(){ finInfo.debts.push({creditor:'',amount:''}); renderDebtList(); }
-function removeDebtRow(idx){ finInfo.debts.splice(idx,1); renderDebtList(); }
-
-function setHasJob(val){ finInfo.hasJob = val; renderFinInfoToggles(); }
-function setHasSideIncome(val){ finInfo.hasSideIncome = val; renderFinInfoToggles(); }
-function renderFinInfoToggles(){
-  const jobBox = document.getElementById('jobDetailBox');
-  if(jobBox) jobBox.style.display = finInfo.hasJob === 'yes' ? 'block' : 'none';
-  const sideBox = document.getElementById('sideIncomeDetailBox');
-  if(sideBox) sideBox.style.display = finInfo.hasSideIncome === 'yes' ? 'block' : 'none';
-  ['Job','SideIncome'].forEach(kind=>{
-    const key = kind === 'Job' ? 'hasJob' : 'hasSideIncome';
-    ['yes','no'].forEach(v=>{
-      const btn = document.getElementById(`btn${kind}_${v}`);
-      if(btn) btn.classList.toggle('active', finInfo[key] === v);
-    });
-  });
-}
-function renderFinInfoForm(){
-  renderFarmPlotList();
-  renderMachineList();
-  renderDebtList();
-  const jobIncomeEl = document.getElementById('jobIncomeInput');
-  if(jobIncomeEl) jobIncomeEl.value = finInfo.jobIncome || '';
-  const jobDetailEl = document.getElementById('jobDetailInput');
-  if(jobDetailEl) jobDetailEl.value = finInfo.jobDetail || '';
-  const sideDetailEl = document.getElementById('sideIncomeDetailInput');
-  if(sideDetailEl) sideDetailEl.value = finInfo.sideIncomeDetail || '';
-  const sideAmtEl = document.getElementById('sideIncomeAmountInput');
-  if(sideAmtEl) sideAmtEl.value = finInfo.sideIncomeAmount || '';
-  renderFinInfoToggles();
-}
-function openFinInfoModal(){
-  renderFinInfoForm();
-  document.getElementById('finInfoModalBg').style.display = 'flex';
-}
-function closeFinInfoModal(){
-  document.getElementById('finInfoModalBg').style.display = 'none';
-  updateFinInfoStatus();
-}
-function updateFinInfoStatus(){
-  const hasPlots = finInfo.farmPlots.some(p=>p.cropType||p.rai||p.titleHolder);
-  const hasMachines = finInfo.machines.some(m=>m.type||m.model||m.qty||m.note);
-  const hasDebts = finInfo.debts.some(d=>d.creditor||d.amount);
-  const filled = hasPlots || hasMachines || hasDebts || finInfo.hasJob || finInfo.hasSideIncome;
-  const txt = filled ? '✓ กรอกแล้ว' : '';
-  ['finInfoStatus','finInfoStatusM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = txt; });
-}
-
-// init when export panel shows
-const _origGoToResults = goToResults;
-
-function getEquipmentListForMode(brand, model, mode){
-  if(mode === 'used'){
-    return (USED_EQUIPMENT[brand]||{})[model] || [];
-  }
-  const map = EQUIPMENT[brand];
-  if(!map) return [];
-  return map[model] || [];
-}
-function getEquipmentForModel(brand, model){
-  return getEquipmentListForMode(brand, model, eqMode);
-}
-// รวมรายการอุปกรณ์ที่เลือกไว้จากทั้งสองโหมด (ใหม่ + มือสอง) เข้าด้วยกัน
-// ใช้ตอนคำนวณยอดจริง/บันทึก/พิมพ์ เพื่อให้เลือกทั้งมือหนึ่งและมือสองพร้อมกันได้จริง
-function getAllSelectedEquipment(brand, model){
-  const out = [];
-  let total = 0;
-  ['new','used'].forEach(mode=>{
-    const items = getEquipmentListForMode(brand, model, mode);
-    const sel = eqSelByMode[mode] || {};
-    const fin = eqFinByMode[mode] || {};
-    Object.keys(sel).forEach(idx=>{
-      const item = items[Number(idx)];
-      if(!item) return;
-      const useSpec = sel[idx] && !!item.special;
-      const price = useSpec ? item.special : item.price;
-      total += price;
-      out.push({name: item.name, price, finType: fin[idx] || 'R', mode});
-    });
-  });
-  return {items: out, total};
-}
-
-function renderEquipment(brand, model, finInterest, finYears){
-  const items = getEquipmentForModel(brand, model);
-  const eqSection = document.getElementById('equipmentSection');
-  if(!items || items.length === 0){
-    if(eqMode === 'used'){
-      // โชว์ข้อความแทน ไม่ซ่อน section
-      const newCount = Object.keys(eqSelByMode.new || {}).length;
-      const newBadge = newCount > 0
-        ? `<span style="font-size:10.5px;color:#1e7e34;background:#e3f7ea;border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:middle">✓ เลือกไว้จากมือหนึ่งอีก ${newCount} รายการ</span>`
-        : '';
-      eqSection.innerHTML = `<div class="eq-section">
-        <h4>🔧 อุปกรณ์ต่อพ่วง
-          <span style="margin-left:8px;display:inline-flex;gap:4px;vertical-align:middle">
-            <button class="fin-btn${eqMode==='new'?' active':''}" style="font-size:11px;padding:3px 10px" onclick="setEqMode('new')">✨ ใหม่</button>
-            <button class="fin-btn active" style="font-size:11px;padding:3px 10px;background:#555;border-color:#555;color:#fff" onclick="setEqMode('used')">🔧 มือสอง</button>
-          </span>${newBadge}
-        </h4>
-        <div style="padding:16px;text-align:center;color:var(--ink-soft);font-size:13px;border:1.5px dashed var(--line);border-radius:10px;margin-top:8px">
-          ไม่มีข้อมูลอุปกรณ์มือสองสำหรับรุ่นนี้
-        </div>
-      </div>`;
-    } else {
-      eqSection.innerHTML = '';
-    }
-    return;
-  }
-
-  // นับของโหมดปัจจุบัน (คุมการแสดงผลรายชิ้น) และนับรวมทั้งสองโหมด (คุมยอดสรุป/ปุ่มล้าง)
-  const curModeSelected = Object.keys(selectedEqSet).length > 0;
-  const eqMerged = getAllSelectedEquipment(brand, model);
-  const anySelected = eqMerged.items.length > 0;
-  const otherMode = eqMode === 'new' ? 'used' : 'new';
-  const otherModeCount = Object.keys(eqSelByMode[otherMode] || {}).length;
-  const otherModeBadge = otherModeCount > 0
-    ? `<span style="font-size:10.5px;color:#1e7e34;background:#e3f7ea;border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:middle">✓ เลือกไว้จาก${otherMode==='used'?'มือสอง':'มือหนึ่ง'}อีก ${otherModeCount} รายการ</span>`
-    : '';
-
-  const listHtml = items.map((item, idx) => {
-    const isSelected = idx in selectedEqSet;
-    const hasSpecial = !!item.special;
-    const useSpec = isSelected && selectedEqSet[idx] && hasSpecial;
-    const displayPrice = useSpec ? item.special : item.price;
-    const specialHtml = (isSelected && hasSpecial) ? `
-      <label class="eq-special-toggle" onclick="event.stopPropagation()">
-        <input type="checkbox" ${useSpec ? 'checked' : ''} onchange="toggleSpecial(${idx}, this.checked)">
-        ราคาพิเศษ ${fmt(item.special)} บาท
-      </label>` : '';
-    const checkIcon = isSelected
-      ? `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect width="18" height="18" rx="4" fill="var(--accent)"/><path d="M4 9l4 4 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-      : `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x=".5" y=".5" width="17" height="17" rx="3.5" stroke="var(--line)"/></svg>`;
-    const finType = eqFinanceType[idx] || 'R';
-    // มือสอง: ล็อก R เท่านั้น ไม่มี F
-    const isUsedMode = eqMode === 'used';
-    const finHtml = isSelected ? `<span onclick="event.stopPropagation()" style="display:inline-flex;gap:2px;margin-left:4px;vertical-align:middle">
-      ${!isUsedMode ? `<button onclick="setEqFinType(${idx},'F',event)" style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1.5px solid ${finType==='F'?'var(--accent)':'#ccc'};background:${finType==='F'?'var(--accent)':'#fff'};color:${finType==='F'?'#fff':'#999'};cursor:pointer">F</button>` : ''}
-      <button onclick="${!isUsedMode?`setEqFinType(${idx},'R',event)`:''}" style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1.5px solid ${finType==='R'?'#1e7e34':'#ccc'};background:${finType==='R'?'#1e7e34':'#fff'};color:${finType==='R'?'#fff':'#999'};cursor:${isUsedMode?'default':'pointer'}">R${isUsedMode?'✓':''}</button>
-    </span>` : '';
-    return `<div class="eq-item${isSelected ? ' selected' : ''}" onclick="toggleEq(${idx})" style="cursor:pointer">
-      <span style="flex:0 0 18px">${checkIcon}</span>
-      <div class="eq-name">${item.name}${finHtml}${specialHtml}</div>
-      <div class="eq-price">${fmt(displayPrice)}</div>
-    </div>`;
-  }).join('');
-
-  // total selected price — รวมทั้งมือหนึ่งและมือสองที่เลือกไว้ (ไม่ใช่แค่โหมดที่กำลังดูอยู่)
-  const totalPrice = eqMerged.total;
-  const selectedItems = eqMerged.items;
-
-  let resultHtml = '';
-  if(anySelected){
-    const downAmt = Math.max(0, eqDown);
-    const finTotal = Math.max(0, totalPrice - downAmt);
-    const eqFinYears = eqYears ?? finYears;
-    const eqFinInterest = currentBrand === 'combine'
-      ? 0.09
-      : ((eqYears && eqPayment) ? lookupInterest(currentBrand, currentSegment, eqFinYears, eqPayment) : finInterest);
-    const annual = finTotal * (1/eqFinYears + eqFinInterest);
-    const itemsLine = selectedItems.map(i=>`${i.name}${i.mode==='used'?' (มือสอง)':''} (${fmt(i.price)})`).join(', ');
-    resultHtml = `<div class="eq-result">
-      <div class="eq-r-label">🔧 งวดอุปกรณ์รวม (${selectedItems.length} รายการ — รวมมือหนึ่ง+มือสอง)</div>
-      <div class="eq-r-value">ผ่อน <b>${fmt(Math.round(annual))}</b> บาท/${eqPayment==='monthly_3m'?'งวด':isTwoBigPerYear(eqPayment)?'ครั้ง':'ปี'} · ${eqFinYears} ปี · ${PAYMENT_LABELS[eqPayment]} @ ${fmtPct(eqFinInterest)}</div>
-      <div class="eq-r-detail">รวมราคาอุปกรณ์ ${fmt(totalPrice)} · ดาวน์ ${fmt(downAmt)} · ยอดจัด ${fmt(finTotal)}</div>
-      <div class="eq-r-detail" style="margin-top:3px;color:#6a8a6a">${itemsLine}</div>
-    </div>`;
-  }
-
-  const eqSelectorHtml = items.length > 0 ? buildEqSelectorHtml(brand, currentSegment) : '';
-  const downHtml = anySelected ? `
-    <div class="eq-down-row">
-      <label>ดาวน์อุปกรณ์รวม (บาท):</label>
-      <input type="text" inputmode="numeric" pattern="[0-9]*" id="eqDownInput" placeholder="${currentBrand==='combine' ? 'ดาวน์เริ่มต้น 40,000' : '0'}" value="${eqDown}"
-        oninput="eqDown=Number(this.value.replace(/[^0-9]/g,''))||0; const pos=this.selectionStart; rerenderEq(); const ni=document.getElementById('eqDownInput'); if(ni){ni.focus();ni.setSelectionRange(pos,pos);}">
-    </div>` : '';
-
-  eqSection.innerHTML = `<div class="eq-section">
-    <h4>🔧 อุปกรณ์ต่อพ่วง <span style="font-weight:400;font-size:12px;color:var(--ink-soft)">เลือกได้หลายรายการ</span>
-      <span style="margin-left:8px;display:inline-flex;gap:4px;vertical-align:middle">
-        <button class="fin-btn${eqMode==='new'?' active':''}" style="font-size:11px;padding:3px 10px" onclick="setEqMode('new')">✨ ใหม่</button>
-        <button class="fin-btn${eqMode==='used'?' active':''}" style="font-size:11px;padding:3px 10px;border-color:#888;${eqMode==='used'?'background:#555;color:#fff':''}" onclick="setEqMode('used')">🔧 มือสอง</button>
-      </span>${otherModeBadge}
-      ${curModeSelected ? `<span style="font-size:11px;color:var(--accent);margin-left:auto;cursor:pointer" onclick="clearEq()">ล้างรายการนี้ ✕</span>` : ''}
-    </h4>
-    <div class="eq-list">${listHtml}</div>
-    ${eqSelectorHtml}
-    ${downHtml}
-    ${resultHtml}
-  </div>`;
-}
-
-function toggleEq(idx){
-  if(idx in selectedEqSet){ delete selectedEqSet[idx]; delete eqFinanceType[idx]; }
-  else {
-    selectedEqSet[idx] = false;
-    // มือสอง = R เท่านั้น, ใหม่ = R default (เปลี่ยนได้)
-    eqFinanceType[idx] = 'R';
-  }
-  rerenderEq();
-}
-function setEqFinType(idx, val, event){
-  event.stopPropagation();
-  eqFinanceType[idx] = val;
-  rerenderEq();
-}
-function toggleSpecial(idx, val){
-  selectedEqSet[idx] = val;
-  rerenderEq();
-}
-function clearEq(){
-  // ล้างเฉพาะรายการของโหมดที่กำลังดูอยู่ (ไม่กระทบของอีกโหมดที่เลือกไว้)
-  Object.keys(selectedEqSet).forEach(k=> delete selectedEqSet[k]);
-  Object.keys(eqFinanceType).forEach(k=> delete eqFinanceType[k]);
-  eqDown = 0;
-  rerenderEq();
-}
-
-function rerenderEq(){
-  const model = modelSelect.value;
-  const brand = currentBrand;
-  // Get current finInterest/finYears from best card result
-  const fi = getCurrentFinParams();
-  renderEquipment(brand, model, fi.interest, fi.years);
-}
-
-function getCurrentFinParams(){
-  // Read from currently displayed best card
-  const chip = document.querySelector('#results .chip');
-  if(!chip) return {interest:0.0895, years: currentBrand==='yanmar'?10:(currentBrand==='combine'?6:7)};
-  const text = chip ? chip.textContent : '';
-  const ym = text.match(/([\d.]+)%/);
-  const yy = text.match(/(\d+) ปี/);
-  return {
-    interest: ym ? Number(ym[1])/100 : 0.0895,
-    years: yy ? Number(yy[1]) : (currentBrand==='yanmar'?10:(currentBrand==='combine'?6:7))
-  };
-}
-
-setBrand('yanmar');
-</script>
-<div class="preview-modal-bg" id="previewModalBg" style="display:none">
-  <div class="preview-modal-header">
-    <span id="previewModalTitle">👁 ตัวอย่างใบสรุป</span>
-    <button onclick="closePreviewModal()">✕ ปิด</button>
-  </div>
-  <div class="preview-modal-scroll" id="previewModalScroll"></div>
-</div>
-<div class="preview-modal-bg" id="addrGtorModalBg" style="display:none">
-  <div class="preview-modal-header">
-    <span>📍 ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน</span>
-    <button onclick="closeAddressGuarantorModal()">✕ ปิด</button>
-  </div>
-  <div class="modal-form-scroll">
-    <div class="modal-form-inner">
-      <div class="finance-extra-subhead" style="margin-top:0">📍 ที่อยู่ปัจจุบันของผู้ซื้อ</div>
-      <div class="field-group">
-        <label>บ้านเลขที่ / ซอย / หมู่</label>
-        <input type="text" id="addr2_current_line" placeholder="เช่น 49 ม.10 ซ.3" oninput="updateAddr2('current')">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-        <div class="addr-group" style="margin:0">
-          <label>จังหวัด</label>
-          <input type="text" class="addr-search" id="addr2_current_province" placeholder="ค้นหาจังหวัด..." autocomplete="off" oninput="addr2Input('current','province',this.value)" onfocus="addr2Focus('current','province')">
-          <div class="addr-dropdown" id="addr2Drop_current_province" style="display:none"></div>
-        </div>
-        <div class="addr-group" style="margin:0">
-          <label>อำเภอ / เขต</label>
-          <input type="text" class="addr-search" id="addr2_current_amphure" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addr2Input('current','amphure',this.value)" onfocus="addr2Focus('current','amphure')" disabled>
-          <div class="addr-dropdown" id="addr2Drop_current_amphure" style="display:none"></div>
-        </div>
-      </div>
-      <div class="addr-group" style="margin-bottom:16px">
-        <label>ตำบล / แขวง</label>
-        <input type="text" class="addr-search" id="addr2_current_tambon" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addr2Input('current','tambon',this.value)" onfocus="addr2Focus('current','tambon')" disabled>
-        <div class="addr-dropdown" id="addr2Drop_current_tambon" style="display:none"></div>
-      </div>
-
-      <div class="finance-extra-subhead">👤 ผู้ค้ำประกัน</div>
-      <div class="field-group">
-        <label>ชื่อผู้ค้ำ</label>
-        <input type="text" id="gtorName" placeholder="ชื่อ-นามสกุล">
-      </div>
-      <div class="field-group">
-        <label>เบอร์โทรผู้ค้ำ</label>
-        <input type="text" id="gtorPhone" placeholder="0xx-xxx-xxxx" inputmode="tel">
-      </div>
-      <div class="field-group">
-        <label>บ้านเลขที่ / ซอย / หมู่ (ผู้ค้ำ)</label>
-        <input type="text" id="addr2_gtor_line" placeholder="เช่น 49 ม.10 ซ.3" oninput="updateAddr2('gtor')">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-        <div class="addr-group" style="margin:0">
-          <label>จังหวัด</label>
-          <input type="text" class="addr-search" id="addr2_gtor_province" placeholder="ค้นหาจังหวัด..." autocomplete="off" oninput="addr2Input('gtor','province',this.value)" onfocus="addr2Focus('gtor','province')">
-          <div class="addr-dropdown" id="addr2Drop_gtor_province" style="display:none"></div>
-        </div>
-        <div class="addr-group" style="margin:0">
-          <label>อำเภอ / เขต</label>
-          <input type="text" class="addr-search" id="addr2_gtor_amphure" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addr2Input('gtor','amphure',this.value)" onfocus="addr2Focus('gtor','amphure')" disabled>
-          <div class="addr-dropdown" id="addr2Drop_gtor_amphure" style="display:none"></div>
-        </div>
-      </div>
-      <div class="addr-group" style="margin-bottom:16px">
-        <label>ตำบล / แขวง</label>
-        <input type="text" class="addr-search" id="addr2_gtor_tambon" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addr2Input('gtor','tambon',this.value)" onfocus="addr2Focus('gtor','tambon')" disabled>
-        <div class="addr-dropdown" id="addr2Drop_gtor_tambon" style="display:none"></div>
-      </div>
-
-      <input type="hidden" id="custCurrentAddr">
-      <input type="hidden" id="gtorAddr">
-
-      <button type="button" class="finance-launch-btn" style="width:100%;margin-top:6px" onclick="openDocsModal(getOrCreateDraftCaseId(), 'guarantor')">📎 แนบเอกสารประกอบผู้ค้ำ (บัตร/ทะเบียนบ้าน ฯลฯ)</button>
-
-      <button class="btn-save" style="width:100%" onclick="closeAddressGuarantorModal()">✓ เสร็จแล้ว</button>
-    </div>
-  </div>
-</div>
-
-<div class="preview-modal-bg" id="referenceModalBg" style="display:none">
-  <div class="preview-modal-header">
-    <span>📇 บุคคลอ้างอิง</span>
-    <button onclick="closeReferenceModal()">✕ ปิด</button>
-  </div>
-  <div class="modal-form-scroll">
-    <div class="modal-form-inner">
-      <div id="referenceListContainer"></div>
-      <button type="button" class="btn-reprint" style="width:100%;margin-top:4px" onclick="addReferenceRow()">➕ เพิ่มผู้อ้างอิงอีกคน</button>
-      <button class="btn-save" style="width:100%;margin-top:10px" onclick="closeReferenceModal()">✓ เสร็จแล้ว</button>
-    </div>
-  </div>
-</div>
-<div class="preview-modal-bg" id="finInfoModalBg" style="display:none">
-  <div class="preview-modal-header">
-    <span>💰 ข้อมูลรายได้ลูกค้า</span>
-    <button onclick="closeFinInfoModal()">✕ ปิด</button>
-  </div>
-  <div class="modal-form-scroll">
-    <div class="modal-form-inner">
-
-      <div class="finance-extra-subhead" style="margin-top:0">🌾 ทำเกษตร</div>
-      <div id="farmPlotListContainer"></div>
-      <button type="button" class="btn-reprint" style="width:100%;margin-top:4px" onclick="addFarmPlotRow()">➕ เพิ่มแปลง/ประเภทพืชอีกรายการ</button>
-
-      <div class="finance-extra-subhead">💼 งานประจำ</div>
-      <div style="display:flex;gap:8px;margin-bottom:8px">
-        <button type="button" id="btnJob_yes" class="fin-btn" onclick="setHasJob('yes')">มีงานประจำ</button>
-        <button type="button" id="btnJob_no" class="fin-btn" onclick="setHasJob('no')">ไม่มี</button>
-      </div>
-      <div id="jobDetailBox" style="display:none">
-        <div class="field-group">
-          <label>ทำงานอะไร/ที่ไหน</label>
-          <input type="text" id="jobDetailInput" placeholder="เช่น รับราชการ, พนักงานบริษัท" oninput="finInfo.jobDetail=this.value">
-        </div>
-        <div class="field-group">
-          <label>รายได้ต่อเดือน (บาท)</label>
-          <input type="text" inputmode="numeric" id="jobIncomeInput" placeholder="0" oninput="finInfo.jobIncome=this.value">
-        </div>
-      </div>
-
-      <div class="finance-extra-subhead">💵 รายได้เสริม</div>
-      <div style="display:flex;gap:8px;margin-bottom:8px">
-        <button type="button" id="btnSideIncome_yes" class="fin-btn" onclick="setHasSideIncome('yes')">มีรายได้เสริม</button>
-        <button type="button" id="btnSideIncome_no" class="fin-btn" onclick="setHasSideIncome('no')">ไม่มี</button>
-      </div>
-      <div id="sideIncomeDetailBox" style="display:none">
-        <div class="field-group">
-          <label>รายได้เสริมจากอะไร</label>
-          <input type="text" id="sideIncomeDetailInput" placeholder="เช่น เลี้ยงวัว, ค้าขาย" oninput="finInfo.sideIncomeDetail=this.value">
-        </div>
-        <div class="field-group">
-          <label>รายได้เสริมต่อเดือน (บาท)</label>
-          <input type="text" inputmode="numeric" id="sideIncomeAmountInput" placeholder="0" oninput="finInfo.sideIncomeAmount=this.value">
-        </div>
-      </div>
-
-      <div class="finance-extra-subhead">🚜 เครื่องจักรกลที่มีอยู่แล้ว (รถแทรกเตอร์/รถเกี่ยว/รถขุด)</div>
-      <div id="machineListContainer"></div>
-      <button type="button" class="btn-reprint" style="width:100%;margin-top:4px" onclick="addMachineRow()">➕ เพิ่มเครื่องจักรอีกคัน</button>
-
-      <div class="finance-extra-subhead">📉 หนี้สิน</div>
-      <div id="debtListContainer"></div>
-      <button type="button" class="btn-reprint" style="width:100%;margin-top:4px" onclick="addDebtRow()">➕ เพิ่มรายการหนี้สิน</button>
-
-      <button class="btn-save" style="width:100%;margin-top:14px" onclick="closeFinInfoModal()">✓ เสร็จแล้ว</button>
-    </div>
-  </div>
-</div>
-
-<div class="preview-modal-bg" id="docsModalBg" style="display:none">
-  <div class="preview-modal-header">
-    <span id="docsModalTitle">📎 แนบเอกสารประกอบ</span>
-    <button onclick="closeDocsModal()">✕ ปิด</button>
-  </div>
-  <div class="modal-form-scroll">
-    <div class="modal-form-inner">
-      <div class="field-group">
-        <label>1) อัปโหลดรูปกระดาษที่มีลายเซ็นลูกค้า (ไม่ต้องตัดกรอบ ใช้ทั้งรูปเป็นพื้นหลัง) — เอกสารจะถูกแปะไว้ด้านบนของกระดาษแผ่นนี้อัตโนมัติ</label>
-        <input type="file" id="docSignatureInput" accept="image/*" onchange="onSignatureFileSelected(event)">
-        <div id="docSignaturePreview" style="margin-top:6px"></div>
-      </div>
-      <div class="field-group">
-        <label style="margin-bottom:8px;display:block">2) แนบรูปเอกสารแต่ละประเภท (จะให้ตัดกรอบก่อนอัปโหลดทุกครั้ง)</label>
-        <div id="docCategoryList"></div>
-      </div>
-      <button type="button" class="btn-save" style="width:100%;margin-top:10px" onclick="requestDocsPdf()">🖨 รวมเอกสารทั้งหมดเป็น PDF</button>
-      <div id="docsPdfArea" style="margin-top:8px"></div>
-    </div>
-  </div>
-</div>
-
-<div class="preview-modal-bg" id="cropModalBg" style="display:none">
-  <div class="preview-modal-header">
-    <span id="cropModalTitle">✂️ ตัดกรอบ</span>
-    <button onclick="cancelGenericCrop()">✕ ยกเลิก</button>
-  </div>
-  <div class="modal-form-scroll">
-    <div class="modal-form-inner">
-      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px" id="cropModalHint">ลากเลือกกรอบเฉพาะส่วนที่ต้องการ</div>
-      <canvas id="cropCanvas" style="width:100%;border:1.5px solid var(--line);border-radius:8px;touch-action:none"></canvas>
-      <button type="button" class="btn-save" style="width:100%;margin-top:10px" onclick="confirmGenericCrop()">✓ ใช้ส่วนที่ตัดนี้</button>
-    </div>
-  </div>
-</div>
-
-<div class="preview-modal-bg" id="brightnessModalBg" style="display:none">
-  <div class="preview-modal-header">
-    <span>🔆 ปรับแสงก่อนอัปโหลด</span>
-    <button onclick="cancelBrightnessAdjust()">✕ ยกเลิก</button>
-  </div>
-  <div class="modal-form-scroll">
-    <div class="modal-form-inner">
-      <canvas id="brightnessPreviewCanvas" style="width:100%;border:1.5px solid var(--line);border-radius:8px;margin-bottom:12px"></canvas>
-      <div class="field-group">
-        <label>ความสว่างของบัตร/เอกสาร: <b id="cardBrightnessVal">30</b></label>
-        <input type="range" min="-40" max="100" value="30" id="cardBrightnessSlider" oninput="onBrightnessSliderChange()" style="width:100%">
-      </div>
-      <div class="field-group">
-        <label>ความเข้มลายเซ็น: <b id="inkIntensityVal">100</b>%</label>
-        <input type="range" min="30" max="220" value="100" id="inkIntensitySlider" oninput="onBrightnessSliderChange()" style="width:100%">
-        <div style="font-size:10.5px;color:var(--ink-soft);margin-top:2px">ลายเซ็นจาง → เลื่อนขึ้น &nbsp;|&nbsp; ลายเซ็นเข้ม/พื้นหลังยังไม่ขาวพอ → เลื่อนลง</div>
-      </div>
-      <button class="btn-save" style="width:100%;margin-top:10px" onclick="confirmBrightnessAdjust()">✓ ใช้ค่านี้ & อัปโหลด</button>
-    </div>
-  </div>
-</div>
-
-<div class="preview-modal-bg" id="editRecordModalBg" style="display:none">
-  <div class="preview-modal-header">
-    <span>✏️ แก้ไขข้อมูลลูกค้า</span>
-    <button onclick="closeEditRecordModal()">✕ ยกเลิก</button>
-  </div>
-  <div class="modal-form-scroll">
-    <div class="modal-form-inner">
-      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">ใช้สำหรับแก้ไขกรณีกรอกผิดเท่านั้น ระบบจะบันทึกค่าเดิมไว้ใน Timeline ให้ด้วย (ดูย้อนหลังได้ในรายละเอียดเคส) — ใช้แก้เฉพาะ ชื่อ/ที่อยู่/เบอร์โทร/ผู้ปิดการขาย ที่พิมพ์ผิด ไม่ใช่สำหรับเปลี่ยนรุ่นรถหรือโปร (ถ้าจะเปลี่ยนรุ่นรถ/โปร ใช้ปุ่ม "แก้รุ่นรถ/โปรใหม่ทั้งใบ" ด้านล่างแทน)</div>
-      <div class="field-group">
-        <label>ชื่อลูกค้า</label>
-        <input type="text" id="editCustName" placeholder="เช่น นายสมชาย ใจดี">
-      </div>
-      <div class="field-group">
-        <label>เบอร์โทร</label>
-        <input type="text" id="editCustPhone" placeholder="0xx-xxx-xxxx" inputmode="tel">
-      </div>
-      <div class="field-group">
-        <label>บ้านเลขที่ / ซอย / หมู่</label>
-        <input type="text" id="addr2_editRecord_line" placeholder="เช่น 49 ม.10 ซ.3" oninput="updateAddr2('editRecord')">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-        <div class="addr-group" style="margin:0">
-          <label>จังหวัด</label>
-          <input type="text" class="addr-search" id="addr2_editRecord_province" placeholder="ค้นหาจังหวัด..." autocomplete="off" oninput="addr2Input('editRecord','province',this.value)" onfocus="addr2Focus('editRecord','province')">
-          <div class="addr-dropdown" id="addr2Drop_editRecord_province" style="display:none"></div>
-        </div>
-        <div class="addr-group" style="margin:0">
-          <label>อำเภอ / เขต</label>
-          <input type="text" class="addr-search" id="addr2_editRecord_amphure" placeholder="เลือกจังหวัดก่อน" autocomplete="off" oninput="addr2Input('editRecord','amphure',this.value)" onfocus="addr2Focus('editRecord','amphure')" disabled>
-          <div class="addr-dropdown" id="addr2Drop_editRecord_amphure" style="display:none"></div>
-        </div>
-      </div>
-      <div class="addr-group" style="margin-bottom:16px">
-        <label>ตำบล / แขวง</label>
-        <input type="text" class="addr-search" id="addr2_editRecord_tambon" placeholder="เลือกอำเภอก่อน" autocomplete="off" oninput="addr2Input('editRecord','tambon',this.value)" onfocus="addr2Focus('editRecord','tambon')" disabled>
-        <div class="addr-dropdown" id="addr2Drop_editRecord_tambon" style="display:none"></div>
-      </div>
-      <input type="hidden" id="editCustAddrHidden">
-      <div class="field-group">
-        <label>ผู้ปิดการขาย</label>
-        <input type="text" id="editBranch" placeholder="ชื่อพนักงาน">
-      </div>
-      <button class="btn-save" style="width:100%;margin-top:10px" onclick="submitEditRecord()">✓ บันทึกการแก้ไข</button>
-      <button type="button" class="finance-launch-btn" style="width:100%;margin-top:8px" onclick="editProductAndPromo()">🔄 แก้รุ่นรถ/โปรใหม่ทั้งใบ (เลือกรุ่น/โปรใหม่)</button>
-    </div>
-  </div>
-</div>
-
-<div class="preview-modal-bg" id="identityModalBg" style="display:none">
-  <div class="preview-modal-header">
-    <span>👤 ชื่อ / บทบาทของฉัน</span>
-    <button onclick="closeIdentityModal()">✕ ปิด</button>
-  </div>
-  <div class="modal-form-scroll">
-    <div class="modal-form-inner">
-      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">ใส่ชื่อและเลือกบทบาทของคุณ — ใช้แสดงชื่อผู้บันทึก/ผู้แก้ไขใน Timeline ของแต่ละเคส และกำหนดสิทธิ์การใช้งานบางฟังก์ชัน (เช่น แก้ไขข้อมูลย้อนหลัง, Export ข้อมูลเข้า CRM)</div>
-      <div class="field-group">
-        <label>ชื่อของคุณ</label>
-        <input type="text" id="identityNameInput" placeholder="เช่น สมชาย ใจดี">
-      </div>
-      <div class="field-group">
-        <label>บทบาท</label>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" id="roleBtnSales" class="role-btn" onclick="pickRole('sales')">🧑‍🌾 เซลล์</button>
-          <button type="button" id="roleBtnFinance" class="role-btn" onclick="pickRole('finance')">💰 การเงิน</button>
-          <button type="button" id="roleBtnSupervisor" class="role-btn" onclick="pickRole('supervisor')">👔 ผู้จัดการ</button>
-        </div>
-      </div>
-      <button class="btn-save" style="width:100%;margin-top:10px" onclick="saveIdentity()">✓ บันทึก</button>
-    </div>
-  </div>
-</div>
-
-</body>
-</html>
