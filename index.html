@@ -649,6 +649,14 @@ body.printing #printArea{ display:block !important; }
 .history-card .hc-model{ font-size:12px; color:var(--accent); font-weight:600; margin-bottom:3px; }
 .history-card .hc-nums{ font-size:11px; color:var(--ink-soft); }
 .history-card .hc-nums b{ color:var(--ink); }
+.history-card .hc-statusrow{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; }
+.history-card .hc-statusrow .case-status-badge{ padding:2px 10px; font-size:10.5px; white-space:nowrap; }
+.history-card .hc-lastnote-at{ font-size:10px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.history-card .hc-lastnote{
+  font-size:11px; color:var(--ink-soft); margin-top:5px;
+  background:#f7f3ee; border-radius:8px; padding:5px 8px;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
 .history-card .hc-actions{ display:flex; gap:6px; margin-top:8px; }
 .btn-reprint{
   font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
@@ -4558,6 +4566,11 @@ function renderHistoryCards(records){
         ${r.eqTotal ? ` &nbsp;·&nbsp; อุปกรณ์: <b>${fmt(Number(r.eqTotal)||0)}</b>` : ''}
       </div>
       ${r.custPhone ? `<div class="hc-nums" style="margin-top:2px">📞 ${r.custPhone} ${r.branch ? '· '+r.branch : ''}</div>` : ''}
+      <div class="hc-statusrow">
+        <span class="case-status-badge status-${statusSlug(r.caseStatus||'รอดำเนินการ')}">${escapeHtml(r.caseStatus||'รอดำเนินการ')}</span>
+        ${r.lastNoteAt ? `<span class="hc-lastnote-at">🕒 ${r.lastNoteAt.slice(0,16)}</span>` : ''}
+      </div>
+      ${r.lastNote ? `<div class="hc-lastnote">💬 ${escapeHtml(r.lastNote)}</div>` : ''}
       <div class="hc-actions">
         <button class="btn-reprint" onclick="event.stopPropagation();reprintRecord('${r.id}')">🖨 พิมพ์ซ้ำ</button>
         <button class="btn-del" onclick="event.stopPropagation();deleteRecord('${r.id}')">ลบ</button>
