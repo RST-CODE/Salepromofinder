@@ -11,6 +11,14 @@
 //   y_bob30/s_bob30 "โปร 30%": เงื่อนไขละเอียดขึ้นแยกตามกลุ่ม (ผู้นำชุมชน/Sugar Mill/ธกส เกรด AAA/Mega Farm/RT,YF/SW)
 //   y_bob30: อัปเดตตัวเลข ysp/ลูกค้าออก/rst ของ EF393T 45th และ YM351R ให้ตรงกับชีต "โปรลูกค้าทั่วไป30%" (total/ดอกเบี้ย/ปี เท่าเดิม)
 // ============================================================
+// อัปเดต 31/7/2569 — รีเซ็ตฐานข้อมูลโปร Yanmar/Solis ทั้งหมดตามไฟล์ "Promotion Sale Yanmar/Solis 130769 (ทำโปร)" ที่อัปโหลดใหม่ (ยึดไฟล์นี้เป็นหลัก 100%):
+//   - ตัดโปรที่ไม่มีอยู่ในไฟล์ใหม่และไม่ถูกใช้งานบนหน้าเว็บออก: y_target_general, y_target_yfsw, y_target_rt, y_tradein (Yanmar), s_target_general (Solis)
+//   - y_bob30: แก้ ysp/ลูกค้าออก/rst ของ EF393T 45th และ YM351R (กลุ่ม General, YF,SW) ให้ตรงกับชีต "30% ผู้นำชุมชนฯ"/"30% กลุ่ม RT,YF,SW" ที่ถูกต้อง (ของเดิมพลาดไปดึงเลขจากชีต "ลูกค้าทั่วไป30%" ซึ่งเป็นคนละโปร)
+//   - y_bob30: ตัดกลุ่ม RT ของ EF393T 45th/YM351R/YM358R ออก (ไฟล์ใหม่ไม่มีเลข RT แยกให้ 3 รุ่นนี้ มีให้เฉพาะ YM358R-L1)
+//   - ไม่เพิ่มโปร "ลูกค้าทั่วไป 30%" ของ Yanmar (ชีตที่เคยถอดออกจากเว็บ) กลับเข้ามา ตามที่ยืนยันจากผู้ใช้งาน
+//   - s_target_yfsw/s_target_rt (Solis): ตัดรุ่นที่ไม่มีในชีต "Target 25%" ใหม่ออก เหลือเฉพาะ YM-Solis30/30-45th/50/50-45th/105 Cabin
+//   - s_bob25/s_bob30: แก้ models_subset ให้ตรงกับรุ่นที่มี entries จริง (ของเดิมขาดบางรุ่นทำให้การ์ดไม่ขึ้น เช่น YM-Solis50, YM-Solis 65, YM-Solis75-45th)
+//   - y_general, y_bob25, y_358, s_general ตรวจสอบแล้วตรงกับไฟล์ใหม่อยู่แล้ว ไม่มีการเปลี่ยนตัวเลข
 const DATA = {
   "yanmar": {
     "models": [
@@ -107,337 +115,6 @@ const DATA = {
             "years": 10,
             "total_payback": 1624015.0,
             "annual": 162401.5
-          }
-        },
-        "gifts": [
-          "ทองครึ่งสลึง 1 เส้น",
-          "เบียร์ 1 ลัง",
-          "น้ำอัดลม 1 แพค",
-          "กล่องเครื่องมือ 1 ชุด",
-          "กระบอกอัดจาระบี 1 อัน",
-          "แม่แรงกระปุก 2 ตัน 1 ชุด",
-          "ชุดประแจ 1 ชุด",
-          "ด้ามบ็อก + ลูกบ็อก 1 ชุด",
-          "สายอ่อนไนล่อนอัดจารบี 12 นิ้ว 1 ชิ้น",
-          "เสื้อยืดแขนยาว 1 ตัว",
-          "เสื้อคอโปโล 1 ตัว",
-          "น้ำมันเครื่อง 1L 1 แกลลอน",
-          "กระจังหน้า/ปลายท่อ (อย่างใดอย่างนึง) เคสต่อรอง **"
-        ]
-      },
-      {
-        "id": "y_target_general",
-        "name": "Target - ทั่วไป (มีพื้นที่ทำกิน)",
-        "groups": [
-          "ทั่วไป(มีที่ทำกิน)"
-        ],
-        "conditions": [
-          "ผู้สมัครต้องมีพื้นที่เพาะปลูกพืชทางการเกษตร (ไม่จำกัดชนิดพืช) อย่างน้อย 50 ไร่ โดยถือครองกรรมสิทธิ์ของตนเองหรือเช่า",
-          "สามารถนำพื้นที่ทำกินของญาติสายตรงมารวมได้"
-        ],
-        "entries": {
-          "EF393A": {
-            "price": 584000,
-            "down": 117000,
-            "yct": 32500,
-            "ysp": 25000,
-            "fire": 25000,
-            "customer_out": 0,
-            "rst": 34500,
-            "total": 467000,
-            "interest": 0.0895,
-            "years": 10,
-            "total_payback": 884965.0,
-            "annual": 88496.5
-          },
-          "EF393T-45th": {
-            "price": 584000,
-            "down": 117000,
-            "yct": 32500,
-            "ysp": 25000,
-            "fire": 25000,
-            "customer_out": 0,
-            "rst": 34500,
-            "total": 467000,
-            "interest": 0.0895,
-            "years": 10,
-            "total_payback": 884965.0,
-            "annual": 88496.5
-          },
-          "YM351R": {
-            "price": 733000,
-            "down": 147000,
-            "yct": 43500,
-            "ysp": 30000,
-            "fire": 30000,
-            "customer_out": 0,
-            "rst": 43500,
-            "total": 586000,
-            "interest": 0.0895,
-            "years": 10,
-            "total_payback": 1110470.0,
-            "annual": 111047.0
-          },
-          "YM358R": {
-            "price": 831000,
-            "down": 167000,
-            "yct": 44000,
-            "ysp": 35000,
-            "fire": 50000,
-            "customer_out": 0,
-            "rst": 38000,
-            "total": 664000,
-            "interest": 0.0895,
-            "years": 10,
-            "total_payback": 1258280.0,
-            "annual": 125828.0
-          },
-          "YM358R-L1": {
-            "price": 892000,
-            "down": 179000,
-            "yct": 47000,
-            "ysp": 45000,
-            "customer_out": 0,
-            "rst": 87000,
-            "total": 713000,
-            "interest": 0.0895,
-            "years": 10,
-            "total_payback": 1351135.0,
-            "annual": 135113.5
-          },
-          "EF725T": {
-            "price": 1072000,
-            "down": 215000,
-            "yct": 65000,
-            "ysp": 45000,
-            "fire": 35000,
-            "customer_out": 0,
-            "rst": 70000,
-            "total": 857000,
-            "interest": 0.0895,
-            "years": 10,
-            "total_payback": 1624015.0,
-            "annual": 162401.5
-          }
-        },
-        "gifts": [
-          "ทองครึ่งสลึง 1 เส้น",
-          "เบียร์ 1 ลัง",
-          "น้ำอัดลม 1 แพค",
-          "กล่องเครื่องมือ 1 ชุด",
-          "กระบอกอัดจาระบี 1 อัน",
-          "แม่แรงกระปุก 2 ตัน 1 ชุด",
-          "ชุดประแจ 1 ชุด",
-          "ด้ามบ็อก + ลูกบ็อก 1 ชุด",
-          "สายอ่อนไนล่อนอัดจารบี 12 นิ้ว 1 ชิ้น",
-          "เสื้อยืดแขนยาว 1 ตัว",
-          "เสื้อคอโปโล 1 ตัว",
-          "น้ำมันเครื่อง 1L 1 แกลลอน",
-          "กระจังหน้า/ปลายท่อ (อย่างใดอย่างนึง) เคสต่อรอง **"
-        ]
-      },
-      {
-        "id": "y_target_rt",
-        "name": "Target - RT",
-        "groups": [
-          "RT"
-        ],
-        "conditions": [
-          "ไม่กำหนดจำนวนไร่"
-        ],
-        "entries": {
-          "EF393A": {
-            "price": 584000,
-            "down": 117000,
-            "yct": 67000,
-            "ysp": 35000,
-            "fire": 25000,
-            "customer_out": 0,
-            "rst": -10000,
-            "total": 467000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 875625.0,
-            "annual": 87562.5
-          },
-          "EF393T-45th": {
-            "price": 584000,
-            "down": 117000,
-            "yct": 67000,
-            "ysp": 35000,
-            "fire": 25000,
-            "customer_out": 0,
-            "rst": -10000,
-            "total": 467000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 875625.0,
-            "annual": 87562.5
-          },
-          "YM351R": {
-            "price": 733000,
-            "down": 147000,
-            "yct": 82000,
-            "ysp": 40000,
-            "fire": 30000,
-            "customer_out": 0,
-            "rst": -5000,
-            "total": 586000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 1098750.0,
-            "annual": 109875.0
-          },
-          "YM358R": {
-            "price": 831000,
-            "down": 167000,
-            "yct": 98000,
-            "ysp": 50000,
-            "fire": 50000,
-            "customer_out": 0,
-            "rst": -31000,
-            "total": 664000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 1245000.0,
-            "annual": 124500.0
-          },
-          "YM358R-L1": {
-            "price": 892000,
-            "down": 179000,
-            "yct": 92000,
-            "ysp": 70000,
-            "customer_out": 0,
-            "rst": 17000,
-            "total": 713000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 1336875.0,
-            "annual": 133687.5
-          },
-          "EF725T": {
-            "price": 1072000,
-            "down": 215000,
-            "yct": 108000,
-            "ysp": 50000,
-            "fire": 35000,
-            "customer_out": 0,
-            "rst": 22000,
-            "total": 857000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 1606875.0,
-            "annual": 160687.5
-          }
-        },
-        "gifts": [
-          "ทองครึ่งสลึง 1 เส้น",
-          "เบียร์ 1 ลัง",
-          "น้ำอัดลม 1 แพค",
-          "กล่องเครื่องมือ 1 ชุด",
-          "กระบอกอัดจาระบี 1 อัน",
-          "แม่แรงกระปุก 2 ตัน 1 ชุด",
-          "ชุดประแจ 1 ชุด",
-          "ด้ามบ็อก + ลูกบ็อก 1 ชุด",
-          "สายอ่อนไนล่อนอัดจารบี 12 นิ้ว 1 ชิ้น",
-          "เสื้อยืดแขนยาว 1 ตัว",
-          "เสื้อคอโปโล 1 ตัว",
-          "น้ำมันเครื่อง 1L 1 แกลลอน",
-          "กระจังหน้า/ปลายท่อ (อย่างใดอย่างนึง) เคสต่อรอง **"
-        ]
-      },
-      {
-        "id": "y_target_yfsw",
-        "name": "Target - YF, SW",
-        "groups": [
-          "YF,SW"
-        ],
-        "conditions": [
-          "ไม่กำหนดจำนวนไร่"
-        ],
-        "entries": {
-          "EF393A": {
-            "price": 584000,
-            "down": 117000,
-            "yct": 54000,
-            "ysp": 30000,
-            "fire": 25000,
-            "customer_out": 0,
-            "rst": 8000,
-            "total": 467000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 875625.0,
-            "annual": 87562.5
-          },
-          "EF393T-45th": {
-            "price": 584000,
-            "down": 117000,
-            "yct": 54000,
-            "ysp": 30000,
-            "fire": 25000,
-            "customer_out": 0,
-            "rst": 8000,
-            "total": 467000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 875625.0,
-            "annual": 87562.5
-          },
-          "YM351R": {
-            "price": 733000,
-            "down": 147000,
-            "yct": 64500,
-            "ysp": 35000,
-            "fire": 30000,
-            "customer_out": 0,
-            "rst": 17500,
-            "total": 586000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 1098750.0,
-            "annual": 109875.0
-          },
-          "YM358R": {
-            "price": 831000,
-            "down": 167000,
-            "yct": 75500,
-            "ysp": 40000,
-            "fire": 50000,
-            "customer_out": 0,
-            "rst": 1500,
-            "total": 664000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 1245000.0,
-            "annual": 124500.0
-          },
-          "YM358R-L1": {
-            "price": 892000,
-            "down": 179000,
-            "yct": 80000,
-            "ysp": 60000,
-            "customer_out": 0,
-            "rst": 39000,
-            "total": 713000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 1336875.0,
-            "annual": 133687.5
-          },
-          "EF725T": {
-            "price": 1072000,
-            "down": 215000,
-            "yct": 108000,
-            "ysp": 50000,
-            "fire": 35000,
-            "customer_out": 0,
-            "rst": 22000,
-            "total": 857000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 1606875.0,
-            "annual": 160687.5
           }
         },
         "gifts": [
@@ -576,9 +253,9 @@ const DATA = {
             "price": 584000,
             "down": 176000,
             "yct": 32500,
-            "ysp": 66500,
-            "customer_out": 20000,
-            "rst": 57000,
+            "ysp": 93500,
+            "customer_out": 0,
+            "rst": 50000,
             "total": 408000,
             "interest": 0.0895,
             "years": 10,
@@ -589,22 +266,9 @@ const DATA = {
             "price": 584000,
             "down": 176000,
             "yct": 54000,
-            "ysp": 45000,
-            "customer_out": 20000,
-            "rst": 57000,
-            "total": 408000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 765000.0,
-            "annual": 76500.0
-          },
-          "EF393T 45th | RT": {
-            "price": 584000,
-            "down": 176000,
-            "yct": 67000,
-            "ysp": 32000,
-            "customer_out": 20000,
-            "rst": 57000,
+            "ysp": 78000,
+            "customer_out": 0,
+            "rst": 44000,
             "total": 408000,
             "interest": 0.0875,
             "years": 10,
@@ -615,9 +279,9 @@ const DATA = {
             "price": 733000,
             "down": 220000,
             "yct": 43500,
-            "ysp": 74500,
-            "customer_out": 30000,
-            "rst": 72000,
+            "ysp": 113500,
+            "customer_out": 0,
+            "rst": 63000,
             "total": 513000,
             "interest": 0.0895,
             "years": 10,
@@ -628,22 +292,9 @@ const DATA = {
             "price": 733000,
             "down": 220000,
             "yct": 64500,
-            "ysp": 53500,
-            "customer_out": 30000,
-            "rst": 72000,
-            "total": 513000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 961875.0,
-            "annual": 96187.5
-          },
-          "YM351R | RT": {
-            "price": 733000,
-            "down": 220000,
-            "yct": 82000,
-            "ysp": 36000,
-            "customer_out": 30000,
-            "rst": 72000,
+            "ysp": 100500,
+            "customer_out": 0,
+            "rst": 55000,
             "total": 513000,
             "interest": 0.0875,
             "years": 10,
@@ -668,19 +319,6 @@ const DATA = {
             "down": 250000,
             "yct": 75500,
             "ysp": 109000,
-            "customer_out": 0,
-            "rst": 65500,
-            "total": 581000,
-            "interest": 0.0875,
-            "years": 10,
-            "total_payback": 1089375.0,
-            "annual": 108937.5
-          },
-          "YM358R | RT": {
-            "price": 831000,
-            "down": 250000,
-            "yct": 98000,
-            "ysp": 86500,
             "customer_out": 0,
             "rst": 65500,
             "total": 581000,
@@ -815,62 +453,6 @@ const DATA = {
             "years": 10,
             "total_payback": 1023300,
             "annual": 102330
-          }
-        }
-      },
-      {
-        "id": "y_tradein",
-        "name": "Trade-in 20% (เกรดรถเก่า)",
-        "groups": [
-          "Trade-in"
-        ],
-        "conditions": [
-          "ต้องมีเอกสารแสดงกรรมสิทธิ์รถเดิม + เอกสารแสดงเกรดรถ",
-          "เกรด AA, AAA: ดอกเบี้ย 8% ผ่อน 8/10 ปี",
-          "เกรด B, A: ดอกเบี้ย 8.5% ผ่อน 9/10 ปี"
-        ],
-        "entries": {
-          "EF393A": {
-            "price": 584000,
-            "down": 117000,
-            "yct": 54000,
-            "ysp": 27000,
-            "rst": 36000
-          },
-          "EF393T-45th": {
-            "price": 584000,
-            "down": 117000,
-            "yct": 54000,
-            "ysp": 27000,
-            "rst": 36000
-          },
-          "YM351R": {
-            "price": 733000,
-            "down": 147000,
-            "yct": 64500,
-            "ysp": 40500,
-            "rst": 42000
-          },
-          "YM358R": {
-            "price": 831000,
-            "down": 167000,
-            "yct": 75500,
-            "ysp": 46500,
-            "rst": 45000
-          },
-          "YM358R-L1": {
-            "price": 892000,
-            "down": 179000,
-            "yct": 80000,
-            "ysp": 58000,
-            "rst": 41000
-          },
-          "EF725T": {
-            "price": 1072000,
-            "down": 215000,
-            "yct": 108000,
-            "ysp": 54000,
-            "rst": 53000
           }
         }
       }
@@ -1087,131 +669,6 @@ const DATA = {
         }
       },
       {
-        "id": "s_target_general",
-        "name": "Target - ทั่วไป (กลุ่มข้าว/พืชไร่/พืชรวม)",
-        "groups": [
-          "ทั่วไป(กลุ่มข้าว/พืชไร่/พืชรวม)"
-        ],
-        "conditions": [
-          "กลุ่มข้าว: ผู้สมัครถือกรรมสิทธิ์ของตัวเองหรือที่เช่า อย่างน้อย 50 ไร่",
-          "กลุ่มพืชไร่ (อ้อย มัน ข้าวโพด): ถือกรรมสิทธิ์เป็นของตนเองหรือที่เช่า อย่างน้อย 30 ไร่",
-          "กลุ่มพืชรวม (พืชไร่+ข้าว): ถือพื้นที่พืชไร่อย่างน้อย 20 ไร่ และข้าวอย่างน้อย 10 ไร่ รวม 30 ไร่ (รวมพื้นที่ของญาติสายตรงได้)",
-          "ฟรีดาวน์ 7 คันสุดท้าย (ตามสต็อกที่กำหนด)"
-        ],
-        "entries": {
-          "YM-Solis22": {
-            "price": 312000,
-            "down": 47000,
-            "yct": 0,
-            "fire": 10000,
-            "customer_out": 10000,
-            "rst": 27000,
-            "total": 265000,
-            "interest": 0.0895,
-            "years": 7,
-            "total_payback": 431022.48,
-            "annual": 61574.64
-          },
-          "YM-Solis26": {
-            "price": 380000,
-            "down": 57000,
-            "yct": 0,
-            "fire": 10000,
-            "customer_out": 15000,
-            "rst": 32000,
-            "total": 323000,
-            "interest": 0.0895,
-            "years": 7,
-            "total_payback": 525359.52,
-            "annual": 75051.36
-          },
-          "YM-Solis30": {
-            "price": 427000,
-            "down": 107000,
-            "yct": 27000,
-            "ysp": 25000,
-            "fire": 15000,
-            "customer_out": 0,
-            "rst": 40000,
-            "total": 320000,
-            "interest": 0.0895,
-            "years": 7,
-            "total_payback": 520480.03,
-            "annual": 74354.29
-          },
-          "YM-Solis30-45th": {
-            "price": 438000,
-            "down": 110000,
-            "yct": 28000,
-            "ysp": 25000,
-            "fire": 15000,
-            "customer_out": 0,
-            "rst": 42000,
-            "total": 328000,
-            "interest": 0.0895,
-            "years": 7,
-            "total_payback": 533491.98,
-            "annual": 76213.14
-          },
-          "YM-Solis50": {
-            "price": 742000,
-            "down": 186000,
-            "yct": 44000,
-            "ysp": 40000,
-            "fire": 25000,
-            "customer_out": 0,
-            "rst": 77000,
-            "total": 556000,
-            "interest": 0.0895,
-            "years": 7,
-            "total_payback": 904333.99,
-            "annual": 129190.57
-          },
-          "YM-Solis50-45th": {
-            "price": 762000,
-            "down": 191000,
-            "yct": 45000,
-            "ysp": 40000,
-            "fire": 25000,
-            "customer_out": 0,
-            "rst": 81000,
-            "total": 571000,
-            "interest": 0.0895,
-            "years": 7,
-            "total_payback": 928731.51,
-            "annual": 132675.93
-          },
-          "YM-Solis75": {
-            "price": 1008000,
-            "down": 202000,
-            "yct": 58000,
-            "ysp": 45000,
-            "fire": 40000,
-            "customer_out": 0,
-            "rst": 59000,
-            "total": 806000,
-            "interest": 0.0895,
-            "years": 7,
-            "total_payback": 1310959.02,
-            "annual": 187279.86
-          },
-          "YM-Solis105": {
-            "price": 1517000,
-            "down": 304000,
-            "yct": 86000,
-            "ysp": 55000,
-            "fire": 60000,
-            "customer_out": 0,
-            "rst": 103000,
-            "total": 1213000,
-            "interest": 0.0895,
-            "years": 7,
-            "total_payback": 1972944.47,
-            "annual": 281849.21
-          }
-        }
-      },
-      {
         "id": "s_target_yfsw",
         "name": "Target - YF, SW",
         "groups": [
@@ -1221,56 +678,6 @@ const DATA = {
           "ไม่กำหนดจำนวนไร่"
         ],
         "entries": {
-          "Solis 26": {
-            "price": 339000,
-            "down": 85000,
-            "yct": 19000,
-            "customer_out": 20000,
-            "rst": 46000,
-            "total": 254000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 409574.97,
-            "annual": 58510.71
-          },
-          "Solis26": {
-            "price": 339000,
-            "down": 85000,
-            "yct": 19000,
-            "customer_out": 30000,
-            "rst": 36000,
-            "total": 254000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 409574.97,
-            "annual": 58510.71
-          },
-          "YM-Solis22": {
-            "price": 312000,
-            "down": 63000,
-            "yct": 27500,
-            "fire": 10000,
-            "customer_out": 0,
-            "rst": 25500,
-            "total": 249000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 401512.51,
-            "annual": 57358.93
-          },
-          "YM-Solis26": {
-            "price": 380000,
-            "down": 76000,
-            "yct": 31000,
-            "fire": 10000,
-            "customer_out": 0,
-            "rst": 35000,
-            "total": 304000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 490199.99,
-            "annual": 70028.57
-          },
           "YM-Solis30": {
             "price": 427000,
             "down": 86000,
@@ -1327,61 +734,6 @@ const DATA = {
             "total_payback": 982012.5,
             "annual": 140287.5
           },
-          "YM-Solis75": {
-            "price": 1008000,
-            "down": 202000,
-            "yct": 72500,
-            "ysp": 55000,
-            "fire": 40000,
-            "customer_out": 0,
-            "rst": 34500,
-            "total": 806000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1299675.02,
-            "annual": 185667.86
-          },
-          "YM-Solis 65": {
-            "price": 899000,
-            "down": 180000,
-            "yct": 67000,
-            "ysp": 53000,
-            "fire": 35000,
-            "customer_out": 0,
-            "rst": 25000,
-            "total": 719000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1159387.53,
-            "annual": 165626.79
-          },
-          "YM-Solis90": {
-            "price": 1327000,
-            "down": 266000,
-            "yct": 93000,
-            "fire": 40000,
-            "customer_out": 0,
-            "rst": 133000,
-            "total": 1061000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1710862.51,
-            "annual": 244408.93
-          },
-          "YM-Solis105": {
-            "price": 1517000,
-            "down": 304000,
-            "yct": 107000,
-            "ysp": 65000,
-            "fire": 60000,
-            "customer_out": 0,
-            "rst": 72000,
-            "total": 1213000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1955962.47,
-            "annual": 279423.21
-          },
           "YM-Solis 105 Cabin": {
             "price": 1717000,
             "down": 344000,
@@ -1408,55 +760,6 @@ const DATA = {
           "ไม่กำหนดจำนวนไร่"
         ],
         "entries": {
-          "Solis 26": {
-            "price": 339000,
-            "down": 85000,
-            "yct": 19000,
-            "customer_out": 20000,
-            "rst": 46000,
-            "total": 254000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 409574.97,
-            "annual": 58510.71
-          },
-          "Solis26": {
-            "price": 339000,
-            "down": 85000,
-            "yct": 19000,
-            "customer_out": 30000,
-            "rst": 36000,
-            "total": 254000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 409574.97,
-            "annual": 58510.71
-          },
-          "YM-Solis22": {
-            "price": 312000,
-            "down": 63000,
-            "yct": 30500,
-            "fire": 10000,
-            "customer_out": 0,
-            "rst": 22500,
-            "total": 249000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 401512.51,
-            "annual": 57358.93
-          },
-          "YM-Solis26": {
-            "price": 380000,
-            "down": 76000,
-            "yct": 35000,
-            "customer_out": 0,
-            "rst": 41000,
-            "total": 304000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 490199.99,
-            "annual": 70028.57
-          },
           "YM-Solis30": {
             "price": 427000,
             "down": 86000,
@@ -1513,61 +816,6 @@ const DATA = {
             "total_payback": 982012.5,
             "annual": 140287.5
           },
-          "YM-Solis75": {
-            "price": 1008000,
-            "down": 202000,
-            "yct": 82000,
-            "ysp": 55000,
-            "fire": 40000,
-            "customer_out": 0,
-            "rst": 25000,
-            "total": 806000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1299675.02,
-            "annual": 185667.86
-          },
-          "YM-Solis 65": {
-            "price": 899000,
-            "down": 180000,
-            "yct": 75500,
-            "ysp": 53000,
-            "fire": 35000,
-            "customer_out": 0,
-            "rst": 16500,
-            "total": 719000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1159387.53,
-            "annual": 165626.79
-          },
-          "YM-Solis90": {
-            "price": 1327000,
-            "down": 266000,
-            "yct": 106500,
-            "fire": 40000,
-            "customer_out": 0,
-            "rst": 119500,
-            "total": 1061000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1710862.51,
-            "annual": 244408.93
-          },
-          "YM-Solis105": {
-            "price": 1517000,
-            "down": 304000,
-            "yct": 122000,
-            "ysp": 65000,
-            "fire": 60000,
-            "customer_out": 0,
-            "rst": 57000,
-            "total": 1213000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1955962.47,
-            "annual": 279423.21
-          },
           "YM-Solis 105 Cabin": {
             "price": 1717000,
             "down": 344000,
@@ -1598,13 +846,14 @@ const DATA = {
           "*แสดงในสมุดทะเบียนเกษตรได้"
         ],
         "models_subset": [
+          "YM-Solis 65",
+          "YM-Solis105",
           "YM-Solis30",
           "YM-Solis30-45th",
+          "YM-Solis50",
           "YM-Solis50-45th",
           "YM-Solis75",
-          "YM-Solis105",
-          "YM-Solis110",
-          "YM-Solis105-45th"
+          "YM-Solis75-45th"
         ],
         "entries": {
           "YM-Solis30 | General": {
@@ -1738,9 +987,12 @@ const DATA = {
           "6. กลุ่มลูกค้า SW ต้องมีเล่ม หรือมีใบซื้อขาย หรือมีรถใช้งานจริง"
         ],
         "models_subset": [
+          "YM-Solis 65",
           "YM-Solis30",
           "YM-Solis30-45th",
+          "YM-Solis50",
           "YM-Solis50-45th",
+          "YM-Solis75",
           "YM-Solis75-45th"
         ],
         "entries": {
