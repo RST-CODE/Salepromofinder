@@ -570,6 +570,13 @@ input[type=number]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
 
 body.printing > *:not(#printArea){ display:none !important; }
 body.printing #printArea{ display:block !important; }
+/* ขนาด/ฟอนต์เดียวกับตอนพิมพ์จริง ให้ใช้ตอนเตรียมพิมพ์ (ก่อนเรียก window.print()) ได้ด้วย
+   เพื่อให้ JS วัดความสูงจริงแล้วคำนวณย่อขนาดให้พอดี 1 หน้าได้แม่นยำ */
+body.printing #printArea{
+  width:194mm; margin:0 auto;
+  font-family:'Sarabun','Kanit',sans-serif;
+  font-size:8.5pt; color:#000;
+}
 
 /* ===== History Page ===== */
 .app.history #historyPage{ display:block !important; }
@@ -3121,12 +3128,35 @@ function previewGuarantorForm(){
   document.getElementById('previewModalScroll').innerHTML = buildGuarantorFormHtml(d);
   document.getElementById('previewModalBg').style.display = 'flex';
 }
+// พิมพ์ฟอร์ม (ที่อยู่ปัจจุบัน/ผู้ค้ำ/รายได้/ผู้อ้างอิง) — ย่อให้พอดี 1 หน้า A4 อัตโนมัติถ้าเนื้อหายาวเกิน
+// (มีของแถม/หนี้สิน/ผู้อ้างอิงหลายคนก็ยังพยายามอัดลงหน้าเดียว แต่จะไม่ย่อจนอ่านไม่ออก — ต่ำสุด 60%)
+const PRINT_FIT_MIN_SCALE = 0.6;
+function _fitPrintAreaToOnePage(){
+  const area = document.getElementById('printArea');
+  const inner = area.firstElementChild;
+  if(!inner) return;
+  inner.style.transform = '';
+  inner.style.width = '';
+  const pxPerMm = 96/25.4;
+  const pageHeightPx = (297 - 16) * pxPerMm; // A4 สูง 297mm หัก margin บน-ล่าง 8mm x2
+  const contentHeightPx = inner.scrollHeight;
+  if(contentHeightPx > pageHeightPx){
+    let scale = pageHeightPx / contentHeightPx;
+    if(scale < PRINT_FIT_MIN_SCALE) scale = PRINT_FIT_MIN_SCALE;
+    inner.style.transformOrigin = 'top left';
+    inner.style.transform = `scale(${scale})`;
+    inner.style.width = (100/scale) + '%';
+  }
+}
 function printGuarantorForm(){
   const d = collectExportData();
-  document.getElementById('printArea').innerHTML = buildGuarantorFormHtml(d);
+  document.getElementById('printArea').innerHTML = `<div>${buildGuarantorFormHtml(d)}</div>`;
   document.body.classList.add('printing');
+  _fitPrintAreaToOnePage();
   window.print();
   document.body.classList.remove('printing');
+  const inner = document.getElementById('printArea').firstElementChild;
+  if(inner){ inner.style.transform=''; inner.style.width=''; }
 }
 function _guarantorFormFromRecord(rec){
   _recordOverride = rec;
