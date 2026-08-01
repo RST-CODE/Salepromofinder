@@ -3046,12 +3046,21 @@ function buildGuarantorFormHtml(d){
       </div>
       <hr style="border:0.5px solid #ccc;margin:4px 0">
 
-      <div style="font-weight:bold;background:#f0ede8;padding:3px 6px;border-radius:4px;margin-bottom:4px">ข้อมูลผู้ซื้อ</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:9pt">
-        <tr><td style="width:30%;padding:2px 0"><b>ชื่อ-นามสกุล:</b></td><td style="padding:2px 0">${d.custName||blankShort}</td></tr>
-        <tr><td style="padding:2px 0"><b>เบอร์โทร:</b></td><td style="padding:2px 0">${d.custPhone||blankShort}</td></tr>
-        <tr><td style="padding:2px 0;vertical-align:top"><b>ที่อยู่ตามทะเบียน:</b></td><td style="padding:2px 0">${d.custAddr||blank}</td></tr>
-        <tr><td style="padding:2px 0;vertical-align:top"><b>ที่อยู่ปัจจุบัน:</b></td><td style="padding:2px 0">${d.custCurrentAddr||blank}</td></tr>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
+        <tr>
+          <td style="width:50%;vertical-align:top;padding-right:6px;border-right:1px solid #e8e0d5;box-sizing:border-box">
+            <div style="font-weight:bold;background:#f0ede8;padding:3px 6px;border-radius:4px;margin-bottom:4px">ข้อมูลผู้ซื้อ</div>
+            <table style="width:100%;border-collapse:collapse;font-size:9pt">
+              <tr><td style="padding:2px 0;white-space:nowrap"><b>ชื่อ-นามสกุล:</b></td><td style="padding:2px 0">${d.custName||blankShort}</td></tr>
+              <tr><td style="padding:2px 0;white-space:nowrap"><b>เบอร์โทร:</b></td><td style="padding:2px 0">${d.custPhone||blankShort}</td></tr>
+              <tr><td style="padding:2px 0;vertical-align:top;white-space:nowrap"><b>ที่อยู่ตามทะเบียน:</b></td><td style="padding:2px 0">${d.custAddr||blankShort}</td></tr>
+              <tr><td style="padding:2px 0;vertical-align:top;white-space:nowrap"><b>ที่อยู่ปัจจุบัน:</b></td><td style="padding:2px 0">${d.custCurrentAddr||blankShort}</td></tr>
+            </table>
+          </td>
+          <td style="width:50%;vertical-align:top;padding-left:6px;box-sizing:border-box">
+            ${buildFinInfoPrintHtml(d.finInfo)}
+          </td>
+        </tr>
       </table>
 
       <div style="font-weight:bold;background:#fff3e0;padding:3px 6px;border-radius:4px;margin-bottom:4px">ข้อมูลผู้ค้ำประกัน</div>
@@ -3060,8 +3069,6 @@ function buildGuarantorFormHtml(d){
         <tr><td style="padding:2px 0"><b>เบอร์โทร:</b></td><td style="padding:2px 0">${d.gtorPhone||blankShort}</td></tr>
         <tr><td style="padding:2px 0;vertical-align:top"><b>ที่อยู่:</b></td><td style="padding:2px 0">${d.gtorAddr||blank}</td></tr>
       </table>
-
-      ${buildFinInfoPrintHtml(d.finInfo)}
 
       <div style="font-weight:bold;background:#f0fff4;padding:3px 6px;border-radius:4px;margin-bottom:4px">ข้อมูลผู้อ้างอิง</div>
       <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:9pt">
