@@ -3082,12 +3082,12 @@ function buildGuarantorFormHtml(d){
 // สร้างตารางข้อมูลรายได้ลูกค้าสำหรับใบพิมพ์ (ทำเกษตร/งานประจำ/รายได้เสริม/เครื่องจักรที่มีอยู่แล้ว/หนี้สิน)
 function buildFinInfoPrintHtml(fi){
   const blankShort = '....................................';
-  if(!fi) return '';
+  // แสดงหัวข้อ "ข้อมูลรายได้ลูกค้า" เสมอเหมือนหัวข้ออื่น (ผู้ซื้อ/ผู้ค้ำ/ผู้อ้างอิง) แม้ยังไม่ได้กรอกอะไรเลย
+  // เดิมถ้าไม่มีข้อมูลเลยจะซ่อนหัวข้อนี้ไปทั้งก้อน ทำให้เข้าใจผิดว่าฟอร์มไม่รองรับข้อมูลรายได้
+  fi = fi || {};
   const plots = (fi.farmPlots||[]).filter(p=>p.cropType||p.rai||p.titleHolder);
   const machines = (fi.machines||[]).filter(m=>m.type||m.model||m.qty||m.note);
   const debts = (fi.debts||[]).filter(d=>d.creditor||d.amount);
-  const hasAny = plots.length || machines.length || debts.length || fi.hasJob || fi.hasSideIncome;
-  if(!hasAny) return '';
 
   const plotsRows = plots.length ? plots.map(p=>`
       <tr><td style="padding:2px 0">${p.cropType||'-'}</td><td style="padding:2px 0;text-align:center">${p.rai||'-'} ไร่</td><td style="padding:2px 0">เอกสารสิทธิ์: ${p.titleHolder||'-'}</td></tr>
