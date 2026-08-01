@@ -963,6 +963,8 @@ body.printing #printArea{
 .ssc-item.full{ grid-column:1 / -1; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -2988,11 +2990,13 @@ function buildPrintHtml(d){
 
 function exportPDF(){
   const d = collectExportData();
-  document.getElementById('printArea').innerHTML = buildPrintHtml(d);
+  const summaryHtml = buildPrintHtml(d);
+  document.getElementById('printArea').innerHTML = summaryHtml;
   // Temporarily show print area only
   document.body.classList.add('printing');
   window.print();
   document.body.classList.remove('printing');
+  saveFormPdfToFolder(summaryHtml, d.id || getOrCreateDraftCaseId(), d.custName, 'summary');
 }
 
 // ดูตัวอย่างในหน้าเว็บปกติ (ไม่ผ่านหน้าต่างพิมพ์ของเครื่อง) — ซูมนิ้วได้ปกติบนมือถือ
@@ -3148,15 +3152,70 @@ function _fitPrintAreaToOnePage(){
     inner.style.width = (100/scale) + '%';
   }
 }
+
+// ===== บันทึกสำเนา PDF ของฟอร์มที่พิมพ์ เก็บเข้าโฟลเดอร์เอกสารของลูกค้าอัตโนมัติ =====
+// แปลง HTML ที่ใช้พิมพ์ให้เป็น PDF จริงด้วย html2canvas+jsPDF (หน้าตาตรงกับที่พิมพ์ออกมา) แล้วอัปโหลดขึ้น Drive
+// ทำงานเบื้องหลังแบบไม่บล็อกการพิมพ์จริง — ถ้าอัปโหลดไม่สำเร็จ (เน็ตหลุด/ยังไม่ตั้งค่า GAS URL ฯลฯ) แค่ไม่มีสำเนาเก็บไว้
+// ไม่กระทบการพิมพ์ให้ลูกค้าเซ็นเลย
+async function saveFormPdfToFolder(html, caseId, custName, formType){
+  try{
+    if(!gasUrl || !caseId) return;
+    if(typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') return;
+    const holder = document.createElement('div');
+    holder.style.cssText = 'position:fixed;left:-9999px;top:0;width:194mm;background:#fff;';
+    holder.innerHTML = html;
+    document.body.appendChild(holder);
+    // รอเลย์เอาต์/ฟอนต์นิ่งก่อนแคปเจอร์ (2 เฟรม กันแคปเจอร์ก่อนวาดเสร็จ)
+    await new Promise(r => requestAnimationFrame(()=>requestAnimationFrame(r)));
+    const canvas = await html2canvas(holder, { scale:2, useCORS:true, backgroundColor:'#ffffff' });
+    document.body.removeChild(holder);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+    const pageW = 210, pageH = 297, margin = 8;
+    const usableW = pageW - margin*2, usableH = pageH - margin*2;
+    const imgW = usableW;
+    const imgH = canvas.height * imgW / canvas.width;
+    if(imgH <= usableH){
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, imgW, imgH);
+    } else {
+      // เนื้อหายาวเกิน 1 หน้า (เช่นใบสรุปการขายที่มีตารางงวดยาว) — ตัดแบ่งหลายหน้าอัตโนมัติ
+      const pageCanvasH = Math.floor(canvas.width * (usableH / usableW));
+      let renderedH = 0, first = true;
+      while(renderedH < canvas.height){
+        const sliceH = Math.min(pageCanvasH, canvas.height - renderedH);
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = sliceH;
+        sliceCanvas.getContext('2d').drawImage(canvas, 0, renderedH, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+        if(!first) pdf.addPage();
+        const sliceImgH = sliceH * imgW / canvas.width;
+        pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, imgW, sliceImgH);
+        renderedH += sliceH;
+        first = false;
+      }
+    }
+    const base64 = pdf.output('datauristring').split(',')[1];
+    gasPostReadable('savePrintFormPdf', { id: caseId, custName: custName||'', formType: formType, dataBase64: base64 }, function(err, data){
+      if(err || !data || data.status !== 'ok'){
+        console.warn('บันทึกสำเนา PDF เข้าโฟลเดอร์ลูกค้าไม่สำเร็จ:', (err&&err.message) || (data&&data.message));
+      }
+    });
+  }catch(e){
+    console.warn('saveFormPdfToFolder error:', e);
+  }
+}
 function printGuarantorForm(){
   const d = collectExportData();
-  document.getElementById('printArea').innerHTML = `<div>${buildGuarantorFormHtml(d)}</div>`;
+  const formHtml = buildGuarantorFormHtml(d);
+  document.getElementById('printArea').innerHTML = `<div>${formHtml}</div>`;
   document.body.classList.add('printing');
   _fitPrintAreaToOnePage();
   window.print();
   document.body.classList.remove('printing');
   const inner = document.getElementById('printArea').firstElementChild;
   if(inner){ inner.style.transform=''; inner.style.width=''; }
+  saveFormPdfToFolder(formHtml, d.id || getOrCreateDraftCaseId(), d.custName, 'guarantor');
 }
 function _guarantorFormFromRecord(rec){
   _recordOverride = rec;
