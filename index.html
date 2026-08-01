@@ -4733,7 +4733,6 @@ function renderHistoryCards(records){
       ${r.lastNote ? `<div class="hc-lastnote">💬 ${escapeHtml(r.lastNote)}</div>` : ''}
       <div class="hc-actions">
         <button class="btn-reprint" onclick="event.stopPropagation();reprintRecord('${r.id}')">🖨 พิมพ์ซ้ำ</button>
-        <button class="btn-del" onclick="event.stopPropagation();deleteRecord('${r.id}')">ลบ</button>
       </div>
     </div>
   `).join('') + (!_historyLoadedFull ? `
@@ -5191,6 +5190,36 @@ function renderFinInfoSectionWrap(d){
   `;
 }
 
+// แสดงข้อมูลตีเทิร์นรถเก่าในหน้ารายละเอียดประวัติ (ถ้าเคยกรอกไว้)
+function renderTradeInSectionWrap(d){
+  const ti = d.tradeIn;
+  if(!ti) return '';
+  const payoffs = (ti.payoffs||[]).filter(p=>p.creditor||p.amount);
+  const payoffTotal = payoffs.reduce((s,p)=> s + (Number(p.amount)||0), 0);
+  const cashBack = Number(ti.cashBack)||0;
+  const hasAny = ti.brand || ti.vehicleType || ti.model || ti.equipment || ti.docType || ti.condition || payoffTotal || cashBack;
+  if(!hasAny) return '';
+
+  const conditionLabel = TRADE_IN_CONDITION_LABELS[ti.condition] || '—';
+  const docLabel = TRADE_IN_DOC_LABELS[ti.docType] || '—';
+  const tradeInTotal = (d.down||0) + payoffTotal + cashBack;
+  const payoffsHtml = payoffs.length
+    ? payoffs.map(p=>`<div class="hd-row"><span class="hd-label">ปิดหนี้ — ${p.creditor||'-'}</span><span class="hd-val">${fmt(Number(p.amount)||0)} บาท</span></div>`).join('')
+    : '';
+
+  return `
+      <div class="hd-section">ตีเทิร์นรถเก่า</div>
+      <div class="hd-row"><span class="hd-label">ยี่ห้อ/รุ่น</span><span class="hd-val">${ti.brand||'-'} ${ti.model||'-'}</span></div>
+      <div class="hd-row"><span class="hd-label">ประเภทรถ</span><span class="hd-val">${ti.vehicleType||'—'}</span></div>
+      ${ti.equipment ? `<div class="hd-row"><span class="hd-label">อุปกรณ์</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${ti.equipment}</span></div>` : ''}
+      <div class="hd-row"><span class="hd-label">เอกสาร</span><span class="hd-val">${docLabel}</span></div>
+      <div class="hd-row"><span class="hd-label">สภาพรถ</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${conditionLabel}</span></div>
+      ${payoffsHtml}
+      ${cashBack ? `<div class="hd-row"><span class="hd-label">เงินคืนลูกค้า</span><span class="hd-val">${fmt(cashBack)} บาท</span></div>` : ''}
+      <div class="hd-row"><span class="hd-label"><b>ยอดตีเทิร์นรวม</b></span><span class="hd-val" style="font-weight:700;color:var(--accent)">${fmt(tradeInTotal)} บาท</span></div>
+  `;
+}
+
 function renderHistoryDetailHtml(id, d, rowNote){
     const content = document.getElementById('historyDetailContent');
     const PAYMENT_LABELS_LOCAL = PAYMENT_LABELS;
@@ -5233,6 +5262,8 @@ function renderHistoryDetailHtml(id, d, rowNote){
       ${renderGuarantorSectionWrap(id, d)}
 
       ${renderFinInfoSectionWrap(d)}
+
+      ${renderTradeInSectionWrap(d)}
 
       <div class="hd-section">เอกสารประกอบ</div>
       <button class="btn-reprint" style="width:100%" onclick="openDocsModal('${id}', 'buyer')">📎 แนบ/ดูเอกสารประกอบ — ผู้ซื้อ</button>
