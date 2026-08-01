@@ -1109,6 +1109,7 @@ body.printing #printArea{
         <option value="การแนะนำจากลูกค้า/เครือข่าย (Referral/Network)">การแนะนำจากลูกค้า/เครือข่าย</option>
         <option value="อื่นๆ โปรดระบุ (Other, please specify)">อื่นๆ โปรดระบุ</option>
       </select>
+      <input type="text" id="leadSourceOther" placeholder="ระบุแหล่งที่มา..." style="display:none;margin-top:6px;width:100%;box-sizing:border-box" oninput="syncLeadSourceOther(this)">
     </div>
     <input type="hidden" id="custAddr">
     <div id="exportSummaryBox"></div>
@@ -1120,6 +1121,7 @@ body.printing #printArea{
 
     <div class="finance-extra-launchers">
       <button type="button" class="finance-launch-btn" onclick="openAddressGuarantorModal()">📍 ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน <span class="fl-status" id="addrGtorStatus"></span></button>
+      <button type="button" class="finance-launch-btn" onclick="openTradeInModal()">🔄 ตีเทิร์นรถเก่า <span class="fl-status" id="tradeInStatus"></span></button>
       <button type="button" class="finance-launch-btn" onclick="openFinInfoModal()">💰 ข้อมูลรายได้ลูกค้า <span class="fl-status" id="finInfoStatus"></span></button>
       <button type="button" class="finance-launch-btn" onclick="openReferenceModal()">📇 บุคคลอ้างอิง <span class="fl-status" id="refStatus"></span></button>
       <button type="button" class="finance-launch-btn" onclick="openDocsModal(getOrCreateDraftCaseId())">📎 แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน ฯลฯ)</button>
@@ -1287,6 +1289,7 @@ body.printing #printArea{
         <option value="การแนะนำจากลูกค้า/เครือข่าย (Referral/Network)">การแนะนำจากลูกค้า/เครือข่าย</option>
         <option value="อื่นๆ โปรดระบุ (Other, please specify)">อื่นๆ โปรดระบุ</option>
       </select>
+      <input type="text" id="leadSourceOtherM" placeholder="ระบุแหล่งที่มา..." style="display:none;margin-top:6px;width:100%;box-sizing:border-box" oninput="syncLeadSourceOther(this)">
     </div>
     <div id="exportSummaryBoxM"></div>
     <div id="giftSelectorBoxM"></div>
@@ -1297,6 +1300,7 @@ body.printing #printArea{
 
     <div class="finance-extra-launchers">
       <button type="button" class="finance-launch-btn" onclick="openAddressGuarantorModal()">📍 ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน <span class="fl-status" id="addrGtorStatusM"></span></button>
+      <button type="button" class="finance-launch-btn" onclick="openTradeInModal()">🔄 ตีเทิร์นรถเก่า <span class="fl-status" id="tradeInStatusM"></span></button>
       <button type="button" class="finance-launch-btn" onclick="openFinInfoModal()">💰 ข้อมูลรายได้ลูกค้า <span class="fl-status" id="finInfoStatusM"></span></button>
       <button type="button" class="finance-launch-btn" onclick="openReferenceModal()">📇 บุคคลอ้างอิง <span class="fl-status" id="refStatusM"></span></button>
       <button type="button" class="finance-launch-btn" onclick="openDocsModal(getOrCreateDraftCaseId())">📎 แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน ฯลฯ)</button>
@@ -2460,11 +2464,38 @@ function syncCustomer(el, targetId){
   refreshExportSummary();
 }
 
+const LEAD_SOURCE_OTHER_VALUE = "อื่นๆ โปรดระบุ (Other, please specify)";
 function syncLeadSource(el){
   const otherId = el.id === 'leadSource' ? 'leadSourceM' : 'leadSource';
   const other = document.getElementById(otherId);
   if(other) other.value = el.value;
+  toggleLeadSourceOtherInput(el.value);
   refreshExportSummary();
+}
+// โชว์/ซ่อนช่องพิมพ์รายละเอียดเพิ่มเติม เมื่อเลือก "อื่นๆ โปรดระบุ" (ของเดิมเลือกแล้วไม่มีช่องให้พิมพ์เพิ่มเลย)
+function toggleLeadSourceOtherInput(value){
+  const isOther = value === LEAD_SOURCE_OTHER_VALUE;
+  const a = document.getElementById('leadSourceOther');
+  const b = document.getElementById('leadSourceOtherM');
+  if(a) a.style.display = isOther ? 'block' : 'none';
+  if(b) b.style.display = isOther ? 'block' : 'none';
+}
+function syncLeadSourceOther(el){
+  const otherId = el.id === 'leadSourceOther' ? 'leadSourceOtherM' : 'leadSourceOther';
+  const o = document.getElementById(otherId);
+  if(o) o.value = el.value;
+  refreshExportSummary();
+}
+// ตั้งค่า dropdown+ช่องพิมพ์เพิ่มเติมของ Lead Source ให้ตรงกับค่าที่เคยบันทึกไว้ (ใช้ตอนโหลดเคสเดิมกลับมาแก้ไข)
+// รองรับทั้งค่ามาตรฐาน และค่า "อื่นๆ: ..." ที่ผู้ใช้เคยพิมพ์เพิ่มเติมไว้
+function applyLeadSourceToForm(savedValue){
+  const val = savedValue || '';
+  const isCustomOther = val.indexOf('อื่นๆ: ') === 0;
+  const selectValue = isCustomOther ? LEAD_SOURCE_OTHER_VALUE : val;
+  const otherText = isCustomOther ? val.slice('อื่นๆ: '.length) : '';
+  ['leadSource','leadSourceM'].forEach(id=>{ const el = document.getElementById(id); if(el) el.value = selectValue; });
+  ['leadSourceOther','leadSourceOtherM'].forEach(id=>{ const el = document.getElementById(id); if(el) el.value = otherText; });
+  toggleLeadSourceOtherInput(selectValue);
 }
 
 function collectExportData(){
@@ -2524,7 +2555,11 @@ function collectExportData(){
   if(seg === 'ทั่วไป') crmCustRelType = 'General';
   else if(seg === 'RT') crmCustRelType = 'Retention';
   else if(seg === 'YF,SW') crmCustRelType = yfSwSubType || '';
-  const leadSource = (document.getElementById('leadSource')?.value || document.getElementById('leadSourceM')?.value || '').trim();
+  const leadSourceSelected = (document.getElementById('leadSource')?.value || document.getElementById('leadSourceM')?.value || '').trim();
+  const leadSourceOtherText = (document.getElementById('leadSourceOther')?.value || document.getElementById('leadSourceOtherM')?.value || '').trim();
+  const leadSource = (leadSourceSelected === LEAD_SOURCE_OTHER_VALUE && leadSourceOtherText)
+    ? ('อื่นๆ: ' + leadSourceOtherText)
+    : leadSourceSelected;
 
   const eqMerged = getAllSelectedEquipment(currentBrand, model);
   const selectedEqList = eqMerged.items;
@@ -2579,6 +2614,7 @@ function collectExportData(){
     custName, custAddr, custPhone, branch, model, brand, seg, progName,
     custCurrentAddr, gtorName, gtorAddr, gtorPhone, refs,
     finInfo,
+    tradeIn,
     id: finalId,
     editSummaryNote: editSummaryNote || undefined,
     byName: _editingRecordId ? userName : undefined,
@@ -2953,6 +2989,31 @@ function buildPrintHtml(d){
           </td>
         </tr>
       </table>
+
+      ${(()=>{
+        const ti = d.tradeIn;
+        if(!ti) return '';
+        const payoffs = (ti.payoffs||[]).filter(p=>p.creditor||p.amount);
+        const payoffTotal = payoffs.reduce((s,p)=> s + (Number(p.amount)||0), 0);
+        const cashBack = Number(ti.cashBack)||0;
+        const hasData = ti.brand || ti.model || ti.docType || ti.condition || payoffTotal || cashBack;
+        if(!hasData) return '';
+        const conditionLabel = TRADE_IN_CONDITION_LABELS[ti.condition] || '-';
+        const docLabel = TRADE_IN_DOC_LABELS[ti.docType] || '-';
+        const tradeInTotal = (d.down||0) + payoffTotal + cashBack;
+        return `
+      <div style="font-weight:bold;background:#eef4fb;padding:3px 6px;border-radius:4px;margin-bottom:3px;font-size:8.5pt">🔄 ตีเทิร์นรถเก่า</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:3px;font-size:7.5pt">
+        <tr>
+          <td style="width:50%;padding:1px 4px"><b>ยี่ห้อ/รุ่น:</b> ${ti.brand||'-'} ${ti.model||'-'}</td>
+          <td style="width:50%;padding:1px 4px"><b>เอกสาร:</b> ${docLabel}</td>
+        </tr>
+        <tr><td colspan="2" style="padding:1px 4px"><b>สภาพรถ:</b> ${conditionLabel}</td></tr>
+        ${payoffs.map(p=>`<tr><td style="padding:1px 4px">ปิดหนี้ — ${p.creditor||'-'}</td><td style="padding:1px 4px;text-align:right">${fmt(Number(p.amount)||0)}</td></tr>`).join('')}
+        ${cashBack ? `<tr><td style="padding:1px 4px">เงินคืนลูกค้า</td><td style="padding:1px 4px;text-align:right">${fmt(cashBack)}</td></tr>` : ''}
+        <tr style="background:#eef4fb;font-weight:bold"><td style="padding:2px 4px">ยอดตีเทิร์นรวม (ดาวน์คันใหม่ + ปิดหนี้ + เงินคืน)</td><td style="padding:2px 4px;text-align:right">${fmt(tradeInTotal)}</td></tr>
+      </table>`;
+      })()}
 
       <div style="font-size:7.5pt;font-weight:bold;margin-bottom:1px">ตารางงวดชำระ — ${d.finYears} ปี (${d.finYears*12} งวด)${d.eqAnnual>0?(()=>{
         const pt=d.tractorPayment;
@@ -4822,8 +4883,7 @@ function editProductAndPromo(){
   document.getElementById('custAddrLineM').value = d.custAddr || '';
   document.getElementById('custPhone').value = d.custPhone || '';
   document.getElementById('custPhoneM').value = d.custPhone || '';
-  const _lsEl = document.getElementById('leadSource'); if(_lsEl) _lsEl.value = d.leadSource || '';
-  const _lsElM = document.getElementById('leadSourceM'); if(_lsElM) _lsElM.value = d.leadSource || '';
+  applyLeadSourceToForm(d.leadSource || '');
   setBrand((d.brand||'').toLowerCase().indexOf('solis') > -1 ? 'solis' : 'yanmar');
   window.scrollTo(0,0);
   alert('กำลังแก้ไขข้อมูลของ "' + (d.custName||'-') + '" — เลือกรุ่นรถ/โปรใหม่ได้เลยตามปกติ พอกด "บันทึก & พิมพ์ PDF" ท้ายสุด ระบบจะอัปเดตทับเคสเดิมให้อัตโนมัติ ไม่สร้างเคสใหม่ซ้ำ');
@@ -5890,6 +5950,85 @@ function updateFinInfoStatus(){
   ['finInfoStatus','finInfoStatusM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = txt; });
 }
 
+// ===== ตีเทิร์นรถเก่า (ยี่ห้อ/รุ่น/เอกสาร/สภาพ/ยอดปิดหนี้หลายไฟแนนซ์/เงินคืน) =====
+let tradeIn = { brand:'', model:'', docType:'', condition:'', payoffs:[], cashBack:'' };
+const TRADE_IN_CONDITION_LABELS = {
+  excellent: 'ใหม่มาก ไม่ต้องซ่อมเลย (85-99% หรือน้อยกว่า 1,000 ชั่วโมง)',
+  good: 'ใหม่ แค่รั่วซึมเล็กน้อยตามจุด (70-84%)',
+  fair: 'ใช้งานมาพอสมควร มีควันดำ สตาร์ทติดยาก (50-69%)',
+  poor: 'โทรม ซ่อมเยอะ สตาร์ทไม่ติดหรือติดยาก ยกเครื่อง (0-49%)'
+};
+const TRADE_IN_DOC_LABELS = { book:'มีเล่ม (เล่มทะเบียน)', receipt:'มีแค่ใบซื้อขาย' };
+
+function tradeInPayoffRowHtml(idx, p){
+  return `
+    <div class="ref-row" data-idx="${idx}">
+      <div class="ref-row-head">
+        <b>ยอดปิดหนี้ที่ ${idx+1}</b>
+        <button type="button" class="ref-row-remove" onclick="removeTradeInPayoffRow(${idx})">✕ ลบ</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div class="field-group" style="margin:0">
+          <label>ไฟแนนซ์/เจ้าหนี้</label>
+          <input type="text" value="${escapeHtml(p.creditor||'')}" placeholder="เช่น กรุงศรี ลีสซิ่ง" oninput="tradeIn.payoffs[${idx}].creditor=this.value">
+        </div>
+        <div class="field-group" style="margin:0">
+          <label>ยอดปิด (บาท)</label>
+          <input type="text" inputmode="numeric" value="${escapeHtml(p.amount||'')}" placeholder="0" oninput="tradeIn.payoffs[${idx}].amount=this.value; updateTradeInTotalPreview(); updateTradeInStatus();">
+        </div>
+      </div>
+    </div>`;
+}
+function renderTradeInPayoffList(){
+  const c = document.getElementById('tradeInPayoffListContainer');
+  if(!c) return;
+  if(!tradeIn.payoffs.length) tradeIn.payoffs.push({creditor:'',amount:''});
+  c.innerHTML = tradeIn.payoffs.map((p,i)=>tradeInPayoffRowHtml(i,p)).join('');
+}
+function addTradeInPayoffRow(){ tradeIn.payoffs.push({creditor:'',amount:''}); renderTradeInPayoffList(); }
+function removeTradeInPayoffRow(idx){
+  tradeIn.payoffs.splice(idx,1);
+  renderTradeInPayoffList();
+  updateTradeInTotalPreview();
+  updateTradeInStatus();
+}
+function tradeInPayoffSum(){
+  return (tradeIn.payoffs||[]).reduce((s,p)=> s + (Number(p.amount)||0), 0);
+}
+// ยอดตีเทิร์นรวม = ดาวน์คันใหม่ตามโปรที่เลือกอยู่ตอนนี้ + ยอดปิดหนี้รวมทุกไฟแนนซ์ + เงินคืนลูกค้า
+function updateTradeInTotalPreview(){
+  const box = document.getElementById('tradeInTotalPreview');
+  if(!box) return;
+  let down = 0;
+  try{ down = Number(collectExportData().down) || 0; }catch(e){}
+  const payoffTotal = tradeInPayoffSum();
+  const cashBack = Number(tradeIn.cashBack) || 0;
+  const total = down + payoffTotal + cashBack;
+  box.innerHTML = `ยอดดาวน์คันใหม่ ${fmt(down)} + ยอดปิดหนี้รวม ${fmt(payoffTotal)} + เงินคืน ${fmt(cashBack)}<br><b style="font-size:14px">= ยอดตีเทิร์นรวม ${fmt(total)} บาท</b>`;
+}
+function syncTradeInRadios(){
+  document.querySelectorAll('input[name="tradeInDocType"]').forEach(r=>{ r.checked = (r.value === tradeIn.docType); });
+  document.querySelectorAll('input[name="tradeInCondition"]').forEach(r=>{ r.checked = (r.value === tradeIn.condition); });
+}
+function openTradeInModal(){
+  const bEl = document.getElementById('tradeInBrand'); if(bEl) bEl.value = tradeIn.brand || '';
+  const mEl = document.getElementById('tradeInModel'); if(mEl) mEl.value = tradeIn.model || '';
+  const cEl = document.getElementById('tradeInCashBack'); if(cEl) cEl.value = tradeIn.cashBack || '';
+  syncTradeInRadios();
+  renderTradeInPayoffList();
+  updateTradeInTotalPreview();
+  document.getElementById('tradeInModalBg').style.display = 'flex';
+}
+function closeTradeInModal(){
+  document.getElementById('tradeInModalBg').style.display = 'none';
+  updateTradeInStatus();
+}
+function updateTradeInStatus(){
+  const filled = !!(tradeIn.brand || tradeIn.model || tradeIn.docType || tradeIn.condition || tradeInPayoffSum() || Number(tradeIn.cashBack));
+  const txt = filled ? '✓ กรอกแล้ว' : '';
+  ['tradeInStatus','tradeInStatusM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = txt; });
+}
+
 // init when export panel shows
 const _origGoToResults = goToResults;
 
@@ -6227,6 +6366,73 @@ setBrand('yanmar');
       <button type="button" class="btn-reprint" style="width:100%;margin-top:4px" onclick="addDebtRow()">➕ เพิ่มรายการหนี้สิน</button>
 
       <button class="btn-save" style="width:100%;margin-top:14px" onclick="closeFinInfoModal()">✓ เสร็จแล้ว</button>
+    </div>
+  </div>
+</div>
+
+<div class="preview-modal-bg" id="tradeInModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>🔄 ตีเทิร์นรถเก่า</span>
+    <button onclick="closeTradeInModal()">✕ ปิด</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner">
+
+      <div class="finance-extra-subhead" style="margin-top:0">🚜 ข้อมูลรถเก่าที่จะตีเทิร์น</div>
+      <div class="field-group">
+        <label>ยี่ห้อ</label>
+        <input type="text" id="tradeInBrand" placeholder="เช่น Kubota" oninput="tradeIn.brand=this.value">
+      </div>
+      <div class="field-group">
+        <label>รุ่น</label>
+        <input type="text" id="tradeInModel" placeholder="เช่น L4018" oninput="tradeIn.model=this.value">
+      </div>
+
+      <div class="finance-extra-subhead">📄 เอกสารรถเก่า</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
+          <input type="radio" name="tradeInDocType" value="book" onchange="tradeIn.docType=this.value; updateTradeInStatus();">
+          <span>มีเล่ม (เล่มทะเบียน)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
+          <input type="radio" name="tradeInDocType" value="receipt" onchange="tradeIn.docType=this.value; updateTradeInStatus();">
+          <span>มีแค่ใบซื้อขาย</span>
+        </label>
+      </div>
+
+      <div class="finance-extra-subhead">🔧 สภาพรถ</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
+          <input type="radio" name="tradeInCondition" value="excellent" onchange="tradeIn.condition=this.value; updateTradeInStatus();">
+          <span>ใหม่มาก ไม่ต้องซ่อมเลย (85-99% หรือน้อยกว่า 1,000 ชั่วโมง)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
+          <input type="radio" name="tradeInCondition" value="good" onchange="tradeIn.condition=this.value; updateTradeInStatus();">
+          <span>ใหม่ แค่รั่วซึมเล็กน้อยตามจุด (70-84%)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
+          <input type="radio" name="tradeInCondition" value="fair" onchange="tradeIn.condition=this.value; updateTradeInStatus();">
+          <span>ใช้งานมาพอสมควร มีควันดำ สตาร์ทติดยาก (50-69%)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
+          <input type="radio" name="tradeInCondition" value="poor" onchange="tradeIn.condition=this.value; updateTradeInStatus();">
+          <span>โทรม ซ่อมเยอะ สตาร์ทไม่ติดหรือติดยาก ยกเครื่อง (0-49%)</span>
+        </label>
+      </div>
+
+      <div class="finance-extra-subhead">💳 ยอดปิดหนี้ (ปิดได้หลายไฟแนนซ์)</div>
+      <div id="tradeInPayoffListContainer"></div>
+      <button type="button" class="btn-reprint" style="width:100%;margin-top:4px" onclick="addTradeInPayoffRow()">➕ เพิ่มยอดปิดหนี้อีกไฟแนนซ์</button>
+
+      <div class="finance-extra-subhead">💵 เงินคืนลูกค้า</div>
+      <div class="field-group">
+        <label>เงินคืน (บาท)</label>
+        <input type="text" inputmode="numeric" id="tradeInCashBack" placeholder="0" oninput="tradeIn.cashBack=this.value; updateTradeInTotalPreview(); updateTradeInStatus();">
+      </div>
+
+      <div id="tradeInTotalPreview" style="margin-top:10px;padding:10px;background:#fdf8f0;border-radius:8px;font-size:12.5px;font-weight:600;color:#8a6500;line-height:1.6"></div>
+
+      <button class="btn-save" style="width:100%;margin-top:14px" onclick="closeTradeInModal()">✓ เสร็จแล้ว</button>
     </div>
   </div>
 </div>
