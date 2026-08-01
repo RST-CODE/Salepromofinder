@@ -5286,31 +5286,28 @@ function renderHistoryDetailHtml(id, d, rowNote){
       ${canEditRecords() ? `<button class="btn-reprint" style="width:100%;margin-bottom:10px" onclick="openEditRecordModal('${id}')">✏️ แก้ไขข้อมูลลูกค้า (กรณีกรอกผิด)</button>` : ''}
 
       <div class="sales-summary-card">
-        <div class="ssc-head">🧾 สรุปการขาย (ดูไวใช้งานต่อได้เลย)</div>
-        <div class="ssc-grid">
-          <div class="ssc-item"><div class="k">ลูกค้า</div><div class="v">${d.custName||'—'}</div></div>
-          <div class="ssc-item"><div class="k">เบอร์โทร</div><div class="v">${d.custPhone||'—'}</div></div>
-          <div class="ssc-item"><div class="k">รุ่นที่ซื้อ</div><div class="v">${d.brand||''} ${d.model||''}</div></div>
-          <div class="ssc-item"><div class="k">โปรที่ใช้</div><div class="v">${d.progName||'—'}</div></div>
-          <div class="ssc-item"><div class="k">ยอดจัดไฟแนนซ์</div><div class="v accent">${fmt(d.finTotal||0)} บาท</div></div>
-          <div class="ssc-item"><div class="k">งวดใหญ่/ปี</div><div class="v accent">${fmt(d.bigPay||0)} บาท</div></div>
-          <div class="ssc-item"><div class="k">ระยะเวลาผ่อน</div><div class="v">${d.finYears||'—'} ปี</div></div>
-          <div class="ssc-item"><div class="k">วันที่ปิดการขาย</div><div class="v">${d.date || (d.savedAt?.slice(0,10)) || '—'}</div></div>
-          <div class="ssc-item full"><div class="k">สาขา/ผู้ปิดการขาย</div><div class="v">${d.branch||'—'}</div></div>
-        </div>
-        <div class="case-status-row">
-          <label>สถานะเคส</label>
+        <div class="ssc-head" style="justify-content:space-between">
+          <span>🧾 สรุปการขาย</span>
           ${isFinanceUser()
             ? `<select class="case-status-select" id="hdStatusSelect_${id}" data-prev="${escapeHtml(d.caseStatus||'รอดำเนินการ')}" onchange="onCaseStatusSelectChange('${id}', this)">${CASE_STATUSES.map(s=>`<option value="${escapeHtml(s)}" ${((d.caseStatus||'รอดำเนินการ')===s)?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select>`
             : `<span class="case-status-badge status-${statusSlug(d.caseStatus||'รอดำเนินการ')}" id="hdStatusBadge_${id}">${escapeHtml(d.caseStatus||'รอดำเนินการ')}</span>`
           }
         </div>
         ${isFinanceUser() ? `<div id="hdStatusNoteArea_${id}"></div>` : ''}
+        <div class="ssc-grid">
+          <div class="ssc-item"><div class="k">ลูกค้า</div><div class="v">${d.custName||'—'}</div></div>
+          <div class="ssc-item"><div class="k">เบอร์โทร</div><div class="v">${d.custPhone||'—'}</div></div>
+          <div class="ssc-item"><div class="k">รุ่นที่ซื้อ</div><div class="v">${d.brand||''} ${d.model||''}</div></div>
+          <div class="ssc-item"><div class="k">โปรที่ใช้</div><div class="v">${d.progName||'—'}</div></div>
+          <div class="ssc-item"><div class="k">ยอดจัดไฟแนนซ์</div><div class="v accent">${fmt(d.finTotal||0)} บาท</div></div>
+          <div class="ssc-item"><div class="k">งวดใหญ่/ปี · ระยะเวลาผ่อน</div><div class="v accent">${fmt(d.bigPay||0)} บาท / ${d.finYears||'—'} ปี</div></div>
+          <div class="ssc-item"><div class="k">วันที่ปิดการขาย</div><div class="v">${d.date || (d.savedAt?.slice(0,10)) || '—'}</div></div>
+          <div class="ssc-item"><div class="k">สาขา/ผู้ปิดการขาย</div><div class="v">${d.branch||'—'}</div></div>
+        </div>
       </div>
 
       <div class="hd-section">ข้อมูลลูกค้า</div>
       <div class="hd-row"><span class="hd-label">ที่อยู่</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${d.custAddr||'—'}</span></div>
-      <div class="hd-row"><span class="hd-label">สาขา/ผู้ปิดการขาย</span><span class="hd-val">${d.branch||'—'}</span></div>
 
       ${renderGuarantorSectionWrap(id, d)}
 
