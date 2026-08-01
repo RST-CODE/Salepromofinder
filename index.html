@@ -4826,16 +4826,55 @@ function renderTimelineEntries(updates){
   }).join('');
 }
 
-function changeCaseStatus(id, status){
+// เปลี่ยนสถานะเคส — ใส่หมายเหตุแนบไปพร้อมกันได้เลย (ไม่ต้องแยกไปกดเพิ่มบันทึกคุยทีหลัง)
+let _pendingStatusChange = {};
+function onCaseStatusSelectChange(id, selectEl){
+  const newStatus = selectEl.value;
+  const prevStatus = selectEl.getAttribute('data-prev') || newStatus;
+  const area = document.getElementById('hdStatusNoteArea_'+id);
+  if(!area){ changeCaseStatus(id, newStatus); return; }
+  _pendingStatusChange[id] = { newStatus, prevStatus };
+  area.innerHTML = `
+    <div style="margin-top:8px;padding:10px;background:#fff;border:1.5px solid var(--line);border-radius:10px">
+      <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:4px">เปลี่ยนเป็น "${escapeHtml(newStatus)}" — ใส่หมายเหตุด้วยเลยได้ (ถ้ามี)</label>
+      <textarea id="hdStatusNoteInput_${id}" rows="2" placeholder="เช่น ลูกค้าขอเลื่อนนัด..." style="width:100%;box-sizing:border-box;font-family:'Kanit',sans-serif;font-size:12.5px;padding:6px 8px;border-radius:8px;border:1.5px solid var(--line)"></textarea>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button class="btn-reprint" style="flex:1" onclick="confirmCaseStatusChange('${id}')">✓ ยืนยันเปลี่ยนสถานะ</button>
+        <button class="btn-del" onclick="cancelCaseStatusChange('${id}')">ยกเลิก</button>
+      </div>
+    </div>`;
+}
+function confirmCaseStatusChange(id){
+  const pending = _pendingStatusChange[id];
+  if(!pending) return;
+  const note = (document.getElementById('hdStatusNoteInput_'+id)?.value || '').trim();
+  changeCaseStatus(id, pending.newStatus, note);
+  const area = document.getElementById('hdStatusNoteArea_'+id);
+  if(area) area.innerHTML = '';
+  const sel = document.getElementById('hdStatusSelect_'+id);
+  if(sel) sel.setAttribute('data-prev', pending.newStatus);
+  delete _pendingStatusChange[id];
+}
+function cancelCaseStatusChange(id){
+  const pending = _pendingStatusChange[id];
+  const sel = document.getElementById('hdStatusSelect_'+id);
+  if(sel && pending) sel.value = pending.prevStatus;
+  const area = document.getElementById('hdStatusNoteArea_'+id);
+  if(area) area.innerHTML = '';
+  delete _pendingStatusChange[id];
+}
+function changeCaseStatus(id, status, note){
   const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
   if(rec) rec.caseStatus = status;
-  gasPost('updateStatus', {action:'updateStatus', id, status, byName:userName, byRole:userRole}, (err)=>{
+  gasPost('updateStatus', {action:'updateStatus', id, status, note: note||'', byName:userName, byRole:userRole}, (err)=>{
     if(err) alert('บันทึกสถานะไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
   });
   const tlEl = document.getElementById('hdTimeline_'+id);
   if(tlEl){
     const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
-    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([{ts:nowStr, byName:userName, byRole:userRole, type:'status', status, note:'เปลี่ยนสถานะเป็น "'+status+'"'}]));
+    const baseNote = 'เปลี่ยนสถานะเป็น "'+status+'"';
+    const fullNote = note ? (baseNote + ' — ' + note) : baseNote;
+    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([{ts:nowStr, byName:userName, byRole:userRole, type:'status', status, note:fullNote}]));
   }
 }
 
@@ -5155,7 +5194,7 @@ function renderGuarantorSectionWrap(id, d){
 }
 
 // แสดงข้อมูลรายได้ลูกค้าในหน้ารายละเอียดประวัติ (ถ้าเคยกรอกไว้)
-function renderFinInfoSectionWrap(d){
+function renderFinInfoSectionWrap(id, d){
   const fi = d.finInfo;
   if(!fi) return '';
   const plots = (fi.farmPlots||[]).filter(p=>p.cropType||p.rai||p.titleHolder);
@@ -5180,14 +5219,28 @@ function renderFinInfoSectionWrap(d){
     ? debts.map(x=>`<div class="hd-row"><span class="hd-label">${x.creditor||'-'}</span><span class="hd-val">${x.amount?fmt(Number(x.amount)||0)+' บาท':'-'}</span></div>`).join('')
     : '';
 
+  // เก็บซ่อนไว้ก่อนโดย default — กดดูเพิ่มเติมค่อยขยาย (กันหน้ารายละเอียดยาว/รกเกินไป)
   return `
-      <div class="hd-section">ข้อมูลรายได้ลูกค้า</div>
-      ${plotsHtml}
-      <div class="hd-row"><span class="hd-label">งานประจำ</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${jobLine}</span></div>
-      <div class="hd-row"><span class="hd-label">รายได้เสริม</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${sideLine}</span></div>
-      ${machinesHtml}
-      ${debtsHtml}
+      <div class="hd-section" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleFinInfoDetail('${id}')">
+        <span>ข้อมูลรายได้ลูกค้า</span>
+        <span id="finInfoToggleIcon_${id}" style="font-size:11px;color:var(--accent);text-transform:none;font-weight:600;letter-spacing:0">▶ ดูเพิ่มเติม</span>
+      </div>
+      <div id="finInfoDetail_${id}" style="display:none">
+        ${plotsHtml}
+        <div class="hd-row"><span class="hd-label">งานประจำ</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${jobLine}</span></div>
+        <div class="hd-row"><span class="hd-label">รายได้เสริม</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${sideLine}</span></div>
+        ${machinesHtml}
+        ${debtsHtml}
+      </div>
   `;
+}
+function toggleFinInfoDetail(id){
+  const box = document.getElementById('finInfoDetail_'+id);
+  const icon = document.getElementById('finInfoToggleIcon_'+id);
+  if(!box) return;
+  const show = box.style.display === 'none';
+  box.style.display = show ? 'block' : 'none';
+  if(icon) icon.textContent = show ? '▼ ซ่อน' : '▶ ดูเพิ่มเติม';
 }
 
 // แสดงข้อมูลตีเทิร์นรถเก่าในหน้ารายละเอียดประวัติ (ถ้าเคยกรอกไว้)
@@ -5248,20 +5301,20 @@ function renderHistoryDetailHtml(id, d, rowNote){
         <div class="case-status-row">
           <label>สถานะเคส</label>
           ${isFinanceUser()
-            ? `<select class="case-status-select" id="hdStatusSelect_${id}" onchange="changeCaseStatus('${id}', this.value)">${CASE_STATUSES.map(s=>`<option value="${escapeHtml(s)}" ${((d.caseStatus||'รอดำเนินการ')===s)?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select>`
+            ? `<select class="case-status-select" id="hdStatusSelect_${id}" data-prev="${escapeHtml(d.caseStatus||'รอดำเนินการ')}" onchange="onCaseStatusSelectChange('${id}', this)">${CASE_STATUSES.map(s=>`<option value="${escapeHtml(s)}" ${((d.caseStatus||'รอดำเนินการ')===s)?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select>`
             : `<span class="case-status-badge status-${statusSlug(d.caseStatus||'รอดำเนินการ')}" id="hdStatusBadge_${id}">${escapeHtml(d.caseStatus||'รอดำเนินการ')}</span>`
           }
         </div>
+        ${isFinanceUser() ? `<div id="hdStatusNoteArea_${id}"></div>` : ''}
       </div>
 
       <div class="hd-section">ข้อมูลลูกค้า</div>
-      <div class="hd-row"><span class="hd-label">เบอร์โทร</span><span class="hd-val">${d.custPhone||'—'}</span></div>
       <div class="hd-row"><span class="hd-label">ที่อยู่</span><span class="hd-val" style="font-size:11px;text-align:right;max-width:60%">${d.custAddr||'—'}</span></div>
       <div class="hd-row"><span class="hd-label">สาขา/ผู้ปิดการขาย</span><span class="hd-val">${d.branch||'—'}</span></div>
 
       ${renderGuarantorSectionWrap(id, d)}
 
-      ${renderFinInfoSectionWrap(d)}
+      ${renderFinInfoSectionWrap(id, d)}
 
       ${renderTradeInSectionWrap(d)}
 
