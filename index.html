@@ -5164,6 +5164,17 @@ function fetchAndPatchFullDetail(id){
       gtorWrap.innerHTML = renderGuarantorInner(id, full);
     }
 
+    // finInfo/tradeIn ก็ไม่มีในข้อมูลสรุปแบบเร็ว (เหมือนผู้ค้ำ) ต้องรอโหลดฉบับเต็มก่อนถึงจะมีให้แสดง
+    // เดิมไม่ได้ patch สองส่วนนี้ ทำให้ปุ่ม "ดูเพิ่มเติม" ไม่โผล่จนกว่าจะปิด/เปิดเคสใหม่ (โหลดฉบับเต็มมาอยู่ในแคชแล้ว)
+    const finInfoWrap = document.getElementById('hdFinInfo_'+id);
+    if(finInfoWrap && !finInfoWrap.innerHTML.trim()){
+      finInfoWrap.innerHTML = renderFinInfoSectionWrap(id, full);
+    }
+    const tradeInWrap = document.getElementById('hdTradeIn_'+id);
+    if(tradeInWrap && !tradeInWrap.innerHTML.trim()){
+      tradeInWrap.innerHTML = renderTradeInSectionWrap(full);
+    }
+
     const tlLoading = document.getElementById('hdTimelineLoading_'+id);
     if(tlLoading) tlLoading.outerHTML = renderTimelineEntries(full.updates||[]) || '<div class="hd-tl-row"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">ยังไม่มีการอัปเดตเพิ่มเติม</div></div>';
 
@@ -5311,9 +5322,9 @@ function renderHistoryDetailHtml(id, d, rowNote){
 
       ${renderGuarantorSectionWrap(id, d)}
 
-      ${renderFinInfoSectionWrap(id, d)}
+      <div id="hdFinInfo_${id}">${renderFinInfoSectionWrap(id, d)}</div>
 
-      ${renderTradeInSectionWrap(d)}
+      <div id="hdTradeIn_${id}">${renderTradeInSectionWrap(d)}</div>
 
       <div class="hd-section">เอกสารประกอบ</div>
       <button class="btn-reprint" style="width:100%" onclick="openDocsModal('${id}', 'buyer')">📎 แนบ/ดูเอกสารประกอบ — ผู้ซื้อ</button>
