@@ -28,6 +28,11 @@
 //     e_special15 (พิเศษ Retention/Yanmar Fan ดาวน์15% เลื่อนงวดแรกได้3เดือน — RTA/RTB/YFSW เช่นกัน + รองรับผ่อนรายปีสำหรับกลุ่มสวนทุเรียน>50%)
 //   - หมายเหตุจุดที่ควรตรวจสอบกับผู้ใช้งาน: (1) แถว "Vio50" ในชีท โปร12% ราคา 1,550,000 ไม่ตรงกับ Vio50 ปกติ (1,774,000) คาดว่าอาจพิมพ์รุ่นผิด
 //     (2) เงินดาวน์ Vio55 Air ในโปรพิเศษ15%/Retention ที่ 368,000 สูงผิดปกติเทียบกับรุ่นข้างเคียง (คาดว่าอาจพิมพ์ผิดจาก ~268,000) — ยังไม่ได้แก้ไขตัวเลขให้ ใช้ตามไฟล์ต้นฉบับ
+// อัปเดต 2/8/2569 (ต่อ) — ตัดรุ่น Vio30-Air และ Vio35-Air ออกจากหมวด excavator ทั้งหมด (เลิกผลิต/ไม่มีสต๊อกแล้ว)
+//   ตามที่ผู้ใช้ยืนยัน ให้ใช้ Vio30-Air-7 / Vio35-Air-7 แทนสำหรับทุกโปร (ราคา/เงินดาวน์ของรุ่น -7 มีอยู่แล้วในทุกโปรหลัก)
+//   ยกเว้น e_exp12 (โปร 12% มีประสบการณ์) ซึ่งไม่มีข้อมูลราคาของรุ่น -7 อยู่ในไฟล์ต้นฉบับ เลยเหลือแค่ 5 รุ่นในโปรนี้ (Vio30, Vio35, Vio50, Vio50-Air, Vio55)
+//   ยังไม่ได้แก้ไฟล์ Excel เพราะ Vio30-Air/Vio35-Air อยู่คนละคอลัมน์กันระหว่างชีทหลัก (14 รุ่น) กับส่วนโปร12% (7 รุ่นของตัวเอง) บนชีทเดียวกัน
+//   ต้องแก้ทีละส่วนแยกกันไม่ใช่ลบคอลัมน์รวด — รอผู้ใช้ยืนยันว่าต้องการให้แก้ไฟล์ Excel ด้วยหรือไม่
 const DATA = {
   "yanmar": {
     "models": [
@@ -1679,11 +1684,9 @@ const DATA = {
     "Vio23",
     "Vio30",
     "Vio30-7",
-    "Vio30-Air",
     "Vio30-Air-7",
     "Vio35",
     "Vio35-7",
-    "Vio35-Air",
     "Vio35-Air-7",
     "Vio50",
     "Vio55 Air",
@@ -1753,19 +1756,6 @@ const DATA = {
           "total_payback": 1645220.5,
           "annual": 235031.5
         },
-        "Vio30-Air": {
-          "price": 1390000,
-          "down": 209000,
-          "yct": 70000,
-          "ysp": 15000,
-          "rst": 30000,
-          "customer_out": 94000,
-          "total": 1181000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1838226.5,
-          "annual": 262603.79
-        },
         "Vio30-Air-7": {
           "price": 1438000,
           "down": 216000,
@@ -1804,19 +1794,6 @@ const DATA = {
           "years": 7,
           "total_payback": 1780636.0,
           "annual": 254376.57
-        },
-        "Vio35-Air": {
-          "price": 1480000,
-          "down": 222000,
-          "yct": 74000,
-          "ysp": 15000,
-          "rst": 30000,
-          "customer_out": 103000,
-          "total": 1258000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1958077.0,
-          "annual": 279725.29
         },
         "Vio35-Air-7": {
           "price": 1550000,
@@ -1949,19 +1926,6 @@ const DATA = {
           "total_payback": 1799314.0,
           "annual": 257044.86
         },
-        "Vio30-Air": {
-          "price": 1390000,
-          "down": 98000,
-          "yct": 28000,
-          "ysp": 15000,
-          "rst": 30000,
-          "customer_out": 25000,
-          "total": 1292000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 2010998.0,
-          "annual": 287285.43
-        },
         "Vio30-Air-7": {
           "price": 1438000,
           "down": 101000,
@@ -2000,19 +1964,6 @@ const DATA = {
           "years": 7,
           "total_payback": 1947181.5,
           "annual": 278168.79
-        },
-        "Vio35-Air": {
-          "price": 1480000,
-          "down": 104000,
-          "yct": 30000,
-          "ysp": 15000,
-          "rst": 30000,
-          "customer_out": 29000,
-          "total": 1376000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 2141744.0,
-          "annual": 305963.43
         },
         "Vio35-Air-7": {
           "price": 1550000,
@@ -2106,19 +2057,6 @@ const DATA = {
           "total_payback": 1643664.0,
           "annual": 234809.14
         },
-        "Vio30-Air": {
-          "price": 1390000,
-          "down": 166800,
-          "yct": 70000,
-          "ysp": 40000,
-          "rst": 27000,
-          "customer_out": 29800,
-          "total": 1223200,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1903910.8,
-          "annual": 271987.26
-        },
         "Vio35": {
           "price": 1280000,
           "down": 153600,
@@ -2131,19 +2069,6 @@ const DATA = {
           "years": 7,
           "total_payback": 1753241.6,
           "annual": 250463.09
-        },
-        "Vio35-Air": {
-          "price": 1480000,
-          "down": 177600,
-          "yct": 74000,
-          "ysp": 40000,
-          "rst": 29000,
-          "customer_out": 34600,
-          "total": 1302400,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 2027185.6,
-          "annual": 289597.94
         },
         "Vio50": {
           "price": 1550000,
@@ -2250,19 +2175,6 @@ const DATA = {
           "total_payback": 1652529.6,
           "annual": 236075.66
         },
-        "Vio30-Air": {
-          "price": 1390000,
-          "down": 139000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 30000,
-          "customer_out": 79000,
-          "total": 1251000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1846476.0,
-          "annual": 263782.29
-        },
         "Vio30-Air-7": {
           "price": 1438000,
           "down": 143800,
@@ -2301,19 +2213,6 @@ const DATA = {
           "years": 7,
           "total_payback": 1787436.0,
           "annual": 255348.0
-        },
-        "Vio35-Air": {
-          "price": 1480000,
-          "down": 148000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 30000,
-          "customer_out": 88000,
-          "total": 1332000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1966032.0,
-          "annual": 280861.71
         },
         "Vio35-Air-7": {
           "price": 1550000,
@@ -2448,19 +2347,6 @@ const DATA = {
           "total_payback": 1560722.4,
           "annual": 222960.34
         },
-        "Vio30-Air": {
-          "price": 1390000,
-          "down": 209000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 30000,
-          "customer_out": 149000,
-          "total": 1181000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1743156.0,
-          "annual": 249022.29
-        },
         "Vio30-Air-7": {
           "price": 1438000,
           "down": 212000,
@@ -2499,19 +2385,6 @@ const DATA = {
           "years": 7,
           "total_payback": 1694448.0,
           "annual": 242064.0
-        },
-        "Vio35-Air": {
-          "price": 1480000,
-          "down": 222000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 30000,
-          "customer_out": 162000,
-          "total": 1258000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1856808.0,
-          "annual": 265258.29
         },
         "Vio35-Air-7": {
           "price": 1550000,
