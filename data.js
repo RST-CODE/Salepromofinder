@@ -33,6 +33,9 @@
 //   ยกเว้น e_exp12 (โปร 12% มีประสบการณ์) ซึ่งไม่มีข้อมูลราคาของรุ่น -7 อยู่ในไฟล์ต้นฉบับ เลยเหลือแค่ 5 รุ่นในโปรนี้ (Vio30, Vio35, Vio50, Vio50-Air, Vio55)
 //   ยังไม่ได้แก้ไฟล์ Excel เพราะ Vio30-Air/Vio35-Air อยู่คนละคอลัมน์กันระหว่างชีทหลัก (14 รุ่น) กับส่วนโปร12% (7 รุ่นของตัวเอง) บนชีทเดียวกัน
 //   ต้องแก้ทีละส่วนแยกกันไม่ใช่ลบคอลัมน์รวด — รอผู้ใช้ยืนยันว่าต้องการให้แก้ไฟล์ Excel ด้วยหรือไม่
+// อัปเดต 2/8/2569 (ต่อ 2) — ตัดรุ่น Vio30 และ Vio35 (รุ่นธรรมดาไม่มีต่อท้าย) ออกจากหมวด excavator ทั้งหมดตามที่ผู้ใช้ยืนยัน
+//   ใช้ Vio30-7 / Vio35-7 (หรือ Vio30-Air-7 / Vio35-Air-7) แทนในทุกโปรหลัก
+//   e_exp12 (โปร 12% มีประสบการณ์) เหลือแค่ 3 รุ่น (Vio50, Vio50-Air, Vio55) เพราะไม่มีข้อมูลราคารุ่น -7 ในไฟล์ต้นฉบับ เช่นเดียวกับตอนตัด Vio30-Air/Vio35-Air ก่อนหน้านี้
 const DATA = {
   "yanmar": {
     "models": [
@@ -1682,10 +1685,8 @@ const DATA = {
   "models": [
     "Vio17",
     "Vio23",
-    "Vio30",
     "Vio30-7",
     "Vio30-Air-7",
-    "Vio35",
     "Vio35-7",
     "Vio35-Air-7",
     "Vio50",
@@ -1730,19 +1731,6 @@ const DATA = {
           "total_payback": 1455327.5,
           "annual": 207903.93
         },
-        "Vio30": {
-          "price": 1200000,
-          "down": 180000,
-          "yct": 60000,
-          "ysp": 15000,
-          "rst": 30000,
-          "customer_out": 75000,
-          "total": 1020000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1587630.0,
-          "annual": 226804.29
-        },
         "Vio30-7": {
           "price": 1244000,
           "down": 187000,
@@ -1768,19 +1756,6 @@ const DATA = {
           "years": 7,
           "total_payback": 1902043.0,
           "annual": 271720.43
-        },
-        "Vio35": {
-          "price": 1280000,
-          "down": 192000,
-          "yct": 64000,
-          "ysp": 15000,
-          "rst": 30000,
-          "customer_out": 83000,
-          "total": 1088000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1693472.0,
-          "annual": 241924.57
         },
         "Vio35-7": {
           "price": 1346000,
@@ -1900,19 +1875,6 @@ const DATA = {
           "total_payback": 1592299.5,
           "annual": 227471.36
         },
-        "Vio30": {
-          "price": 1200000,
-          "down": 84000,
-          "yct": 24000,
-          "ysp": 15000,
-          "rst": 30000,
-          "customer_out": 15000,
-          "total": 1116000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1737054.0,
-          "annual": 248150.57
-        },
         "Vio30-7": {
           "price": 1244000,
           "down": 88000,
@@ -1938,19 +1900,6 @@ const DATA = {
           "years": 7,
           "total_payback": 2081040.5,
           "annual": 297291.5
-        },
-        "Vio35": {
-          "price": 1280000,
-          "down": 90000,
-          "yct": 26000,
-          "ysp": 15000,
-          "rst": 30000,
-          "customer_out": 19000,
-          "total": 1190000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1852235.0,
-          "annual": 264605.0
         },
         "Vio35-7": {
           "price": 1346000,
@@ -2044,32 +1993,6 @@ const DATA = {
         "6-7 ปี รายเดือนเท่านั้น"
       ],
       "entries": {
-        "Vio30": {
-          "price": 1200000,
-          "down": 144000,
-          "yct": 60000,
-          "ysp": 40000,
-          "rst": 20000,
-          "customer_out": 24000,
-          "total": 1056000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1643664.0,
-          "annual": 234809.14
-        },
-        "Vio35": {
-          "price": 1280000,
-          "down": 153600,
-          "yct": 64000,
-          "ysp": 40000,
-          "rst": 20000,
-          "customer_out": 29600,
-          "total": 1126400,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1753241.6,
-          "annual": 250463.09
-        },
         "Vio50": {
           "price": 1550000,
           "down": 186000,
@@ -2149,19 +2072,6 @@ const DATA = {
           "total_payback": 1461240.0,
           "annual": 208748.57
         },
-        "Vio30": {
-          "price": 1200000,
-          "down": 120000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 30000,
-          "customer_out": 60000,
-          "total": 1080000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1594080.0,
-          "annual": 227725.71
-        },
         "Vio30-7": {
           "price": 1244000,
           "down": 124400,
@@ -2187,19 +2097,6 @@ const DATA = {
           "years": 7,
           "total_payback": 1910239.2,
           "annual": 272891.31
-        },
-        "Vio35": {
-          "price": 1280000,
-          "down": 128000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 30000,
-          "customer_out": 68000,
-          "total": 1152000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1700352.0,
-          "annual": 242907.43
         },
         "Vio35-7": {
           "price": 1346000,
@@ -2321,19 +2218,6 @@ const DATA = {
           "total_payback": 1380060.0,
           "annual": 197151.43
         },
-        "Vio30": {
-          "price": 1200000,
-          "down": 180000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 30000,
-          "customer_out": 120000,
-          "total": 1020000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1505520.0,
-          "annual": 215074.29
-        },
         "Vio30-7": {
           "price": 1244000,
           "down": 186600,
@@ -2359,19 +2243,6 @@ const DATA = {
           "years": 7,
           "total_payback": 1809576.0,
           "annual": 258510.86
-        },
-        "Vio35": {
-          "price": 1280000,
-          "down": 192000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 30000,
-          "customer_out": 132000,
-          "total": 1088000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1605888.0,
-          "annual": 229412.57
         },
         "Vio35-7": {
           "price": 1346000,
