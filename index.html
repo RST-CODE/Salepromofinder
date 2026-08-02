@@ -6734,5 +6734,10 @@ setBrand('yanmar');
   </div>
 </div>
 
+<!-- แก้บั๊ก: div นี้เคยหายไปจาก HTML ทั้งที่โค้ด JS/CSS อ้างถึง #printArea ทุกจุด ทำให้ปุ่มพิมพ์ทุกปุ่ม
+     (พิมพ์ใบสรุป / พิมพ์แบบฟอร์มผู้ค้ำประกัน ทั้งหน้าปกติและหน้าประวัติ) พังเงียบๆ เพราะ
+     document.getElementById('printArea') คืนค่า null แล้ว .innerHTML=... throw error ก่อนถึง window.print() -->
+<div id="printArea"></div>
+
 </body>
 </html>
