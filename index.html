@@ -1328,8 +1328,8 @@ const LOOKUP_KEYS = DATA.yanmar_lookup_keys;
 const INTEREST_TABLE = {
   yanmar: {
     general: {
-      '6_monthly_3m':0.062,'6_semi':0.077,'6_annual':0.0895,
-      '7_monthly_3m':0.062,'7_semi':0.077,'7_annual':0.0895,
+      '6_monthly':0.062,'6_quarterly':0.062,'6_semi':0.077,'6_annual':0.0895,
+      '7_monthly':0.062,'7_quarterly':0.062,'7_semi':0.077,'7_annual':0.0895,
       '8_semi':0.0875,'8_annual':0.0895,
       '10_semi':0.0875,'10_annual':0.0895,
     },
@@ -1362,12 +1362,12 @@ const INTEREST_TABLE = {
     rt: {'6_annual':0.085,'6_split_70_30':0.0875,'6_split_50_50':0.085},
   },
   excavator: {
-    general15: {'7_monthly_3m':0.0795},
-    general7:  {'7_monthly_3m':0.0795,'7_annual':0.085},
-    exp12:     {'7_monthly_3m':0.0795},
-    YFSW10:{'7_monthly_3m':0.068},
-    RTA10: {'7_monthly_3m':0.0545},
-    RTB10: {'7_monthly_3m':0.0595},
+    general15: {'7_monthly':0.0795,'7_quarterly':0.0795},
+    general7:  {'7_monthly':0.0795,'7_quarterly':0.0795,'7_annual':0.085},
+    exp12:     {'7_monthly':0.0795,'7_quarterly':0.0795},
+    YFSW10:{'7_monthly':0.068,'7_quarterly':0.068},
+    RTA10: {'7_monthly':0.0545,'7_quarterly':0.0545},
+    RTB10: {'7_monthly':0.0595,'7_quarterly':0.0595},
   }
 };
 
@@ -1380,7 +1380,7 @@ const YEARS_OPTIONS = {
 
 const PAYMENT_OPTIONS = {
   yanmar: {
-    general: { 6:['monthly_3m','semi','annual'], 7:['monthly_3m','semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
+    general: { 6:['monthly','quarterly','semi','annual'], 7:['monthly','quarterly','semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
     rt:      { 6:['semi','annual'], 7:['semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
     sw:      { 6:['semi','annual'], 7:['semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
   },
@@ -1397,17 +1397,18 @@ const PAYMENT_OPTIONS = {
     rt: {6:['annual','split_70_30','split_50_50']},
   },
   excavator: {
-    general15: {7:['monthly_3m']},
-    general7:  {7:['monthly_3m','annual']},
-    exp12:     {7:['monthly_3m']},
-    YFSW10:{7:['monthly_3m']},
-    RTA10: {7:['monthly_3m']},
-    RTB10: {7:['monthly_3m']},
+    general15: {7:['monthly','quarterly']},
+    general7:  {7:['monthly','quarterly','annual']},
+    exp12:     {7:['monthly','quarterly']},
+    YFSW10:{7:['monthly','quarterly']},
+    RTA10: {7:['monthly','quarterly']},
+    RTB10: {7:['monthly','quarterly']},
   }
 };
 
 const PAYMENT_LABELS = {
-  monthly_3m: 'รายเดือน / ราย 3 เดือน',
+  monthly: 'รายเดือน',
+  quarterly: 'ราย 3 เดือน',
   semi: 'ราย 6 เดือน (2 ครั้ง/ปี)',
   annual: 'รายปี',
   split_70_30: 'สองครั้งต่อปี (ม.ค. 70% + พ.ค. 30%)',
@@ -1421,9 +1422,15 @@ function isTwoBigPerYear(paymentType){ return paymentType === 'semi' || paymentT
 function getSplitRatio(paymentType){ return SPLIT_RATIO[paymentType] || [0.5, 0.5]; }
 // จำนวนงวดย่อยก่อนงวดใหญ่ในแต่ละปี: annual=11, สองครั้งต่อปี(ไม่ว่าจะ semi/split ใดๆ)=10, รายเดือน/3เดือน=0
 function getPeriodsMinor(paymentType){
-  if(paymentType === 'monthly_3m') return 0;
+  if(paymentType === 'monthly' || paymentType === 'quarterly') return 0;
   if(isTwoBigPerYear(paymentType)) return 10;
   return 11; // annual
+}
+// จำนวนงวดต่อปี ของ payment type ที่จ่ายเท่ากันทุกงวด (ไม่มีงวดใหญ่/งวดย่อย) — ใช้หารยอด "รายปี" ให้เป็นยอดต่องวดจริง
+function periodsPerYear(paymentType){
+  if(paymentType === 'monthly') return 12;
+  if(paymentType === 'quarterly') return 4;
+  return 1;
 }
 // แยกยอดงวดใหญ่เต็มปี ออกเป็น 2 ก้อนตามสัดส่วนจริง (เดิม semi = ครึ่งเท่ากันเป๊ะ, split_70_30/split_50_50 ใหม่ = ตามสัดส่วนที่ระบุ)
 function splitBigAmounts(fullAmount, paymentType, finType){
@@ -1561,17 +1568,28 @@ CRITERIA_INFO['combine_Dry Crop'] = [{title:'เกณฑ์ลูกค้า�
 CRITERIA_INFO['combine_RT'] = [];
 CRITERIA_INFO['excavator_exp12'] = [{title:'เกณฑ์ลูกค้ามีประสบการณ์ (ดาวน์ 12%)', points:[
   'เป็นเจ้าของหรือครอบครองรถขุดอยู่แล้ว หรือมีสัญญาจ้างงานก่อสร้าง หรือมีรายได้จากสวนทุเรียน >50%',
-  'ไม่สามารถโอนสิทธิ์ได้ · ผ่อนได้ 6-7 ปี รายเดือนเท่านั้น'
+  'ไม่สามารถโอนสิทธิ์ได้',
+  'ผ่อนได้ 6-7 ปี รายเดือนเท่านั้น'
 ]}];
 CRITERIA_INFO['excavator_YFSW10'] = [{title:'SW & YF — เปลี่ยนยี่ห้อ + ยันม่าร์แฟน (พิเศษ ดาวน์ 10%)', points:[
   'แสดงหลักฐานเล่มทะเบียนที่เป็นกรรมสิทธิ์ของผู้สมัคร (กรณีผ่อนชำระอยู่ให้แสดงหลักฐานสัญญาเช่าซื้อ)',
-  'ไม่สามารถโอนสิทธิ์ได้ทุกกรณี · ฟรีค่าจดทะเบียน พ.ร.บ. สำหรับลูกค้ายันม่าร์ที่มีเอกสารสำเนาสัญญาเช่าซื้อ/สำเนาเล่มทะเบียน',
+  'ไม่สามารถโอนสิทธิ์ได้ทุกกรณี',
+  'ฟรีค่าจดทะเบียน พ.ร.บ. สำหรับลูกค้ายันม่าร์ที่มีเอกสารสำเนาสัญญาเช่าซื้อ/สำเนาเล่มทะเบียน',
   '**เลื่อนค่างวดแรกได้ 3 เดือน**'
 ]}];
-CRITERIA_INFO['excavator_RTA10'] = [{title:'RTA (พิเศษ ดาวน์ 10%)', points:['เกรดความเสี่ยงลูกค้า RTA — เงินดาวน์/ส่วนช่วยเหลือเท่ากับกลุ่ม SW & YF ต่างกันเฉพาะอัตราดอกเบี้ย (ต่ำกว่า) · เลื่อนค่างวดแรกได้ 3 เดือน']}];
-CRITERIA_INFO['excavator_RTB10'] = [{title:'RTB (พิเศษ ดาวน์ 10%)', points:['เกรดความเสี่ยงลูกค้า RTB — เงินดาวน์/ส่วนช่วยเหลือเท่ากับกลุ่ม SW & YF ต่างกันเฉพาะอัตราดอกเบี้ย · เลื่อนค่างวดแรกได้ 3 เดือน']}];
+CRITERIA_INFO['excavator_RTA10'] = [{title:'RTA (พิเศษ ดาวน์ 10%)', points:[
+  'เกรดความเสี่ยงลูกค้า RTA — เงินดาวน์/ส่วนช่วยเหลือเท่ากับกลุ่ม SW & YF ต่างกันเฉพาะอัตราดอกเบี้ย (ต่ำกว่า)',
+  'เลื่อนค่างวดแรกได้ 3 เดือน'
+]}];
+CRITERIA_INFO['excavator_RTB10'] = [{title:'RTB (พิเศษ ดาวน์ 10%)', points:[
+  'เกรดความเสี่ยงลูกค้า RTB — เงินดาวน์/ส่วนช่วยเหลือเท่ากับกลุ่ม SW & YF ต่างกันเฉพาะอัตราดอกเบี้ย',
+  'เลื่อนค่างวดแรกได้ 3 เดือน'
+]}];
 CRITERIA_INFO['excavator_general15'] = [];
-CRITERIA_INFO['excavator_general7'] = [{title:'ดาวน์ 7% (ต้องยินยอมตรวจเครดิตบูโร)', points:['ผู้สมัครต้องลงนามยินยอมให้ตรวจ Credit Bureau · มีตัวเลือกผ่อนรายปีสำหรับลูกค้ารายได้สวนทุเรียน >50%']}];
+CRITERIA_INFO['excavator_general7'] = [{title:'ดาวน์ 7% (ต้องยินยอมตรวจเครดิตบูโร)', points:[
+  'ผู้สมัครต้องลงนามยินยอมให้ตรวจ Credit Bureau',
+  'มีตัวเลือกผ่อนรายปีสำหรับลูกค้ารายได้สวนทุเรียน >50%'
+]}];
 
 function renderCriteria(){
   const key = (currentBrand==='combine'||currentBrand==='excavator') ? (currentBrand+'_'+currentSegment) : currentSegment;
@@ -1931,8 +1949,11 @@ function cardHtml(r, badge, compareTo, editable){
     const fullLabel2 = formatBigLabel(finAnnual, tractorPayment, tractorFinType);
     paymentDesc = ' · <b>' + fullLabel2 + '</b> บาท/ปี' + minorNote;
   } else {
-    const noMinorLabel = formatBigLabel(finAnnual, tractorPayment, tractorFinType);
-    paymentDesc = ' · <b>' + noMinorLabel + '</b> บาท/งวด';
+    const perYear = periodsPerYear(tractorPayment);
+    const noMinorAmt = finAnnual / perYear;
+    const noMinorLabel = formatBigLabel(noMinorAmt, tractorPayment, tractorFinType);
+    const perUnitLabel = tractorPayment==='monthly' ? 'บาท/เดือน' : tractorPayment==='quarterly' ? 'บาท/3เดือน' : 'บาท/งวด';
+    paymentDesc = ' · <b>' + noMinorLabel + '</b> ' + perUnitLabel;
   }
   const paymentChip = `<span class="chip">ผ่อน <b>${finYears} ปี</b> · ${payFreqLabel} @ <b>${fmtPct(finInterest)}</b>${paymentDesc} ${tractorFRHtml}</span>`;
 
@@ -2139,8 +2160,10 @@ function renderResultsCommon(rawRows, model){
 // ===== UI wiring =====
 function setBrand(brand){
   currentBrand = brand;
-  tractorYears = null; tractorPayment = 'annual';
-  eqYears = null; eqPayment = 'annual';
+  // รถขุด: ลูกค้าส่วนใหญ่เป็นผู้รับเหมา จ่ายรายเดือนเป็นหลัก จึง default เป็นรายเดือน (เลือกรายปีเองได้ถ้าเข้าเงื่อนไขสวนทุเรียน)
+  const defaultPayment = (brand==='excavator') ? 'monthly' : 'annual';
+  tractorYears = null; tractorPayment = defaultPayment;
+  eqYears = null; eqPayment = defaultPayment;
   document.documentElement.style.setProperty('--accent', brand==='yanmar' ? 'var(--yanmar)' : brand==='solis' ? 'var(--solis)' : brand==='combine' ? 'var(--combine)' : 'var(--excavator)');
   document.querySelectorAll('.brand-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand===brand));
   document.getElementById('segmentLabel').textContent = 'กลุ่มลูกค้า';
@@ -2233,8 +2256,9 @@ document.querySelectorAll('.brand-btn').forEach(b=>{
 function selectSegment(seg){
     currentSegment = seg;
     yfSwSubType = null;
-    tractorYears = null; tractorPayment = 'annual';
-    eqYears = null; eqPayment = 'annual';
+    const defaultPayment = (currentBrand==='excavator') ? 'monthly' : 'annual';
+    tractorYears = null; tractorPayment = defaultPayment;
+    eqYears = null; eqPayment = defaultPayment;
   eqPaymentUserSet = false;
   eqMinorMode = 'normal'; eqMinorModeUserSet = false;
   eqMinorMode = 'normal'; eqMinorModeUserSet = false;
@@ -2355,7 +2379,7 @@ function maybeAutoStep2(){
 
 
 function getMinorFromPayment(paymentType){
-  if(paymentType === 'monthly_3m') return 0;
+  if(paymentType === 'monthly' || paymentType === 'quarterly') return 0;
   if(paymentType === 'semi') return 1000;
   if(currentBrand === 'combine') return 3000;
   if(currentBrand === 'excavator') return 5000;
@@ -2430,7 +2454,7 @@ function renderTractorSelectors(){
     const finTotal = Math.max(0, (chosenE.total ?? ((chosenE.price||0) - (chosenE.down||0))) - extra);
     if(finTotal <= 0) return null;
     const annual = finTotal * (1/y + interest);
-    const bigPayPerYr = Math.max(0, annual - minorPrev*periodsPrev);
+    const bigPayPerYr = Math.max(0, (annual / periodsPerYear(p)) - minorPrev*periodsPrev);
     const bigPay = firstBigAmount(bigPayPerYr, p, tractorFinType);
     const annualRounded = firstBigAmount(annual, p, tractorFinType);
     return {bigPay, minor: minorPrev, interest, annualRounded};
@@ -2912,8 +2936,10 @@ function buildPrintHtml(d){
       const monthInYear = ((i-1)%12)+1;
       const yearNum = Math.ceil(i/12);
       let amt;
-      if(paymentType === 'monthly_3m'){
+      if(paymentType === 'monthly'){
         amt = roundInstallment(d.annualFull/12, tft);
+      } else if(paymentType === 'quarterly'){
+        amt = (monthInYear % 3 === 0) ? roundInstallment(d.annualFull/4, tft) : 0;
       } else if(mode === 'normal'){
         // งวดใหญ่ที่เดือน 6,12 (semi) หรือ 12 (annual); งวดย่อยเดือนอื่น
         amt = isBigMonth(monthInYear) ? pickBig(monthInYear, bigHalf1, bigHalf2) : minor;
@@ -2937,7 +2963,7 @@ function buildPrintHtml(d){
           amt = isBigMonth(monthInYear) ? pickBig(monthInYear, annualHalf1, annualHalf2) : 0;
         }
       } else {
-        // monthly_3m หรือ mode ที่ไม่รู้จัก
+        // mode ที่ไม่รู้จัก (ไม่ใช่ monthly/quarterly ซึ่งจัดการไปแล้วด้านบน)
         amt = isBigMonth(monthInYear) ? pickBig(monthInYear, bigHalf1, bigHalf2) : minor;
       }
       rows.push({period: i, amt, yearNum, monthInYear});
@@ -2959,7 +2985,7 @@ function buildPrintHtml(d){
     const _eqPt = d.eqPayment || _pt;
     const isSemiPay = isTwoBigPerYear(_pt);
     const eqIsSemi = isTwoBigPerYear(_eqPt);
-    const eqTimesPerYear = _eqPt==='monthly_3m' ? 12 : isTwoBigPerYear(_eqPt) ? 2 : 1;
+    const eqTimesPerYear = _eqPt==='monthly' ? 12 : _eqPt==='quarterly' ? 4 : isTwoBigPerYear(_eqPt) ? 2 : 1;
     const eqMode = d.eqMinorMode || 'normal';
     const eqMinorPerPeriod = d.eqMinorBase || 0;
     // bigPay อุปกรณ์ต่อ period (หักงวดย่อยเฉพาะแบบ normal)
@@ -2984,11 +3010,13 @@ function buildPrintHtml(d){
         slice.forEach(r=>{
           const monthInYear = ((r.period-1)%12)+1;
           // เดือนที่จ่ายงวดอุปกรณ์ตาม payment type
-          const isBigCell = _pt==='monthly_3m'
+          const isBigCell = _pt==='monthly'
             ? true  // ทุกเดือน
-            : isTwoBigPerYear(_pt)
-              ? (monthInYear===6 || monthInYear===12)
-              : monthInYear===12;  // annual
+            : _pt==='quarterly'
+              ? (monthInYear % 3 === 0) // ทุก 3 เดือน
+              : isTwoBigPerYear(_pt)
+                ? (monthInYear===6 || monthInYear===12)
+                : monthInYear===12;  // annual
           const bg = isBigCell ? 'background:#fff3e0;' : (r.period%2===0?'background:#fafafa':'');
           const fw = isBigCell ? 'font-weight:bold;' : '';
           const showEq = (eqFAmt > 0 || eqRAmt > 0) && isBigCell && r.amt > 0;
@@ -3126,9 +3154,9 @@ function buildPrintHtml(d){
 
       <div style="font-size:7.5pt;font-weight:bold;margin-bottom:1px">ตารางงวดชำระ — ${d.finYears} ปี (${d.finYears*12} งวด)${d.eqAnnual>0?(()=>{
         const pt=d.tractorPayment;
-        const times = pt==='monthly_3m'?12:isTwoBigPerYear(pt)?2:1;
+        const times = pt==='monthly'?12:pt==='quarterly'?4:isTwoBigPerYear(pt)?2:1;
         const perTime = Math.round(d.eqAnnual/times);
-        const suffix = pt==='monthly_3m'?'/เดือน':isTwoBigPerYear(pt)?'/ครั้ง × 2':'/ปี';
+        const suffix = pt==='monthly'?'/เดือน':pt==='quarterly'?'/3เดือน':isTwoBigPerYear(pt)?'/ครั้ง × 2':'/ปี';
         return ` + อุปกรณ์ <span style='color:#1e7e34'>${fmt(perTime)}${suffix}</span>`;
       })():''}</div>
       ${scheduleTableHtml(schedule, d.eqAnnualF||0, d.eqAnnualR||0)}
@@ -4139,7 +4167,8 @@ function exportXLSX(){
   for(let i=1; i<=totalPeriods; i++){
     const monthInYear = ((i-1)%12)+1;
     let amt, note='';
-    if(d.tractorPayment==='monthly_3m'){ amt=Math.round(d.annualFull/12); }
+    if(d.tractorPayment==='monthly'){ amt=Math.round(d.annualFull/12); }
+    else if(d.tractorPayment==='quarterly'){ amt=(monthInYear%3===0)?Math.round(d.annualFull/4):0; note=(monthInYear%3===0)?'':'ไม่มีงวดเดือนนี้'; }
     else { amt=(monthInYear===12)?d.bigPay:d.minor; note=(monthInYear===12)?'งวดใหญ่':'งวดย่อย'; }
     sched_data.push([i, amt, note]);
   }
@@ -6381,10 +6410,11 @@ function renderEquipment(brand, model, finInterest, finYears){
       ? 0.09
       : ((eqYears && eqPayment) ? lookupInterest(currentBrand, currentSegment, eqFinYears, eqPayment) : finInterest);
     const annual = finTotal * (1/eqFinYears + eqFinInterest);
+    const eqDisplayAmt = annual / periodsPerYear(eqPayment);
     const itemsLine = selectedItems.map(i=>`${i.name}${i.mode==='used'?' (มือสอง)':''} (${fmt(i.price)})`).join(', ');
     resultHtml = `<div class="eq-result">
       <div class="eq-r-label">🔧 งวดอุปกรณ์รวม (${selectedItems.length} รายการ — รวมมือหนึ่ง+มือสอง)</div>
-      <div class="eq-r-value">ผ่อน <b>${fmt(Math.round(annual))}</b> บาท/${eqPayment==='monthly_3m'?'งวด':isTwoBigPerYear(eqPayment)?'ครั้ง':'ปี'} · ${eqFinYears} ปี · ${PAYMENT_LABELS[eqPayment]} @ ${fmtPct(eqFinInterest)}</div>
+      <div class="eq-r-value">ผ่อน <b>${fmt(Math.round(eqDisplayAmt))}</b> บาท/${eqPayment==='monthly'?'เดือน':eqPayment==='quarterly'?'3เดือน':isTwoBigPerYear(eqPayment)?'ครั้ง':'ปี'} · ${eqFinYears} ปี · ${PAYMENT_LABELS[eqPayment]} @ ${fmtPct(eqFinInterest)}</div>
       <div class="eq-r-detail">รวมราคาอุปกรณ์ ${fmt(totalPrice)} · ดาวน์ ${fmt(downAmt)} · ยอดจัด ${fmt(finTotal)}</div>
       <div class="eq-r-detail" style="margin-top:3px;color:#6a8a6a">${itemsLine}</div>
     </div>`;
