@@ -1672,6 +1672,21 @@ const SEGMENT_ORDER = {
   combine: {'ทั่วไป':0, 'Dry Crop':1, 'YF,SW':2, 'RT':3},
   excavator: {general15:0, general7:1, exp12:2, YFSW10:3, RTA10:4, RTB10:5, YFSW15:6, RTA15:7, RTB15:8},
 };
+// รายชื่อ+ลำดับปุ่ม "กลุ่มลูกค้า" ต่อแบรนด์ — ใช้สร้างปุ่มแบบ dynamic แทนปุ่ม 4 ปุ่มตายตัวเดิม
+// (ยันม่าร์/โซลิส/รถเกี่ยว ยังคงกลุ่มเดิมทุกประการ ส่วนรถขุดมี 9 กลุ่มเพราะแต่ละกลุ่มอัตราดอกเบี้ยไม่เท่ากัน)
+const SEGMENT_LIST = {
+  yanmar:  ['ทั่วไป','YF,SW','RT'],
+  solis:   ['ทั่วไป','YF,SW','RT','Dry Crop'],
+  combine: ['ทั่วไป','Dry Crop','YF,SW','RT'],
+  excavator: ['general15','general7','exp12','YFSW10','RTA10','RTB10','YFSW15','RTA15','RTB15'],
+};
+function renderSegmentToggleButtons(brand){
+  const list = SEGMENT_LIST[brand] || ['ทั่วไป','YF,SW','RT','Dry Crop'];
+  const labels = SEGMENT_LABELS[brand] || {};
+  segmentToggle.innerHTML = list.map(seg =>
+    `<button data-seg="${seg}" class="seg-btn">${labels[seg] || seg}</button>`
+  ).join('');
+}
 // กลุ่ม YF,SW และ RT ปลดล็อก Bob 30% ได้เองอัตโนมัติอยู่แล้ว (เข้าเงื่อนไข "ลูกค้ากลุ่ม RT,YF,SW" โดยตรง) จึงไม่ต้องมี checkbox ให้ติ๊กซ้ำในกลุ่มนี้
 const TOGGLE_NOTE = {
   'YF,SW': 'กลุ่ม YF,SW ปลดล็อกโปร 30% ให้อัตโนมัติแล้ว (เป็นโปรที่ดีที่สุดสำหรับกลุ่มนี้)',
@@ -2110,15 +2125,7 @@ function setBrand(brand){
   document.documentElement.style.setProperty('--accent', brand==='yanmar' ? 'var(--yanmar)' : brand==='solis' ? 'var(--solis)' : brand==='combine' ? 'var(--combine)' : 'var(--excavator)');
   document.querySelectorAll('.brand-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand===brand));
   document.getElementById('segmentLabel').textContent = 'กลุ่มลูกค้า';
-  const dryCropBtn = segmentToggle.querySelector('[data-seg="Dry Crop"]');
-  dryCropBtn.style.display = brand==='yanmar' ? 'none' : '';
-  segmentToggle.querySelectorAll('.seg-btn').forEach(b=>{
-    const labels = SEGMENT_LABELS[brand] || {};
-    if(labels[b.dataset.seg]) b.textContent = labels[b.dataset.seg];
-    // ลำดับปุ่ม: เฉพาะแบรนด์ที่ระบุใน SEGMENT_ORDER เท่านั้นที่ปรับ (ไม่กระทบลำดับเดิมของยันม่าร์/โซลิส)
-    const orderMap = SEGMENT_ORDER[brand];
-    b.style.order = orderMap ? orderMap[b.dataset.seg] : '';
-  });
+  renderSegmentToggleButtons(brand);
   populateModels();
 }
 
@@ -2126,12 +2133,13 @@ function populateModels(){
   const models = DATA[currentBrand].models;
   modelSelect.innerHTML = models.map(m=>`<option value="${m}">${m}</option>`).join('');
   modelSelect.selectedIndex = 0;
-  currentSegment = 'ทั่วไป';
+  currentSegment = (SEGMENT_LIST[currentBrand] || ['ทั่วไป'])[0];
   yfSwSubType = null;
   toggleState = {land30:false, baac:false};
   renderSegmentButtons();
   renderCriteria();
   renderToggles();
+  renderTractorSelectors();
   renderResults();
 }
 
@@ -2201,8 +2209,9 @@ function renderResults(){
 document.querySelectorAll('.brand-btn').forEach(b=>{
   b.addEventListener('click', ()=>setBrand(b.dataset.brand));
 });
-segmentToggle.querySelectorAll('.seg-btn').forEach(b=>{
-  b.addEventListener('click', ()=>{
+segmentToggle.addEventListener('click', (evt)=>{
+  const b = evt.target.closest('.seg-btn');
+  if(!b || !segmentToggle.contains(b)) return;
     currentSegment = b.dataset.seg;
     yfSwSubType = null;
     tractorYears = null; tractorPayment = 'annual';
@@ -2215,9 +2224,9 @@ segmentToggle.querySelectorAll('.seg-btn').forEach(b=>{
     renderSegmentButtons();
     renderCriteria();
     renderToggles();
+    renderTractorSelectors();
     renderResults();
     maybeAutoStep2();
-  });
 });
 modelSelect.addEventListener('change', ()=>{
   toggleState = {land30:false, baac:false};
