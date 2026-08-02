@@ -1361,11 +1361,7 @@ const INTEREST_TABLE = {
     general15: {'7_monthly_3m':0.0795},
     general7:  {'7_monthly_3m':0.0795,'7_annual':0.085},
     exp12:     {'7_monthly_3m':0.0795},
-    RTA10: {'7_monthly_3m':0.0545},
-    RTB10: {'7_monthly_3m':0.0595},
     YFSW10:{'7_monthly_3m':0.068},
-    RTA15: {'7_monthly_3m':0.051},
-    RTB15: {'7_monthly_3m':0.056},
     YFSW15:{'7_monthly_3m':0.068,'7_annual':0.085},
   }
 };
@@ -1374,7 +1370,7 @@ const YEARS_OPTIONS = {
   yanmar: { general:[6,7,8,10], rt:[6,7,8,10], sw:[6,7,8,10] },
   solis:  { general:[6,7], sw:[6,7], rt:[6,7], dry_crop:[6,7] },
   combine: { general:[6], owner_combine:[6], owner_tractor:[6], rt:[6] },
-  excavator: { general15:[7], general7:[7], exp12:[7], RTA10:[7], RTB10:[7], YFSW10:[7], RTA15:[7], RTB15:[7], YFSW15:[7] },
+  excavator: { general15:[7], general7:[7], exp12:[7], YFSW10:[7], YFSW15:[7] },
 };
 
 const PAYMENT_OPTIONS = {
@@ -1399,11 +1395,7 @@ const PAYMENT_OPTIONS = {
     general15: {7:['monthly_3m']},
     general7:  {7:['monthly_3m','annual']},
     exp12:     {7:['monthly_3m']},
-    RTA10: {7:['monthly_3m']},
-    RTB10: {7:['monthly_3m']},
     YFSW10:{7:['monthly_3m']},
-    RTA15: {7:['monthly_3m']},
-    RTB15: {7:['monthly_3m']},
     YFSW15:{7:['monthly_3m','annual']},
   }
 };
@@ -1565,15 +1557,15 @@ CRITERIA_INFO['excavator_exp12'] = [{title:'เกณฑ์ลูกค้าม
   'เป็นเจ้าของหรือครอบครองรถขุดอยู่แล้ว หรือมีสัญญาจ้างงานก่อสร้าง หรือมีรายได้จากสวนทุเรียน >50%',
   'ไม่สามารถโอนสิทธิ์ได้ · ผ่อนได้ 6-7 ปี รายเดือนเท่านั้น'
 ]}];
-CRITERIA_INFO['excavator_RTA10'] = [{title:'กลุ่ม RTA (พิเศษ 10%)', points:['เกรดความเสี่ยงลูกค้า RTA — เลื่อนค่างวดแรกได้ 3 เดือน']}];
-CRITERIA_INFO['excavator_RTB10'] = [{title:'กลุ่ม RTB (พิเศษ 10%)', points:['เกรดความเสี่ยงลูกค้า RTB — เลื่อนค่างวดแรกได้ 3 เดือน']}];
 CRITERIA_INFO['excavator_YFSW10'] = [{title:'เปลี่ยนยี่ห้อ + ยันม่าร์แฟน (ดาวน์ 10%)', points:[
   'แสดงหลักฐานเล่มทะเบียนที่เป็นกรรมสิทธิ์ของผู้สมัคร (กรณีผ่อนชำระอยู่ให้แสดงหลักฐานสัญญาเช่าซื้อ)',
-  'ไม่สามารถโอนสิทธิ์ได้ทุกกรณี · ฟรีค่าจดทะเบียน พ.ร.บ. สำหรับลูกค้ายันม่าร์ที่มีเอกสารสำเนาสัญญาเช่าซื้อ/สำเนาเล่มทะเบียน'
+  'ไม่สามารถโอนสิทธิ์ได้ทุกกรณี · ฟรีค่าจดทะเบียน พ.ร.บ. สำหรับลูกค้ายันม่าร์ที่มีเอกสารสำเนาสัญญาเช่าซื้อ/สำเนาเล่มทะเบียน',
+  'ดอกเบี้ยที่แสดง (6.80%) คือกลุ่มเครดิตมาตรฐาน (YF,SW) — ถ้าลูกค้าจัดอยู่ในเกรดเครดิต RTA/RTB (ประเมินโดยไฟแนนซ์) จะได้ดอกเบี้ยต่ำกว่านี้ (5.45%/5.95%) ดูตัวเลขเต็มในไฟล์ Excel'
 ]}];
-CRITERIA_INFO['excavator_RTA15'] = [{title:'กลุ่ม RTA (Retention/Yanmar Fan 15%)', points:['เกรดความเสี่ยงลูกค้า RTA — เลื่อนค่างวดแรกได้ 3 เดือน']}];
-CRITERIA_INFO['excavator_RTB15'] = [{title:'กลุ่ม RTB (Retention/Yanmar Fan 15%)', points:['เกรดความเสี่ยงลูกค้า RTB — เลื่อนค่างวดแรกได้ 3 เดือน']}];
-CRITERIA_INFO['excavator_YFSW15'] = [{title:'สำหรับลูกค้า Retention, Yanmar Fan (ดาวน์ 15%)', points:['เลื่อนค่างวดแรกได้ 3 เดือน · มีตัวเลือกผ่อนรายปีสำหรับลูกค้ารายได้สวนทุเรียน >50%']}];
+CRITERIA_INFO['excavator_YFSW15'] = [{title:'สำหรับลูกค้า Retention, Yanmar Fan (ดาวน์ 15%)', points:[
+  'เลื่อนค่างวดแรกได้ 3 เดือน · มีตัวเลือกผ่อนรายปีสำหรับลูกค้ารายได้สวนทุเรียน >50%',
+  'ดอกเบี้ยที่แสดง (6.80%) คือกลุ่มเครดิตมาตรฐาน (YF,SW) — ถ้าลูกค้าจัดอยู่ในเกรดเครดิต RTA/RTB จะได้ดอกเบี้ยต่ำกว่านี้ (5.10%/5.60%) ดูตัวเลขเต็มในไฟล์ Excel'
+]}];
 CRITERIA_INFO['excavator_general15'] = [];
 CRITERIA_INFO['excavator_general7'] = [{title:'ดาวน์ 7% (ต้องยินยอมตรวจเครดิตบูโร)', points:['ผู้สมัครต้องลงนามยินยอมให้ตรวจ Credit Bureau · มีตัวเลือกผ่อนรายปีสำหรับลูกค้ารายได้สวนทุเรียน >50%']}];
 
@@ -1655,22 +1647,21 @@ const TOGGLE_DEFS = {
   },
 };
 TOGGLE_DEFS.combine = { 'ทั่วไป':[], 'YF,SW':[], 'RT':[], 'Dry Crop':[] };
-TOGGLE_DEFS.excavator = { general15:[], general7:[], exp12:[], RTA10:[], RTB10:[], YFSW10:[], RTA15:[], RTB15:[], YFSW15:[] };
+TOGGLE_DEFS.excavator = { general15:[], general7:[], exp12:[], YFSW10:[], YFSW15:[] };
 const SEGMENT_LABELS = {
   yanmar: {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT','Dry Crop':'Dry Crop'},
   solis:  {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT','Dry Crop':'Dry Crop'},
   combine:{'ทั่วไป':'ทั่วไป (ดาวน์30%)','Dry Crop':'มีรถแทรกเตอร์ (ดาวน์25%)','YF,SW':'มีรถเกี่ยวข้าว (ดาวน์20%)','RT':'ลูกค้าเก่าชั้นดี (ดาวน์10%)'},
   excavator:{
     general15:'ทั่วไป (ดาวน์15%)', general7:'ทั่วไป (ดาวน์7%, ตรวจเครดิตบูโร)', exp12:'มีประสบการณ์/เป็นเจ้าของรถขุด (ดาวน์12%)',
-    RTA10:'พิเศษ 10% - RTA', RTB10:'พิเศษ 10% - RTB', YFSW10:'เปลี่ยนยี่ห้อ+ยันม่าร์แฟน (ดาวน์10%)',
-    RTA15:'Retention/YF 15% - RTA', RTB15:'Retention/YF 15% - RTB', YFSW15:'Retention/Yanmar Fan (ดาวน์15%)'
+    YFSW10:'เปลี่ยนยี่ห้อ+ยันม่าร์แฟน (ดาวน์10%)', YFSW15:'Retention/Yanmar Fan (ดาวน์15%)'
   }
 };
 // ลำดับการแสดงปุ่มกลุ่มลูกค้า ต่อแบรนด์ (ใช้ CSS order ปรับมุมมองอย่างเดียว ไม่แตะ DOM/ลำดับของแบรนด์อื่น)
 // รถเกี่ยว: ทั่วไป, มีรถแทรกเตอร์, มีรถเกี่ยวข้าว, ลูกค้าเก่าชั้นดี — ตามที่ขอ; ยันม่าร์/โซลิสไม่ระบุ = ใช้ลำดับเดิมในหน้า HTML
 const SEGMENT_ORDER = {
   combine: {'ทั่วไป':0, 'Dry Crop':1, 'YF,SW':2, 'RT':3},
-  excavator: {general15:0, general7:1, exp12:2, YFSW10:3, RTA10:4, RTB10:5, YFSW15:6, RTA15:7, RTB15:8},
+  excavator: {general15:0, general7:1, exp12:2, YFSW10:3, YFSW15:4},
 };
 // รายชื่อ+ลำดับปุ่ม "กลุ่มลูกค้า" ต่อแบรนด์ — ใช้สร้างปุ่มแบบ dynamic แทนปุ่ม 4 ปุ่มตายตัวเดิม
 // (ยันม่าร์/โซลิส/รถเกี่ยว ยังคงกลุ่มเดิมทุกประการ ส่วนรถขุดมี 9 กลุ่มเพราะแต่ละกลุ่มอัตราดอกเบี้ยไม่เท่ากัน)
@@ -1678,7 +1669,7 @@ const SEGMENT_LIST = {
   yanmar:  ['ทั่วไป','YF,SW','RT'],
   solis:   ['ทั่วไป','YF,SW','RT','Dry Crop'],
   combine: ['ทั่วไป','Dry Crop','YF,SW','RT'],
-  excavator: ['general15','general7','exp12','YFSW10','RTA10','RTB10','YFSW15','RTA15','RTB15'],
+  excavator: ['general15','general7','exp12','YFSW10','YFSW15'],
 };
 function renderSegmentToggleButtons(brand){
   const list = SEGMENT_LIST[brand] || ['ทั่วไป','YF,SW','RT','Dry Crop'];
@@ -1700,8 +1691,7 @@ const PROGRAM_IDS = {
   combine: { general:'c_general', target_yfsw:'c_owner_combine', target_rt:'c_rt', target_tractor_owner:'c_owner_tractor' },
   excavator: {
     general15:'e_general15', general7:'e_general7', exp12:'e_exp12',
-    RTA10:'e_special10', RTB10:'e_special10', YFSW10:'e_special10',
-    RTA15:'e_special15', RTB15:'e_special15', YFSW15:'e_special15'
+    YFSW10:'e_special10', YFSW15:'e_special15'
   },
 };
 
