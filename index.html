@@ -989,6 +989,10 @@ body.printing #printArea{
     <select id="modelSelect"></select>
   </div>
 
+  <div class="select-row" id="mainGroupRow" style="display:none">
+    <label>ประเภทลูกค้า</label>
+    <div class="segment-toggle" id="mainGroupToggle"></div>
+  </div>
   <div class="select-row">
     <label id="segmentLabel">กลุ่มลูกค้า</label>
     <div class="segment-toggle" id="segmentToggle">
@@ -1362,7 +1366,8 @@ const INTEREST_TABLE = {
     general7:  {'7_monthly_3m':0.0795,'7_annual':0.085},
     exp12:     {'7_monthly_3m':0.0795},
     YFSW10:{'7_monthly_3m':0.068},
-    YFSW15:{'7_monthly_3m':0.068,'7_annual':0.085},
+    RTA10: {'7_monthly_3m':0.0545},
+    RTB10: {'7_monthly_3m':0.0595},
   }
 };
 
@@ -1370,7 +1375,7 @@ const YEARS_OPTIONS = {
   yanmar: { general:[6,7,8,10], rt:[6,7,8,10], sw:[6,7,8,10] },
   solis:  { general:[6,7], sw:[6,7], rt:[6,7], dry_crop:[6,7] },
   combine: { general:[6], owner_combine:[6], owner_tractor:[6], rt:[6] },
-  excavator: { general15:[7], general7:[7], exp12:[7], YFSW10:[7], YFSW15:[7] },
+  excavator: { general15:[7], general7:[7], exp12:[7], YFSW10:[7], RTA10:[7], RTB10:[7] },
 };
 
 const PAYMENT_OPTIONS = {
@@ -1396,7 +1401,8 @@ const PAYMENT_OPTIONS = {
     general7:  {7:['monthly_3m','annual']},
     exp12:     {7:['monthly_3m']},
     YFSW10:{7:['monthly_3m']},
-    YFSW15:{7:['monthly_3m','annual']},
+    RTA10: {7:['monthly_3m']},
+    RTB10: {7:['monthly_3m']},
   }
 };
 
@@ -1557,15 +1563,13 @@ CRITERIA_INFO['excavator_exp12'] = [{title:'เกณฑ์ลูกค้าม
   'เป็นเจ้าของหรือครอบครองรถขุดอยู่แล้ว หรือมีสัญญาจ้างงานก่อสร้าง หรือมีรายได้จากสวนทุเรียน >50%',
   'ไม่สามารถโอนสิทธิ์ได้ · ผ่อนได้ 6-7 ปี รายเดือนเท่านั้น'
 ]}];
-CRITERIA_INFO['excavator_YFSW10'] = [{title:'เปลี่ยนยี่ห้อ + ยันม่าร์แฟน (ดาวน์ 10%)', points:[
+CRITERIA_INFO['excavator_YFSW10'] = [{title:'SW & YF — เปลี่ยนยี่ห้อ + ยันม่าร์แฟน (พิเศษ ดาวน์ 10%)', points:[
   'แสดงหลักฐานเล่มทะเบียนที่เป็นกรรมสิทธิ์ของผู้สมัคร (กรณีผ่อนชำระอยู่ให้แสดงหลักฐานสัญญาเช่าซื้อ)',
   'ไม่สามารถโอนสิทธิ์ได้ทุกกรณี · ฟรีค่าจดทะเบียน พ.ร.บ. สำหรับลูกค้ายันม่าร์ที่มีเอกสารสำเนาสัญญาเช่าซื้อ/สำเนาเล่มทะเบียน',
-  'ดอกเบี้ยที่แสดง (6.80%) คือกลุ่มเครดิตมาตรฐาน (YF,SW) — ถ้าลูกค้าจัดอยู่ในเกรดเครดิต RTA/RTB (ประเมินโดยไฟแนนซ์) จะได้ดอกเบี้ยต่ำกว่านี้ (5.45%/5.95%) ดูตัวเลขเต็มในไฟล์ Excel'
+  '**เลื่อนค่างวดแรกได้ 3 เดือน**'
 ]}];
-CRITERIA_INFO['excavator_YFSW15'] = [{title:'สำหรับลูกค้า Retention, Yanmar Fan (ดาวน์ 15%)', points:[
-  'เลื่อนค่างวดแรกได้ 3 เดือน · มีตัวเลือกผ่อนรายปีสำหรับลูกค้ารายได้สวนทุเรียน >50%',
-  'ดอกเบี้ยที่แสดง (6.80%) คือกลุ่มเครดิตมาตรฐาน (YF,SW) — ถ้าลูกค้าจัดอยู่ในเกรดเครดิต RTA/RTB จะได้ดอกเบี้ยต่ำกว่านี้ (5.10%/5.60%) ดูตัวเลขเต็มในไฟล์ Excel'
-]}];
+CRITERIA_INFO['excavator_RTA10'] = [{title:'RTA (พิเศษ ดาวน์ 10%)', points:['เกรดความเสี่ยงลูกค้า RTA — เงินดาวน์/ส่วนช่วยเหลือเท่ากับกลุ่ม SW & YF ต่างกันเฉพาะอัตราดอกเบี้ย (ต่ำกว่า) · เลื่อนค่างวดแรกได้ 3 เดือน']}];
+CRITERIA_INFO['excavator_RTB10'] = [{title:'RTB (พิเศษ ดาวน์ 10%)', points:['เกรดความเสี่ยงลูกค้า RTB — เงินดาวน์/ส่วนช่วยเหลือเท่ากับกลุ่ม SW & YF ต่างกันเฉพาะอัตราดอกเบี้ย · เลื่อนค่างวดแรกได้ 3 เดือน']}];
 CRITERIA_INFO['excavator_general15'] = [];
 CRITERIA_INFO['excavator_general7'] = [{title:'ดาวน์ 7% (ต้องยินยอมตรวจเครดิตบูโร)', points:['ผู้สมัครต้องลงนามยินยอมให้ตรวจ Credit Bureau · มีตัวเลือกผ่อนรายปีสำหรับลูกค้ารายได้สวนทุเรียน >50%']}];
 
@@ -1621,6 +1625,8 @@ let toggleState = {land30:false, baac:false};
 
 const modelSelect = document.getElementById('modelSelect');
 const segmentToggle = document.getElementById('segmentToggle');
+const mainGroupToggle = document.getElementById('mainGroupToggle');
+const mainGroupRow = document.getElementById('mainGroupRow');
 const togglesContainer = document.getElementById('togglesContainer');
 const priceValue = document.getElementById('priceValue');
 const summarySupport = document.getElementById('summarySupport');
@@ -1647,21 +1653,21 @@ const TOGGLE_DEFS = {
   },
 };
 TOGGLE_DEFS.combine = { 'ทั่วไป':[], 'YF,SW':[], 'RT':[], 'Dry Crop':[] };
-TOGGLE_DEFS.excavator = { general15:[], general7:[], exp12:[], YFSW10:[], YFSW15:[] };
+TOGGLE_DEFS.excavator = { general15:[], general7:[], exp12:[], YFSW10:[], RTA10:[], RTB10:[] };
 const SEGMENT_LABELS = {
   yanmar: {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT','Dry Crop':'Dry Crop'},
   solis:  {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT','Dry Crop':'Dry Crop'},
   combine:{'ทั่วไป':'ทั่วไป (ดาวน์30%)','Dry Crop':'มีรถแทรกเตอร์ (ดาวน์25%)','YF,SW':'มีรถเกี่ยวข้าว (ดาวน์20%)','RT':'ลูกค้าเก่าชั้นดี (ดาวน์10%)'},
   excavator:{
-    general15:'ทั่วไป (ดาวน์15%)', general7:'ทั่วไป (ดาวน์7%, ตรวจเครดิตบูโร)', exp12:'มีประสบการณ์/เป็นเจ้าของรถขุด (ดาวน์12%)',
-    YFSW10:'เปลี่ยนยี่ห้อ+ยันม่าร์แฟน (ดาวน์10%)', YFSW15:'Retention/Yanmar Fan (ดาวน์15%)'
+    general15:'ดาวน์ 15%', general7:'ดาวน์ 7% (ตรวจเครดิตบูโร)', exp12:'มีประสบการณ์/เป็นเจ้าของรถขุด',
+    YFSW10:'SW & YF (เปลี่ยนยี่ห้อ+ยันม่าร์แฟน)', RTA10:'RTA', RTB10:'RTB'
   }
 };
 // ลำดับการแสดงปุ่มกลุ่มลูกค้า ต่อแบรนด์ (ใช้ CSS order ปรับมุมมองอย่างเดียว ไม่แตะ DOM/ลำดับของแบรนด์อื่น)
 // รถเกี่ยว: ทั่วไป, มีรถแทรกเตอร์, มีรถเกี่ยวข้าว, ลูกค้าเก่าชั้นดี — ตามที่ขอ; ยันม่าร์/โซลิสไม่ระบุ = ใช้ลำดับเดิมในหน้า HTML
 const SEGMENT_ORDER = {
   combine: {'ทั่วไป':0, 'Dry Crop':1, 'YF,SW':2, 'RT':3},
-  excavator: {general15:0, general7:1, exp12:2, YFSW10:3, YFSW15:4},
+  excavator: {general7:0, general15:1, exp12:2, YFSW10:3, RTA10:4, RTB10:5},
 };
 // รายชื่อ+ลำดับปุ่ม "กลุ่มลูกค้า" ต่อแบรนด์ — ใช้สร้างปุ่มแบบ dynamic แทนปุ่ม 4 ปุ่มตายตัวเดิม
 // (ยันม่าร์/โซลิส/รถเกี่ยว ยังคงกลุ่มเดิมทุกประการ ส่วนรถขุดมี 9 กลุ่มเพราะแต่ละกลุ่มอัตราดอกเบี้ยไม่เท่ากัน)
@@ -1669,10 +1675,33 @@ const SEGMENT_LIST = {
   yanmar:  ['ทั่วไป','YF,SW','RT'],
   solis:   ['ทั่วไป','YF,SW','RT','Dry Crop'],
   combine: ['ทั่วไป','Dry Crop','YF,SW','RT'],
-  excavator: ['general15','general7','exp12','YFSW10','YFSW15'],
+  excavator: ['general7','general15','exp12','YFSW10','RTA10','RTB10'],
 };
+// บางแบรนด์ (รถขุด) แบ่งเป็น 2 ชั้น: เลือก "ประเภทลูกค้า" หลักก่อน (ทั่วไป / พิเศษ)
+// แล้วค่อยเลือกโปรย่อยภายในประเภทนั้น — ลดจำนวนปุ่มที่โชว์พร้อมกัน แต่ยังเลือกได้ทุกโปรเหมือนเดิม
+const SEGMENT_GROUPS = {
+  excavator: { 'ทั่วไป': ['general7','general15','exp12'], 'พิเศษ': ['YFSW10','RTA10','RTB10'] },
+};
+let currentMainGroup = null;
+function getSegListForCurrentGroup(brand){
+  const groups = SEGMENT_GROUPS[brand];
+  if(!groups) return SEGMENT_LIST[brand];
+  const keys = Object.keys(groups);
+  if(!currentMainGroup || !groups[currentMainGroup]) currentMainGroup = keys[0];
+  return groups[currentMainGroup];
+}
+function renderMainGroupToggle(brand){
+  const groups = SEGMENT_GROUPS[brand];
+  if(!groups){ mainGroupRow.style.display = 'none'; currentMainGroup = null; return; }
+  mainGroupRow.style.display = '';
+  const keys = Object.keys(groups);
+  if(!currentMainGroup || !groups[currentMainGroup]) currentMainGroup = keys[0];
+  mainGroupToggle.innerHTML = keys.map(k =>
+    `<button data-group="${k}" class="seg-btn${k===currentMainGroup?' active':''}">${k}</button>`
+  ).join('');
+}
 function renderSegmentToggleButtons(brand){
-  const list = SEGMENT_LIST[brand] || ['ทั่วไป','YF,SW','RT','Dry Crop'];
+  const list = getSegListForCurrentGroup(brand) || SEGMENT_LIST[brand] || ['ทั่วไป','YF,SW','RT','Dry Crop'];
   const labels = SEGMENT_LABELS[brand] || {};
   segmentToggle.innerHTML = list.map(seg =>
     `<button data-seg="${seg}" class="seg-btn">${labels[seg] || seg}</button>`
@@ -1691,7 +1720,7 @@ const PROGRAM_IDS = {
   combine: { general:'c_general', target_yfsw:'c_owner_combine', target_rt:'c_rt', target_tractor_owner:'c_owner_tractor' },
   excavator: {
     general15:'e_general15', general7:'e_general7', exp12:'e_exp12',
-    YFSW10:'e_special10', YFSW15:'e_special15'
+    YFSW10:'e_special10', RTA10:'e_special10', RTB10:'e_special10'
   },
 };
 
@@ -2115,6 +2144,8 @@ function setBrand(brand){
   document.documentElement.style.setProperty('--accent', brand==='yanmar' ? 'var(--yanmar)' : brand==='solis' ? 'var(--solis)' : brand==='combine' ? 'var(--combine)' : 'var(--excavator)');
   document.querySelectorAll('.brand-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand===brand));
   document.getElementById('segmentLabel').textContent = 'กลุ่มลูกค้า';
+  currentMainGroup = null;
+  renderMainGroupToggle(brand);
   renderSegmentToggleButtons(brand);
   populateModels();
 }
@@ -2123,7 +2154,7 @@ function populateModels(){
   const models = DATA[currentBrand].models;
   modelSelect.innerHTML = models.map(m=>`<option value="${m}">${m}</option>`).join('');
   modelSelect.selectedIndex = 0;
-  currentSegment = (SEGMENT_LIST[currentBrand] || ['ทั่วไป'])[0];
+  currentSegment = (getSegListForCurrentGroup(currentBrand) || SEGMENT_LIST[currentBrand] || ['ทั่วไป'])[0];
   yfSwSubType = null;
   toggleState = {land30:false, baac:false};
   renderSegmentButtons();
@@ -2199,10 +2230,8 @@ function renderResults(){
 document.querySelectorAll('.brand-btn').forEach(b=>{
   b.addEventListener('click', ()=>setBrand(b.dataset.brand));
 });
-segmentToggle.addEventListener('click', (evt)=>{
-  const b = evt.target.closest('.seg-btn');
-  if(!b || !segmentToggle.contains(b)) return;
-    currentSegment = b.dataset.seg;
+function selectSegment(seg){
+    currentSegment = seg;
     yfSwSubType = null;
     tractorYears = null; tractorPayment = 'annual';
     eqYears = null; eqPayment = 'annual';
@@ -2217,6 +2246,20 @@ segmentToggle.addEventListener('click', (evt)=>{
     renderTractorSelectors();
     renderResults();
     maybeAutoStep2();
+}
+segmentToggle.addEventListener('click', (evt)=>{
+  const b = evt.target.closest('.seg-btn');
+  if(!b || !segmentToggle.contains(b)) return;
+  selectSegment(b.dataset.seg);
+});
+mainGroupToggle.addEventListener('click', (evt)=>{
+  const b = evt.target.closest('.seg-btn');
+  if(!b || !mainGroupToggle.contains(b)) return;
+  currentMainGroup = b.dataset.group;
+  mainGroupToggle.querySelectorAll('.seg-btn').forEach(x=>x.classList.toggle('active', x===b));
+  renderSegmentToggleButtons(currentBrand);
+  const list = getSegListForCurrentGroup(currentBrand);
+  selectSegment(list[0]);
 });
 modelSelect.addEventListener('change', ()=>{
   toggleState = {land30:false, baac:false};
