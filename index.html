@@ -1024,7 +1024,7 @@ body.printing #printArea{
       <div class="v" id="summarySupport">-</div>
     </div>
     <div class="summary-box">
-      <div class="k">ลูกค้าออกเอง (รวมจดทะเบียน+พรบ)</div>
+      <div class="k">ลูกค้าออก(รวมจดทะเบียน+พรบ)</div>
       <div class="v" id="summaryCust">-</div>
     </div>
   </div>
@@ -2020,7 +2020,7 @@ function cardHtml(r, badge, compareTo, editable){
           <div class="numbers">
             <div class="num-box cust full"><div class="k">ส่วนสนับสนุนรวม (ลูกค้าได้รับ)</div><div class="v">${fmt(totalSupport)} บาท${supportDelta}</div></div>
             <div class="num-box"><div class="k">เงินดาวน์รวม</div><div class="v">${fmt(downDisp)}${extra>0 ? `<div class="vv">(เดิม ${fmt(down)} + วางเพิ่ม ${fmt(extra)})</div>` : ''}</div></div>
-            <div class="num-box"><div class="k">ลูกค้าออกเอง (รวมจดทะเบียน+พรบ)</div><div class="v">${fmt(cust)}${custDelta}${regFee>0 ? `<div class="vv">(ดาวน์ ${fmt(custDown)} + จดทะเบียน+พรบ ${fmt(regFee)})</div>` : ''}</div></div>
+            <div class="num-box"><div class="k">ลูกค้าออก(รวมจดทะเบียน+พรบ)</div><div class="v">${fmt(cust)}${custDelta}${regFee>0 ? `<div class="vv">(ดาวน์รถ ${fmt(custDown)} + จดทะเบียน+พรบ ${fmt(regFee)})</div>` : ''}</div></div>
             <div class="num-box"><div class="k">RST ออก</div><div class="v">${fmt(rst)}${rstDelta}</div></div>
             ${editable ? `<div class="num-box full extra-down-box"><div class="k">แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (ถ้ามี)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="extraDownInput" value="${extra||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">กรอกเฉพาะ "ส่วนที่ลูกค้าอยากจ่ายเพิ่ม" เพื่อลดค่างวด — เพิ่มยอดดาวน์รวมขึ้น ไม่กระทบส่วนสนับสนุน/ต้นทุน RST</div></div>
             <div class="num-box full extra-down-box"><div class="k">แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="subForSupportInput" value="${subForSupport||''}" placeholder="0" max="${totalSupportBase}"></div><div class="vv" style="margin-top:2px">ลูกค้าออกเองแทนสนับสนุนบางส่วน (สูงสุด ${fmt(totalSupportBase)} บาท) — ยอดดาวน์รวมไม่เปลี่ยน แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน ไม่ลดยอดจัดไฟแนนซ์</div></div>` : ''}
@@ -2110,7 +2110,8 @@ function renderResultsCommon(rawRows, model){
     const supportPct = Math.round((down-cust)/price*100);
     const regFeeSummary = getRegFee(currentBrand, model, custType);
     summarySupport.textContent = supportPct + '%';
-    summaryCust.textContent = fmt(cust + regFeeSummary) + ' บาท';
+    summaryCust.innerHTML = fmt(cust + regFeeSummary) + ' บาท'
+      + (regFeeSummary>0 ? `<div style="font-size:10px;font-weight:400;color:var(--ink-soft);margin-top:2px">(ดาวน์รถ ${fmt(cust)} + จดทะเบียน+พรบ ${fmt(regFeeSummary)})</div>` : '');
   } else {
     summarySupport.textContent = '-';
     summaryCust.textContent = '-';
