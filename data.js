@@ -36,6 +36,10 @@
 // อัปเดต 2/8/2569 (ต่อ 2) — ตัดรุ่น Vio30 และ Vio35 (รุ่นธรรมดาไม่มีต่อท้าย) ออกจากหมวด excavator ทั้งหมดตามที่ผู้ใช้ยืนยัน
 //   ใช้ Vio30-7 / Vio35-7 (หรือ Vio30-Air-7 / Vio35-Air-7) แทนในทุกโปรหลัก
 //   e_exp12 (โปร 12% มีประสบการณ์) เหลือแค่ 3 รุ่น (Vio50, Vio50-Air, Vio55) เพราะไม่มีข้อมูลราคารุ่น -7 ในไฟล์ต้นฉบับ เช่นเดียวกับตอนตัด Vio30-Air/Vio35-Air ก่อนหน้านี้
+// อัปเดต 3/8/2569 — ตรวจสอบไฟล์ "Promotion Sale Solis 130769" ที่อัปโหลดใหม่อีกครั้ง:
+//   - s_general, s_bob25, s_bob30: ตัวเลขตรงกับของเดิม 100% ไม่มีการเปลี่ยนแปลง
+//   - s_target_yfsw/s_target_rt: ไฟล์ใหม่มีเลขให้ครบทุกรุ่นแล้ว (ก่อนหน้านี้มีแค่ 5 รุ่น) จึงเพิ่ม 8 รุ่นที่ขาดไปตามที่ผู้ใช้ยืนยัน:
+//     Solis 26, Solis26, YM-Solis22, YM-Solis26, YM-Solis 65, YM-Solis75, YM-Solis90, YM-Solis105 (ดอกเบี้ย 0.0875 เหมือนรุ่นเดิมในโปรนี้)
 const DATA = {
   "yanmar": {
     "models": [
@@ -781,6 +785,57 @@ const DATA = {
           "ไม่กำหนดจำนวนไร่"
         ],
         "entries": {
+          "Solis 26": {
+            "price": 339000,
+            "down": 85000,
+            "ysp": 30000,
+            "yct": 19000,
+            "customer_out": 20000,
+            "rst": 46000,
+            "total": 254000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 409575.0,
+            "annual": 58510.71
+          },
+          "Solis26": {
+            "price": 339000,
+            "down": 85000,
+            "yct": 19000,
+            "customer_out": 30000,
+            "rst": 36000,
+            "total": 254000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 409575.0,
+            "annual": 58510.71
+          },
+          "YM-Solis22": {
+            "price": 312000,
+            "down": 63000,
+            "yct": 27500,
+            "fire": 10000,
+            "customer_out": 0,
+            "rst": 25500,
+            "total": 249000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 401512.5,
+            "annual": 57358.93
+          },
+          "YM-Solis26": {
+            "price": 380000,
+            "down": 76000,
+            "yct": 31000,
+            "fire": 10000,
+            "customer_out": 0,
+            "rst": 35000,
+            "total": 304000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 490200.0,
+            "annual": 70028.57
+          },
           "YM-Solis30": {
             "price": 427000,
             "down": 86000,
@@ -837,6 +892,61 @@ const DATA = {
             "total_payback": 982012.5,
             "annual": 140287.5
           },
+          "YM-Solis 65": {
+            "price": 899000,
+            "down": 180000,
+            "ysp": 53000,
+            "yct": 67000,
+            "fire": 35000,
+            "customer_out": 0,
+            "rst": 25000,
+            "total": 719000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1159387.5,
+            "annual": 165626.79
+          },
+          "YM-Solis75": {
+            "price": 1008000,
+            "down": 202000,
+            "ysp": 55000,
+            "yct": 72500,
+            "fire": 40000,
+            "customer_out": 0,
+            "rst": 34500,
+            "total": 806000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1299675.0,
+            "annual": 185667.86
+          },
+          "YM-Solis90": {
+            "price": 1327000,
+            "down": 266000,
+            "yct": 93000,
+            "fire": 40000,
+            "customer_out": 0,
+            "rst": 133000,
+            "total": 1061000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1710862.5,
+            "annual": 244408.93
+          },
+          "YM-Solis105": {
+            "price": 1517000,
+            "down": 304000,
+            "ysp": 65000,
+            "yct": 107000,
+            "fire": 60000,
+            "customer_out": 0,
+            "rst": 72000,
+            "total": 1213000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1955962.5,
+            "annual": 279423.21
+          },
           "YM-Solis 105 Cabin": {
             "price": 1717000,
             "down": 344000,
@@ -863,6 +973,56 @@ const DATA = {
           "ไม่กำหนดจำนวนไร่"
         ],
         "entries": {
+          "Solis 26": {
+            "price": 339000,
+            "down": 85000,
+            "ysp": 30000,
+            "yct": 19000,
+            "customer_out": 20000,
+            "rst": 46000,
+            "total": 254000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 409575.0,
+            "annual": 58510.71
+          },
+          "Solis26": {
+            "price": 339000,
+            "down": 85000,
+            "yct": 19000,
+            "customer_out": 30000,
+            "rst": 36000,
+            "total": 254000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 409575.0,
+            "annual": 58510.71
+          },
+          "YM-Solis22": {
+            "price": 312000,
+            "down": 63000,
+            "yct": 30500,
+            "fire": 10000,
+            "customer_out": 0,
+            "rst": 22500,
+            "total": 249000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 401512.5,
+            "annual": 57358.93
+          },
+          "YM-Solis26": {
+            "price": 380000,
+            "down": 76000,
+            "yct": 35000,
+            "customer_out": 0,
+            "rst": 41000,
+            "total": 304000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 490200.0,
+            "annual": 70028.57
+          },
           "YM-Solis30": {
             "price": 427000,
             "down": 86000,
@@ -918,6 +1078,61 @@ const DATA = {
             "years": 7,
             "total_payback": 982012.5,
             "annual": 140287.5
+          },
+          "YM-Solis 65": {
+            "price": 899000,
+            "down": 180000,
+            "ysp": 53000,
+            "yct": 75500,
+            "fire": 35000,
+            "customer_out": 0,
+            "rst": 16500,
+            "total": 719000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1159387.5,
+            "annual": 165626.79
+          },
+          "YM-Solis75": {
+            "price": 1008000,
+            "down": 202000,
+            "ysp": 55000,
+            "yct": 82000,
+            "fire": 40000,
+            "customer_out": 0,
+            "rst": 25000,
+            "total": 806000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1299675.0,
+            "annual": 185667.86
+          },
+          "YM-Solis90": {
+            "price": 1327000,
+            "down": 266000,
+            "yct": 106500,
+            "fire": 40000,
+            "customer_out": 0,
+            "rst": 119500,
+            "total": 1061000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1710862.5,
+            "annual": 244408.93
+          },
+          "YM-Solis105": {
+            "price": 1517000,
+            "down": 304000,
+            "ysp": 65000,
+            "yct": 122000,
+            "fire": 60000,
+            "customer_out": 0,
+            "rst": 57000,
+            "total": 1213000,
+            "interest": 0.0875,
+            "years": 7,
+            "total_payback": 1955962.5,
+            "annual": 279423.21
           },
           "YM-Solis 105 Cabin": {
             "price": 1717000,
