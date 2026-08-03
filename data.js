@@ -150,6 +150,40 @@ const DATA = {
         ]
       },
       {
+        "id": "y_target_yfsw",
+        "name": "ทั่วไป 20% (YF,SW)",
+        "groups": ["YF,SW"],
+        "conditions": [
+          "ไม่กำหนดจำนวนไร่",
+          "*แบมตรวจเงินดาวน์แล้ว ให้เช็คยอดสนับสนุนให้อีกที"
+        ],
+        "entries": {
+          "EF393A": {"price":584000,"down":117000,"yct":54000,"ysp":30000,"fire":20000,"customer_out":0,"rst":13000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
+          "EF393T-45th": {"price":584000,"down":117000,"yct":54000,"ysp":30000,"fire":20000,"customer_out":0,"rst":13000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
+          "YM351R": {"price":733000,"down":147000,"yct":64500,"ysp":35000,"fire":15000,"customer_out":0,"rst":32500,"total":586000,"interest":0.0875,"years":10,"total_payback":1098750.0,"annual":109875.0},
+          "YM358R": {"price":831000,"down":167000,"yct":75500,"ysp":40000,"customer_out":0,"rst":51500,"total":664000,"interest":0.0875,"years":10,"total_payback":1245000.0,"annual":124500.0},
+          "YM358R-L1": {"price":892000,"down":179000,"yct":80000,"ysp":60000,"customer_out":0,"rst":39000,"total":713000,"interest":0.0875,"years":10,"total_payback":1336875.0,"annual":133687.5},
+          "EF725T": {"price":1072000,"down":215000,"yct":108000,"ysp":50000,"customer_out":0,"rst":57000,"total":857000,"interest":0.0875,"years":10,"total_payback":1606875.0,"annual":160687.5}
+        }
+      },
+      {
+        "id": "y_target_rt",
+        "name": "ทั่วไป 20% (RT)",
+        "groups": ["RT"],
+        "conditions": [
+          "ไม่กำหนดจำนวนไร่",
+          "*แบมตรวจเงินดาวน์แล้ว ให้เช็คยอดสนับสนุนให้อีกที"
+        ],
+        "entries": {
+          "EF393A": {"price":584000,"down":117000,"yct":67000,"ysp":35000,"fire":20000,"customer_out":0,"rst":-5000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
+          "EF393T-45th": {"price":584000,"down":117000,"yct":67000,"ysp":35000,"fire":20000,"customer_out":0,"rst":-5000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
+          "YM351R": {"price":733000,"down":147000,"yct":82000,"ysp":40000,"fire":15000,"customer_out":0,"rst":10000,"total":586000,"interest":0.0875,"years":10,"total_payback":1098750.0,"annual":109875.0},
+          "YM358R": {"price":831000,"down":167000,"yct":98000,"ysp":50000,"customer_out":0,"rst":19000,"total":664000,"interest":0.0875,"years":10,"total_payback":1245000.0,"annual":124500.0},
+          "YM358R-L1": {"price":892000,"down":179000,"yct":92000,"ysp":70000,"customer_out":0,"rst":17000,"total":713000,"interest":0.0875,"years":10,"total_payback":1336875.0,"annual":133687.5},
+          "EF725T": {"price":1072000,"down":215000,"yct":108000,"ysp":50000,"customer_out":0,"rst":57000,"total":857000,"interest":0.0875,"years":10,"total_payback":1606875.0,"annual":160687.5}
+        }
+      },
+      {
         "id": "y_bob25",
         "name": "โปร 25%",
         "groups": [
@@ -159,7 +193,8 @@ const DATA = {
           "1. ลูกค้าทั่วไป ที่ทำกินไม่ต่ำกว่า 30 ไร่",
           "2. ลูกค้า กอช. ที่ทำกินไม่ต่ำกว่า 20 ไร่",
           "*พื้นที่เพาะปลูก ถือกรรมสิทธิ์ของตนเอง หรือญาติสายตรง หรือที่เช่า (ญาติสายตรงคือ พ่อ แม่ ลูก คู่สมรส พี่น้อง)",
-          "*แสดงในสมุดทะเบียนเกษตรได้"
+          "*แสดงในสมุดทะเบียนเกษตรได้",
+          "*ยอดสนับสนุนยังไม่เรียบร้อย รอเคลียร์ ตรงโปรที่เบิกไม่ได้"
         ],
         "models_subset": [
           "EF393T 45th",
