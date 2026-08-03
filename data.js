@@ -45,6 +45,10 @@
 //   - y_bob30: ตัด "Dry Crop" ออกจาก groups + ลบเอนทรี "YM358R-L1 | Dry Crop" ทิ้ง (ตามที่ผู้ใช้ยืนยันให้ลบเลย)
 //   - s_bob25: ตัดเงื่อนไข "3. ลูกค้าที่มีใบสมาชิกชาวไร่อ้อย (Dry Crop) 20 ไร่" ออก เพราะจริงๆแล้วชาวไร่อ้อย/Sugar Mill ปลดล็อกโปร 30% (s_bob30 เงื่อนไข 2) ไม่ใช่ 25% — ใส่ผิดโปรมาตั้งแต่แรก
 //   - หน้าเว็บ: ตัดปุ่ม/segment "Dry Crop" ออกจาก Solis (SEGMENT_LIST), แก้ landRefInfo/TOGGLE_DEFS ของ Solis ให้ตรงกับ Yanmar (ดูรายละเอียดใน promo_finder html)
+// อัปเดต 3/8/2569 (ต่อ 2) — ตรวจ "Promotion Sale Yanmar 130769" ใหม่อีกรอบตามที่ผู้ใช้ทักท้วงว่า "ลูกค้าออก" ไม่ตรงไฟล์:
+//   เจอว่า y_general/y_target_yfsw/y_target_rt มีการสลับตัวเลขผิดระหว่าง fire(ไฟไหม้)/customer_out(ลูกค้าออก)/rst(RST) มาตั้งแต่ก่อนหน้านี้
+//   (ยอดดาวน์รวมของแต่ละรุ่นยังถูก แต่แบ่งสัดส่วนผิด) — แก้ทั้ง 3 โปร x 5 รุ่น (EF393A/EF393T-45th/YM351R/YM358R/EF725T) ให้ตรงไฟล์ 100%
+//   (YM358R-L1 ถูกอยู่แล้วทุกโปร ไม่ต้องแก้) ตรวจ y_bob25/y_bob30/y_358 เทียบไฟล์แล้วตรง 100% ไม่ต้องแก้ (verify ด้วยสคริปต์เทียบทุกฟิลด์ทุกเอนทรี ไม่ใช่แค่ตรวจตา)
 const DATA = {
   "yanmar": {
     "models": [
@@ -69,9 +73,9 @@ const DATA = {
             "price": 584000,
             "down": 117000,
             "yct": 32500,
-            "fire": 20000,
+            "fire": 25000,
             "customer_out": 0,
-            "rst": 64500,
+            "rst": 59500,
             "total": 467000,
             "interest": 0.0895,
             "years": 10,
@@ -82,9 +86,9 @@ const DATA = {
             "price": 584000,
             "down": 117000,
             "yct": 32500,
-            "fire": 20000,
+            "fire": 25000,
             "customer_out": 0,
-            "rst": 64500,
+            "rst": 59500,
             "total": 467000,
             "interest": 0.0895,
             "years": 10,
@@ -95,9 +99,9 @@ const DATA = {
             "price": 733000,
             "down": 147000,
             "yct": 43500,
-            "fire": 15000,
-            "customer_out": 10000,
-            "rst": 78500,
+            "fire": 30000,
+            "customer_out": 0,
+            "rst": 73500,
             "total": 586000,
             "interest": 0.0895,
             "years": 10,
@@ -108,9 +112,9 @@ const DATA = {
             "price": 831000,
             "down": 167000,
             "yct": 44000,
-            "fire": 25000,
+            "fire": 50000,
             "customer_out": 0,
-            "rst": 98000,
+            "rst": 73000,
             "total": 664000,
             "interest": 0.0895,
             "years": 10,
@@ -133,8 +137,9 @@ const DATA = {
             "price": 1072000,
             "down": 215000,
             "yct": 65000,
-            "customer_out": 25000,
-            "rst": 125000,
+            "fire": 35000,
+            "customer_out": 0,
+            "rst": 115000,
             "total": 857000,
             "interest": 0.0895,
             "years": 10,
@@ -167,12 +172,12 @@ const DATA = {
           "*แบมตรวจเงินดาวน์แล้ว ให้เช็คยอดสนับสนุนให้อีกที"
         ],
         "entries": {
-          "EF393A": {"price":584000,"down":117000,"yct":54000,"ysp":30000,"fire":20000,"customer_out":0,"rst":13000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
-          "EF393T-45th": {"price":584000,"down":117000,"yct":54000,"ysp":30000,"fire":20000,"customer_out":0,"rst":13000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
-          "YM351R": {"price":733000,"down":147000,"yct":64500,"ysp":35000,"fire":15000,"customer_out":0,"rst":32500,"total":586000,"interest":0.0875,"years":10,"total_payback":1098750.0,"annual":109875.0},
-          "YM358R": {"price":831000,"down":167000,"yct":75500,"ysp":40000,"customer_out":0,"rst":51500,"total":664000,"interest":0.0875,"years":10,"total_payback":1245000.0,"annual":124500.0},
+          "EF393A": {"price":584000,"down":117000,"yct":54000,"ysp":30000,"fire":25000,"customer_out":0,"rst":8000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
+          "EF393T-45th": {"price":584000,"down":117000,"yct":54000,"ysp":30000,"fire":25000,"customer_out":0,"rst":8000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
+          "YM351R": {"price":733000,"down":147000,"yct":64500,"ysp":35000,"fire":30000,"customer_out":0,"rst":17500,"total":586000,"interest":0.0875,"years":10,"total_payback":1098750.0,"annual":109875.0},
+          "YM358R": {"price":831000,"down":167000,"yct":75500,"ysp":40000,"fire":50000,"customer_out":0,"rst":1500,"total":664000,"interest":0.0875,"years":10,"total_payback":1245000.0,"annual":124500.0},
           "YM358R-L1": {"price":892000,"down":179000,"yct":80000,"ysp":60000,"customer_out":0,"rst":39000,"total":713000,"interest":0.0875,"years":10,"total_payback":1336875.0,"annual":133687.5},
-          "EF725T": {"price":1072000,"down":215000,"yct":108000,"ysp":50000,"customer_out":0,"rst":57000,"total":857000,"interest":0.0875,"years":10,"total_payback":1606875.0,"annual":160687.5}
+          "EF725T": {"price":1072000,"down":215000,"yct":108000,"ysp":50000,"fire":35000,"customer_out":0,"rst":22000,"total":857000,"interest":0.0875,"years":10,"total_payback":1606875.0,"annual":160687.5}
         }
       },
       {
@@ -184,12 +189,12 @@ const DATA = {
           "*แบมตรวจเงินดาวน์แล้ว ให้เช็คยอดสนับสนุนให้อีกที"
         ],
         "entries": {
-          "EF393A": {"price":584000,"down":117000,"yct":67000,"ysp":35000,"fire":20000,"customer_out":0,"rst":-5000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
-          "EF393T-45th": {"price":584000,"down":117000,"yct":67000,"ysp":35000,"fire":20000,"customer_out":0,"rst":-5000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
-          "YM351R": {"price":733000,"down":147000,"yct":82000,"ysp":40000,"fire":15000,"customer_out":0,"rst":10000,"total":586000,"interest":0.0875,"years":10,"total_payback":1098750.0,"annual":109875.0},
-          "YM358R": {"price":831000,"down":167000,"yct":98000,"ysp":50000,"customer_out":0,"rst":19000,"total":664000,"interest":0.0875,"years":10,"total_payback":1245000.0,"annual":124500.0},
+          "EF393A": {"price":584000,"down":117000,"yct":67000,"ysp":35000,"fire":25000,"customer_out":0,"rst":-10000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
+          "EF393T-45th": {"price":584000,"down":117000,"yct":67000,"ysp":35000,"fire":25000,"customer_out":0,"rst":-10000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
+          "YM351R": {"price":733000,"down":147000,"yct":82000,"ysp":40000,"fire":30000,"customer_out":0,"rst":-5000,"total":586000,"interest":0.0875,"years":10,"total_payback":1098750.0,"annual":109875.0},
+          "YM358R": {"price":831000,"down":167000,"yct":98000,"ysp":50000,"fire":50000,"customer_out":0,"rst":-31000,"total":664000,"interest":0.0875,"years":10,"total_payback":1245000.0,"annual":124500.0},
           "YM358R-L1": {"price":892000,"down":179000,"yct":92000,"ysp":70000,"customer_out":0,"rst":17000,"total":713000,"interest":0.0875,"years":10,"total_payback":1336875.0,"annual":133687.5},
-          "EF725T": {"price":1072000,"down":215000,"yct":108000,"ysp":50000,"customer_out":0,"rst":57000,"total":857000,"interest":0.0875,"years":10,"total_payback":1606875.0,"annual":160687.5}
+          "EF725T": {"price":1072000,"down":215000,"yct":108000,"ysp":50000,"fire":35000,"customer_out":0,"rst":22000,"total":857000,"interest":0.0875,"years":10,"total_payback":1606875.0,"annual":160687.5}
         }
       },
       {
