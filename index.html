@@ -989,6 +989,14 @@ body.printing #printArea{
     <select id="modelSelect"></select>
   </div>
 
+  <div class="select-row" id="custTypeRow">
+    <label>ประเภทลูกค้า (ค่าจดทะเบียน+พรบ)</label>
+    <div class="segment-toggle" id="custTypeToggle">
+      <button data-custtype="individual" class="seg-btn active">บุคคลธรรมดา</button>
+      <button data-custtype="corporate" class="seg-btn">นิติบุคคล</button>
+    </div>
+  </div>
+
   <div class="select-row" id="mainGroupRow" style="display:none">
     <label>ประเภทลูกค้า</label>
     <div class="segment-toggle" id="mainGroupToggle"></div>
@@ -1016,7 +1024,7 @@ body.printing #printArea{
       <div class="v" id="summarySupport">-</div>
     </div>
     <div class="summary-box">
-      <div class="k">ลูกค้าออกเอง</div>
+      <div class="k">ลูกค้าออกเอง (รวมจดทะเบียน+พรบ)</div>
       <div class="v" id="summaryCust">-</div>
     </div>
   </div>
@@ -1640,11 +1648,37 @@ let custSubForSupport = 0;   // แบบที่ 2: ลูกค้าจ่�
 let minorInstallment = 2000;
 let minorMode = 'normal'; // 'normal' | 'advance' | 'with_down'
 let toggleState = {land30:false, baac:false};
+let custType = 'individual'; // 'individual' (บุคคลธรรมดา) | 'corporate' (นิติบุคคล) — ใช้คิดค่าจดทะเบียน+พรบ เท่านั้น ไม่กระทบราคา/โปร
+
+// ค่าจดทะเบียน+พรบ (บวกเข้ายอดที่ลูกค้าต้องจ่ายวันรับรถ)
+// รถแทรกเตอร์/รถเกี่ยว: แยกตามประเภทลูกค้า / รถขุด: แยกตามรุ่น (เท่ากันทั้งบุคคลธรรมดาและนิติบุคคล)
+const REGISTRATION_FEE = {
+  tractor: { individual: 3150, corporate: 8880 }, // ใช้กับ yanmar, solis, combine
+  excavator: {
+    'Vio17': 7198,
+    'Vio23': 7648,
+    'Vio30-7': 8548,
+    'Vio30-Air-7': 8548,
+    'Vio35-7': 8998,
+    'Vio35-Air-7': 8998,
+    'Vio50': 9898,
+    'Vio55 Air': 10348,
+    'Vio80': 11248,
+    'Vio100': 11248,
+  }
+};
+function getRegFee(brand, model, ct){
+  if(brand === 'excavator'){
+    return REGISTRATION_FEE.excavator[model] || 0;
+  }
+  return REGISTRATION_FEE.tractor[ct] || REGISTRATION_FEE.tractor.individual;
+}
 
 const modelSelect = document.getElementById('modelSelect');
 const segmentToggle = document.getElementById('segmentToggle');
 const mainGroupToggle = document.getElementById('mainGroupToggle');
 const mainGroupRow = document.getElementById('mainGroupRow');
+const custTypeToggle = document.getElementById('custTypeToggle');
 const togglesContainer = document.getElementById('togglesContainer');
 const priceValue = document.getElementById('priceValue');
 const summarySupport = document.getElementById('summarySupport');
@@ -1832,7 +1866,11 @@ function cardHtml(r, badge, compareTo, editable){
   const totalSupportBase = down - (e.customer_out ?? 0);
   // แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน) — จำกัดไม่ให้เกินยอดสนับสนุนที่มีจริง
   const subForSupport = editable ? Math.max(0, Math.min(Number(custSubForSupport)||0, totalSupportBase)) : 0;
-  const cust = (e.customer_out ?? 0) + extra + subForSupport;
+  const regFee = getRegFee(currentBrand, modelSelect.value, custType);
+  // ส่วนของเงินดาวน์ที่ลูกค้าจ่ายเอง (ไม่รวมค่าจดทะเบียน+พรบ) — ใช้คิดสัดส่วนแท่งกราฟดาวน์
+  const custDown = (e.customer_out ?? 0) + extra + subForSupport;
+  // ยอดที่ลูกค้าต้องจ่ายจริงวันรับรถ = ส่วนดาวน์ที่ลูกค้าออกเอง + ค่าจดทะเบียน+พรบ
+  const cust = custDown + regFee;
   const downDisp = down + extra;
   const totalSupport = Math.max(0, totalSupportBase - subForSupport);
   const supportForBar = Math.max(0, support - subForSupport);
@@ -1842,14 +1880,14 @@ function cardHtml(r, badge, compareTo, editable){
     const bestCust = compareTo.customer_out ?? 0;
     const bestSupport = (compareTo.down ?? 0) - bestCust;
     const bestRst = compareTo.rst ?? 0;
-    custDelta = deltaBadge(cust - bestCust, false);
+    custDelta = deltaBadge(custDown - bestCust, false);
     supportDelta = deltaBadge(totalSupport - bestSupport, true);
     rstDelta = deltaBadge(rst - bestRst, false);
   }
 
   let custPct=0, suppPct=0, rstPct=0;
   if(downDisp>0){
-    custPct = Math.max(0, cust)/downDisp*100;
+    custPct = Math.max(0, custDown)/downDisp*100;
     suppPct = Math.max(0, supportForBar)/downDisp*100;
     rstPct = Math.max(0, Math.min(100-custPct-suppPct, (rst/downDisp*100)));
     if(rstPct<0) rstPct = 0;
@@ -1975,14 +2013,14 @@ function cardHtml(r, badge, compareTo, editable){
       <div class="card-body">
         <div class="card-main">
           <div class="bar">
-            <div class="seg-cust" style="width:${custPct}%" title="ลูกค้าจ่าย: ${fmt(cust)}"></div>
+            <div class="seg-cust" style="width:${custPct}%" title="ลูกค้าจ่าย (ส่วนดาวน์): ${fmt(custDown)}"></div>
             <div class="seg-support" style="width:${suppPct}%" title="ส่วนสนับสนุน (YCT/YSP/ไฟไหม้) เฉพาะส่วนนี้: ${fmt(support)} — ไม่รวม RST">${suppPct>8 ? fmt(support) : ''}</div>
             <div class="seg-rst" style="width:${rstPct}%" title="RST ออก: ${fmt(rst)}"></div>
           </div>
           <div class="numbers">
             <div class="num-box cust full"><div class="k">ส่วนสนับสนุนรวม (ลูกค้าได้รับ)</div><div class="v">${fmt(totalSupport)} บาท${supportDelta}</div></div>
             <div class="num-box"><div class="k">เงินดาวน์รวม</div><div class="v">${fmt(downDisp)}${extra>0 ? `<div class="vv">(เดิม ${fmt(down)} + วางเพิ่ม ${fmt(extra)})</div>` : ''}</div></div>
-            <div class="num-box"><div class="k">ลูกค้าออกเอง</div><div class="v">${fmt(cust)}${custDelta}</div></div>
+            <div class="num-box"><div class="k">ลูกค้าออกเอง (รวมจดทะเบียน+พรบ)</div><div class="v">${fmt(cust)}${custDelta}${regFee>0 ? `<div class="vv">(ดาวน์ ${fmt(custDown)} + จดทะเบียน+พรบ ${fmt(regFee)})</div>` : ''}</div></div>
             <div class="num-box"><div class="k">RST ออก</div><div class="v">${fmt(rst)}${rstDelta}</div></div>
             ${editable ? `<div class="num-box full extra-down-box"><div class="k">แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (ถ้ามี)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="extraDownInput" value="${extra||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">กรอกเฉพาะ "ส่วนที่ลูกค้าอยากจ่ายเพิ่ม" เพื่อลดค่างวด — เพิ่มยอดดาวน์รวมขึ้น ไม่กระทบส่วนสนับสนุน/ต้นทุน RST</div></div>
             <div class="num-box full extra-down-box"><div class="k">แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="subForSupportInput" value="${subForSupport||''}" placeholder="0" max="${totalSupportBase}"></div><div class="vv" style="margin-top:2px">ลูกค้าออกเองแทนสนับสนุนบางส่วน (สูงสุด ${fmt(totalSupportBase)} บาท) — ยอดดาวน์รวมไม่เปลี่ยน แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน ไม่ลดยอดจัดไฟแนนซ์</div></div>` : ''}
@@ -2070,8 +2108,9 @@ function renderResultsCommon(rawRows, model){
     const down = best.entry.down || 0;
     const cust = best.entry.customer_out ?? 0;
     const supportPct = Math.round((down-cust)/price*100);
+    const regFeeSummary = getRegFee(currentBrand, model, custType);
     summarySupport.textContent = supportPct + '%';
-    summaryCust.textContent = fmt(cust) + ' บาท';
+    summaryCust.textContent = fmt(cust + regFeeSummary) + ' บาท';
   } else {
     summarySupport.textContent = '-';
     summaryCust.textContent = '-';
@@ -2284,6 +2323,14 @@ mainGroupToggle.addEventListener('click', (evt)=>{
   renderSegmentToggleButtons(currentBrand);
   const list = getSegListForCurrentGroup(currentBrand);
   selectSegment(list[0]);
+});
+custTypeToggle.addEventListener('click', (evt)=>{
+  const b = evt.target.closest('.seg-btn');
+  if(!b || !custTypeToggle.contains(b)) return;
+  custType = b.dataset.custtype;
+  custTypeToggle.querySelectorAll('.seg-btn').forEach(x=>x.classList.toggle('active', x===b));
+  renderResults();
+  if(typeof refreshExportSummary === 'function') refreshExportSummary();
 });
 modelSelect.addEventListener('change', ()=>{
   toggleState = {land30:false, baac:false};
@@ -2663,7 +2710,8 @@ function collectExportData(){
   const minorAdvanceTotal = baseMinorCollect * periodsBeforeBigCollect;
   // แบบ 3: งวดย่อยรวมดาวน์ → บวกเพิ่มใน custOut (จ่ายจริง)
   const minorWithDown = minorMode === 'with_down' ? minorAdvanceTotal : 0;
-  const custOut = Math.max(0, (e.customer_out||0) + Math.max(0, extraDown) + subForSupport + minorWithDown);
+  const regFee = getRegFee(currentBrand, model, custType);
+  const custOut = Math.max(0, (e.customer_out||0) + Math.max(0, extraDown) + subForSupport + minorWithDown + regFee);
   const rst       = e.rst || 0;
   const finYears  = tractorYears || e.years || (currentBrand==='yanmar'?10:(currentBrand==='combine'?6:7));
   const finRate   = lookupInterest(currentBrand, currentSegment, finYears, tractorPayment);
@@ -2748,7 +2796,7 @@ function collectExportData(){
     editSummaryNote: editSummaryNote || undefined,
     byName: _editingRecordId ? userName : undefined,
     byRole: _editingRecordId ? userRole : undefined,
-    price, down, support, custOut, rst,
+    price, down, support, custOut, rst, regFee, custType,
     supportTotal: support + rst, // ยอดสนับสนุนรวมที่ถูกต้อง (รวม RST ด้วย) ใช้แสดงแทน support เดี่ยวๆ กันโชว์ไม่ตรง
     yctAmt: e.yct||0, yspAmt: e.ysp||0, fireAmt: e.fire||0, yspTopupAmt: e.ysp_topup||0, subForSupport,
     finYears, finRate, finTotal: Math.round(finTotal), annualFull: Math.round(annualFull),
@@ -3098,7 +3146,8 @@ function buildPrintHtml(d){
               <tr><td style="padding:1px 0;font-weight:bold">ดาวน์รวม</td><td style="text-align:right;font-weight:bold">${fmt(d.down)}</td></tr>
               <tr><td style="color:#888;padding:1px 0">ช่วยดาวน์</td><td style="text-align:right;color:#888">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</td></tr>
               ${d.eqItems.length>1 ? Array(d.eqItems.length-1).fill('<tr><td style="padding:1px 0"> </td><td></td></tr>').join('') : ''}
-              <tr><td style="padding:1px 0;font-weight:bold">จ่ายจริง</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.custOut)}</td></tr>
+              ${d.regFee>0 ? `<tr><td style="color:#888;padding:1px 0">ค่าจดทะเบียน+พรบ (${d.custType==='corporate'?'นิติบุคคล':'บุคคลธรรมดา'})</td><td style="text-align:right;color:#888">${fmt(d.regFee)}</td></tr>` : ''}
+              <tr><td style="padding:1px 0;font-weight:bold">จ่ายจริง (วันรับรถ)</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.custOut)}</td></tr>
               <tr><td style="color:#888;padding:1px 0">ยอดจัด</td><td style="text-align:right;color:#888">${fmt(d.finTotal)}</td></tr>
               <tr style="background:#fff3e0"><td style="padding:1px 0;font-weight:bold">งวดใหญ่/ปี</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.bigPay)}</td></tr>
               ${d.minor>0?`<tr><td style="padding:1px 0;font-weight:bold">งวดย่อย/เดือน</td><td style="text-align:right;font-weight:bold">${fmt(d.minor)} × ${getPeriodsMinor(d.tractorPayment)}</td></tr>`:''}
@@ -4136,7 +4185,8 @@ function exportXLSX(){
     ...(d.fireAmt ? [['  - ไฟไหม้', d.fireAmt]] : []),
     ...(d.yspTopupAmt ? [['  - YSP เพิ่มเติม', d.yspTopupAmt]] : []),
     ['  - RST ออก', d.rst||0],
-    ['จ่ายดาวน์จริง', d.custOut],
+    ['ค่าจดทะเบียน+พรบ (' + (d.custType==='corporate' ? 'นิติบุคคล' : 'บุคคลธรรมดา') + ')', d.regFee||0],
+    ['จ่ายดาวน์จริง (รวมจดทะเบียน+พรบ)', d.custOut],
     ['RST ออก', d.rst],
     ['ยอดจัด (รถ)', d.finTotal],
     ['ดอกเบี้ย', (d.finRate*100).toFixed(2)+'%'],
@@ -4199,7 +4249,10 @@ const CRM_DEALER_CONST = 'บ้านและที่ดินรวมสิ
 const CRM_EMAIL_CONST = 't311728.market@gmail.com';
 const CRM_STATUS_CONST = 'ลูกค้าใหม่ (New Customer)';
 const CRM_NAME_PREFIXES = ['นาย','นาง','นางสาว','น.ส.','ด.ช.','ด.ญ.','คุณ','เด็กชาย','เด็กหญิง'];
-function crmCustomerType(name){
+function crmCustomerType(name, custTypeVal){
+  // ถ้าเซลล์เคยติ๊กเลือกบุคคลธรรมดา/นิติบุคคลไว้ตอนออกใบสรุป (ใช้ค่านั้นตรงๆ แม่นกว่าเดาจากคำนำหน้าชื่อ)
+  if(custTypeVal === 'individual') return 'บุคคลธรรมดา (Individual)';
+  if(custTypeVal === 'corporate') return 'นิติบุคคล (Company)';
   name = (name||'').trim();
   for(const p of CRM_NAME_PREFIXES){ if(name.startsWith(p)) return 'บุคคลธรรมดา (Individual)'; }
   return 'นิติบุคคล (Company)';
@@ -4308,7 +4361,7 @@ function buildCrmTemplateRow(rec, no, provinces){
     addr.tambon,
     crmRelType,                      // กลุ่มลูกค้า — จาก crmCustRelType ที่บันทึกไว้ตอนออกใบสรุป (หรือเดาจาก seg เคสเก่า)
     CRM_STATUS_CONST,                // สถานะลูกค้า — ใส่ค่าคงที่ "ลูกค้าใหม่ (New Customer)" ทุกแถวตามที่ยืนยันไว้
-    crmCustomerType(rec.custName),
+    crmCustomerType(rec.custName, rec.custType),
     rec.branch || '',                // Sale (ผู้ดูแล/พนักงานขายที่บันทึกเคสนี้)
     CRM_EMAIL_CONST,                 // ผู้สร้าง (Email) — ใส่ค่าคงที่ทุกแถวตามที่ยืนยันไว้
     crmTotalRai(fp),
@@ -5060,6 +5113,8 @@ function editProductAndPromo(){
   document.getElementById('custPhone').value = d.custPhone || '';
   document.getElementById('custPhoneM').value = d.custPhone || '';
   applyLeadSourceToForm(d.leadSource || '');
+  custType = (d.custType === 'corporate') ? 'corporate' : 'individual';
+  custTypeToggle.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.custtype===custType));
   setBrand((d.brand||'').toLowerCase().indexOf('solis') > -1 ? 'solis' : 'yanmar');
   window.scrollTo(0,0);
   alert('กำลังแก้ไขข้อมูลของ "' + (d.custName||'-') + '" — เลือกรุ่นรถ/โปรใหม่ได้เลยตามปกติ พอกด "บันทึก & พิมพ์ PDF" ท้ายสุด ระบบจะอัปเดตทับเคสเดิมให้อัตโนมัติ ไม่สร้างเคสใหม่ซ้ำ');
@@ -5490,7 +5545,8 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:11px;color:var(--ink-soft);margin:8px 0 2px">สรุปย่อ</div>
       <div class="hd-row"><span class="hd-label">ดาวน์รวม</span><span class="hd-val">${fmt(d.down||0)}</span></div>
       <div class="hd-row"><span class="hd-label">โปรที่ใช้</span><span class="hd-val" style="color:var(--accent)">${d.progName||'—'}</span></div>
-      <div class="hd-row"><span class="hd-label">ลูกค้าจ่ายจริง</span><span class="hd-val" style="color:var(--accent)">${fmt(d.custOut||0)}</span></div>
+      ${d.regFee ? `<div class="hd-row"><span class="hd-label">ค่าจดทะเบียน+พรบ (${d.custType==='corporate'?'นิติบุคคล':'บุคคลธรรมดา'})</span><span class="hd-val">${fmt(d.regFee)}</span></div>` : ''}
+      <div class="hd-row"><span class="hd-label">ลูกค้าจ่ายจริง (วันรับรถ)</span><span class="hd-val" style="color:var(--accent)">${fmt(d.custOut||0)}</span></div>
       <div class="hd-row"><span class="hd-label">ช่วยดาวน์รวม</span><span class="hd-val">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</span></div>
       <div class="hd-row"><span class="hd-label">ค่างวดใหญ่/ปี</span><span class="hd-val" style="color:var(--accent);font-size:15px">${fmt(d.bigPay||0)} บาท</span></div>
 
