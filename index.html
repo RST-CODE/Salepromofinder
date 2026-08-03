@@ -1613,8 +1613,9 @@ function renderCriteria(){
 // ใช้เฉพาะ segment "ทั่วไป" เพราะเป็น segment เดียวที่มีเงื่อนไขเรื่องจำนวนไร่เข้ามาเกี่ยวข้อง
 const LAND_REF_TABLE = {
   yanmar: [
-    {rai:'20 ไร่ขึ้นไป', note:'เฉพาะลูกค้า กอช. หรือมีบัตรชาวไร่อ้อย (Dry Crop)', unlock:'โปร 25%'},
-    {rai:'40 ไร่ขึ้นไป', note:'ลูกค้าทั่วไป (ตนเอง+เช่า/ญาติสายตรงรวมได้)', unlock:'โปร 25%'},
+    {rai:'20 ไร่ขึ้นไป', note:'เฉพาะลูกค้า กอช.', unlock:'โปร 25%'},
+    {rai:'20 ไร่ขึ้นไป (ปลูกอ้อย)', note:'มีบัตรชาวไร่อ้อย/Sugar Mill', unlock:'โปร 30%'},
+    {rai:'30 ไร่ขึ้นไป', note:'ลูกค้าทั่วไป (ตนเอง+เช่า/ญาติสายตรงรวมได้)', unlock:'โปร 25%'},
     {rai:'40 ไร่ขึ้นไป', note:'ตนเอง+เช่ารวมกัน (ไม่รวมพื้นที่คนอื่น) — Mega Farm', unlock:'โปร 30% (หรือเข้าทาง ธกส เกรด AAA/ผู้นำชุมชน/Sugar Mill ก็ได้เหมือนกัน)'},
   ],
   solis: [
@@ -2042,29 +2043,10 @@ function cardHtml(r, badge, compareTo, editable){
 }
 
 function dedupeWithinSameCustomerOut(rows, model){
-  // Hide B if another option A is at least as good on ALL THREE of:
-  //  - "ลูกค้าออก" (lower is better)
-  //  - "ส่วนสนับสนุนรวม" = เงินดาวน์ - ลูกค้าออก (higher is better)
-  //  - "RST" (lower is better)
-  // and strictly better on at least one. A lower RST alone is enough to keep an option visible
-  // even if another gives more support, since RST is a real factor for the company.
-  const pending = rows.filter(r=>r.entry.pending);
-  const usable = rows.filter(r=>!r.entry.pending);
-  const kept = usable.filter(r=>{
-    const cust = r.entry.customer_out ?? 0;
-    const support = (r.entry.down ?? 0) - cust;
-    const rst = r.entry.rst ?? 0;
-    return !usable.some(other=>{
-      if(other===r) return false;
-      const oc = other.entry.customer_out ?? 0;
-      const osup = (other.entry.down ?? 0) - oc;
-      const ors = other.entry.rst ?? 0;
-      const notWorse = oc<=cust && osup>=support && ors<=rst;
-      const strictlyBetter = oc<cust || osup>support || ors<rst;
-      return notWorse && strictlyBetter;
-    });
-  });
-  return [...kept, ...pending];
+  // เดิมฟังก์ชันนี้ซ่อนโปรที่ "ด้อยกว่า" โปรอื่นในทุกมิติ (ลูกค้าออก/ส่วนสนับสนุน/RST) ออกจากรายการ
+  // ตามที่ตกลงกันใหม่: ไม่ซ่อนโปรใดๆ ที่ลูกค้าเข้าเงื่อนไขแล้ว — โชว์ครบทุกโปรที่เข้าเงื่อนไข (เรียงลำดับโปรที่ดีที่สุดไว้บนสุดโดย pickBestAndRest)
+  // เผื่อกรณีโปรทับซ้อนกัน (เช่น Target/ทั่วไป + YF,SW) เซลล์จะได้กดเลือกใช้โปรอื่นที่ไม่ใช่โปรแนะนำได้เองถ้าจำเป็น
+  return rows;
 }
 
 function pickBestAndRest(rows){
