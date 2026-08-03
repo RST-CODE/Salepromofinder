@@ -60,9 +60,9 @@ const DATA = {
             "price": 584000,
             "down": 117000,
             "yct": 32500,
-            "fire": 25000,
+            "fire": 20000,
             "customer_out": 0,
-            "rst": 59500,
+            "rst": 64500,
             "total": 467000,
             "interest": 0.0895,
             "years": 10,
@@ -73,9 +73,9 @@ const DATA = {
             "price": 584000,
             "down": 117000,
             "yct": 32500,
-            "fire": 25000,
+            "fire": 20000,
             "customer_out": 0,
-            "rst": 59500,
+            "rst": 64500,
             "total": 467000,
             "interest": 0.0895,
             "years": 10,
@@ -86,9 +86,9 @@ const DATA = {
             "price": 733000,
             "down": 147000,
             "yct": 43500,
-            "fire": 30000,
-            "customer_out": 0,
-            "rst": 73500,
+            "fire": 15000,
+            "customer_out": 10000,
+            "rst": 78500,
             "total": 586000,
             "interest": 0.0895,
             "years": 10,
@@ -99,9 +99,9 @@ const DATA = {
             "price": 831000,
             "down": 167000,
             "yct": 44000,
-            "fire": 50000,
+            "fire": 25000,
             "customer_out": 0,
-            "rst": 73000,
+            "rst": 98000,
             "total": 664000,
             "interest": 0.0895,
             "years": 10,
@@ -124,9 +124,8 @@ const DATA = {
             "price": 1072000,
             "down": 215000,
             "yct": 65000,
-            "fire": 35000,
-            "customer_out": 0,
-            "rst": 115000,
+            "customer_out": 25000,
+            "rst": 125000,
             "total": 857000,
             "interest": 0.0895,
             "years": 10,
@@ -157,9 +156,8 @@ const DATA = {
           "General"
         ],
         "conditions": [
-          "1. ลูกค้าทั่วไป ที่ทำกินไม่ต่ำกว่า 40 ไร่",
+          "1. ลูกค้าทั่วไป ที่ทำกินไม่ต่ำกว่า 30 ไร่",
           "2. ลูกค้า กอช. ที่ทำกินไม่ต่ำกว่า 20 ไร่",
-          "3. ลูกค้าที่มีใบสมาชิกชาวไร่อ้อย (Dry Crop) ที่ทำกินไม่ต่ำกว่า 20 ไร่",
           "*พื้นที่เพาะปลูก ถือกรรมสิทธิ์ของตนเอง หรือญาติสายตรง หรือที่เช่า (ญาติสายตรงคือ พ่อ แม่ ลูก คู่สมรส พี่น้อง)",
           "*แสดงในสมุดทะเบียนเกษตรได้"
         ],
@@ -249,7 +247,8 @@ const DATA = {
         "groups": [
           "General",
           "YF,SW",
-          "RT"
+          "RT",
+          "Dry Crop"
         ],
         "conditions": [
           "1. ลูกค้าผู้นำชุมชน ได้แก่ กำนัน, ผู้ช่วยผู้ใหญ่บ้าน, ผู้ใหญ่บ้าน, อบต., นายก อบต., รองนายก อบต., นายกเทศมนตรี, รองนายกเทศมนตรี, ที่ปรึกษานายกเทศมนตรี, เลขานุการนายกเทศมนตรี, ประธานสภาเทศบาล, รองประธานสภาเทศบาล, สมาชิกสภาเทศบาล เท่านั้น",
@@ -292,6 +291,19 @@ const DATA = {
             "total_payback": 765000.0,
             "annual": 76500.0
           },
+          "EF393T 45th | RT": {
+            "price": 584000,
+            "down": 176000,
+            "yct": 67000,
+            "ysp": 65000,
+            "customer_out": 0,
+            "rst": 44000,
+            "total": 408000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 765000.0,
+            "annual": 76500.0
+          },
           "YM351R | General": {
             "price": 733000,
             "down": 220000,
@@ -318,6 +330,19 @@ const DATA = {
             "total_payback": 961875.0,
             "annual": 96187.5
           },
+          "YM351R | RT": {
+            "price": 733000,
+            "down": 220000,
+            "yct": 82000,
+            "ysp": 83000,
+            "customer_out": 0,
+            "rst": 55000,
+            "total": 513000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 961875.0,
+            "annual": 96187.5
+          },
           "YM358R | General": {
             "price": 831000,
             "down": 250000,
@@ -336,6 +361,19 @@ const DATA = {
             "down": 250000,
             "yct": 75500,
             "ysp": 109000,
+            "customer_out": 0,
+            "rst": 65500,
+            "total": 581000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1089375.0,
+            "annual": 108937.5
+          },
+          "YM358R | RT": {
+            "price": 831000,
+            "down": 250000,
+            "yct": 98000,
+            "ysp": 86500,
             "customer_out": 0,
             "rst": 65500,
             "total": 581000,
@@ -371,6 +409,19 @@ const DATA = {
             "annual": 117000.0
           },
           "YM358R-L1 | RT": {
+            "price": 892000,
+            "down": 268000,
+            "yct": 80000,
+            "ysp": 121000,
+            "customer_out": 0,
+            "rst": 67000,
+            "total": 624000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1170000.0,
+            "annual": 117000.0
+          },
+          "YM358R-L1 | Dry Crop": {
             "price": 892000,
             "down": 268000,
             "yct": 92000,
