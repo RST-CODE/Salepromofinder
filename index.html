@@ -1812,7 +1812,9 @@ function findEntries(brand, model, segment, toggles){
     }
   }
 
-  getDirect(ids.general);
+  // โปร "ทั่วไป" (general) โชว์เฉพาะตอนเลือกกลุ่มลูกค้า "ทั่วไป" เท่านั้น — กลุ่มอื่น (YF,SW / RT / Dry Crop)
+  // มีโปร "ทั่วไป 20%" เวอร์ชันเฉพาะกลุ่มของตัวเองอยู่แล้ว (target_yfsw/target_rt) ไม่ต้องโชว์เวอร์ชันทั่วไปซ้ำ
+  if(segment==='ทั่วไป') getDirect(ids.general);
 
   if(brand==='yanmar' && model==='YM358R' && ids.special358){
     const p358 = byId(ids.special358);
