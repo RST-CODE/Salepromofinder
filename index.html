@@ -990,7 +990,7 @@ body.printing #printArea{
   </div>
 
   <div class="select-row" id="custTypeRow">
-    <label>ประเภทลูกค้า (ค่าจดทะเบียน+พรบ)</label>
+    <label>ประเภทลูกค้า</label>
     <div class="segment-toggle" id="custTypeToggle">
       <button data-custtype="individual" class="seg-btn active">บุคคลธรรมดา</button>
       <button data-custtype="corporate" class="seg-btn">นิติบุคคล</button>
@@ -1636,7 +1636,7 @@ function renderLandRef(){
         ${rows.map(r=>`<tr><td><b>${r.rai}</b></td><td>${r.note}</td><td>${r.unlock}</td></tr>`).join('')}
       </tbody>
     </table>
-    <div style="font-size:10.5px;color:var(--ink-soft);margin-top:4px">*ยิ่งที่ดินเยอะ ยิ่งเข้าเงื่อนไขโปรที่ให้มากขึ้นด้วย (ไม่ได้แปลว่ามีน้อยกว่านี้แล้วปลดล็อกไม่ได้เลย — ให้ดูเงื่อนไขแต่ละโปรอีกที)</div>
+    <div style="font-size:10.5px;color:var(--ink-soft);margin-top:4px">*ยิ่งที่ดินเยอะ ยิ่งปลดล็อกได้มาก</div>
   </details>`;
 }
 
@@ -2022,8 +2022,8 @@ function cardHtml(r, badge, compareTo, editable){
             <div class="num-box"><div class="k">เงินดาวน์รวม</div><div class="v">${fmt(downDisp)}${extra>0 ? `<div class="vv">(เดิม ${fmt(down)} + วางเพิ่ม ${fmt(extra)})</div>` : ''}</div></div>
             <div class="num-box"><div class="k">ลูกค้าออก(รวมจดทะเบียน+พรบ)</div><div class="v">${fmt(cust)}${custDelta}${regFee>0 ? `<div class="vv">(ดาวน์รถ ${fmt(custDown)} + จดทะเบียน+พรบ ${fmt(regFee)})</div>` : ''}</div></div>
             <div class="num-box"><div class="k">RST ออก</div><div class="v">${fmt(rst)}${rstDelta}</div></div>
-            ${editable ? `<div class="num-box full extra-down-box"><div class="k">แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (ถ้ามี)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="extraDownInput" value="${extra||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">กรอกเฉพาะ "ส่วนที่ลูกค้าอยากจ่ายเพิ่ม" เพื่อลดค่างวด — เพิ่มยอดดาวน์รวมขึ้น ไม่กระทบส่วนสนับสนุน/ต้นทุน RST</div></div>
-            <div class="num-box full extra-down-box"><div class="k">แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="subForSupportInput" value="${subForSupport||''}" placeholder="0" max="${totalSupportBase}"></div><div class="vv" style="margin-top:2px">ลูกค้าออกเองแทนสนับสนุนบางส่วน (สูงสุด ${fmt(totalSupportBase)} บาท) — ยอดดาวน์รวมไม่เปลี่ยน แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน ไม่ลดยอดจัดไฟแนนซ์</div></div>` : ''}
+            ${editable ? `<div class="num-box full extra-down-box"><div class="k">แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (ถ้ามี)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="extraDownInput" value="${extra||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">กรอกเพิ่มเพื่อ เพิ่มดาวน์ ลดค่างวด</div></div>
+            <div class="num-box full extra-down-box"><div class="k">แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="subForSupportInput" value="${subForSupport||''}" placeholder="0" max="${totalSupportBase}"></div><div class="vv" style="margin-top:2px">กรอกเพิ่มเพื่อ ออกแทนช่วยดาวน์</div></div>` : ''}
           </div>
           <div class="breakdown">
             ${e.yct ? `<span class="chip">YCT <b>${fmt(e.yct)}</b></span>`:''}
@@ -2242,7 +2242,7 @@ function renderToggles(){
   const yfSwEquipWord = currentBrand === 'combine' ? 'รถเกี่ยว' : currentBrand === 'excavator' ? 'รถขุด' : 'รถ';
   const yfSwPickerHtml = showYfSwPicker ? `
     <div class="yfsw-picker" style="margin:8px 0 4px">
-      <div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px">👥 ลูกค้ากลุ่มนี้เป็นแบบไหน? (สำหรับบันทึก CRM — ไม่กระทบราคา)</div>
+      <div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px">👥 กลุ่มลูกค้า</div>
       <div style="display:flex;gap:8px">
         <button type="button" onclick="selectYfSwSubType('Yanmar Fan')"
           style="flex:1;padding:8px;border-radius:8px;border:2px solid ${yfSwSubType==='Yanmar Fan'?'var(--accent)':'var(--line)'};background:${yfSwSubType==='Yanmar Fan'?'var(--accent)':'#fff'};color:${yfSwSubType==='Yanmar Fan'?'#fff':'var(--ink)'};font-weight:700;font-size:12.5px;cursor:pointer">
