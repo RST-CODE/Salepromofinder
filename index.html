@@ -1007,7 +1007,6 @@ body.printing #printArea{
       <button data-seg="ทั่วไป" class="seg-btn active">ทั่วไป</button>
       <button data-seg="YF,SW" class="seg-btn">YF, SW</button>
       <button data-seg="RT" class="seg-btn">RT</button>
-      <button data-seg="Dry Crop" class="seg-btn">Dry Crop</button>
     </div>
   </div>
   <div id="criteriaInfo"></div>
@@ -1554,7 +1553,6 @@ const CRITERIA_INFO = {
       'โอนสิทธิ์ให้ญาติสายตรงได้ เจ้าของสิทธิ์ต้องค้ำประกัน (รายได้ไม่ถูกนำมาคำนวณสินเชื่อ)'
     ]},
   ],
-  'Dry Crop': [],
   'RT': [
     {title:'เกณฑ์ RT (ลูกค้าเก่าชั้นดี - Retention)', points:[
       'ลูกค้าต้องมีจดหมายเชิญจาก YCT ระบุชื่อผู้ได้รับสิทธิ์ ต้องเป็นชื่อเดียวกับผู้ขอสินเชื่อ',
@@ -1620,7 +1618,9 @@ const LAND_REF_TABLE = {
   ],
   solis: [
     {rai:'20 ไร่ขึ้นไป', note:'เฉพาะลูกค้า กอช.', unlock:'โปร 25%'},
-    {rai:'30 ไร่ขึ้นไป', note:'ลูกค้าทั่วไป', unlock:'โปร 25%'},
+    {rai:'20 ไร่ขึ้นไป (ปลูกอ้อย)', note:'มีบัตรชาวไร่อ้อย/Sugar Mill', unlock:'โปร 30%'},
+    {rai:'30 ไร่ขึ้นไป', note:'ลูกค้าทั่วไป (ตนเอง+เช่า/ญาติสายตรงรวมได้)', unlock:'โปร 25%'},
+    {rai:'40 ไร่ขึ้นไป', note:'ตนเอง+เช่ารวมกัน (ไม่รวมพื้นที่คนอื่น) — Mega Farm', unlock:'โปร 30% (หรือเข้าทาง ธกส เกรด AAA/ผู้นำชุมชน/Sugar Mill ก็ได้เหมือนกัน)'},
   ],
 };
 function renderLandRef(){
@@ -1699,7 +1699,7 @@ const TOGGLE_DEFS = {
   solis: {
     'ทั่วไป': [
       {key:'land30', label:'มีพื้นที่(ตนเอง/เช่า) รวม 30 ไร่ขึ้นไป (กอช. 20 ไร่)', unlock:'ปลดล็อกโปร 25%'},
-      {key:'baac', label:'ธกส 3A / ผู้นำชุมชน / โรงงานน้ำตาล', unlock:'ปลดล็อกโปร 30%'},
+      {key:'baac', label:'ธกส 3A / ผู้นำชุมชน / โรงงานน้ำตาล / หรือที่ดิน 40 ไร่ขึ้นไป', unlock:'ปลดล็อกโปร 30%'},
     ],
     'YF,SW': [],
     'RT': [],
@@ -1708,8 +1708,8 @@ const TOGGLE_DEFS = {
 TOGGLE_DEFS.combine = { 'ทั่วไป':[], 'YF,SW':[], 'RT':[], 'Dry Crop':[] };
 TOGGLE_DEFS.excavator = { general15:[], general7:[], exp12:[], YFSW10:[], RTA10:[], RTB10:[] };
 const SEGMENT_LABELS = {
-  yanmar: {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT','Dry Crop':'Dry Crop'},
-  solis:  {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT','Dry Crop':'Dry Crop'},
+  yanmar: {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT'},
+  solis:  {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT'},
   combine:{'ทั่วไป':'ทั่วไป (ดาวน์30%)','Dry Crop':'มีรถแทรกเตอร์ (ดาวน์25%)','YF,SW':'มีรถเกี่ยวข้าว (ดาวน์20%)','RT':'ลูกค้าเก่าชั้นดี (ดาวน์10%)'},
   excavator:{
     general15:'ดาวน์ 15%', general7:'ดาวน์ 7% (ตรวจเครดิตบูโร)', exp12:'มีประสบการณ์/เป็นเจ้าของรถขุด',
@@ -1726,7 +1726,7 @@ const SEGMENT_ORDER = {
 // (ยันม่าร์/โซลิส/รถเกี่ยว ยังคงกลุ่มเดิมทุกประการ ส่วนรถขุดมี 9 กลุ่มเพราะแต่ละกลุ่มอัตราดอกเบี้ยไม่เท่ากัน)
 const SEGMENT_LIST = {
   yanmar:  ['ทั่วไป','YF,SW','RT'],
-  solis:   ['ทั่วไป','YF,SW','RT','Dry Crop'],
+  solis:   ['ทั่วไป','YF,SW','RT'],
   combine: ['ทั่วไป','Dry Crop','YF,SW','RT'],
   excavator: ['general7','general15','exp12','YFSW10','RTA10','RTB10'],
 };
@@ -1754,7 +1754,7 @@ function renderMainGroupToggle(brand){
   ).join('');
 }
 function renderSegmentToggleButtons(brand){
-  const list = getSegListForCurrentGroup(brand) || SEGMENT_LIST[brand] || ['ทั่วไป','YF,SW','RT','Dry Crop'];
+  const list = getSegListForCurrentGroup(brand) || SEGMENT_LIST[brand] || ['ทั่วไป','YF,SW','RT'];
   const labels = SEGMENT_LABELS[brand] || {};
   segmentToggle.innerHTML = list.map(seg =>
     `<button data-seg="${seg}" class="seg-btn">${labels[seg] || seg}</button>`
@@ -1783,6 +1783,25 @@ function getKeys(brand, model){
   return [model];
 }
 
+// ============================================================
+// ★ กฎการเลือกโปร — อ่านก่อนแก้ทุกครั้ง (สรุปรวม 2/8/2569) ★
+// ============================================================
+// ส่วนที่ 1 — "โปรไหนบ้างเข้ารอบมาแข่งกัน" (ทำใน findEntries ด้านล่างนี้):
+//   - โปรทุกตัวที่ลูกค้า "เข้าเงื่อนไข" ในกลุ่ม/segment ปัจจุบัน จะถูกดึงเข้ามาแข่งหมด ไม่มีการซ่อนโปรที่ "แพ้" ออกจากลิสต์
+//     (เดิมมี dedupeWithinSameCustomerOut() ซ่อนโปรที่ด้อยกว่าทุกด้าน ตอนนี้ปิดไปแล้วตามที่ตกลงกัน — ฟังก์ชันยังอยู่แต่ return rows เฉยๆ)
+//   - โปร "ทั่วไป" (ids.general) จะเข้าแข่งเฉพาะตอนเลือกกลุ่มลูกค้า "ทั่วไป" เท่านั้น
+//     กลุ่มอื่น (YF,SW / RT / Dry Crop) มีโปร "ทั่วไป 20%" เวอร์ชันเฉพาะกลุ่มของตัวเองอยู่แล้ว (target_yfsw/target_rt/ฯลฯ)
+//     ไม่ต้องเอาเวอร์ชันทั่วไปแบบไม่แยกกลุ่มมาปนโชว์ซ้ำ (แก้ตามที่ผู้ใช้ยืนยัน — ห้ามเอากลับมาโดยไม่ถามก่อน)
+//   - ถ้ากลุ่ม "ทั่วไป" ติ๊กเงื่อนไขที่ดิน/toggle ปลดล็อกเพิ่ม (land30→โปร25%, baac→โปร30%) โปรที่ปลดล็อกได้จะถูกเพิ่มเข้ามาแข่งด้วย
+//
+// ส่วนที่ 2 — "ในบรรดาโปรที่เข้ารอบ ตัวไหนคือ 'โปรแนะนำ' (best)" (ทำใน pickBestAndRest ด้านล่าง):
+//   เรียงโปรตามเกณฑ์นี้ ทีละข้อ (ข้อถัดไปใช้ตัดสินเฉพาะตอนข้อก่อนหน้าเท่ากันเป๊ะ):
+//     1) "ลูกค้าออก" (customer_out) น้อยที่สุดก่อน — ลูกค้าจ่ายเองน้อยที่สุดชนะ
+//     2) ถ้าเท่ากัน → "เงินดาวน์รวม" (down) มากที่สุดชนะ (ดาวน์สูงกว่า = % โปรสูงกว่า = บริษัทช่วยดาวน์มากกว่า)
+//     3) ถ้ายังเท่ากัน → "RST" (ต้นทุนบริษัท) น้อยที่สุดชนะ
+//   ตัวที่ชนะ = "แนะนำสำหรับกลุ่มนี้" (best) โชว์เป็นการ์ดหลัก ตัวที่เหลือ = "rest" อยู่ใต้ปุ่ม "ดูโปรอื่นสำหรับกลุ่มนี้"
+//   เซลล์กดปุ่ม "เลือกโปรนี้" ที่การ์ดใดก็ได้เพื่อสลับไปใช้โปรนั้นแทนโปรแนะนำ (selectPromo(idx))
+// ============================================================
 function findEntries(brand, model, segment, toggles){
   const programs = DATA[brand].programs;
   const ids = PROGRAM_IDS[brand];
@@ -1835,10 +1854,9 @@ function findEntries(brand, model, segment, toggles){
     getSubsetGroup(ids.bob25, 'RT');
     getSubsetGroup(ids.bob30, ['YF,SW,RT','RT']); // กลุ่ม RT ปลดล็อก Bob 30% ได้เองอยู่แล้ว (เข้าเงื่อนไขข้อ 4) ไม่ต้องรอติ๊ก
   } else if(segment==='Dry Crop'){
+    // เหลือเฉพาะ combine (แปลว่า "มีรถแทรกเตอร์อยู่แล้ว") — ตัด Dry Crop ของ Yanmar/Solis ออกทั้งระบบแล้ว (3/8/2569)
     if(brand==='combine'){
       getDirect(ids.target_tractor_owner);
-    } else if(toggles.baac){
-      getSubsetGroup(ids.bob30, 'Dry Crop');
     }
   }
   return rows;
