@@ -2907,7 +2907,15 @@ function refreshExportSummary(){
 // (แยกจากกรณีกด "ดูตัวอย่าง" เฉยๆ ก่อนบันทึก ซึ่งปิดแล้วไม่ต้องรีเซ็ตอะไร)
 let _reloadAfterPreviewClose = false;
 
+// กันกดบันทึกซ้ำ (ดับเบิลคลิก/แตะรัว ๆ บนมือถือ) — เช็คเป็นบรรทัดแรกสุดของฟังก์ชัน ก่อนแม้แต่ validate
+// ฟอร์ม เพราะการ disable ปุ่ม DOM (ทำอยู่ท้ายฟังก์ชัน) มีช่วงเสี้ยววินาทีที่คลิกที่สองอาจหลุดเข้ามาทัน
+// ก่อนปุ่มถูกล็อก flag ตัวแปรนี้ทำงานทันทีแบบ synchronous เลยปิดช่องโหว่นั้นได้สนิทกว่า
+let _isSavingRecord = false;
+
 function saveAndPrint(){
+  if(_isSavingRecord){
+    return; // มีการบันทึกค้างอยู่แล้ว ไม่ต้องทำซ้ำ
+  }
   const d = collectExportData();
   const phoneDigits = (d.custPhone||'').replace(/\D/g,'');
   if(phoneDigits.length !== 10){
@@ -2941,6 +2949,7 @@ function saveAndPrint(){
       return;
     }
   }
+  _isSavingRecord = true;
   const saveBtns = document.querySelectorAll('button[onclick="saveAndPrint()"]');
   saveBtns.forEach(b=>{
     b.disabled = true;
@@ -2948,6 +2957,7 @@ function saveAndPrint(){
     b.textContent = '⏳ กำลังบันทึก...';
   });
   saveToHistory(d, function(err){
+    _isSavingRecord = false;
     saveBtns.forEach(b=>{ b.disabled = false; b.textContent = b.dataset.origText; });
     if(err){
       alert('❌ บันทึกไม่สำเร็จ: ' + (err.message || 'ไม่ทราบสาเหตุ') + '\n\nข้อมูลที่กรอกไว้ยังอยู่ครบ ลองกดบันทึกอีกครั้งได้เลย (เช็คสัญญาณเน็ตด้วยถ้ายังไม่ผ่าน)');
