@@ -3532,6 +3532,14 @@ function openDocsModal(id, role){
   document.getElementById('docSignaturePreview').innerHTML = '';
   document.getElementById('docsPdfArea').innerHTML = '';
   document.getElementById('docsModalTitle').textContent = currentDocsRole === 'guarantor' ? '📎 แนบเอกสารประกอบ — ผู้ค้ำประกัน' : '📎 แนบเอกสารประกอบ — ผู้ซื้อ';
+  // เคลียร์ช่องแนบในหน้า "แนบลายเซ็น" ให้เป็นค่าเริ่มต้นทุกครั้งที่เปิดเคส/บทบาทใหม่ (หน้านี้ไม่ได้ render ใหม่แบบ docCategoryList)
+  ['sig_idcard','sig_houseReg'].forEach(function(sk){
+    const inputEl = document.getElementById('docFile_'+sk);
+    const statusEl = document.getElementById('docStatus_'+sk);
+    if(inputEl) inputEl.value = '';
+    if(statusEl){ statusEl.className = 'doc-cat-status'; statusEl.textContent = 'ยังไม่แนบ'; }
+  });
+  document.getElementById('sigComposeModalBg').style.display = 'none';
   renderDocCategoryList();
   document.getElementById('docsModalBg').style.display = 'flex';
   refreshAttachedCategories(id, currentDocsRole);
@@ -3570,9 +3578,17 @@ function updateRequiredBadges(){
 }
 let docPageStoreByRole = { buyer:{}, guarantor:{} };
 let dynamicSlotCountByRole = { buyer:{}, guarantor:{} };
+// จำไว้ว่าหมวดเอกสาร (ต่อบทบาท) ไหนเลือกทาง "แนบเลย (กระดาษเซ็นสดแล้ว)" ไว้บ้าง
+// ถ้าเลือกทางนี้ ตอนรวมไฟล์จะไม่เอาไปประกบกับรูปลายเซ็นแยก ต่อให้มีการอัปโหลดรูปลายเซ็นไว้ก็ตาม
+let directModeByRole = { buyer:{}, guarantor:{} };
+// จำ prefix ของ slotKey ที่ใช้อัปโหลดหมวดนี้ล่าสุด ('sig_' ถ้ามาจากหน้าแนบลายเซ็น, '' ถ้ามาจากหน้ารายการหลัก)
+// ต้องรู้ตอนรวมไฟล์/อัปเดตสถานะ เพราะทั้งสองหน้ามี input/สถานะคนละ element กัน แม้ catKey จะเป็นตัวเดียวกัน
+let slotPrefixByRole = { buyer:{}, guarantor:{} };
 function renderDocCategoryList(){
   docPageStoreByRole[currentDocsRole] = {};
   dynamicSlotCountByRole[currentDocsRole] = {};
+  directModeByRole[currentDocsRole] = {};
+  slotPrefixByRole[currentDocsRole] = {};
   const cats = getActiveCategories();
   const c = document.getElementById('docCategoryList');
   c.innerHTML = cats.map(cat => {
@@ -3595,7 +3611,9 @@ function renderDocCategoryList(){
     let rows = '';
     for(let i=1; i<=n; i++){
       const slotKey = n > 1 ? cat.key + '_' + i : cat.key;
-      const slotLabel = (n > 1 ? cat.label + ' (ใบที่ ' + i + ')' : cat.label) + (i===1 ? ' ' + reqBadge : '');
+      // หมวดที่ต้องมีลายเซ็น (บัตร/ทะเบียนบ้าน) ในหน้ารายการหลักนี้ ใช้สำหรับกระดาษที่เซ็นชื่อสดแล้วเท่านั้น
+      // (ถ่ายทั้งแผ่นแนบตรงๆ ไม่ต้องตัดกรอบ) — ถ้ายังไม่เซ็น ให้ไปที่ปุ่ม "🖊️ ไปหน้าแนบลายเซ็น" ด้านบนแทน
+      const slotLabel = (n > 1 ? cat.label + ' (ใบที่ ' + i + ')' : cat.label) + (cat.needsSignature && i===1 ? ' (เซ็นชื่อแล้ว)' : '') + (i===1 ? ' ' + reqBadge : '');
       rows += `
         <div class="doc-cat-row" id="docRow_${slotKey}">
           <div class="doc-cat-label">${slotLabel}</div>
@@ -3711,6 +3729,29 @@ function cancelGenericCrop(){
   document.getElementById('cropModalBg').style.display = 'none';
 }
 
+// ===== หน้าแยก "แนบลายเซ็น + บัตร/ทะเบียนบ้าน" — เปิดจากปุ่มเดียวในหน้ารายการเอกสารหลัก =====
+// ใช้ตอนยังไม่มีลายเซ็นบนแผ่นเอกสารจริง: มี 3 กล่องในหน้าเดียว (รูปลายเซ็น / รูปบัตร / รูปทะเบียนบ้าน)
+// อัปโหลดที่นี่ใช้ slotKey ขึ้นต้นด้วย "sig_" (เช่น sig_idcard, sig_houseReg) เพื่อแยกจากช่องแนบแบบ
+// "เซ็นชื่อแล้ว" ในหน้ารายการหลัก (idcard, houseReg) — onDocFileSelected() เช็คจาก prefix นี้เองว่า
+// ต้องตัดกรอบ+ประกบลายเซ็นหรือไม่ ไม่ต้องส่งพารามิเตอร์เพิ่ม
+function openSigComposeModal(){
+  document.getElementById('sigComposeModalBg').style.display = 'flex';
+}
+function closeSigComposeModal(){
+  document.getElementById('sigComposeModalBg').style.display = 'none';
+  // docStatus_sig_xxx ในหน้านี้เป็นคนละ element กับ docStatus_xxx ในหน้ารายการหลัก — sync สถานะ
+  // "แนบแล้ว/จำเป็นต้องแนบ" ของหน้าหลักให้ตรงกับผลล่าสุดตอนกลับไป
+  const role = currentDocsRole;
+  if(attachedCategoriesByRole[role].has('idcard')){
+    const el = document.getElementById('docStatus_idcard');
+    if(el){ el.className = 'doc-cat-status ok'; el.textContent = '✓ แนบแล้ว'; }
+  }
+  if(attachedCategoriesByRole[role].has('houseReg')){
+    const el = document.getElementById('docStatus_houseReg');
+    if(el){ el.className = 'doc-cat-status ok'; el.textContent = '✓ แนบแล้ว'; }
+  }
+}
+
 function onSignatureFileSelected(event){
   const file = event.target.files[0];
   if(!file) return;
@@ -3725,12 +3766,20 @@ function onSignatureFileSelected(event){
   }).catch(()=>{ prev.textContent = '❌ อ่านรูปไม่ได้ ลองใหม่'; });
 }
 
+// เอกสารที่ต้องมีลายเซ็น (บัตร/ทะเบียนบ้าน) แนบได้ 2 ทาง แยกกันด้วย slotKey ที่เรียกมา:
+//  - slotKey ปกติ (เช่น 'idcard','houseReg') จากหน้ารายการหลัก = กระดาษเซ็นชื่อสดแล้ว ถ่ายทั้งแผ่นแนบตรงๆ ไม่ตัดกรอบ
+//  - slotKey ขึ้นต้นด้วย 'sig_' (เช่น 'sig_idcard') จากหน้า "แนบลายเซ็น" แยกต่างหาก = ต้องตัดกรอบ+ประกบลายเซ็นก่อน
 async function onDocFileSelected(slotKey, catKey){
   const input = document.getElementById('docFile_'+slotKey);
   const file = input.files[0];
   if(!file) return;
   const role = currentDocsRole;
   const cat = getActiveCategory(catKey);
+  const isSigComposeFlow = cat.needsSignature && slotKey.indexOf('sig_') === 0;
+  if(cat.needsSignature){
+    directModeByRole[role][catKey] = !isSigComposeFlow;
+    slotPrefixByRole[role][catKey] = isSigComposeFlow ? 'sig_' : '';
+  }
   const isDynamic = cat.count === 'dynamic';
   const isMulti = isDynamic || (cat.count || 1) > 1;
   const pageIndex = isMulti ? parseInt(slotKey.split('_').pop(), 10) : 1;
@@ -3780,14 +3829,14 @@ async function onDocFileSelected(slotKey, catKey){
 
   try{
     const compressed = await compressImageFile(file, 1600, 0.8);
-    if(cat.needsSignature){
-      // เฉพาะบัตรประชาชน/ทะเบียนบ้านเท่านั้น ที่ต้องตัดกรอบก่อน (จะเอาไปประกบกับลายเซ็น)
+    if(isSigComposeFlow){
+      // มาจากหน้า "แนบลายเซ็น" เท่านั้น ที่ต้องตัดกรอบก่อน (จะเอาไปประกบกับรูปลายเซ็น)
       openCropModal(compressed.dataUrl, '✂️ ตัดกรอบ' + label, 'ลากให้ชิดขอบเอกสารที่สุด อย่าให้เห็นโต๊ะ/พื้นหลังหลงเหลือเลยแม้แต่นิดเดียว', function(croppedDataUrl){
         statusEl.textContent = '⏳ กำลังเตรียมรูป...';
         finalizePage(croppedDataUrl);
       });
     } else {
-      // เอกสารอื่นๆ ใช้รูปที่ถ่ายมาตรงๆ ไม่ต้องตัดกรอบ
+      // เอกสารอื่นๆ / กรณี "เซ็นชื่อแล้ว" จากหน้ารายการหลัก ใช้รูปที่ถ่ายมาตรงๆ ไม่ต้องตัดกรอบ
       finalizePage(compressed.dataUrl);
     }
   } catch(e){
@@ -4017,7 +4066,8 @@ function combineAndUploadCategory(catKey, cat, role){
   const pages = (store[catKey] || []).filter(Boolean);
   if(!pages.length) return; // ไม่มีหน้าเหลือให้รวม (ถูกกดยกเลิกออกไปหมดแล้ว)
   const sigImg = sigSignatureImgElByRole[role];
-  const useSigPage = cat.needsSignature && sigImg && sigImg.complete;
+  const isDirectMode = !!directModeByRole[role][catKey];
+  const useSigPage = !isDirectMode && cat.needsSignature && sigImg && sigImg.complete;
   if(useSigPage){
     openBrightnessAdjustModal(catKey, cat, role);
     return;
@@ -4030,23 +4080,27 @@ function combineAndUploadCategory(catKey, cat, role){
     const grade = (document.getElementById('grade_'+catKey)?.value || '').trim();
     if(grade) label += ' - เกรด ' + grade;
   }
-  const primarySlot = isMulti ? (catKey + '_1') : catKey;
+  // prefix (''/'sig_') บอกว่าหน้าพวกนี้อัปโหลดมาจากหน้ารายการหลักหรือหน้าแนบลายเซ็น — ต้องใช้ตรงกับ
+  // input/สถานะที่ผู้ใช้เห็นอยู่จริง (docStatus_houseReg ต่างจาก docStatus_sig_houseReg คนละ element)
+  const prefix = slotPrefixByRole[role][catKey] || '';
+  const primarySlot = isMulti ? (prefix + catKey + '_1') : (prefix + catKey);
   uploadDocToServer(primarySlot, label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg', catKey, role);
   if(isMulti){
     const totalSlots = isDynamic ? pages.filter(Boolean).length : cat.count;
     for(let i=2; i<=totalSlots; i++){
-      const el = document.getElementById('docStatus_'+catKey+'_'+i);
+      const el = document.getElementById('docStatus_'+prefix+catKey+'_'+i);
       if(el) el.textContent = 'รวมกับหน้า 1 แล้ว';
     }
   }
 }
 
 // ===== ปุ่มปรับแสงเอง: แยกสไลเดอร์บัตร/เอกสาร กับ สไลเดอร์ความเข้มลายเซ็น =====
-let brightnessAdjustCtx = { catKey:null, cat:null, role:'buyer' };
+let brightnessAdjustCtx = { catKey:null, cat:null, role:'buyer', prefix:'' };
 let brightnessPreviewDebounce = null;
 
 function openBrightnessAdjustModal(catKey, cat, role){
-  brightnessAdjustCtx = { catKey, cat, role: role || currentDocsRole };
+  const useRole = role || currentDocsRole;
+  brightnessAdjustCtx = { catKey, cat, role: useRole, prefix: slotPrefixByRole[useRole][catKey] || '' };
   document.getElementById('cardBrightnessSlider').value = 30;
   document.getElementById('inkIntensitySlider').value = 100;
   document.getElementById('cardBrightnessVal').textContent = 30;
@@ -4076,26 +4130,27 @@ function renderBrightnessPreview(){
   img.src = dataUrl;
 }
 function confirmBrightnessAdjust(){
-  const { catKey, cat, role } = brightnessAdjustCtx;
+  const { catKey, cat, role, prefix } = brightnessAdjustCtx;
   const cardBrightness = Number(document.getElementById('cardBrightnessSlider').value);
   const inkIntensity = Number(document.getElementById('inkIntensitySlider').value) / 100;
   const pages = (docPageStoreByRole[role][catKey]||[]).filter(Boolean);
   const finalDataUrl = placeDocsOnSignaturePage(pages, sigSignatureImgElByRole[role], cardBrightness, inkIntensity);
   document.getElementById('brightnessModalBg').style.display = 'none';
   const isMulti = (cat.count || 1) > 1;
-  const primarySlot = isMulti ? (catKey + '_1') : catKey;
+  const primarySlot = isMulti ? (prefix + catKey + '_1') : (prefix + catKey);
   uploadDocToServer(primarySlot, cat.label, finalDataUrl.split(',')[1], 'image/jpeg', catKey + '.jpg', catKey, role);
   if(isMulti){
     for(let i=2; i<=cat.count; i++){
-      const el = document.getElementById('docStatus_'+catKey+'_'+i);
+      const el = document.getElementById('docStatus_'+prefix+catKey+'_'+i);
       if(el) el.textContent = 'รวมกับหน้า 1 แล้ว';
     }
   }
 }
 function cancelBrightnessAdjust(){
   document.getElementById('brightnessModalBg').style.display = 'none';
-  const { catKey } = brightnessAdjustCtx;
-  const statusEl = document.getElementById('docStatus_'+catKey+'_1') || document.getElementById('docStatus_'+catKey);
+  const { catKey, prefix } = brightnessAdjustCtx;
+  const p = prefix || '';
+  const statusEl = document.getElementById('docStatus_'+p+catKey+'_1') || document.getElementById('docStatus_'+p+catKey);
   if(statusEl) statusEl.textContent = 'ยังไม่อัปโหลด (ยกเลิกการปรับแสง)';
 }
 
@@ -4686,14 +4741,13 @@ function saveToHistory(record, callback){
 // ===== แนบเอกสารประกอบ (บัตร/ทะเบียนบ้าน/โฉนด ฯลฯ) =====
 const DOC_CATEGORIES = [
   {key:'idcard',    label:'บัตรประชาชน',      needsSignature:true, count:1, required:true},
-  {key:'houseReg',  label:'ทะเบียนบ้าน',       needsSignature:true, count:2, required:true},
+  {key:'houseReg',  label:'ทะเบียนบ้าน',       needsSignature:true, count:1, required:true},
   {key:'landTitle', label:'โฉนดที่ดิน (มีหน้า-หลัง/หลายใบได้)', needsSignature:false, count:'dynamic'},
   {key:'farmReg',   label:'ทะเบียนเกษตร (อาจมีหลายใบ)',        needsSignature:false, count:'dynamic'},
   {key:'otherBrand',label:'เอกสารต่างค่าย (เช่น ใบเสร็จ การ์ดผ่อนชำระ อื่นๆ)', needsSignature:false, count:'dynamic', hasGrade:true},
   {key:'carBook',   label:'เล่มรถ (ถ้ามี)',                        needsSignature:false, count:1},
   {key:'statement', label:'สเตทเม้นท์/ใบรับรองเงินเดือน (ถ้ามี)',   needsSignature:false, count:1},
-  {key:'leaderCard',label:'บัตรผู้นำ (ถ้ามี)',                     needsSignature:false, count:1},
-  {key:'baac',      label:'ใบ ธกส. (ถ้ามี)',                       needsSignature:false, count:1},
+  {key:'leaderCard',label:'บัตรผู้นำ/สารวัตร/อบตฯ หรือ ธกส หรือ โรงงานน้ำตาล (ถ้ามี)', needsSignature:false, count:1},
   {key:'nsfCheck',  label:'หน้าจอยืนยันตรวจสิทธิ กอช.',            needsSignature:false, count:1, required:true},
   {key:'other',     label:'อื่นๆ',             needsSignature:false, count:1}
 ];
@@ -6027,18 +6081,105 @@ function updateAddr2(key){
 }
 
 // ===== Modal เปิด/ปิด: ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน =====
+// Modal นี้ใช้ร่วมกัน 2 โหมด: (1) ตอนคีย์เคสใหม่ในหน้าแรก (ปกติ) (2) แก้ไขเคสเก่าจากหน้าประวัติ
+// (_addrGtorEditRecordId ตั้งไว้เมื่อเปิดจากโหมดที่ 2) — ปิด modal แล้วจะยิง editRecord() แทน แล้วคืนค่า
+// ฟอร์มหน้าแรกที่อาจคีย์ค้างไว้กลับมาให้เหมือนเดิม กันข้อมูลที่คีย์เคสใหม่ค้างอยู่หายไป
 function openAddressGuarantorModal(){
+  _addrGtorEditRecordId = null; // เปิดจากหน้าคีย์ข้อมูลใหม่ตามปกติ ไม่ใช่โหมดแก้ไขเคสเก่า
   initAddrDropdowns(); // เผื่อยังไม่เคยโหลด thaiGeoData
   document.getElementById('addrGtorModalBg').style.display = 'flex';
 }
 function closeAddressGuarantorModal(){
   document.getElementById('addrGtorModalBg').style.display = 'none';
+  if(_addrGtorEditRecordId){
+    updateAddr2('current'); updateAddr2('gtor'); // เผื่อพิมพ์ในช่อง line ล่าสุดแล้วยังไม่ trigger update
+    const id = _addrGtorEditRecordId;
+    const changes = {
+      custCurrentAddr: (document.getElementById('custCurrentAddr').value || '').trim(),
+      gtorName: (document.getElementById('gtorName').value || '').trim(),
+      gtorPhone: (document.getElementById('gtorPhone').value || '').trim(),
+      gtorAddr: (document.getElementById('gtorAddr').value || '').trim()
+    };
+    _addrGtorEditRecordId = null;
+    _restoreCreationFormExtras(_formBackupForRecordEdit);
+    _formBackupForRecordEdit = null;
+    if(_editRecordId) document.getElementById('editRecordModalBg').style.display = 'flex'; // กลับไปหน้าแก้ไขข้อมูลลูกค้าต่อ
+    gasPostReadable('editRecord', {id, changes, byName:userName, byRole:userRole}, function(err, data){
+      if(err || !data || data.status !== 'ok'){
+        alert('บันทึกการแก้ไขไม่สำเร็จ: ' + ((data && data.message) || (err && err.message) || 'ไม่ทราบสาเหตุ'));
+        return;
+      }
+      if(_editRecordSnapshot) Object.assign(_editRecordSnapshot, changes);
+      const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
+      if(rec) Object.assign(rec, changes);
+      if(typeof viewHistoryDetail === 'function') viewHistoryDetail(id);
+    });
+    return;
+  }
   updateAddrGtorStatus();
 }
 function updateAddrGtorStatus(){
   const hasData = (document.getElementById('custCurrentAddr')?.value || document.getElementById('gtorName')?.value || document.getElementById('gtorPhone')?.value || document.getElementById('gtorAddr')?.value);
   const txt = hasData ? '✓ กรอกแล้ว' : '';
   ['addrGtorStatus','addrGtorStatusM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = txt; });
+}
+// ปุ่มแนบเอกสารผู้ค้ำภายใน modal นี้ — ถ้าอยู่ในโหมดแก้ไขเคสเก่า ต้องใช้รหัสเคสจริง ไม่ใช่รหัสฉบับร่างของเคสใหม่
+function openGuarantorDocsFromAddrModal(){
+  const id = _addrGtorEditRecordId || getOrCreateDraftCaseId();
+  openDocsModal(id, 'guarantor');
+}
+
+// สำรอง/คืนค่าฟอร์ม "ที่อยู่ปัจจุบัน+ผู้ค้ำ" และ "ข้อมูลรายได้" ของหน้าคีย์ข้อมูลใหม่ (หน้าแรก) ไว้ก่อนเปิดมาแก้เคสเก่า
+// เผื่อกำลังคีย์เคสใหม่ค้างอยู่ ไม่ให้ข้อมูลที่คีย์ค้างไว้หายไปตอนเปิด/ปิด modal เพื่อแก้เคสเก่าจากหน้าประวัติ
+let _formBackupForRecordEdit = null;
+function _backupCreationFormExtras(){
+  return {
+    custCurrentAddr: document.getElementById('custCurrentAddr')?.value || '',
+    gtorName: document.getElementById('gtorName')?.value || '',
+    gtorPhone: document.getElementById('gtorPhone')?.value || '',
+    gtorAddr: document.getElementById('gtorAddr')?.value || '',
+    addrCurrent: JSON.parse(JSON.stringify(addrState2.current || {})),
+    addrGtor: JSON.parse(JSON.stringify(addrState2.gtor || {})),
+    finInfo: JSON.parse(JSON.stringify(finInfo))
+  };
+}
+function _restoreCreationFormExtras(bak){
+  if(!bak) return;
+  const setVal = (id,v) => { const el = document.getElementById(id); if(el) el.value = v; };
+  setVal('custCurrentAddr', bak.custCurrentAddr);
+  setVal('gtorName', bak.gtorName);
+  setVal('gtorPhone', bak.gtorPhone);
+  setVal('gtorAddr', bak.gtorAddr);
+  addrState2.current = bak.addrCurrent;
+  addrState2.gtor = bak.addrGtor;
+  finInfo = bak.finInfo;
+}
+
+// ===== แก้ "ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน" ของเคสเก่า จากหน้าประวัติ (ไม่ต้องคีย์ข้อมูลใหม่ทั้งใบ) =====
+let _addrGtorEditRecordId = null;
+function openAddressGuarantorEditModal(){
+  if(!_editRecordId || !_editRecordSnapshot) return;
+  const d = _editRecordSnapshot;
+  _addrGtorEditRecordId = _editRecordId;
+  _formBackupForRecordEdit = _backupCreationFormExtras();
+  document.getElementById('editRecordModalBg').style.display = 'none'; // ซ่อนไว้ก่อน (ซ้อนกันใน DOM ไม่ได้) ไม่ clear state
+  initAddrDropdowns();
+  document.getElementById('custCurrentAddr').value = d.custCurrentAddr || '';
+  document.getElementById('gtorName').value = d.gtorName || '';
+  document.getElementById('gtorPhone').value = d.gtorPhone || '';
+  document.getElementById('gtorAddr').value = d.gtorAddr || '';
+  // ใส่ที่อยู่เดิมไว้ในช่อง "บ้านเลขที่/ซอย/หมู่" ก่อน (ไม่ล้างทิ้ง) แล้วเลือกจังหวัด/อำเภอ/ตำบลเพิ่มได้ถ้าต้องการแก้
+  document.getElementById('addr2_current_line').value = d.custCurrentAddr || '';
+  document.getElementById('addr2_gtor_line').value = d.gtorAddr || '';
+  addrState2.current = {province:null,provinceId:null,amphure:null,amphureId:null,tambon:null,tambonId:null};
+  addrState2.gtor = {province:null,provinceId:null,amphure:null,amphureId:null,tambon:null,tambonId:null};
+  ['current','gtor'].forEach(function(key){
+    ['province','amphure','tambon'].forEach(function(lvl){
+      const el = document.getElementById('addr2_'+key+'_'+lvl);
+      if(el){ el.value=''; el.disabled = lvl!=='province'; el.placeholder = lvl==='province' ? 'ค้นหาจังหวัด...' : (lvl==='amphure' ? 'เลือกจังหวัดก่อน' : 'เลือกอำเภอก่อน'); }
+    });
+  });
+  document.getElementById('addrGtorModalBg').style.display = 'flex';
 }
 
 // ===== บุคคลอ้างอิง (เพิ่มได้หลายคน) =====
@@ -6232,12 +6373,33 @@ function renderFinInfoForm(){
   if(sideAmtEl) sideAmtEl.value = finInfo.sideIncomeAmount || '';
   renderFinInfoToggles();
 }
+// Modal นี้ก็ใช้ร่วมกัน 2 โหมดเหมือน addrGtorModalBg — _finInfoEditRecordId ตั้งไว้เมื่อเปิดจากหน้าประวัติ
 function openFinInfoModal(){
+  _finInfoEditRecordId = null; // เปิดจากหน้าคีย์ข้อมูลใหม่ตามปกติ ไม่ใช่โหมดแก้ไขเคสเก่า
   renderFinInfoForm();
   document.getElementById('finInfoModalBg').style.display = 'flex';
 }
 function closeFinInfoModal(){
   document.getElementById('finInfoModalBg').style.display = 'none';
+  if(_finInfoEditRecordId){
+    const id = _finInfoEditRecordId;
+    const changes = { finInfo: JSON.parse(JSON.stringify(finInfo)) };
+    _finInfoEditRecordId = null;
+    _restoreCreationFormExtras(_formBackupForRecordEdit);
+    _formBackupForRecordEdit = null;
+    if(_editRecordId) document.getElementById('editRecordModalBg').style.display = 'flex'; // กลับไปหน้าแก้ไขข้อมูลลูกค้าต่อ
+    gasPostReadable('editRecord', {id, changes, byName:userName, byRole:userRole}, function(err, data){
+      if(err || !data || data.status !== 'ok'){
+        alert('บันทึกการแก้ไขไม่สำเร็จ: ' + ((data && data.message) || (err && err.message) || 'ไม่ทราบสาเหตุ'));
+        return;
+      }
+      if(_editRecordSnapshot) _editRecordSnapshot.finInfo = changes.finInfo;
+      const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
+      if(rec) rec.finInfo = changes.finInfo;
+      if(typeof viewHistoryDetail === 'function') viewHistoryDetail(id);
+    });
+    return;
+  }
   updateFinInfoStatus();
 }
 function updateFinInfoStatus(){
@@ -6247,6 +6409,22 @@ function updateFinInfoStatus(){
   const filled = hasPlots || hasMachines || hasDebts || finInfo.hasJob || finInfo.hasSideIncome;
   const txt = filled ? '✓ กรอกแล้ว' : '';
   ['finInfoStatus','finInfoStatusM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = txt; });
+}
+
+// ===== แก้ "ข้อมูลรายได้ลูกค้า" ของเคสเก่า จากหน้าประวัติ (ไม่ต้องคีย์ข้อมูลใหม่ทั้งใบ) =====
+let _finInfoEditRecordId = null;
+function openFinInfoEditModal(){
+  if(!_editRecordId || !_editRecordSnapshot) return;
+  const d = _editRecordSnapshot;
+  _finInfoEditRecordId = _editRecordId;
+  _formBackupForRecordEdit = _backupCreationFormExtras();
+  document.getElementById('editRecordModalBg').style.display = 'none'; // ซ่อนไว้ก่อน (ซ้อนกันใน DOM ไม่ได้) ไม่ clear state
+  finInfo = JSON.parse(JSON.stringify(d.finInfo || {
+    farmPlots:[], hasJob:'', jobDetail:'', jobIncome:'',
+    hasSideIncome:'', sideIncomeDetail:'', sideIncomeAmount:'', machines:[], debts:[]
+  }));
+  renderFinInfoForm();
+  document.getElementById('finInfoModalBg').style.display = 'flex';
 }
 
 // ===== ตีเทิร์นรถเก่า (ยี่ห้อ/รุ่น/เอกสาร/สภาพ/ยอดปิดหนี้หลายไฟแนนซ์/เงินคืน) =====
@@ -6632,7 +6810,7 @@ setBrand('yanmar');
       <input type="hidden" id="custCurrentAddr">
       <input type="hidden" id="gtorAddr">
 
-      <button type="button" class="finance-launch-btn" style="width:100%;margin-top:6px" onclick="openDocsModal(getOrCreateDraftCaseId(), 'guarantor')">📎 แนบเอกสารประกอบผู้ค้ำ (บัตร/ทะเบียนบ้าน ฯลฯ)</button>
+      <button type="button" class="finance-launch-btn" style="width:100%;margin-top:6px" onclick="openGuarantorDocsFromAddrModal()">📎 แนบเอกสารประกอบผู้ค้ำ (บัตร/ทะเบียนบ้าน ฯลฯ)</button>
 
       <button class="btn-save" style="width:100%" onclick="closeAddressGuarantorModal()">✓ เสร็จแล้ว</button>
     </div>
@@ -6815,17 +6993,47 @@ setBrand('yanmar');
   </div>
   <div class="modal-form-scroll">
     <div class="modal-form-inner">
+      <button type="button" class="finance-launch-btn" style="width:100%;margin-bottom:10px" onclick="openSigComposeModal()">🖊️ ยังไม่ได้เซ็น? ไปหน้าแนบลายเซ็น (บัตร/ทะเบียนบ้าน)</button>
       <div class="field-group">
-        <label>1) อัปโหลดรูปกระดาษที่มีลายเซ็นลูกค้า (ไม่ต้องตัดกรอบ ใช้ทั้งรูปเป็นพื้นหลัง) — เอกสารจะถูกแปะไว้ด้านบนของกระดาษแผ่นนี้อัตโนมัติ</label>
-        <input type="file" id="docSignatureInput" accept="image/*" onchange="onSignatureFileSelected(event)">
-        <div id="docSignaturePreview" style="margin-top:6px"></div>
-      </div>
-      <div class="field-group">
-        <label style="margin-bottom:8px;display:block">2) แนบรูปเอกสารแต่ละประเภท (จะให้ตัดกรอบก่อนอัปโหลดทุกครั้ง)</label>
+        <label style="margin-bottom:8px;display:block">แนบรูปเอกสารแต่ละประเภท — บัตรประชาชน/ทะเบียนบ้านด้านล่างนี้ ใช้สำหรับกระดาษที่เซ็นชื่อสดแล้วเท่านั้น (ถ่ายทั้งแผ่นแนบตรงๆ) ถ้ายังไม่เซ็น ให้กดปุ่มด้านบนไปหน้าแนบลายเซ็นก่อน</label>
         <div id="docCategoryList"></div>
       </div>
       <button type="button" class="btn-save" style="width:100%;margin-top:10px" onclick="requestDocsPdf()">🖨 รวมเอกสารทั้งหมดเป็น PDF</button>
       <div id="docsPdfArea" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="preview-modal-bg" id="sigComposeModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>🖊️ แนบลายเซ็น + บัตร/ทะเบียนบ้าน</span>
+    <button onclick="closeSigComposeModal()">← กลับ</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner">
+      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">ใช้หน้านี้เมื่อ<b>ยังไม่มีลายเซ็นบนแผ่นเอกสาร</b> — ถ่ายรูปลายเซ็น + รูปบัตรประชาชน/ทะเบียนบ้าน (เปล่า) แยกกันไว้ ระบบจะตัดกรอบเอกสารแต่ละใบแล้วนำไปประกบไว้บนรูปลายเซ็นให้อัตโนมัติ</div>
+      <div class="field-group">
+        <label>1) รูปกระดาษที่มีลายเซ็นลูกค้า (ไม่ต้องตัดกรอบ ใช้ทั้งรูปเป็นพื้นหลัง) — เอกสารจะถูกแปะไว้ด้านบนของกระดาษแผ่นนี้อัตโนมัติ</label>
+        <input type="file" id="docSignatureInput" accept="image/*" onchange="onSignatureFileSelected(event)">
+        <div id="docSignaturePreview" style="margin-top:6px"></div>
+      </div>
+      <div class="field-group">
+        <label style="margin-bottom:8px;display:block">2) รูปบัตรประชาชน</label>
+        <div class="doc-cat-row" id="docRow_sig_idcard">
+          <div class="doc-cat-label">บัตรประชาชน</div>
+          <input type="file" accept="image/*" id="docFile_sig_idcard" onchange="onDocFileSelected('sig_idcard','idcard')">
+          <div class="doc-cat-status" id="docStatus_sig_idcard">ยังไม่แนบ</div>
+        </div>
+      </div>
+      <div class="field-group">
+        <label style="margin-bottom:8px;display:block">3) รูปทะเบียนบ้าน</label>
+        <div class="doc-cat-row" id="docRow_sig_houseReg">
+          <div class="doc-cat-label">ทะเบียนบ้าน</div>
+          <input type="file" accept="image/*" id="docFile_sig_houseReg" onchange="onDocFileSelected('sig_houseReg','houseReg')">
+          <div class="doc-cat-status" id="docStatus_sig_houseReg">ยังไม่แนบ</div>
+        </div>
+      </div>
+      <button type="button" class="finance-launch-btn" style="width:100%;margin-top:6px" onclick="closeSigComposeModal()">← กลับไปหน้ารายการเอกสาร</button>
     </div>
   </div>
 </div>
@@ -6909,7 +7117,14 @@ setBrand('yanmar');
         <input type="text" id="editBranch" placeholder="ชื่อพนักงาน">
       </div>
       <button class="btn-save" style="width:100%;margin-top:10px" onclick="submitEditRecord()">✓ บันทึกการแก้ไข</button>
-      <button type="button" class="finance-launch-btn" style="width:100%;margin-top:8px" onclick="editProductAndPromo()">🔄 แก้รุ่นรถ/โปรใหม่ทั้งใบ (เลือกรุ่น/โปรใหม่)</button>
+
+      <div style="border-top:1px dashed var(--line);margin:14px 0 8px"></div>
+      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px">แก้เฉพาะส่วนอื่นๆ ได้ทีละส่วน โดยไม่ต้องคีย์ข้อมูลใหม่ทั้งใบ — ระบบบันทึกค่าเดิมไว้ใน Timeline ให้เหมือนกัน</div>
+      <button type="button" class="finance-launch-btn" style="width:100%" onclick="openAddressGuarantorEditModal()">📍 แก้ที่อยู่ปัจจุบัน + ผู้ค้ำประกัน</button>
+      <button type="button" class="finance-launch-btn" style="width:100%;margin-top:6px" onclick="openFinInfoEditModal()">💰 แก้ข้อมูลรายได้ลูกค้า</button>
+
+      <div style="border-top:1px dashed var(--line);margin:14px 0 8px"></div>
+      <button type="button" class="finance-launch-btn" style="width:100%" onclick="editProductAndPromo()">🔄 แก้รุ่นรถ/โปรใหม่ทั้งใบ (เลือกรุ่น/โปรใหม่)</button>
     </div>
   </div>
 </div>
