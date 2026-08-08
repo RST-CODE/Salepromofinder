@@ -3193,7 +3193,7 @@ function buildPrintHtml(d){
         const cashBack = Number(ti.cashBack)||0;
         const hasData = ti.brand || ti.model || ti.docType || ti.condition || payoffTotal || cashBack;
         if(!hasData) return '';
-        const conditionLabel = TRADE_IN_CONDITION_LABELS[ti.condition] || '-';
+        const conditionLabel = tradeInConditionLabel(ti, '-');
         const docLabel = TRADE_IN_DOC_LABELS[ti.docType] || '-';
         const tradeInTotal = (d.down||0) + payoffTotal + cashBack;
         return `
@@ -3363,9 +3363,7 @@ function buildFinInfoPrintHtml(fi){
   const jobLine = fi.hasJob === 'yes'
     ? `มี — ${fi.jobDetail||'-'} (${fi.jobIncome?fmt(Number(fi.jobIncome)||0)+' บาท/เดือน':'-'})`
     : (fi.hasJob === 'no' ? 'ไม่มี' : '-');
-  const sideLine = fi.hasSideIncome === 'yes'
-    ? `มี — ${fi.sideIncomeDetail||'-'} (${fi.sideIncomeAmount?fmt(Number(fi.sideIncomeAmount)||0)+' บาท/เดือน':'-'})`
-    : (fi.hasSideIncome === 'no' ? 'ไม่มี' : '-');
+  const sideLine = buildSideIncomeLine(fi, '-');
 
   const machinesRows = machines.length ? machines.map(m=>`
       <tr><td style="padding:2px 0">${m.type||'-'}</td><td style="padding:2px 0">${m.model||'-'}</td><td style="padding:2px 0;text-align:center">${m.qty||'-'} คัน</td><td style="padding:2px 0">${m.note||'-'}</td></tr>
@@ -5029,7 +5027,7 @@ function viewHistoryDetail(id){
 // ===== สถานะเคส (ไฟแนนซ์เท่านั้นที่เปลี่ยนได้) =====
 // แก้ไข/เพิ่มรายการสถานะได้ตรงนี้ที่เดียว
 const CASE_STATUSES = [
-  'รอดำเนินการ','รอเอกสารลูกค้า','ส่งไฟแนนซ์แล้ว','รออนุมัติ',
+  'รอดำเนินการ','รอเอกสารลูกค้า','ส่งไฟแนนซ์แล้ว','รออนุมัติ','มีเงื่อนไข',
   'อนุมัติแล้ว','ไม่อนุมัติ','รอลูกค้าตัดสินใจใหม่','ยกเลิกเคส','ส่งมอบแล้ว/ปิดเคส'
 ];
 function statusSlug(s){
@@ -5477,9 +5475,7 @@ function renderFinInfoSectionWrap(id, d){
   const jobLine = fi.hasJob === 'yes'
     ? `มี — ${fi.jobDetail||'-'} (${fi.jobIncome?fmt(Number(fi.jobIncome)||0)+' บาท/เดือน':'-'})`
     : (fi.hasJob === 'no' ? 'ไม่มี' : '—');
-  const sideLine = fi.hasSideIncome === 'yes'
-    ? `มี — ${fi.sideIncomeDetail||'-'} (${fi.sideIncomeAmount?fmt(Number(fi.sideIncomeAmount)||0)+' บาท/เดือน':'-'})`
-    : (fi.hasSideIncome === 'no' ? 'ไม่มี' : '—');
+  const sideLine = buildSideIncomeLine(fi, '—');
   const machinesHtml = machines.length
     ? machines.map(m=>`<div class="hd-row"><span class="hd-label">${m.type||'-'}</span><span class="hd-val">${m.model||'-'} × ${m.qty||'-'} คัน${m.note?' · '+m.note:''}</span></div>`).join('')
     : '';
@@ -5521,7 +5517,7 @@ function renderTradeInSectionWrap(d){
   const hasAny = ti.brand || ti.vehicleType || ti.model || ti.equipment || ti.docType || ti.condition || payoffTotal || cashBack;
   if(!hasAny) return '';
 
-  const conditionLabel = TRADE_IN_CONDITION_LABELS[ti.condition] || '—';
+  const conditionLabel = tradeInConditionLabel(ti, '—');
   const docLabel = TRADE_IN_DOC_LABELS[ti.docType] || '—';
   const tradeInTotal = (d.down||0) + payoffTotal + cashBack;
   const payoffsHtml = payoffs.length
@@ -6242,11 +6238,27 @@ let finInfo = {
   jobDetail: '',
   jobIncome: '',
   hasSideIncome: '',   // 'yes' | 'no' | ''
-  sideIncomeDetail: '',
-  sideIncomeAmount: '',
+  sideIncomes: [],     // {detail, amount} — รองรับได้หลายรายการ กรณีลูกค้ามีรายได้เสริมหลายทาง
   machines: [],        // {type, model, qty, note} — เครื่องจักรกลที่มีอยู่แล้วก่อนซื้อคันนี้
   debts: []            // {creditor, amount}
 };
+// รองรับข้อมูลเก่า (ก่อนรองรับรายได้เสริมหลายรายการ) ที่ยังเก็บเป็น sideIncomeDetail/sideIncomeAmount ตัวเดียว
+// แปลงเป็น array sideIncomes ให้อัตโนมัติ ใช้ทั้งตอนแสดงผล (พิมพ์/หน้าประวัติ) และตอนโหลดขึ้นมาแก้ไข
+function getSideIncomeList(fi){
+  if(!fi) return [];
+  if(Array.isArray(fi.sideIncomes) && fi.sideIncomes.length) return fi.sideIncomes;
+  if(fi.sideIncomeDetail || fi.sideIncomeAmount) return [{detail: fi.sideIncomeDetail||'', amount: fi.sideIncomeAmount||''}];
+  return [];
+}
+function buildSideIncomeLine(fi, notSetChar){
+  notSetChar = notSetChar || '-';
+  if(!fi) return notSetChar;
+  if(fi.hasSideIncome === 'no') return 'ไม่มี';
+  if(fi.hasSideIncome !== 'yes') return notSetChar;
+  const list = getSideIncomeList(fi).filter(s=>s.detail||s.amount);
+  if(!list.length) return 'มี — -';
+  return 'มี — ' + list.map(s=>`${s.detail||'-'} (${s.amount?fmt(Number(s.amount)||0)+' บาท/เดือน':'-'})`).join(', ');
+}
 
 function farmPlotRowHtml(idx, p){
   return `
@@ -6344,6 +6356,32 @@ function renderDebtList(){
 function addDebtRow(){ finInfo.debts.push({creditor:'',amount:''}); renderDebtList(); }
 function removeDebtRow(idx){ finInfo.debts.splice(idx,1); renderDebtList(); }
 
+function sideIncomeRowHtml(idx, s){
+  return `
+    <div class="ref-row" data-idx="${idx}">
+      <div class="ref-row-head">
+        <b>รายได้เสริมที่ ${idx+1}</b>
+        <button type="button" class="ref-row-remove" onclick="removeSideIncomeRow(${idx})">✕ ลบ</button>
+      </div>
+      <div class="field-group" style="margin-bottom:6px">
+        <label>รายได้เสริมจากอะไร</label>
+        <input type="text" value="${escapeHtml(s.detail||'')}" placeholder="เช่น เลี้ยงวัว, ค้าขาย" oninput="finInfo.sideIncomes[${idx}].detail=this.value">
+      </div>
+      <div class="field-group" style="margin:0">
+        <label>รายได้เสริมต่อเดือน (บาท)</label>
+        <input type="text" inputmode="numeric" value="${escapeHtml(s.amount||'')}" placeholder="0" oninput="finInfo.sideIncomes[${idx}].amount=this.value">
+      </div>
+    </div>`;
+}
+function renderSideIncomeList(){
+  const c = document.getElementById('sideIncomeListContainer');
+  if(!c) return;
+  if(!finInfo.sideIncomes.length) finInfo.sideIncomes.push({detail:'',amount:''});
+  c.innerHTML = finInfo.sideIncomes.map((s,i)=>sideIncomeRowHtml(i,s)).join('');
+}
+function addSideIncomeRow(){ finInfo.sideIncomes.push({detail:'',amount:''}); renderSideIncomeList(); }
+function removeSideIncomeRow(idx){ finInfo.sideIncomes.splice(idx,1); renderSideIncomeList(); }
+
 function setHasJob(val){ finInfo.hasJob = val; renderFinInfoToggles(); }
 function setHasSideIncome(val){ finInfo.hasSideIncome = val; renderFinInfoToggles(); }
 function renderFinInfoToggles(){
@@ -6360,17 +6398,15 @@ function renderFinInfoToggles(){
   });
 }
 function renderFinInfoForm(){
+  finInfo.sideIncomes = getSideIncomeList(finInfo); // แปลงข้อมูลเก่า (ตัวเดียว) เป็น array ถ้ายังไม่เคยแปลง
   renderFarmPlotList();
   renderMachineList();
   renderDebtList();
+  renderSideIncomeList();
   const jobIncomeEl = document.getElementById('jobIncomeInput');
   if(jobIncomeEl) jobIncomeEl.value = finInfo.jobIncome || '';
   const jobDetailEl = document.getElementById('jobDetailInput');
   if(jobDetailEl) jobDetailEl.value = finInfo.jobDetail || '';
-  const sideDetailEl = document.getElementById('sideIncomeDetailInput');
-  if(sideDetailEl) sideDetailEl.value = finInfo.sideIncomeDetail || '';
-  const sideAmtEl = document.getElementById('sideIncomeAmountInput');
-  if(sideAmtEl) sideAmtEl.value = finInfo.sideIncomeAmount || '';
   renderFinInfoToggles();
 }
 // Modal นี้ก็ใช้ร่วมกัน 2 โหมดเหมือน addrGtorModalBg — _finInfoEditRecordId ตั้งไว้เมื่อเปิดจากหน้าประวัติ
@@ -6406,7 +6442,8 @@ function updateFinInfoStatus(){
   const hasPlots = finInfo.farmPlots.some(p=>p.cropType||p.rai||p.titleHolder);
   const hasMachines = finInfo.machines.some(m=>m.type||m.model||m.qty||m.note);
   const hasDebts = finInfo.debts.some(d=>d.creditor||d.amount);
-  const filled = hasPlots || hasMachines || hasDebts || finInfo.hasJob || finInfo.hasSideIncome;
+  const hasSideIncomes = (finInfo.sideIncomes||[]).some(s=>s.detail||s.amount);
+  const filled = hasPlots || hasMachines || hasDebts || hasSideIncomes || finInfo.hasJob || finInfo.hasSideIncome;
   const txt = filled ? '✓ กรอกแล้ว' : '';
   ['finInfoStatus','finInfoStatusM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = txt; });
 }
@@ -6421,20 +6458,28 @@ function openFinInfoEditModal(){
   document.getElementById('editRecordModalBg').style.display = 'none'; // ซ่อนไว้ก่อน (ซ้อนกันใน DOM ไม่ได้) ไม่ clear state
   finInfo = JSON.parse(JSON.stringify(d.finInfo || {
     farmPlots:[], hasJob:'', jobDetail:'', jobIncome:'',
-    hasSideIncome:'', sideIncomeDetail:'', sideIncomeAmount:'', machines:[], debts:[]
+    hasSideIncome:'', sideIncomes:[], machines:[], debts:[]
   }));
   renderFinInfoForm();
   document.getElementById('finInfoModalBg').style.display = 'flex';
 }
 
 // ===== ตีเทิร์นรถเก่า (ยี่ห้อ/รุ่น/เอกสาร/สภาพ/ยอดปิดหนี้หลายไฟแนนซ์/เงินคืน) =====
-let tradeIn = { brand:'', vehicleType:'', model:'', equipment:'', docType:'', condition:'', payoffs:[], cashBack:'' };
+let tradeIn = { brand:'', vehicleType:'', model:'', equipment:'', docType:'', condition:'', conditionOther:'', payoffs:[], cashBack:'' };
 const TRADE_IN_CONDITION_LABELS = {
   excellent: 'ใหม่มาก ไม่ต้องซ่อมเลย (85-99% หรือน้อยกว่า 1,000 ชั่วโมง)',
   good: 'ใหม่ แค่รั่วซึมเล็กน้อยตามจุด (70-84%)',
   fair: 'ใช้งานมาพอสมควร มีควันดำ สตาร์ทติดยาก (50-69%)',
-  poor: 'โทรม ซ่อมเยอะ สตาร์ทไม่ติดหรือติดยาก ยกเครื่อง (0-49%)'
+  poor: 'โทรม ซ่อมเยอะ สตาร์ทไม่ติดหรือติดยาก ยกเครื่อง (0-49%)',
+  other: 'อื่นๆ'
 };
+// สภาพรถแบบ "อื่นๆ" ให้พิมพ์เองได้ — ถ้าเลือก other จะโชว์ข้อความที่พิมพ์เอง (conditionOther) แทนป้ายมาตรฐานด้านบน
+function tradeInConditionLabel(ti, notSetChar){
+  notSetChar = notSetChar || '-';
+  if(!ti || !ti.condition) return notSetChar;
+  if(ti.condition === 'other') return ti.conditionOther || TRADE_IN_CONDITION_LABELS.other;
+  return TRADE_IN_CONDITION_LABELS[ti.condition] || notSetChar;
+}
 const TRADE_IN_DOC_LABELS = { book:'มีเล่ม (เล่มทะเบียน)', receipt:'มีแค่ใบซื้อขาย', none:'ไม่มีเอกสาร' };
 const TRADE_IN_FIXED_BRANDS = ['ยันม่าร์','คูโบต้า','ฟอร์ด','นิวฮอลแลนด์','จอห์นเดียร์','อิเซกิ','แมสซี่ เฟอร์กูสัน'];
 const TRADE_IN_FIXED_VEHICLE_TYPES = ['รถแทรกเตอร์','รถเกี่ยวข้าว','รถขุด','รถกระบะ','รถบรรทุก'];
@@ -6524,12 +6569,26 @@ function syncTradeInRadios(){
   document.querySelectorAll('input[name="tradeInDocType"]').forEach(r=>{ r.checked = (r.value === tradeIn.docType); });
   document.querySelectorAll('input[name="tradeInCondition"]').forEach(r=>{ r.checked = (r.value === tradeIn.condition); });
 }
+// เลือกสภาพรถ — ถ้าเลือก "อื่นๆ" โชว์ช่องพิมพ์เอง ถ้าเลือกตัวเลือกอื่นซ่อนช่องนั้นกลับไป
+function onTradeInConditionChange(el){
+  tradeIn.condition = el.value;
+  const other = document.getElementById('tradeInConditionOther');
+  if(other){
+    other.style.display = (el.value === 'other') ? 'block' : 'none';
+  }
+  updateTradeInStatus();
+}
 function openTradeInModal(){
   applyTradeInSelectField('tradeInBrand','tradeInBrandOther', TRADE_IN_FIXED_BRANDS, tradeIn.brand);
   applyTradeInSelectField('tradeInVehicleType','tradeInVehicleTypeOther', TRADE_IN_FIXED_VEHICLE_TYPES, tradeIn.vehicleType);
   const mEl = document.getElementById('tradeInModel'); if(mEl) mEl.value = tradeIn.model || '';
   const eqEl = document.getElementById('tradeInEquipment'); if(eqEl) eqEl.value = tradeIn.equipment || '';
   const cEl = document.getElementById('tradeInCashBack'); if(cEl) cEl.value = tradeIn.cashBack || '';
+  const condOtherEl = document.getElementById('tradeInConditionOther');
+  if(condOtherEl){
+    condOtherEl.value = tradeIn.conditionOther || '';
+    condOtherEl.style.display = (tradeIn.condition === 'other') ? 'block' : 'none';
+  }
   syncTradeInRadios();
   renderTradeInPayoffList();
   updateTradeInTotalPreview();
@@ -6864,14 +6923,8 @@ setBrand('yanmar');
         <button type="button" id="btnSideIncome_no" class="fin-btn" onclick="setHasSideIncome('no')">ไม่มี</button>
       </div>
       <div id="sideIncomeDetailBox" style="display:none">
-        <div class="field-group">
-          <label>รายได้เสริมจากอะไร</label>
-          <input type="text" id="sideIncomeDetailInput" placeholder="เช่น เลี้ยงวัว, ค้าขาย" oninput="finInfo.sideIncomeDetail=this.value">
-        </div>
-        <div class="field-group">
-          <label>รายได้เสริมต่อเดือน (บาท)</label>
-          <input type="text" inputmode="numeric" id="sideIncomeAmountInput" placeholder="0" oninput="finInfo.sideIncomeAmount=this.value">
-        </div>
+        <div id="sideIncomeListContainer"></div>
+        <button type="button" class="btn-reprint" style="width:100%;margin-top:4px" onclick="addSideIncomeRow()">➕ เพิ่มรายได้เสริมอีกรายการ</button>
       </div>
 
       <div class="finance-extra-subhead">🚜 เครื่องจักรกลที่มีอยู่แล้ว (รถแทรกเตอร์/รถเกี่ยว/รถขุด)</div>
@@ -6952,21 +7005,26 @@ setBrand('yanmar');
       <div class="finance-extra-subhead">🔧 สภาพรถ</div>
       <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">
         <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
-          <input type="radio" name="tradeInCondition" value="excellent" onchange="tradeIn.condition=this.value; updateTradeInStatus();">
+          <input type="radio" name="tradeInCondition" value="excellent" onchange="onTradeInConditionChange(this)">
           <span>ใหม่มาก ไม่ต้องซ่อมเลย (85-99% หรือน้อยกว่า 1,000 ชั่วโมง)</span>
         </label>
         <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
-          <input type="radio" name="tradeInCondition" value="good" onchange="tradeIn.condition=this.value; updateTradeInStatus();">
+          <input type="radio" name="tradeInCondition" value="good" onchange="onTradeInConditionChange(this)">
           <span>ใหม่ แค่รั่วซึมเล็กน้อยตามจุด (70-84%)</span>
         </label>
         <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
-          <input type="radio" name="tradeInCondition" value="fair" onchange="tradeIn.condition=this.value; updateTradeInStatus();">
+          <input type="radio" name="tradeInCondition" value="fair" onchange="onTradeInConditionChange(this)">
           <span>ใช้งานมาพอสมควร มีควันดำ สตาร์ทติดยาก (50-69%)</span>
         </label>
         <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
-          <input type="radio" name="tradeInCondition" value="poor" onchange="tradeIn.condition=this.value; updateTradeInStatus();">
+          <input type="radio" name="tradeInCondition" value="poor" onchange="onTradeInConditionChange(this)">
           <span>โทรม ซ่อมเยอะ สตาร์ทไม่ติดหรือติดยาก ยกเครื่อง (0-49%)</span>
         </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff">
+          <input type="radio" name="tradeInCondition" value="other" onchange="onTradeInConditionChange(this)">
+          <span>อื่นๆ (ระบุเอง)</span>
+        </label>
+        <input type="text" id="tradeInConditionOther" placeholder="ระบุสภาพรถ..." style="display:none;width:100%;box-sizing:border-box" oninput="tradeIn.conditionOther=this.value; updateTradeInStatus();">
       </div>
 
       <div class="finance-extra-subhead">💳 ยอดปิดหนี้ (ปิดได้หลายไฟแนนซ์)</div>
