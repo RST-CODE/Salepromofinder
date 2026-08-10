@@ -4959,13 +4959,8 @@ function renderHistoryList(records){
   renderHistoryCards(sortHistoryRecords(records, 'date_desc'));
 }
 
-function renderHistoryCards(records){
-  const container = document.getElementById('historyListContainer');
-  if(!records || records.length === 0){
-    container.innerHTML = '<div class="history-empty">ไม่พบรายการที่ค้นหา</div>';
-    return;
-  }
-  container.innerHTML = records.map(r => `
+function historyCardHtml(r){
+  return `
     <div class="history-card" id="hc_${r.id}" onclick="viewHistoryDetail('${r.id}')">
       <div class="hc-top">
         <div class="hc-name">${r.custName || '(ไม่ระบุชื่อ)'}</div>
@@ -4988,9 +4983,33 @@ function renderHistoryCards(records){
         <button class="btn-reprint" onclick="event.stopPropagation();reprintRecord('${r.id}')">🖨 พิมพ์ซ้ำ</button>
       </div>
     </div>
-  `).join('') + (!_historyLoadedFull ? `
+  `;
+}
+
+function renderHistoryCards(records){
+  const container = document.getElementById('historyListContainer');
+  if(!records || records.length === 0){
+    container.innerHTML = '<div class="history-empty">ไม่พบรายการที่ค้นหา</div>';
+    return;
+  }
+  container.innerHTML = records.map(historyCardHtml).join('') + (!_historyLoadedFull ? `
     <button class="btn-reprint" style="width:100%;margin-top:8px" onclick="loadFullHistory()">🔽 โหลดประวัติทั้งหมด (แสดงแค่ล่าสุด ${HISTORY_FAST_LIMIT} รายการอยู่ตอนนี้ เพื่อให้เปิดหน้าเร็วขึ้น)</button>
   ` : '');
+}
+
+// อัปเดตการ์ดใบเดียวในลิสต์ฝั่งซ้ายให้ตรงกับข้อมูลล่าสุดใน _allHistoryRecords
+// (เรียกทุกครั้งที่แก้สถานะ/เพิ่มบันทึกคุย เพื่อไม่ต้องโหลดลิสต์ทั้งหมดใหม่)
+function refreshHistoryCardInList(id){
+  const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
+  if(!rec) return;
+  const oldCard = document.getElementById('hc_'+id);
+  if(!oldCard) return;
+  const wasSelected = oldCard.classList.contains('selected');
+  oldCard.outerHTML = historyCardHtml(rec);
+  if(wasSelected){
+    const newCard = document.getElementById('hc_'+id);
+    if(newCard) newCard.classList.add('selected');
+  }
 }
 
 function viewHistoryDetail(id){
@@ -5117,16 +5136,24 @@ function cancelCaseStatusChange(id){
   delete _pendingStatusChange[id];
 }
 function changeCaseStatus(id, status, note){
+  const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
+  const baseNote = 'เปลี่ยนสถานะเป็น "'+status+'"';
+  const fullNote = note ? (baseNote + ' — ' + note) : baseNote;
+
   const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
-  if(rec) rec.caseStatus = status;
+  if(rec){
+    rec.caseStatus = status;
+    // อัปเดตบันทึกล่าสุด/เวลา ให้การ์ดฝั่งซ้ายแสดงตรงกับสถานะใหม่ทันที ไม่ต้องรอโหลดลิสต์ใหม่
+    rec.lastNote = fullNote;
+    rec.lastNoteAt = new Date().toISOString();
+    refreshHistoryCardInList(id);
+  }
+
   gasPost('updateStatus', {action:'updateStatus', id, status, note: note||'', byName:userName, byRole:userRole}, (err)=>{
     if(err) alert('บันทึกสถานะไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
   });
   const tlEl = document.getElementById('hdTimeline_'+id);
   if(tlEl){
-    const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
-    const baseNote = 'เปลี่ยนสถานะเป็น "'+status+'"';
-    const fullNote = note ? (baseNote + ' — ' + note) : baseNote;
     tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([{ts:nowStr, byName:userName, byRole:userRole, type:'status', status, note:fullNote}]));
   }
 }
@@ -5343,6 +5370,15 @@ function submitUpdateNote(id){
     const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
     tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([Object.assign({ts:nowStr, type:'note'}, entry)]));
   }
+
+  // อัปเดตบันทึกล่าสุด/เวลาในการ์ดฝั่งซ้ายด้วย ให้เห็นบันทึกใหม่ทันทีโดยไม่ต้องโหลดลิสต์ใหม่
+  const recForCard = _allHistoryRecords.find(r => String(r.id) === String(id));
+  if(recForCard){
+    recForCard.lastNote = note;
+    recForCard.lastNoteAt = new Date().toISOString();
+    refreshHistoryCardInList(id);
+  }
+
   cancelAddUpdateForm(id);
   gasPost('addUpdate', {action:'addUpdate', id, entry}, (err)=>{
     if(err) alert('บันทึกไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
