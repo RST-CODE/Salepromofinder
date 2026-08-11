@@ -4810,6 +4810,9 @@ function loadFullHistory(onDone){
 }
 
 let _allHistoryRecords = [];
+// เก็บฟิลด์ที่เพิ่งอัปเดตแบบ optimistic ไว้ชั่วคราว (caseStatus/lastNote/lastNoteAt)
+// กันไม่ให้ fetchAndPatchFullDetail ที่ยิง GET ไป backend ค้างอยู่ เอาข้อมูลเก่ามาทับตอนตอบกลับช้า
+let _pinnedCardFields = {};
 
 function filterHistory(){
   const fQuick   = (document.getElementById('hf_quick')?.value||'').trim().toLowerCase();
@@ -5081,12 +5084,19 @@ function renderTimelineEntries(updates){
     const snapBtn = u.snapshot
       ? `<br><button type="button" onclick="viewTimelineSnapshot('${registerTlSnapshot(u.snapshot)}','${escapeHtml(u.ts||'')}')" style="margin-top:4px;font-family:'Kanit',sans-serif;font-size:11px;font-weight:600;padding:3px 10px;border-radius:7px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);cursor:pointer">🖨 ดูใบสรุปการขาย ณ รอบนี้</button>`
       : '';
+    // แสดงสถานะใหม่ต่อจากหัวข้อไปเลย (เช่น "เปลี่ยนสถานะ → ไม่อนุมัติ") ให้เห็นชัดว่าเปลี่ยนเป็นอะไร
+    const headerLabel = u.type==='status'
+      ? 'เปลี่ยนสถานะ' + (u.status ? ' → ' + escapeHtml(u.status) : '')
+      : (u.type==='edit' ? 'แก้ไขข้อมูล' : 'บันทึกการคุย');
+    // หมายเหตุที่พิมพ์เอง แยกเป็นบรรทัดของตัวเอง ไม่ปนกับข้อความอัตโนมัติ จะได้เห็นชัดๆว่ามีโน้ตแนบมา
+    const noteLine = u.note
+      ? `<br><span style="font-size:12px">📝 หมายเหตุ: ${escapeHtml(u.note)}</span>`
+      : '';
     return `
     <div class="hd-tl-row">
       <div class="hd-tl-dot"></div>
       <div>
-        <b>${u.type==='status' ? 'เปลี่ยนสถานะ' : (u.type==='edit' ? 'แก้ไขข้อมูล' : 'บันทึกการคุย')}</b> — ${escapeHtml(u.ts||'')}<br>
-        <span style="font-size:12px">${escapeHtml(u.note||'')}</span>
+        <b>${headerLabel}</b> — ${escapeHtml(u.ts||'')}${noteLine}
         ${u.newDown!=null ? `<br><span style="font-size:11px;color:var(--accent)">ดาวน์ใหม่: ${fmt(u.newDown)} บาท</span>` : ''}
         ${u.newYears!=null ? `<br><span style="font-size:11px;color:var(--accent)">งวดใหม่: ${u.newYears} ปี</span>` : ''}
         ${u.nextFollowUp ? `<br><span style="font-size:11px;color:#888">นัดครั้งถัดไป: ${escapeHtml(u.nextFollowUp)}</span>` : ''}
@@ -5137,24 +5147,27 @@ function cancelCaseStatusChange(id){
 }
 function changeCaseStatus(id, status, note){
   const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
-  const baseNote = 'เปลี่ยนสถานะเป็น "'+status+'"';
-  const fullNote = note ? (baseNote + ' — ' + note) : baseNote;
+  // เก็บ "หมายเหตุดิบ" ที่พิมพ์เอง แยกจากข้อความสถานะ — ถ้าไม่ได้พิมพ์อะไรมา ให้ใช้ข้อความสถานะแทนไว้กันการ์ดว่างเปล่า
+  const rawNote = (note||'').trim();
+  const cardNote = rawNote || ('เปลี่ยนสถานะเป็น "'+status+'"');
 
   const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
   if(rec){
     rec.caseStatus = status;
-    // อัปเดตบันทึกล่าสุด/เวลา ให้การ์ดฝั่งซ้ายแสดงตรงกับสถานะใหม่ทันที ไม่ต้องรอโหลดลิสต์ใหม่
-    rec.lastNote = fullNote;
+    // อัปเดตบันทึกล่าสุด/เวลา ให้การ์ดฝั่งซ้ายแสดงตรงกับสถานะ+หมายเหตุใหม่ทันที ไม่ต้องรอโหลดลิสต์ใหม่
+    rec.lastNote = cardNote;
     rec.lastNoteAt = new Date().toISOString();
+    // กันไม่ให้ fetchAndPatchFullDetail (ที่อาจยังทำงานอยู่เบื้องหลัง) เอาข้อมูลเก่าจาก backend มาทับค่าที่เพิ่งอัปเดตนี้
+    _pinnedCardFields[id] = { caseStatus: status, lastNote: cardNote, lastNoteAt: rec.lastNoteAt };
     refreshHistoryCardInList(id);
   }
 
-  gasPost('updateStatus', {action:'updateStatus', id, status, note: note||'', byName:userName, byRole:userRole}, (err)=>{
+  gasPost('updateStatus', {action:'updateStatus', id, status, note: rawNote, byName:userName, byRole:userRole}, (err)=>{
     if(err) alert('บันทึกสถานะไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
   });
   const tlEl = document.getElementById('hdTimeline_'+id);
   if(tlEl){
-    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([{ts:nowStr, byName:userName, byRole:userRole, type:'status', status, note:fullNote}]));
+    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([{ts:nowStr, byName:userName, byRole:userRole, type:'status', status, note:rawNote}]));
   }
 }
 
@@ -5376,6 +5389,8 @@ function submitUpdateNote(id){
   if(recForCard){
     recForCard.lastNote = note;
     recForCard.lastNoteAt = new Date().toISOString();
+    // กันไม่ให้ fetchAndPatchFullDetail เอาข้อมูลเก่าจาก backend มาทับตอนตอบกลับช้า
+    _pinnedCardFields[id] = Object.assign({}, _pinnedCardFields[id], { lastNote: recForCard.lastNote, lastNoteAt: recForCard.lastNoteAt });
     refreshHistoryCardInList(id);
   }
 
@@ -5441,7 +5456,13 @@ function fetchAndPatchFullDetail(id){
     if(myToken !== _detailFetchToken) return; // ผู้ใช้เปลี่ยนไปดูเคสอื่นแล้ว
     const full = data.record;
     const idx = _allHistoryRecords.findIndex(r => String(r.id) === String(id));
-    if(idx > -1) _allHistoryRecords[idx] = Object.assign({}, _allHistoryRecords[idx], full);
+    if(idx > -1){
+      _allHistoryRecords[idx] = Object.assign({}, _allHistoryRecords[idx], full);
+      // ถ้ามีการเปลี่ยนสถานะ/เพิ่มบันทึกไปแล้วในเบราว์เซอร์ระหว่างที่ยังโหลดฉบับเต็มอยู่
+      // ให้ค่าที่เพิ่งอัปเดตนั้นชนะเสมอ ไม่ให้ backend (ที่อาจยังไม่บันทึกเสร็จ) ทับกลับเป็นค่าเก่า
+      if(_pinnedCardFields[id]) Object.assign(_allHistoryRecords[idx], _pinnedCardFields[id]);
+      refreshHistoryCardInList(id);
+    }
 
     if(Array.isArray(full.eqItems) && full.eqItems.length){
       const eqBlock = document.getElementById('hdEqItems_'+id);
@@ -5469,11 +5490,13 @@ function fetchAndPatchFullDetail(id){
     const tlLoading = document.getElementById('hdTimelineLoading_'+id);
     if(tlLoading) tlLoading.outerHTML = renderTimelineEntries(full.updates||[]) || '<div class="hd-tl-row"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">ยังไม่มีการอัปเดตเพิ่มเติม</div></div>';
 
-    if(full.caseStatus){
+    // ถ้าเพิ่งเปลี่ยนสถานะไปแล้วระหว่างที่ยังโหลดฉบับเต็มอยู่ ให้ยึดค่าที่เพิ่งเปลี่ยน ไม่ใช่ค่าเก่าจาก backend
+    const effectiveStatus = (_pinnedCardFields[id] && _pinnedCardFields[id].caseStatus) || full.caseStatus;
+    if(effectiveStatus){
       const badgeEl = document.getElementById('hdStatusBadge_'+id);
       const selectEl = document.getElementById('hdStatusSelect_'+id);
-      if(badgeEl){ badgeEl.textContent = full.caseStatus; badgeEl.className = 'case-status-badge status-'+statusSlug(full.caseStatus); }
-      if(selectEl) selectEl.value = full.caseStatus;
+      if(badgeEl){ badgeEl.textContent = effectiveStatus; badgeEl.className = 'case-status-badge status-'+statusSlug(effectiveStatus); }
+      if(selectEl) selectEl.value = effectiveStatus;
     }
   });
 }
