@@ -3531,12 +3531,16 @@ function openDocsModal(id, role){
   document.getElementById('docsPdfArea').innerHTML = '';
   document.getElementById('docsModalTitle').textContent = currentDocsRole === 'guarantor' ? '📎 แนบเอกสารประกอบ — ผู้ค้ำประกัน' : '📎 แนบเอกสารประกอบ — ผู้ซื้อ';
   // เคลียร์ช่องแนบในหน้า "แนบลายเซ็น" ให้เป็นค่าเริ่มต้นทุกครั้งที่เปิดเคส/บทบาทใหม่ (หน้านี้ไม่ได้ render ใหม่แบบ docCategoryList)
-  ['sig_idcard','sig_houseReg'].forEach(function(sk){
+  ['sig_idcard','sig_houseReg','sig_houseReg_2'].forEach(function(sk){
     const inputEl = document.getElementById('docFile_'+sk);
     const statusEl = document.getElementById('docStatus_'+sk);
     if(inputEl) inputEl.value = '';
     if(statusEl){ statusEl.className = 'doc-cat-status'; statusEl.textContent = 'ยังไม่แนบ'; }
   });
+  // รีเซ็ตตัวเลือก "ทะเบียนบ้าน 1/2 ใบ" กลับเป็นค่าเริ่มต้น (1 ใบ) ทุกครั้งที่เปิดเคส/บทบาทใหม่
+  const sig1Radio = document.querySelector('input[name="sigHouseRegPages"][value="1"]');
+  if(sig1Radio) sig1Radio.checked = true;
+  setSigHouseRegPageCount(1);
   document.getElementById('sigComposeModalBg').style.display = 'none';
   renderDocCategoryList();
   document.getElementById('docsModalBg').style.display = 'flex';
@@ -3582,6 +3586,10 @@ let directModeByRole = { buyer:{}, guarantor:{} };
 // จำ prefix ของ slotKey ที่ใช้อัปโหลดหมวดนี้ล่าสุด ('sig_' ถ้ามาจากหน้าแนบลายเซ็น, '' ถ้ามาจากหน้ารายการหลัก)
 // ต้องรู้ตอนรวมไฟล์/อัปเดตสถานะ เพราะทั้งสองหน้ามี input/สถานะคนละ element กัน แม้ catKey จะเป็นตัวเดียวกัน
 let slotPrefixByRole = { buyer:{}, guarantor:{} };
+// ทะเบียนบ้านในหน้า "แนบลายเซ็น" เลือกได้ว่าจะมี 1 ใบ หรือ 2 ใบ (เช่น หน้า-หลัง หรือคนละหน้า) —
+// ถ้าเลือก 2 ใบ ระบบจะรอให้แนบครบทั้ง 2 ใบก่อน แล้วรวมเป็นแผ่นเดียวพร้อมแปะลายเซ็นให้อัตโนมัติ
+// แยกตัวแปรนี้ออกจาก DOC_CATEGORIES.houseReg.count โดยตั้งใจ เพื่อไม่ให้กระทบช่องแนบ "เซ็นชื่อแล้ว" ในหน้ารายการเอกสารหลัก
+let sigHouseRegPageCount = 1;
 function renderDocCategoryList(){
   docPageStoreByRole[currentDocsRole] = {};
   dynamicSlotCountByRole[currentDocsRole] = {};
@@ -3840,6 +3848,85 @@ async function onDocFileSelected(slotKey, catKey){
   } catch(e){
     statusEl.className = 'doc-cat-status err';
     statusEl.textContent = '❌ อ่านรูปไม่ได้ ลองใหม่';
+  }
+}
+
+// ===== ทะเบียนบ้าน 1 ใบ หรือ 2 ใบ (หน้าแนบลายเซ็นเท่านั้น) =====
+// สลับจำนวนใบที่ต้องแนบ — ล้างของเก่าทั้งหมดทุกครั้งที่สลับ กันรูปใบเก่าจากโหมดก่อนหน้าตกค้างแล้วรวมผิดใบ
+function setSigHouseRegPageCount(n){
+  sigHouseRegPageCount = n;
+  const row2 = document.getElementById('docRow_sig_houseReg_2');
+  if(row2) row2.style.display = (n === 2) ? '' : 'none';
+  const suffixEl = document.getElementById('sigHouseRegPage1Suffix');
+  if(suffixEl) suffixEl.textContent = (n === 2) ? ' (ใบที่ 1)' : '';
+  ['sig_houseReg','sig_houseReg_2'].forEach(function(sk){
+    const inputEl = document.getElementById('docFile_'+sk);
+    const statusEl = document.getElementById('docStatus_'+sk);
+    if(inputEl) inputEl.value = '';
+    if(statusEl){ statusEl.className = 'doc-cat-status'; statusEl.textContent = 'ยังไม่แนบ'; }
+  });
+  const store = docPageStoreByRole[currentDocsRole];
+  if(store) store['houseReg'] = [];
+  attachedCategoriesByRole[currentDocsRole].delete('houseReg');
+  updateRequiredBadges();
+}
+// รับไฟล์ทะเบียนบ้านแต่ละใบจากหน้า "แนบลายเซ็น" — ตัดกรอบแล้วเก็บเข้า store ตามใบ (1 หรือ 2)
+// รอครบตามจำนวนที่เลือกไว้ (sigHouseRegPageCount) ก่อนค่อยรวมเป็นแผ่นเดียวไปแปะบนรูปลายเซ็น
+async function onSigHouseRegFileSelected(pageNum){
+  const slotKey = pageNum === 1 ? 'sig_houseReg' : 'sig_houseReg_2';
+  const input = document.getElementById('docFile_'+slotKey);
+  const file = input.files[0];
+  if(!file) return;
+  const role = currentDocsRole;
+  directModeByRole[role]['houseReg'] = false;
+  slotPrefixByRole[role]['houseReg'] = 'sig_';
+  const label = 'ทะเบียนบ้าน' + (sigHouseRegPageCount === 2 ? (' ใบที่ ' + pageNum) : '');
+  const statusEl = document.getElementById('docStatus_'+slotKey);
+  statusEl.className = 'doc-cat-status';
+  statusEl.textContent = '⏳ กำลังเตรียมรูป...';
+  try{
+    const compressed = await compressImageFile(file, 1600, 0.8);
+    openCropModal(compressed.dataUrl, '✂️ ตัดกรอบ' + label, 'ลากให้ชิดขอบเอกสารที่สุด อย่าให้เห็นโต๊ะ/พื้นหลังหลงเหลือเลยแม้แต่นิดเดียว', function(croppedDataUrl){
+      statusEl.textContent = '⏳ กำลังเตรียมรูป...';
+      const img = new Image();
+      img.onload = function(){
+        const normCanvas = canvasFromImage(img);
+        const store = docPageStoreByRole[role];
+        if(!store['houseReg']) store['houseReg'] = [];
+        store['houseReg'][pageNum-1] = normCanvas;
+        const filled = store['houseReg'].filter(Boolean).length;
+        const needed = sigHouseRegPageCount;
+        if(filled >= needed){
+          statusEl.className = 'doc-cat-status ok';
+          statusEl.textContent = '✓ แนบแล้ว';
+          combineAndUploadSigHouseReg(role);
+        } else {
+          statusEl.className = 'doc-cat-status ok';
+          statusEl.textContent = '✓ แนบแล้ว (รออีก ' + (needed-filled) + ' ใบ)';
+        }
+      };
+      img.onerror = function(){
+        statusEl.className = 'doc-cat-status err';
+        statusEl.textContent = '❌ เตรียมรูปไม่สำเร็จ ลองใหม่';
+      };
+      img.src = croppedDataUrl;
+    });
+  } catch(e){
+    statusEl.className = 'doc-cat-status err';
+    statusEl.textContent = '❌ อ่านรูปไม่ได้ ลองใหม่';
+  }
+}
+// ครบตามจำนวนใบที่เลือกแล้ว (1 หรือ 2) — ถ้ามีรูปลายเซ็นแนบไว้แล้ว เปิดหน้าปรับแสงเพื่อรวม+แปะลายเซ็นให้
+function combineAndUploadSigHouseReg(role){
+  role = role || currentDocsRole;
+  const store = docPageStoreByRole[role];
+  const pages = (store['houseReg'] || []).filter(Boolean);
+  if(!pages.length) return;
+  const sigImg = sigSignatureImgElByRole[role];
+  if(sigImg && sigImg.complete){
+    openBrightnessAdjustModal('houseReg', getActiveCategory('houseReg'), role);
+  } else {
+    alert('กรุณาอัปโหลด "รูปกระดาษที่มีลายเซ็นลูกค้า" ก่อน (ข้อ 1) แล้วระบบจะแปะทะเบียนบ้านซ้อนให้อัตโนมัติ');
   }
 }
 
@@ -4143,6 +4230,11 @@ function confirmBrightnessAdjust(){
       if(el) el.textContent = 'รวมกับหน้า 1 แล้ว';
     }
   }
+  // ทะเบียนบ้าน 2 ใบจากหน้าแนบลายเซ็น นับจำนวนใบเองแยกจาก cat.count ปกติ (ดู sigHouseRegPageCount) — อัปเดตสถานะใบที่ 2 ด้วย
+  if(catKey === 'houseReg' && prefix === 'sig_' && sigHouseRegPageCount === 2){
+    const el2 = document.getElementById('docStatus_sig_houseReg_2');
+    if(el2) el2.textContent = 'รวมกับหน้า 1 แล้ว';
+  }
 }
 function cancelBrightnessAdjust(){
   document.getElementById('brightnessModalBg').style.display = 'none';
@@ -4150,6 +4242,10 @@ function cancelBrightnessAdjust(){
   const p = prefix || '';
   const statusEl = document.getElementById('docStatus_'+p+catKey+'_1') || document.getElementById('docStatus_'+p+catKey);
   if(statusEl) statusEl.textContent = 'ยังไม่อัปโหลด (ยกเลิกการปรับแสง)';
+  if(catKey === 'houseReg' && p === 'sig_' && sigHouseRegPageCount === 2){
+    const el2 = document.getElementById('docStatus_sig_houseReg_2');
+    if(el2) el2.textContent = 'ยังไม่อัปโหลด (ยกเลิกการปรับแสง)';
+  }
 }
 
 function uploadDocToServer(slotKey, label, base64, mimeType, fileName, catKey, role){
@@ -7144,10 +7240,20 @@ setBrand('yanmar');
       </div>
       <div class="field-group">
         <label style="margin-bottom:8px;display:block">3) รูปทะเบียนบ้าน</label>
+        <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px">มีทะเบียนบ้านกี่ใบ?</div>
+        <label style="display:flex;gap:14px;align-items:center;margin-bottom:8px;font-size:12.5px">
+          <span><input type="radio" name="sigHouseRegPages" value="1" checked onchange="setSigHouseRegPageCount(1)"> ใบเดียว</span>
+          <span><input type="radio" name="sigHouseRegPages" value="2" onchange="setSigHouseRegPageCount(2)"> 2 ใบ (รวมเป็นแผ่นเดียวให้อัตโนมัติ)</span>
+        </label>
         <div class="doc-cat-row" id="docRow_sig_houseReg">
-          <div class="doc-cat-label">ทะเบียนบ้าน</div>
-          <input type="file" accept="image/*" id="docFile_sig_houseReg" onchange="onDocFileSelected('sig_houseReg','houseReg')">
+          <div class="doc-cat-label">ทะเบียนบ้าน<span id="sigHouseRegPage1Suffix"></span></div>
+          <input type="file" accept="image/*" id="docFile_sig_houseReg" onchange="onSigHouseRegFileSelected(1)">
           <div class="doc-cat-status" id="docStatus_sig_houseReg">ยังไม่แนบ</div>
+        </div>
+        <div class="doc-cat-row" id="docRow_sig_houseReg_2" style="display:none">
+          <div class="doc-cat-label">ทะเบียนบ้าน (ใบที่ 2)</div>
+          <input type="file" accept="image/*" id="docFile_sig_houseReg_2" onchange="onSigHouseRegFileSelected(2)">
+          <div class="doc-cat-status" id="docStatus_sig_houseReg_2">ยังไม่แนบ</div>
         </div>
       </div>
       <button type="button" class="finance-launch-btn" style="width:100%;margin-top:6px" onclick="closeSigComposeModal()">← กลับไปหน้ารายการเอกสาร</button>
