@@ -5258,10 +5258,13 @@ function changeCaseStatus(id, status, note){
     refreshHistoryCardInList(id);
   }
 
-  gasPost('updateStatus', {action:'updateStatus', id, status, note: rawNote, byName:userName, byRole:userRole}, (err)=>{
+  // ส่ง cardNote (มี fallback ข้อความสถานะติดไปด้วยถ้าไม่ได้พิมพ์อะไร) ไม่ใช่ rawNote เฉยๆ
+  // เพราะถ้าส่ง rawNote ที่เป็นค่าว่าง ตัว backend จะเก็บหมายเหตุว่างไว้ถาวร พอโหลดหน้าใหม่/เปิดจากเครื่องอื่น
+  // การ์ดฝั่งซ้ายจะไม่โชว์เหตุผล/หมายเหตุอะไรเลย (ทั้งที่ตอนเปลี่ยนสถานะสดๆ เห็นข้อความ fallback อยู่ในเบราว์เซอร์ตัวเอง)
+  gasPost('updateStatus', {action:'updateStatus', id, status, note: cardNote, byName:userName, byRole:userRole}, (err)=>{
     if(err) alert('บันทึกสถานะไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
   });
-  const tlEl = document.getElementById('hdTimeline_'+id);
+  const tlEl = document.getElementById('hdTimelineDynamic_'+id);
   if(tlEl){
     tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([{ts:nowStr, byName:userName, byRole:userRole, type:'status', status, note:rawNote}]));
   }
@@ -5348,8 +5351,20 @@ function submitEditRecord(){
     if(rec){
       rec.custName = changes.custName; rec.custAddr = changes.custAddr;
       rec.custPhone = changes.custPhone; rec.branch = changes.branch;
+      // เพิ่ม log "แก้ไขข้อมูล" ไว้ใน updates ทันที (ไม่รอ backend) เพื่อให้เห็นใน Timeline ทันทีที่กด viewHistoryDetail ด้านล่าง
+      // ไม่งั้นถ้าเคสนี้เคยเปิดดูรายละเอียดมาก่อนในเซสชันนี้แล้ว (updates กลายเป็น array ไปแล้ว) การแพตช์จาก
+      // fetchAndPatchFullDetail รอบถัดไปจะไม่มี element เดิมให้แทนที่ (เพราะ hdTimelineLoading_ ถูกสร้างเฉพาะรอบแรกที่ updates ยังไม่ใช่ array)
+      // ทำให้ log ที่ backend บันทึกไว้จริงก็ไม่โผล่ขึ้นมาให้เห็นเช่นกัน
+      const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
+      if(!Array.isArray(rec.updates)) rec.updates = [];
+      rec.updates.push({ts:nowStr, byName:userName, byRole:userRole, type:'edit', note:'แก้ไขข้อมูลลูกค้า (ชื่อ/ที่อยู่/เบอร์โทร/สาขา)'});
+      // กันไม่ให้ fetchAndPatchFullDetail เอาข้อมูลเก่าจาก backend (ที่อาจยังตอบกลับมาไม่ทันหรือไม่ครบ) มาทับค่าที่เพิ่งแก้นี้
+      _pinnedCardFields[id] = Object.assign({}, _pinnedCardFields[id], {
+        custName: rec.custName, custAddr: rec.custAddr, custPhone: rec.custPhone, branch: rec.branch
+      });
+      refreshHistoryCardInList(id); // อัปเดตการ์ดฝั่งซ้ายให้ตรงกับข้อมูลใหม่ทันที (เดิมไม่มีบรรทัดนี้ ทำให้การ์ดยังโชว์ชื่อ/เบอร์เก่าอยู่)
     }
-    viewHistoryDetail(id); // โหลดรายละเอียดใหม่ทั้งหมด (รวม Timeline ที่มี log ค่าเดิมติดมาด้วย)
+    viewHistoryDetail(id); // โหลดรายละเอียดใหม่ทั้งหมด (รวม Timeline ที่มี log การแก้ไขที่เพิ่งเพิ่มไว้ด้านบนนี้ด้วย)
   });
 }
 
@@ -5474,7 +5489,7 @@ function submitUpdateNote(id){
     newYears: null,
     nextFollowUp
   };
-  const tlEl = document.getElementById('hdTimeline_'+id);
+  const tlEl = document.getElementById('hdTimelineDynamic_'+id);
   if(tlEl){
     const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
     tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([Object.assign({ts:nowStr, type:'note'}, entry)]));
@@ -5583,8 +5598,10 @@ function fetchAndPatchFullDetail(id){
       tradeInWrap.innerHTML = renderTradeInSectionWrap(full);
     }
 
-    const tlLoading = document.getElementById('hdTimelineLoading_'+id);
-    if(tlLoading) tlLoading.outerHTML = renderTimelineEntries(full.updates||[]) || '<div class="hd-tl-row"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">ยังไม่มีการอัปเดตเพิ่มเติม</div></div>';
+    // ใช้ hdTimelineDynamic_ (container ที่มีอยู่เสมอ) แทน hdTimelineLoading_ (ซึ่งเดิมมีเฉพาะรอบแรกที่เปิดดู)
+    // เพื่อให้ log ล่าสุดจาก backend (สถานะ/บันทึกคุย/แก้ไขข้อมูล) แสดงผลถูกต้องทุกครั้งที่โหลดฉบับเต็มมาแพตช์ ไม่ใช่แค่ครั้งแรก
+    const tlDyn = document.getElementById('hdTimelineDynamic_'+id);
+    if(tlDyn) tlDyn.innerHTML = renderTimelineEntries(full.updates||[]) || '<div class="hd-tl-row"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">ยังไม่มีการอัปเดตเพิ่มเติม</div></div>';
 
     // ถ้าเพิ่งเปลี่ยนสถานะไปแล้วระหว่างที่ยังโหลดฉบับเต็มอยู่ ให้ยึดค่าที่เพิ่งเปลี่ยน ไม่ใช่ค่าเก่าจาก backend
     const effectiveStatus = (_pinnedCardFields[id] && _pinnedCardFields[id].caseStatus) || full.caseStatus;
@@ -5778,10 +5795,12 @@ function renderHistoryDetailHtml(id, d, rowNote){
 
       <div class="hd-section">Timeline</div>
       <div class="hd-timeline" id="hdTimeline_${id}">
-        ${Array.isArray(d.updates)
+        <div id="hdTimelineDynamic_${id}">${Array.isArray(d.updates)
           ? renderTimelineEntries(d.updates)
-          : `<div class="hd-tl-row" id="hdTimelineLoading_${id}"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">⏳ กำลังโหลดบันทึกเพิ่มเติม...</div></div>`
-        }
+          : `<div class="hd-tl-row"><div class="hd-tl-dot"></div><div style="color:#999;font-size:12px">⏳ กำลังโหลดบันทึกเพิ่มเติม...</div></div>`}</div>
+        ${'' /* หมายเหตุ: ห่อด้วย hdTimelineDynamic_ ให้เป็น container ที่มีอยู่เสมอ ไม่ว่าจะเปิดดูครั้งแรกหรือครั้งถัดไปในเซสชันเดียวกัน
+               เพราะเดิมใช้ id="hdTimelineLoading_" เฉพาะตอนที่ updates ยังไม่ใช่ array (ครั้งแรกเท่านั้น) ทำให้ fetchAndPatchFullDetail
+               หา element นี้ไม่เจอในการเปิดดูครั้งถัดไป (updates กลายเป็น array ไปแล้วจากรอบก่อน) เลย patch/แสดง log ใหม่ไม่ได้เลย */}
         <div class="hd-tl-row"><div class="hd-tl-dot"></div><div><b>เซ็นสัญญา</b> — ${d.date||''}<br><span style="color:#888;font-size:11px">บันทึกโดย ${d.branch||'—'} · ${rowNote||''}</span></div></div>
       </div>
       <div id="hdAddUpdateArea_${id}" style="margin-top:8px">
