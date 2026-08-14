@@ -5060,7 +5060,7 @@ function renderHistoryList(records){
 
 function historyCardHtml(r){
   return `
-    <div class="history-card" id="hc_${r.id}" onclick="viewHistoryDetail('${r.id}')">
+    <div class="history-card" id="hc_${r.id}" data-record-id="${r.id}">
       <div class="hc-top">
         <div class="hc-name">${r.custName || '(ไม่ระบุชื่อ)'}</div>
         <div class="hc-date">${r.savedAt?.slice(0,16) || ''}</div>
@@ -5559,6 +5559,17 @@ function submitUpdateNote(id){
   });
 }
 
+// ดึง "หมายเหตุล่าสุด" จาก Timeline (updates) มาใช้แทน — เผื่อกรณี backend ไม่ได้เก็บ/คืนฟิลด์ lastNote/lastNoteAt
+// แยกไว้ต่างหากจริงๆ (สังเกตได้ว่า Timeline ฝั่งขวามีหมายเหตุขึ้นถูกต้อง แต่การ์ดฝั่งซ้ายว่างเปล่า แปลว่า
+// backend เก็บ log ใน updates ไว้ถูกต้อง แต่ฟิลด์สรุป lastNote/lastNoteAt ต่างหากอาจไม่ได้ถูกเก็บ/ส่งกลับมาจริง)
+function deriveLastNoteFromUpdates(updates){
+  if(!Array.isArray(updates) || !updates.length) return null;
+  for(let i = updates.length - 1; i >= 0; i--){
+    if(updates[i] && updates[i].note) return { note: updates[i].note, at: updates[i].ts || null };
+  }
+  return null;
+}
+
 let _detailFetchToken = 0;
 function fetchAndPatchFullDetail(id){
   const myToken = ++_detailFetchToken;
@@ -5569,6 +5580,15 @@ function fetchAndPatchFullDetail(id){
     const idx = _allHistoryRecords.findIndex(r => String(r.id) === String(id));
     if(idx > -1){
       _allHistoryRecords[idx] = Object.assign({}, _allHistoryRecords[idx], full);
+      // ถ้า backend ไม่ได้ส่ง lastNote กลับมา (หรือส่งมาเป็นค่าว่าง) ให้ลองดึงจาก updates แทน
+      // ไม่ให้การ์ดฝั่งซ้ายว่างเปล่าทั้งที่จริงๆ มีหมายเหตุอยู่ใน Timeline
+      if(!_allHistoryRecords[idx].lastNote){
+        const derived = deriveLastNoteFromUpdates(full.updates);
+        if(derived){
+          _allHistoryRecords[idx].lastNote = derived.note;
+          if(!_allHistoryRecords[idx].lastNoteAt) _allHistoryRecords[idx].lastNoteAt = derived.at;
+        }
+      }
       // ถ้ามีการเปลี่ยนสถานะ/เพิ่มบันทึกไปแล้วในเบราว์เซอร์ระหว่างที่ยังโหลดฉบับเต็มอยู่
       // ให้ค่าที่เพิ่งอัปเดตนั้นชนะเสมอ ไม่ให้ backend (ที่อาจยังไม่บันทึกเสร็จ) ทับกลับเป็นค่าเก่า
       if(_pinnedCardFields[id]) Object.assign(_allHistoryRecords[idx], _pinnedCardFields[id]);
@@ -5985,6 +6005,49 @@ function fireAddrOptPick(opt){
     addr2Pick(opt.dataset.key, opt.dataset.level, id, name);
   }
 }
+
+// ===== Tap-vs-scroll disambiguation for .history-card (การ์ดประวัติลูกค้าฝั่งซ้าย) =====
+// ปัญหาที่แก้: เดิมใช้ onclick ตรงๆ บน div การ์ด ซึ่งบนมือถือ event "click" สังเคราะห์ขึ้นจาก
+// document.elementFromPoint ณ ตำแหน่งที่นิ้วอยู่ตอน "ปล่อย" — ถ้าผู้ใช้เพิ่งเลื่อนลิสต์ด้วยการ swipe แล้ว
+// ลิสต์ยังเลื่อนต่อด้วยแรงเฉื่อย (momentum) อยู่ตอนที่แตะเบาๆ อีกที ตำแหน่งใต้นิ้วตอนปล่อยอาจไม่ใช่การ์ด
+// เดียวกับที่แตะตอนแรก (ขยับไปการ์ดบน/ล่าง) เพราะเนื้อหาเลื่อนไปแล้วก่อน click จะยิง
+// วิธีแก้: ใช้ touchstart/touchend ซึ่ง target จะยึดติดกับ element ที่โดนแตะครั้งแรกเสมอ (ตาม spec ของ touch
+// event ไม่เปลี่ยนตามตำแหน่งนิ้วที่ขยับ) แทนการพึ่ง click event เพียงอย่างเดียว — เหมือนที่ทำไว้กับ .addr-opt ด้านบน
+let _historyCardTouch = null;
+const HISTORY_CARD_TAP_TOLERANCE = 10; // px — นิ้วขยับได้แค่นี้ยังนับเป็นแตะ (ไม่ใช่เลื่อน)
+
+document.addEventListener('touchstart', function(e){
+  const card = e.target.closest('.history-card');
+  if(!card){ _historyCardTouch = null; return; }
+  const t = e.touches[0];
+  _historyCardTouch = { x:t.clientX, y:t.clientY, moved:false, card };
+}, {passive:true});
+
+document.addEventListener('touchmove', function(e){
+  if(!_historyCardTouch) return;
+  const t = e.touches[0];
+  if(Math.abs(t.clientX-_historyCardTouch.x) > HISTORY_CARD_TAP_TOLERANCE || Math.abs(t.clientY-_historyCardTouch.y) > HISTORY_CARD_TAP_TOLERANCE){
+    _historyCardTouch.moved = true;
+  }
+}, {passive:true});
+
+document.addEventListener('touchend', function(e){
+  const card = e.target.closest('.history-card');
+  const onAction = e.target.closest('.hc-actions'); // ปุ่ม "พิมพ์ซ้ำ" มี stopPropagation ของตัวเองอยู่แล้ว ไม่ต้องยุ่ง
+  const wasTap = card && _historyCardTouch && _historyCardTouch.card === card && !_historyCardTouch.moved;
+  if(wasTap && !onAction){
+    e.preventDefault(); // กันไม่ให้ synthetic click ที่ตามมายิงซ้ำ (เดี๋ยวเปิดรายละเอียดซ้ำสอง)
+    viewHistoryDetail(card.dataset.recordId);
+  }
+  _historyCardTouch = null;
+});
+
+// เมาส์/คีย์บอร์ด (เดสก์ท็อป หรือเครื่องที่ไม่มีจอสัมผัส) ยังทำงานปกติผ่าน click เดิม
+// บนอุปกรณ์สัมผัส จะไม่ยิงซ้ำเพราะการแตะจริงที่ preventDefault() ไปแล้วด้านบนจะกัน synthetic click ที่ตามมา
+document.addEventListener('click', function(e){
+  const card = e.target.closest('.history-card');
+  if(card && !e.target.closest('.hc-actions')) viewHistoryDetail(card.dataset.recordId);
+});
 
 function closeAllDropdowns(){
   document.querySelectorAll('.addr-dropdown').forEach(d=>d.style.display='none');
