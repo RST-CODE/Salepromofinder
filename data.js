@@ -57,6 +57,16 @@
 //   - e_special15: RST/ลูกค้าออกเปลี่ยน แต่เงินดาวน์รวม/total/total_payback/annual ตรงกับไฟล์เดิมทุกรุ่น ไม่ต้องแก้
 //   - e_exp12: ตรวจสอบแล้วตัวเลขตรงกับไฟล์ใหม่ทุกฟิลด์ 100% ไม่มีการเปลี่ยนแปลง
 //   - ยืนยันทุกเอนทรีด้วยสคริปต์: yct+ysp+ลูกค้าออก+rst = เงินดาวน์รวม, และ ราคา-เงินดาวน์ = total ตรงกันหมดหลังแก้ (ไม่มี inconsistency)
+// อัปเดต 21/8/2569 — เพิ่มหมวด "drone" (โดรนการเกษตร) เป็นหมวดใหม่ ตามไฟล์ "Promotion Drone" ที่อัปโหลดใหม่:
+//   - 4 รุ่น: P100 Pro (ชุดพ่น+หว่าน) 496,500 / P100 Pro (ชุดพ่น) 436,500 / P60 Pro (ชุดพ่น+หว่าน) 399,900 / P60 Pro (ชุดพ่น) 345,900
+//   - โครงสร้างต่างจากยี่ห้ออื่น: ในไฟล์ไม่มี "โปร" แยกชื่อ แต่เป็นตารางเดียวแบ่งตาม "กลุ่มลูกค้า x จำนวนปีผ่อน" (เงื่อนไข/ดอกเบี้ยผูกกับปีที่เลือกตรงๆ)
+//     เลยแยกเป็น 6 "programs" แทนแต่ละคอมโบกลุ่ม+ปี (ใช้กับทั้ง 4 รุ่นเหมือนกัน): drone_rtskla_3y (RT/SKL-A ผ่อน3ปี @10.2%),
+//     drone_yfsw_2y (YF/SW ผ่อน2ปี @11.5%), drone_yfsw_3y (YF/SW ผ่อน3ปี @12.5%), drone_general_1y/2y/3y (General ผ่อน1/2/3ปี @13%/13%/15%)
+//   - field "yct" = ช่วยดาวน์ (ยอดสนับสนุนจากบริษัท), "customer_out" = จ่ายดาวน์ (ส่วนต่างที่ลูกค้าต้องจ่ายเพิ่มเอง กรณีช่วยดาวน์ไม่พอเงินดาวน์ขั้นต่ำ — ส่วนใหญ่เป็น 0 ยกเว้นกลุ่ม General ผ่อน 3 ปี)
+//     ไม่มีข้อมูลแยก ysp/rst ในไฟล์นี้ (ตั้งเป็น 0 ทั้งคู่ ตามรูปแบบเดิมที่ใช้กับหมวด combine ที่ไม่มี ysp เช่นกัน) — down = yct+ysp+rst+customer_out และ total = price-down ตรงกันทุกเอนทรี (verify ด้วยสคริปต์)
+//   - เก็บ field เสริมนอกเหนือจากรูปแบบเดิม (ไม่กระทบรูปแบบมาตรฐานที่ index.html ใช้อยู่ เพราะยังไม่ได้ผูกหมวดนี้เข้า UI): "monthly" (ผ่อนรายเดือน มีทุกเอนทรี),
+//     "quarterly" (ผ่อนราย 3 เดือน มีเฉพาะกลุ่ม RT/SKL-A และ YF/SW ไม่มีในกลุ่ม General), และ "semiannual" (แผนผ่อนราย 6 เดือน 2 งวด/ปี + งวดย่อย 2,000 บาท/เดือน×10 เดือน — มีเฉพาะกลุ่ม RT/SKL-A ผ่อน 3 ปีเท่านั้น)
+//   - ยังไม่ได้ผูกหมวด "drone" เข้ากับ UI ของ index.html (ตัวเลือกยี่ห้อ/รุ่น/หน้าคำนวณ) — ผู้ใช้ส่งมาแค่ไฟล์ข้อมูล (data_2.js) รอบนี้ ถ้าต้องการใช้งานจริงบนเว็บต้องแจ้งให้แก้ index.html เพิ่ม
 const DATA = {
   "yanmar": {
     "models": [
@@ -2630,6 +2640,449 @@ const DATA = {
     }
   ]
 },
+
+  "drone": {
+    "models": [
+      "P100 Pro (ชุดพ่น+หว่าน)",
+      "P100 Pro (ชุดพ่น)",
+      "P60 Pro (ชุดพ่น+หว่าน)",
+      "P60 Pro (ชุดพ่น)"
+    ],
+    "programs": [
+      {
+        "id": "drone_rtskla_3y",
+        "name": "RT/SKL-A (ผ่อน 3 ปี)",
+        "groups": [
+          "RT/SKL-A"
+        ],
+        "conditions": [],
+        "entries": {
+          "P100 Pro (ชุดพ่น+หว่าน)": {
+            "price": 496500,
+            "down": 65000,
+            "yct": 65000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 431500,
+            "interest": 0.102,
+            "years": 3,
+            "total_payback": 563539,
+            "annual": 187846.33,
+            "monthly": 15653.86,
+            "quarterly": 46961.58,
+            "semiannual": {
+              "minor": 2000,
+              "minor_periods": 10,
+              "pay_per_period": 83923.17,
+              "periods_per_year": 2
+            }
+          },
+          "P100 Pro (ชุดพ่น)": {
+            "price": 436500,
+            "down": 65000,
+            "yct": 65000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 371500,
+            "interest": 0.102,
+            "years": 3,
+            "total_payback": 485179,
+            "annual": 161726.33,
+            "monthly": 13477.19,
+            "quarterly": 40431.58,
+            "semiannual": {
+              "minor": 2000,
+              "minor_periods": 10,
+              "pay_per_period": 70863.17,
+              "periods_per_year": 2
+            }
+          },
+          "P60 Pro (ชุดพ่น+หว่าน)": {
+            "price": 399900,
+            "down": 55000,
+            "yct": 55000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 344900,
+            "interest": 0.102,
+            "years": 3,
+            "total_payback": 450439.4,
+            "annual": 150146.47,
+            "monthly": 12512.21,
+            "quarterly": 37536.62,
+            "semiannual": {
+              "minor": 2000,
+              "minor_periods": 10,
+              "pay_per_period": 65073.23,
+              "periods_per_year": 2
+            }
+          },
+          "P60 Pro (ชุดพ่น)": {
+            "price": 345900,
+            "down": 55000,
+            "yct": 55000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 290900,
+            "interest": 0.102,
+            "years": 3,
+            "total_payback": 379915.4,
+            "annual": 126638.47,
+            "monthly": 10553.21,
+            "quarterly": 31659.62,
+            "semiannual": {
+              "minor": 2000,
+              "minor_periods": 10,
+              "pay_per_period": 53319.23,
+              "periods_per_year": 2
+            }
+          }
+        }
+      },
+      {
+        "id": "drone_yfsw_2y",
+        "name": "YF/SW (ผ่อน 2 ปี)",
+        "groups": [
+          "YF/SW"
+        ],
+        "conditions": [],
+        "entries": {
+          "P100 Pro (ชุดพ่น+หว่าน)": {
+            "price": 496500,
+            "down": 65000,
+            "yct": 65000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 431500,
+            "interest": 0.115,
+            "years": 2,
+            "total_payback": 530745,
+            "annual": 265372.5,
+            "monthly": 22114.38,
+            "quarterly": 66343.12
+          },
+          "P100 Pro (ชุดพ่น)": {
+            "price": 436500,
+            "down": 65000,
+            "yct": 65000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 371500,
+            "interest": 0.115,
+            "years": 2,
+            "total_payback": 456945,
+            "annual": 228472.5,
+            "monthly": 19039.38,
+            "quarterly": 57118.12
+          },
+          "P60 Pro (ชุดพ่น+หว่าน)": {
+            "price": 399900,
+            "down": 55000,
+            "yct": 55000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 344900,
+            "interest": 0.115,
+            "years": 2,
+            "total_payback": 424227,
+            "annual": 212113.5,
+            "monthly": 17676.12,
+            "quarterly": 53028.38
+          },
+          "P60 Pro (ชุดพ่น)": {
+            "price": 345900,
+            "down": 55000,
+            "yct": 55000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 290900,
+            "interest": 0.115,
+            "years": 2,
+            "total_payback": 357807,
+            "annual": 178903.5,
+            "monthly": 14908.62,
+            "quarterly": 44725.88
+          }
+        }
+      },
+      {
+        "id": "drone_yfsw_3y",
+        "name": "YF/SW (ผ่อน 3 ปี)",
+        "groups": [
+          "YF/SW"
+        ],
+        "conditions": [],
+        "entries": {
+          "P100 Pro (ชุดพ่น+หว่าน)": {
+            "price": 496500,
+            "down": 65000,
+            "yct": 65000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 431500,
+            "interest": 0.125,
+            "years": 3,
+            "total_payback": 593312.5,
+            "annual": 197770.83,
+            "monthly": 16480.9,
+            "quarterly": 49442.71
+          },
+          "P100 Pro (ชุดพ่น)": {
+            "price": 436500,
+            "down": 65000,
+            "yct": 65000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 371500,
+            "interest": 0.125,
+            "years": 3,
+            "total_payback": 510812.5,
+            "annual": 170270.83,
+            "monthly": 14189.24,
+            "quarterly": 42567.71
+          },
+          "P60 Pro (ชุดพ่น+หว่าน)": {
+            "price": 399900,
+            "down": 55000,
+            "yct": 55000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 344900,
+            "interest": 0.125,
+            "years": 3,
+            "total_payback": 474237.5,
+            "annual": 158079.17,
+            "monthly": 13173.26,
+            "quarterly": 39519.79
+          },
+          "P60 Pro (ชุดพ่น)": {
+            "price": 345900,
+            "down": 55000,
+            "yct": 55000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 290900,
+            "interest": 0.125,
+            "years": 3,
+            "total_payback": 399987.5,
+            "annual": 133329.17,
+            "monthly": 11110.76,
+            "quarterly": 33332.29
+          }
+        }
+      },
+      {
+        "id": "drone_general_1y",
+        "name": "General (ผ่อน 1 ปี)",
+        "groups": [
+          "General"
+        ],
+        "conditions": [],
+        "entries": {
+          "P100 Pro (ชุดพ่น+หว่าน)": {
+            "price": 496500,
+            "down": 65000,
+            "yct": 65000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 431500,
+            "interest": 0.13,
+            "years": 1,
+            "total_payback": 487595,
+            "annual": 487595,
+            "monthly": 40632.92
+          },
+          "P100 Pro (ชุดพ่น)": {
+            "price": 436500,
+            "down": 65000,
+            "yct": 65000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 371500,
+            "interest": 0.13,
+            "years": 1,
+            "total_payback": 419795,
+            "annual": 419795,
+            "monthly": 34982.92
+          },
+          "P60 Pro (ชุดพ่น+หว่าน)": {
+            "price": 399900,
+            "down": 55000,
+            "yct": 55000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 344900,
+            "interest": 0.13,
+            "years": 1,
+            "total_payback": 389737,
+            "annual": 389737,
+            "monthly": 32478.08
+          },
+          "P60 Pro (ชุดพ่น)": {
+            "price": 345900,
+            "down": 55000,
+            "yct": 55000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 290900,
+            "interest": 0.13,
+            "years": 1,
+            "total_payback": 328717,
+            "annual": 328717,
+            "monthly": 27393.08
+          }
+        }
+      },
+      {
+        "id": "drone_general_2y",
+        "name": "General (ผ่อน 2 ปี)",
+        "groups": [
+          "General"
+        ],
+        "conditions": [],
+        "entries": {
+          "P100 Pro (ชุดพ่น+หว่าน)": {
+            "price": 496500,
+            "down": 65000,
+            "yct": 65000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 431500,
+            "interest": 0.13,
+            "years": 2,
+            "total_payback": 543690,
+            "annual": 271845,
+            "monthly": 22653.75
+          },
+          "P100 Pro (ชุดพ่น)": {
+            "price": 436500,
+            "down": 65000,
+            "yct": 65000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 371500,
+            "interest": 0.13,
+            "years": 2,
+            "total_payback": 468090,
+            "annual": 234045,
+            "monthly": 19503.75
+          },
+          "P60 Pro (ชุดพ่น+หว่าน)": {
+            "price": 399900,
+            "down": 55000,
+            "yct": 55000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 344900,
+            "interest": 0.13,
+            "years": 2,
+            "total_payback": 434574,
+            "annual": 217287,
+            "monthly": 18107.25
+          },
+          "P60 Pro (ชุดพ่น)": {
+            "price": 345900,
+            "down": 55000,
+            "yct": 55000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 290900,
+            "interest": 0.13,
+            "years": 2,
+            "total_payback": 366534,
+            "annual": 183267,
+            "monthly": 15272.25
+          }
+        }
+      },
+      {
+        "id": "drone_general_3y",
+        "name": "General (ผ่อน 3 ปี)",
+        "groups": [
+          "General"
+        ],
+        "conditions": [],
+        "entries": {
+          "P100 Pro (ชุดพ่น+หว่าน)": {
+            "price": 496500,
+            "down": 75000,
+            "yct": 65000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 10000,
+            "total": 421500,
+            "interest": 0.15,
+            "years": 3,
+            "total_payback": 611175,
+            "annual": 203725,
+            "monthly": 16977.08
+          },
+          "P100 Pro (ชุดพ่น)": {
+            "price": 436500,
+            "down": 66000,
+            "yct": 65000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 1000,
+            "total": 370500,
+            "interest": 0.15,
+            "years": 3,
+            "total_payback": 537225,
+            "annual": 179075,
+            "monthly": 14922.92
+          },
+          "P60 Pro (ชุดพ่น+หว่าน)": {
+            "price": 399900,
+            "down": 60000,
+            "yct": 55000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 5000,
+            "total": 339900,
+            "interest": 0.15,
+            "years": 3,
+            "total_payback": 492855,
+            "annual": 164285,
+            "monthly": 13690.42
+          },
+          "P60 Pro (ชุดพ่น)": {
+            "price": 345900,
+            "down": 55000,
+            "yct": 55000,
+            "ysp": 0,
+            "rst": 0,
+            "customer_out": 0,
+            "total": 290900,
+            "interest": 0.15,
+            "years": 3,
+            "total_payback": 421805,
+            "annual": 140601.67,
+            "monthly": 11716.81
+          }
+        }
+      }
+    ]
+  },
 
   "yanmar_lookup_keys": {
     "EF393A / EF393T-45th": [
