@@ -21,6 +21,7 @@
   --solis:#3E7C42;
   --combine:#D9930F;
   --excavator:#8E44AD;
+  --drone:#16A085;
   --gold:#E0A526;
   --gold-bg:#FCF1D9;
   --support:#3F6FA8;
@@ -75,6 +76,7 @@ body{
 .brand-btn.active.solis{ background:var(--solis); border-color:var(--solis); color:#fff;}
 .brand-btn.active.combine{ background:var(--combine); border-color:var(--combine); color:#fff;}
 .brand-btn.active.excavator{ background:var(--excavator); border-color:var(--excavator); color:#fff;}
+.brand-btn.active.drone{ background:var(--drone); border-color:var(--drone); color:#fff;}
 
 .select-row{ display:flex; flex-direction:column; gap:3px; margin-bottom:6px;}
 .select-row label{ font-size:10.5px; font-weight:600; color:var(--ink-soft); letter-spacing:.3px;}
@@ -643,6 +645,7 @@ body.printing #printArea{
   transition:border-color .15s, background-color .15s, box-shadow .15s;
 }
 .history-card:hover{ border-color:var(--accent); }
+.history-card.stale{ border-left-width:4px; border-left-color:#c0392b; }
 .history-card.selected{
   border-color:var(--accent); border-left-width:5px;
   background:color-mix(in srgb, var(--accent) 6%, white);
@@ -886,6 +889,19 @@ body.printing #printArea{
 .case-status-badge.status-good{ background:#e3f7ea; color:#1e7e34; }
 .case-status-badge.status-bad{ background:#fdeaea; color:#c0392b; }
 .case-status-badge.status-wait{ background:#fff4e0; color:#a86400; }
+.case-status-badge.status-stale{ background:#fdeaea; color:#c0392b; }
+.dash-stat-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+.dash-stat-tile{ background:var(--card); border:1.5px solid var(--line); border-radius:12px; padding:12px 14px; }
+.dash-stat-num{ font-size:22px; font-weight:800; color:var(--ink); line-height:1.2; }
+.dash-stat-label{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+.dash-status-list{ display:flex; flex-direction:column; gap:6px; }
+.dash-status-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:var(--card); border:1.5px solid var(--line); border-radius:10px; padding:7px 12px;
+  transition:border-color .15s;
+}
+.dash-status-row:hover{ border-color:var(--accent); }
+.dash-status-count{ font-size:12px; font-weight:600; color:var(--ink-soft); }
 .case-status-select{
   font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
   padding:5px 8px; border-radius:8px; border:1.5px solid var(--line);
@@ -983,6 +999,7 @@ body.printing #printArea{
     <button class="brand-btn solis" data-brand="solis">Solis</button>
     <button class="brand-btn combine" data-brand="combine">รถเกี่ยว</button>
     <button class="brand-btn excavator" data-brand="excavator">รถขุด</button>
+    <button class="brand-btn drone" data-brand="drone">โดรน</button>
   </div>
   <div class="select-row">
     <label for="modelSelect">เลือกรุ่นรถ</label>
@@ -1078,7 +1095,8 @@ body.printing #printArea{
       </div>
       <div class="field-group" style="margin:0">
         <label>เบอร์โทร</label>
-        <input type="text" id="custPhone" placeholder="0xx-xxx-xxxx" inputmode="tel">
+        <input type="text" id="custPhone" placeholder="0xx-xxx-xxxx" inputmode="tel" oninput="checkDuplicatePhoneWarning()">
+        <div id="dupPhoneWarning" style="display:none"></div>
       </div>
     </div>
     <div class="field-group">
@@ -1167,6 +1185,7 @@ body.printing #printArea{
       </select>
     </div>
     <button class="history-tab-btn" id="histFilterToggleBtn" onclick="toggleHistFilterPanel()" title="ค้นหา/กรองรายการ">🔍</button>
+    <button class="history-tab-btn" onclick="openDashboardModal()" title="ภาพรวมไปป์ไลน์">📊</button>
     <button class="history-tab-btn" onclick="openIdentityModal()" title="ชื่อ/บทบาทของฉัน">👤</button>
     <button class="history-tab-btn" onclick="openGasConfig()" title="ตั้งค่า GAS">⚙️</button>
   </div>
@@ -1221,6 +1240,18 @@ body.printing #printArea{
         <select id="hf_prog" onchange="filterHistory()">
           <option value="">— ทุกโปร —</option>
         </select>
+      </div>
+      <div class="hist-filter-group med">
+        <label>สถานะเคส</label>
+        <select id="hf_status" onchange="filterHistory()">
+          <option value="">— ทุกสถานะ —</option>
+        </select>
+      </div>
+      <div class="hist-filter-group narrow" style="display:flex;align-items:flex-end">
+        <label style="display:flex;align-items:center;gap:5px;font-weight:600;cursor:pointer">
+          <input type="checkbox" id="hf_staleOnly" onchange="filterHistory()" style="width:15px;height:15px;margin:0">
+          ⏰ เฉพาะเคสค้างนาน
+        </label>
       </div>
     </div>
     <div id="exportCrmDateRangeBox" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;padding:6px 8px;background:#F8F4ED;border-radius:8px">
@@ -1281,7 +1312,8 @@ body.printing #printArea{
     </div>
     <div class="field-group">
       <label>เบอร์โทร</label>
-      <input type="text" id="custPhoneM" placeholder="0xx-xxx-xxxx" inputmode="tel" oninput="syncCustomer(this,'custPhone')">
+      <input type="text" id="custPhoneM" placeholder="0xx-xxx-xxxx" inputmode="tel" oninput="syncCustomer(this,'custPhone');checkDuplicatePhoneWarning()">
+      <div id="dupPhoneWarningM" style="display:none"></div>
     </div>
     <div class="field-group">
       <label>ผู้ปิดการขาย</label>
@@ -1377,12 +1409,25 @@ const INTEREST_TABLE = {
     RTB10: {'7_monthly':0.0595,'7_quarterly':0.0595},
   }
 };
+// รถขุด/โดรน: segment key == program id ตรงตัว (1 segment = 1 โปรแกรม ตามที่ excel แยกกลุ่มลูกค้า×ระยะผ่อนไว้แล้ว)
+INTEREST_TABLE.drone = {
+  drone_rtskla_3y:  {'3_monthly':0.102,'3_quarterly':0.102,'3_semi':0.102},
+  drone_yfsw_2y:    {'2_monthly':0.115,'2_quarterly':0.115},
+  drone_yfsw_3y:    {'3_monthly':0.125,'3_quarterly':0.125},
+  drone_general_1y: {'1_monthly':0.13},
+  drone_general_2y: {'2_monthly':0.13,'2_quarterly':0.13},
+  drone_general_3y: {'3_monthly':0.15,'3_quarterly':0.15},
+};
 
 const YEARS_OPTIONS = {
   yanmar: { general:[6,7,8,10], rt:[6,7,8,10], sw:[6,7,8,10] },
   solis:  { general:[6,7], sw:[6,7], rt:[6,7], dry_crop:[6,7] },
   combine: { general:[6], owner_combine:[6], owner_tractor:[6], rt:[6] },
   excavator: { general15:[7], general7:[7], exp12:[7], YFSW10:[7], RTA10:[7], RTB10:[7] },
+};
+YEARS_OPTIONS.drone = {
+  drone_rtskla_3y:[3], drone_yfsw_2y:[2], drone_yfsw_3y:[3],
+  drone_general_1y:[1], drone_general_2y:[2], drone_general_3y:[3],
 };
 
 const PAYMENT_OPTIONS = {
@@ -1411,6 +1456,14 @@ const PAYMENT_OPTIONS = {
     RTA10: {7:['monthly','quarterly']},
     RTB10: {7:['monthly','quarterly']},
   }
+};
+PAYMENT_OPTIONS.drone = {
+  drone_rtskla_3y:  {3:['monthly','quarterly','semi']},
+  drone_yfsw_2y:    {2:['monthly','quarterly']},
+  drone_yfsw_3y:    {3:['monthly','quarterly']},
+  drone_general_1y: {1:['monthly']},
+  drone_general_2y: {2:['monthly','quarterly']},
+  drone_general_3y: {3:['monthly','quarterly']},
 };
 
 const PAYMENT_LABELS = {
@@ -1471,6 +1524,8 @@ function getInterestGroup(brand, segment){
     return 'general';
   } else if(brand==='excavator'){
     return segment; // segment key == interest-group key (1:1) สำหรับรถขุด
+  } else if(brand==='drone'){
+    return segment; // segment key == interest-group key (1:1) สำหรับโดรน (เหมือนรถขุด)
   } else {
     if(segment==='Dry Crop') return 'dry_crop';
     if(segment==='RT') return 'rt';
@@ -1509,6 +1564,8 @@ EQUIPMENT.combine = {
   "YH1180G26WU-TH": [{"name":"ตัวถังอุ้ม","price":140000}]
 };
 EQUIPMENT.excavator = {};
+EQUIPMENT.drone = {};
+USED_EQUIPMENT.drone = {};
 
 const fmt = n => (n===null||n===undefined) ? '—' : n.toLocaleString('th-TH', {maximumFractionDigits:0});
 const fmtPct = n => (n*100).toFixed(2).replace(/\.00$/,'') + '%';
@@ -1672,6 +1729,9 @@ function getRegFee(brand, model, ct){
   if(brand === 'excavator'){
     return REGISTRATION_FEE.excavator[model] || 0;
   }
+  if(brand === 'drone'){
+    return 0; // โดรนไม่มีค่าจดทะเบียน+พรบ
+  }
   return REGISTRATION_FEE.tractor[ct] || REGISTRATION_FEE.tractor.individual;
 }
 
@@ -1707,6 +1767,7 @@ const TOGGLE_DEFS = {
 };
 TOGGLE_DEFS.combine = { 'ทั่วไป':[], 'YF,SW':[], 'RT':[], 'Dry Crop':[] };
 TOGGLE_DEFS.excavator = { general15:[], general7:[], exp12:[], YFSW10:[], RTA10:[], RTB10:[] };
+TOGGLE_DEFS.drone = { drone_rtskla_3y:[], drone_yfsw_2y:[], drone_yfsw_3y:[], drone_general_1y:[], drone_general_2y:[], drone_general_3y:[] };
 const SEGMENT_LABELS = {
   yanmar: {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT'},
   solis:  {'ทั่วไป':'ทั่วไป','YF,SW':'YF, SW','RT':'RT'},
@@ -1715,6 +1776,14 @@ const SEGMENT_LABELS = {
     general15:'ดาวน์ 15%', general7:'ดาวน์ 7% (ตรวจเครดิตบูโร)', exp12:'มีประสบการณ์/เป็นเจ้าของรถขุด',
     YFSW10:'SW & YF (เปลี่ยนยี่ห้อ+ยันม่าร์แฟน)', RTA10:'RTA', RTB10:'RTB'
   }
+};
+SEGMENT_LABELS.drone = {
+  drone_rtskla_3y: 'RT/SKL-A · ผ่อน 3 ปี',
+  drone_yfsw_2y: 'YF/SW · ผ่อน 2 ปี',
+  drone_yfsw_3y: 'YF/SW · ผ่อน 3 ปี',
+  drone_general_1y: 'ทั่วไป · ผ่อน 1 ปี',
+  drone_general_2y: 'ทั่วไป · ผ่อน 2 ปี',
+  drone_general_3y: 'ทั่วไป · ผ่อน 3 ปี',
 };
 // ลำดับการแสดงปุ่มกลุ่มลูกค้า ต่อแบรนด์ (ใช้ CSS order ปรับมุมมองอย่างเดียว ไม่แตะ DOM/ลำดับของแบรนด์อื่น)
 // รถเกี่ยว: ทั่วไป, มีรถแทรกเตอร์, มีรถเกี่ยวข้าว, ลูกค้าเก่าชั้นดี — ตามที่ขอ; ยันม่าร์/โซลิสไม่ระบุ = ใช้ลำดับเดิมในหน้า HTML
@@ -1729,11 +1798,17 @@ const SEGMENT_LIST = {
   solis:   ['ทั่วไป','YF,SW','RT'],
   combine: ['ทั่วไป','Dry Crop','YF,SW','RT'],
   excavator: ['general7','general15','exp12','YFSW10','RTA10','RTB10'],
+  drone: ['drone_rtskla_3y','drone_yfsw_2y','drone_yfsw_3y','drone_general_1y','drone_general_2y','drone_general_3y'],
 };
 // บางแบรนด์ (รถขุด) แบ่งเป็น 2 ชั้น: เลือก "ประเภทลูกค้า" หลักก่อน (ทั่วไป / พิเศษ)
 // แล้วค่อยเลือกโปรย่อยภายในประเภทนั้น — ลดจำนวนปุ่มที่โชว์พร้อมกัน แต่ยังเลือกได้ทุกโปรเหมือนเดิม
 const SEGMENT_GROUPS = {
   excavator: { 'ทั่วไป': ['general7','general15','exp12'], 'พิเศษ': ['YFSW10','RTA10','RTB10'] },
+  drone: {
+    'RT/SKL-A': ['drone_rtskla_3y'],
+    'YF/SW': ['drone_yfsw_2y','drone_yfsw_3y'],
+    'ทั่วไป': ['drone_general_1y','drone_general_2y','drone_general_3y'],
+  },
 };
 let currentMainGroup = null;
 function getSegListForCurrentGroup(brand){
@@ -1775,6 +1850,10 @@ const PROGRAM_IDS = {
     general15:'e_general15', general7:'e_general7', exp12:'e_exp12',
     YFSW10:'e_special10', RTA10:'e_special10', RTB10:'e_special10'
   },
+  drone: {
+    drone_rtskla_3y:'drone_rtskla_3y', drone_yfsw_2y:'drone_yfsw_2y', drone_yfsw_3y:'drone_yfsw_3y',
+    drone_general_1y:'drone_general_1y', drone_general_2y:'drone_general_2y', drone_general_3y:'drone_general_3y',
+  },
 };
 
 function getKeys(brand, model){
@@ -1815,7 +1894,7 @@ function findEntries(brand, model, segment, toggles){
     const key = keys.find(k=>p.entries[k]);
     if(key) rows.push({program:p, group:null, entry:p.entries[key], variant:null});
   }
-  if(brand==='excavator'){
+  if(brand==='excavator' || brand==='drone'){
     getDirect(ids[segment]);
     return rows;
   }
@@ -2203,10 +2282,10 @@ function renderResultsCommon(rawRows, model){
 function setBrand(brand){
   currentBrand = brand;
   // รถขุด: ลูกค้าส่วนใหญ่เป็นผู้รับเหมา จ่ายรายเดือนเป็นหลัก จึง default เป็นรายเดือน (เลือกรายปีเองได้ถ้าเข้าเงื่อนไขสวนทุเรียน)
-  const defaultPayment = (brand==='excavator') ? 'monthly' : 'annual';
+  const defaultPayment = (brand==='excavator' || brand==='drone') ? 'monthly' : 'annual';
   tractorYears = null; tractorPayment = defaultPayment;
   eqYears = null; eqPayment = defaultPayment;
-  document.documentElement.style.setProperty('--accent', brand==='yanmar' ? 'var(--yanmar)' : brand==='solis' ? 'var(--solis)' : brand==='combine' ? 'var(--combine)' : 'var(--excavator)');
+  document.documentElement.style.setProperty('--accent', brand==='yanmar' ? 'var(--yanmar)' : brand==='solis' ? 'var(--solis)' : brand==='combine' ? 'var(--combine)' : brand==='excavator' ? 'var(--excavator)' : 'var(--drone)');
   document.querySelectorAll('.brand-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand===brand));
   document.getElementById('segmentLabel').textContent = 'กลุ่มลูกค้า';
   currentMainGroup = null;
@@ -2236,7 +2315,7 @@ function renderSegmentButtons(){
 function renderToggles(){
   renderLandRef();
   const defs = (TOGGLE_DEFS[currentBrand] && TOGGLE_DEFS[currentBrand][currentSegment]) || [];
-  const note = (currentBrand === 'combine' || currentBrand === 'excavator') ? null : TOGGLE_NOTE[currentSegment];
+  const note = (currentBrand === 'combine' || currentBrand === 'excavator' || currentBrand === 'drone') ? null : TOGGLE_NOTE[currentSegment];
   // กลุ่ม YF,SW (Yanmar Fan / Switching) ราคาเท่ากันเลยไม่แยกในระบบราคา แต่ CRM ต้องรู้ว่าเป็นกลุ่มไหนจริง
   // ใช้กับทุกแบรนด์ รวมรถเกี่ยว/combine ด้วย (สำหรับรถเกี่ยว YF,SW = "มีรถเกี่ยวข้าวอยู่แล้ว" — คำถามเดียวกัน
   // แค่เปลี่ยนเป็นถามยี่ห้อรถเกี่ยวที่มีอยู่เดิมแทน ว่าเป็น Yanmar หรือยี่ห้ออื่น)
@@ -2298,7 +2377,7 @@ document.querySelectorAll('.brand-btn').forEach(b=>{
 function selectSegment(seg){
     currentSegment = seg;
     yfSwSubType = null;
-    const defaultPayment = (currentBrand==='excavator') ? 'monthly' : 'annual';
+    const defaultPayment = (currentBrand==='excavator' || currentBrand==='drone') ? 'monthly' : 'annual';
     tractorYears = null; tractorPayment = defaultPayment;
     eqYears = null; eqPayment = defaultPayment;
   eqPaymentUserSet = false;
@@ -2431,7 +2510,10 @@ function maybeAutoStep2(){
 
 function getMinorFromPayment(paymentType){
   if(paymentType === 'monthly' || paymentType === 'quarterly') return 0;
-  if(paymentType === 'semi') return 1000;
+  if(paymentType === 'semi'){
+    if(currentBrand === 'drone') return 2000; // งวดย่อยโดรน (RT/SKL-A ผ่อน 3 ปี แบบราย 6 เดือน) = 2000 บาท/เดือน
+    return 1000;
+  }
   if(currentBrand === 'combine') return 3000;
   if(currentBrand === 'excavator') return 5000;
   return 2000; // annual
@@ -2689,6 +2771,29 @@ function syncCustomer(el, targetId){
   const t = document.getElementById(targetId);
   if(t) t.value = el.value;
   refreshExportSummary();
+}
+
+// ===== เช็คเบอร์โทรซ้ำกับเคสที่มีอยู่แล้ว (กันสร้างเคสซ้ำให้ลูกค้าคนเดียวกัน) =====
+// เทียบกับ _allHistoryRecords ที่โหลดไว้ในเครื่อง (โหลดเงียบๆตอนเปิดแอพ + ทุกครั้งที่เข้าหน้าประวัติ) — ถ้ายังไม่โหลดเลยจะยังไม่เตือน (best-effort ไม่บล็อกการใช้งาน)
+// ยกเว้นเคสที่กำลังแก้ไข/ต่อจากของตัวเองอยู่แล้ว (ไม่งั้นจะเตือนตัวเองทุกครั้ง)
+function checkDuplicatePhoneWarning(){
+  const boxes = [document.getElementById('dupPhoneWarning'), document.getElementById('dupPhoneWarningM')].filter(Boolean);
+  if(!boxes.length) return;
+  const phone = (document.getElementById('custPhoneM')?.value || document.getElementById('custPhone')?.value || '').trim();
+  const digits = phone.replace(/[^0-9]/g,'');
+  const excludeId = _editingRecordId || _draftCaseId;
+  const match = digits.length >= 9 ? (_allHistoryRecords||[]).find(r =>
+    String(r.id) !== String(excludeId) && (r.custPhone||'').replace(/[^0-9]/g,'') === digits
+  ) : null;
+  boxes.forEach(b => {
+    if(match){
+      b.style.display = 'block';
+      b.style.cssText = 'display:block;font-size:10.5px;color:#c0392b;margin-top:3px;line-height:1.4';
+      b.innerHTML = `⚠ เบอร์นี้มีเคสอยู่แล้ว: <b>${escapeHtml(match.custName||'(ไม่ระบุชื่อ)')}</b> · ${escapeHtml(match.model||'')} · สถานะ: ${escapeHtml(match.caseStatus||'รอดำเนินการ')} — เช็คก่อนว่าลูกค้าคนเดียวกันหรือเปล่า`;
+    } else {
+      b.style.display = 'none';
+    }
+  });
 }
 
 const LEAD_SOURCE_OTHER_VALUE = "อื่นๆ โปรดระบุ (Other, please specify)";
@@ -4722,6 +4827,92 @@ function closeIdentityModal(){
   if(!userName || !userRole) return;
   document.getElementById('identityModalBg').style.display = 'none';
 }
+
+// ===== แดชบอร์ดภาพรวมไปป์ไลน์ (จำนวนเคส/มูลค่า/อัตราปิดการขาย/เคสค้างนาน) =====
+// คำนวณจาก _allHistoryRecords ที่โหลดไว้ในเครื่องล้วนๆ ไม่ยิง request เพิ่มเติมจากที่ระบบยิงอยู่แล้วตอนเปิดหน้าประวัติ
+function openDashboardModal(){
+  document.getElementById('dashboardModalBg').style.display = 'flex';
+  if(_historyLoadedFull){
+    renderDashboard();
+  } else {
+    document.getElementById('dashboardContent').innerHTML = '<div class="history-loading">⏳ กำลังโหลดข้อมูลทั้งหมด...</div>';
+    loadFullHistory(renderDashboard);
+  }
+}
+function closeDashboardModal(){
+  document.getElementById('dashboardModalBg').style.display = 'none';
+}
+function renderDashboard(){
+  const box = document.getElementById('dashboardContent');
+  if(!box) return;
+  const showMineOnly = !!document.getElementById('dashMineOnly')?.checked;
+  let records = _allHistoryRecords;
+  if(showMineOnly && userName) records = records.filter(r => (r.branch||'') === userName);
+
+  const byStatus = {};
+  CASE_STATUSES.forEach(s => byStatus[s] = []);
+  records.forEach(r => {
+    const s = CASE_STATUSES.includes(r.caseStatus) ? r.caseStatus : 'รอดำเนินการ';
+    byStatus[s].push(r);
+  });
+
+  const openRecords = records.filter(r => statusSlug(r.caseStatus||'รอดำเนินการ') === 'wait');
+  const goodRecords = records.filter(r => statusSlug(r.caseStatus||'รอดำเนินการ') === 'good');
+  const badRecords  = records.filter(r => statusSlug(r.caseStatus||'รอดำเนินการ') === 'bad');
+  const closedCount = goodRecords.length + badRecords.length;
+  const winRate = closedCount > 0 ? Math.round((goodRecords.length / closedCount) * 100) : null;
+  const pipelineValue = openRecords.reduce((sum, r) => sum + (Number(r.finTotal)||0) + (Number(r.eqTotal)||0), 0);
+  const staleList = openRecords.filter(isStaleCase);
+
+  const statusRowsHtml = CASE_STATUSES.map(s => {
+    const list = byStatus[s];
+    if(!list.length) return `<div class="dash-status-row" style="opacity:.45">
+      <span class="case-status-badge status-${statusSlug(s)}">${escapeHtml(s)}</span>
+      <span class="dash-status-count">0</span>
+    </div>`;
+    const value = list.reduce((sum,r)=> sum + (Number(r.finTotal)||0) + (Number(r.eqTotal)||0), 0);
+    return `<div class="dash-status-row" onclick="jumpToStatusFilter('${s}')" style="cursor:pointer">
+      <span class="case-status-badge status-${statusSlug(s)}">${escapeHtml(s)}</span>
+      <span class="dash-status-count">${list.length} เคส${value>0?' · '+fmt(value)+' บาท':''}</span>
+    </div>`;
+  }).join('');
+
+  box.innerHTML = `
+    <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">
+      สรุปจาก ${records.length} เคสที่โหลดไว้ในเครื่อง (${_historyLoadedFull ? 'โหลดครบทั้งหมดแล้ว' : 'ล่าสุด ' + HISTORY_FAST_LIMIT + ' รายการ — กด 🔍 แล้ว "โหลดประวัติทั้งหมด" เพื่อให้ตัวเลขแม่นยำขึ้น'})
+      ${userRole==='sales' ? `<label style="margin-left:8px;cursor:pointer;font-weight:600"><input type="checkbox" id="dashMineOnly" onchange="renderDashboard()" ${showMineOnly?'checked':''}> เฉพาะเคสของฉัน</label>` : ''}
+    </div>
+    <div class="dash-stat-grid">
+      <div class="dash-stat-tile">
+        <div class="dash-stat-num">${openRecords.length}</div>
+        <div class="dash-stat-label">เคสที่ยังเปิดอยู่</div>
+      </div>
+      <div class="dash-stat-tile">
+        <div class="dash-stat-num">${fmt(pipelineValue)}</div>
+        <div class="dash-stat-label">มูลค่ารวมที่ยังค้างในไปป์ไลน์ (บาท)</div>
+      </div>
+      <div class="dash-stat-tile">
+        <div class="dash-stat-num">${winRate===null?'—':winRate+'%'}</div>
+        <div class="dash-stat-label">อัตราปิดการขาย (จาก ${closedCount} เคสที่ปิดแล้ว)</div>
+      </div>
+      <div class="dash-stat-tile"${staleList.length>0?' style="border-color:#c0392b"':''}>
+        <div class="dash-stat-num"${staleList.length>0?' style="color:#c0392b"':''}>${staleList.length}</div>
+        <div class="dash-stat-label">เคสค้างนาน (ไม่มีอัปเดตเกิน ${STALE_DAYS} วัน)</div>
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:700;margin:14px 0 6px">แยกตามสถานะ (กดเพื่อดูรายการ)</div>
+    <div class="dash-status-list">${statusRowsHtml}</div>
+  `;
+}
+// ปิดแดชบอร์ด แล้วพากลับไปหน้าประวัติที่กรองตามสถานะที่กดเลือก
+function jumpToStatusFilter(status){
+  closeDashboardModal();
+  const box = document.getElementById('histFilterPanel');
+  if(box) box.style.display = 'block';
+  const sel = document.getElementById('hf_status');
+  if(sel) sel.value = status;
+  filterHistory();
+}
 function pickRole(role){
   _pendingRole = role;
   updateRoleButtons();
@@ -4995,10 +5186,12 @@ function filterHistory(){
   const fTambon  = (document.getElementById('hf_tambon')?.value||'').trim();
   const fModel   = (document.getElementById('hf_model')?.value||'');
   const fProg    = (document.getElementById('hf_prog')?.value||'');
+  const fStatus  = (document.getElementById('hf_status')?.value||'');
+  const fStaleOnly = !!document.getElementById('hf_staleOnly')?.checked;
   const fSort    = (document.getElementById('hf_sort')?.value||'date_desc');
 
   // ถ้ามีการค้นหา/กรองอยู่ แต่ยังโหลดมาไม่ครบทุกเคส ให้โหลดให้ครบก่อนอัตโนมัติ กันค้นหาแล้วตกหล่นเคสเก่า
-  const hasActiveFilter = !!(fQuick || fName || fPhone || fProv || fAmph || fTambon || fModel || fProg);
+  const hasActiveFilter = !!(fQuick || fName || fPhone || fProv || fAmph || fTambon || fModel || fProg || fStatus || fStaleOnly);
   if(hasActiveFilter && !_historyLoadedFull){
     loadFullHistory(filterHistory);
     return;
@@ -5018,15 +5211,23 @@ function filterHistory(){
     if(fTambon && !addr.includes('ต.'+fTambon)) return false;
     if(fModel  && (r.model||'') !== fModel) return false;
     if(fProg   && (r.progName||'') !== fProg) return false;
+    if(fStatus && (r.caseStatus||'รอดำเนินการ') !== fStatus) return false;
+    if(fStaleOnly && !isStaleCase(r)) return false;
     return true;
   });
 
   filtered = sortHistoryRecords(filtered, fSort);
 
   const countEl = document.getElementById('histFilterCount');
-  if(countEl) countEl.textContent = filtered.length < _allHistoryRecords.length
-    ? `แสดง ${filtered.length} จาก ${_allHistoryRecords.length} รายการ`
-    : `ทั้งหมด ${_allHistoryRecords.length} รายการ`;
+  if(countEl){
+    const baseText = filtered.length < _allHistoryRecords.length
+      ? `แสดง ${filtered.length} จาก ${_allHistoryRecords.length} รายการ`
+      : `ทั้งหมด ${_allHistoryRecords.length} รายการ`;
+    const staleCount = _allHistoryRecords.filter(isStaleCase).length;
+    countEl.innerHTML = escapeHtml(baseText) + (staleCount > 0
+      ? ` &nbsp;·&nbsp; <a href="#" onclick="document.getElementById('hf_staleOnly').checked=true;filterHistory();return false" style="color:#c0392b;font-weight:700">⏰ ค้างนาน ${staleCount} เคส</a>`
+      : '');
+  }
 
   const toggleBtn = document.getElementById('histFilterToggleBtn');
   if(toggleBtn) toggleBtn.classList.toggle('has-filter', hasActiveFilter);
@@ -5059,7 +5260,8 @@ function sortHistoryRecords(records, sortKey){
 
 function clearHistoryFilter(){
   ['hf_name','hf_phone','hf_quick'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  ['hf_model','hf_prog','hf_province'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['hf_model','hf_prog','hf_province','hf_status'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const staleEl=document.getElementById('hf_staleOnly'); if(staleEl) staleEl.checked=false;
   const sortEl=document.getElementById('hf_sort'); if(sortEl) sortEl.value='date_desc';
   const amphEl=document.getElementById('hf_amphure'), tambonEl=document.getElementById('hf_tambon');
   if(amphEl){ amphEl.innerHTML='<option value="">— อำเภอ —</option>'; amphEl.disabled=true; }
@@ -5079,6 +5281,11 @@ function populateFilterDropdowns(){
   const mSel = document.getElementById('hf_model');
   const pSel = document.getElementById('hf_prog');
   const provSel = document.getElementById('hf_province');
+  const statusSel = document.getElementById('hf_status');
+  // สถานะเป็นลิสต์คงที่ (CASE_STATUSES) ไม่ได้ขึ้นกับข้อมูล — เติมครั้งเดียวพอ (เช็คว่ายังไม่เคยเติมจาก option ที่มีอยู่แค่ตัวเดียว) กันค่าที่เลือกไว้ถูกรีเซ็ตทุกครั้งที่โหลดลิสต์ใหม่
+  if(statusSel && statusSel.options.length <= 1){
+    statusSel.innerHTML = '<option value="">— ทุกสถานะ —</option>' + CASE_STATUSES.map(s=>`<option>${s}</option>`).join('');
+  }
   if(mSel) mSel.innerHTML = '<option value="">— ทุกรุ่น —</option>' + models.map(m=>`<option>${m}</option>`).join('');
   if(pSel) pSel.innerHTML = '<option value="">— ทุกโปร —</option>' + progs.map(p=>`<option>${p}</option>`).join('');
   if(provSel) provSel.innerHTML = '<option value="">— ทุกจังหวัด —</option>' + provinces.map(p=>`<option>${p}</option>`).join('');
@@ -5125,7 +5332,12 @@ function renderHistoryList(records){
   _allHistoryRecords = records || [];
   populateFilterDropdowns();
   const countEl = document.getElementById('histFilterCount');
-  if(countEl) countEl.textContent = `ทั้งหมด ${_allHistoryRecords.length} รายการ`;
+  if(countEl){
+    const staleCount = _allHistoryRecords.filter(isStaleCase).length;
+    countEl.innerHTML = escapeHtml(`ทั้งหมด ${_allHistoryRecords.length} รายการ`) + (staleCount > 0
+      ? ` &nbsp;·&nbsp; <a href="#" onclick="document.getElementById('hf_staleOnly').checked=true;filterHistory();return false" style="color:#c0392b;font-weight:700">⏰ ค้างนาน ${staleCount} เคส</a>`
+      : '');
+  }
   const container = document.getElementById('historyListContainer');
   if(!records || records.length === 0){
     container.innerHTML = '<div class="history-empty">ยังไม่มีประวัติ<br><small>Export ครั้งแรกแล้วจะโชว์ที่นี่</small></div>';
@@ -5135,8 +5347,10 @@ function renderHistoryList(records){
 }
 
 function historyCardHtml(r){
+  const stale = isStaleCase(r);
+  const staleDays = stale ? daysSince(r.lastNoteAt || r.savedAt) : null;
   return `
-    <div class="history-card" id="hc_${r.id}" data-record-id="${r.id}">
+    <div class="history-card${stale ? ' stale' : ''}" id="hc_${r.id}" data-record-id="${r.id}">
       <div class="hc-top">
         <div class="hc-name">${r.custName || '(ไม่ระบุชื่อ)'}</div>
         <div class="hc-date">${r.savedAt?.slice(0,16) || ''}</div>
@@ -5151,6 +5365,7 @@ function historyCardHtml(r){
       ${r.custPhone ? `<div class="hc-nums" style="margin-top:2px">📞 ${r.custPhone} ${r.branch ? '· '+r.branch : ''}</div>` : ''}
       <div class="hc-statusrow">
         <span class="case-status-badge status-${statusSlug(r.caseStatus||'รอดำเนินการ')}">${escapeHtml(r.caseStatus||'รอดำเนินการ')}</span>
+        ${stale ? `<span class="case-status-badge status-stale">⏰ ค้าง ${staleDays} วัน</span>` : ''}
         ${r.lastNoteAt ? `<span class="hc-lastnote-at">🕒 ${r.lastNoteAt.slice(0,16)}</span>` : ''}
       </div>
       ${r.lastNote ? `<div class="hc-lastnote">💬 ${escapeHtml(r.lastNote)}</div>` : ''}
@@ -5230,6 +5445,25 @@ function statusSlug(s){
   return 'wait';
 }
 const MINOR_LABELS = {normal:'แบบปกติ', advance:'จ่ายล่วงหน้า', with_down:'รวมกับดาวน์'};
+
+// ===== เคสค้างนาน (ยังไม่ปิด + ไม่มีการอัปเดต/ติดตามเกินกำหนด) =====
+// แก้จำนวนวันที่ถือว่า "ค้างนาน" ได้ตรงนี้ที่เดียว
+const STALE_DAYS = 7;
+// จำนวนวันตั้งแต่วันที่ dateStr (รับได้ทั้งรูปแบบ ISO string ที่ backend/JS Date เก็บ) จนถึงตอนนี้ — คืน null ถ้า parse ไม่ได้
+function daysSince(dateStr){
+  if(!dateStr) return null;
+  const d = new Date(dateStr);
+  if(isNaN(d.getTime())) return null;
+  return Math.floor((Date.now() - d.getTime()) / 86400000);
+}
+// เคสถือว่า "ค้างนาน" เมื่อยังไม่ปิด (ไม่ใช่ good/bad — ยังอยู่ระหว่างดำเนินการ) และไม่มีการอัปเดต/บันทึกคุยมาเกิน STALE_DAYS วัน
+// ใช้ lastNoteAt (อัปเดตล่าสุด) ถ้ามี ไม่มีก็ใช้ savedAt (วันที่เปิดเคส) แทน
+function isStaleCase(r){
+  if(!r) return false;
+  if(statusSlug(r.caseStatus||'รอดำเนินการ') !== 'wait') return false;
+  const days = daysSince(r.lastNoteAt || r.savedAt);
+  return days !== null && days >= STALE_DAYS;
+}
 
 // เก็บ "ใบสรุป ณ ตอนนั้น" ของแต่ละรายการใน Timeline ไว้ชั่วคราว (เฉพาะระหว่างเปิดหน้านี้อยู่)
 // เพื่อให้กดปุ่มดูใบสรุปของรอบที่คุยแต่ละครั้งได้ โดยไม่ต้องยัด JSON ก้อนใหญ่ลงใน attribute ของปุ่มตรงๆ
@@ -5392,6 +5626,7 @@ function editProductAndPromo(){
   document.getElementById('custAddrLineM').value = d.custAddr || '';
   document.getElementById('custPhone').value = d.custPhone || '';
   document.getElementById('custPhoneM').value = d.custPhone || '';
+  checkDuplicatePhoneWarning();
   applyLeadSourceToForm(d.leadSource || '');
   custType = (d.custType === 'corporate') ? 'corporate' : 'individual';
   custTypeToggle.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.custtype===custType));
@@ -7139,6 +7374,9 @@ function getCurrentFinParams(){
 }
 
 setBrand('yanmar');
+// โหลดประวัติเงียบๆไว้ล่วงหน้า (จำนวนล่าสุดตาม HISTORY_FAST_LIMIT) เพื่อให้เช็คเบอร์โทรซ้ำได้ทันทีที่พิมพ์ ไม่ต้องรอเปิดหน้าประวัติก่อน
+// (best-effort: ถ้ายังโหลดไม่ทันหรือยังไม่ตั้งค่า GAS URL ก็แค่ยังไม่เตือน ไม่กระทบการใช้งานหน้าหลัก — ไม่กระทบความเร็วหน้าจอเพราะ container ที่เขียนผลลงไปซ่อนอยู่)
+loadHistory();
 </script>
 <div class="preview-modal-bg" id="previewModalBg" style="display:none">
   <div class="preview-modal-header">
@@ -7560,6 +7798,18 @@ setBrand('yanmar');
         </div>
       </div>
       <button class="btn-save" style="width:100%;margin-top:10px" onclick="saveIdentity()">✓ บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="preview-modal-bg" id="dashboardModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>📊 ภาพรวมไปป์ไลน์</span>
+    <button onclick="closeDashboardModal()">✕ ปิด</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner" id="dashboardContent">
+      <div class="history-loading">⏳ กำลังโหลด...</div>
     </div>
   </div>
 </div>
