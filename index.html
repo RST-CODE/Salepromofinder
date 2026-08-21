@@ -1372,6 +1372,12 @@ const INTEREST_TABLE = {
       '8_semi':0.0875,'8_annual':0.0895,
       '10_semi':0.0875,'10_annual':0.0895,
     },
+    // โปร "ทั่วไป 15%" (y_general15, 21/8 ต่อ 3) — เลือกงวดผ่อนได้แค่ 7-8 ปีเท่านั้น (ยืนยันจากผู้ใช้)
+    // ดอกเบี้ยใช้ตัวเลขเดียวกับปี 7-8 ของโปร "general" (20%) เพราะไฟล์ Excel ไม่ได้ระบุดอกเบี้ยของโปรนี้ไว้ตรงๆ
+    general15: {
+      '7_monthly':0.062,'7_quarterly':0.062,'7_semi':0.077,'7_annual':0.0895,
+      '8_semi':0.0875,'8_annual':0.0895,
+    },
     rt: {
       '6_semi':0.0875,'6_annual':0.0875,
       '7_semi':0.0875,'7_annual':0.0875,
@@ -1420,7 +1426,7 @@ INTEREST_TABLE.drone = {
 };
 
 const YEARS_OPTIONS = {
-  yanmar: { general:[6,7,8,10], rt:[6,7,8,10], sw:[6,7,8,10] },
+  yanmar: { general:[6,7,8,10], general15:[7,8], rt:[6,7,8,10], sw:[6,7,8,10] },
   solis:  { general:[6,7], sw:[6,7], rt:[6,7], dry_crop:[6,7] },
   combine: { general:[6], owner_combine:[6], owner_tractor:[6], rt:[6] },
   excavator: { general15:[7], general7:[7], exp12:[7], YFSW10:[7], RTA10:[7], RTB10:[7] },
@@ -1433,6 +1439,7 @@ YEARS_OPTIONS.drone = {
 const PAYMENT_OPTIONS = {
   yanmar: {
     general: { 6:['monthly','quarterly','semi','annual'], 7:['monthly','quarterly','semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
+    general15: { 7:['monthly','quarterly','semi','annual'], 8:['semi','annual'] },
     rt:      { 6:['semi','annual'], 7:['semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
     sw:      { 6:['semi','annual'], 7:['semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
   },
@@ -1516,6 +1523,9 @@ function getInterestGroup(brand, segment){
   if(brand==='yanmar'){
     if(segment==='RT') return 'rt';
     if(segment==='YF,SW') return 'sw';
+    // (21/8 ต่อ 3) ตอนโปรที่กำลังแสดง/เลือกอยู่คือ y_general15 (ติ๊ก "ไม่เข้าเงื่อนไข 20%") ให้ใช้ตาราง
+    // ดอกเบี้ย/ปีผ่อนของ general15 (7-8 ปีเท่านั้น) แทน general (20%, 6-10 ปี) — activeProgramId อัปเดตใน renderResultsCommon
+    if(segment==='ทั่วไป' && activeProgramId==='y_general15') return 'general15';
     return 'general';
   } else if(brand==='combine'){
     if(segment==='RT') return 'rt';
@@ -1705,7 +1715,8 @@ let extraDown = 0;           // แบบที่ 1: ลูกค้าวา�
 let custSubForSupport = 0;   // แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน)
 let minorInstallment = 2000;
 let minorMode = 'normal'; // 'normal' | 'advance' | 'with_down'
-let toggleState = {land30:false, baac:false};
+let toggleState = {land30:false, baac:false, general15:false};
+let activeProgramId = null; // id ของโปรที่กำลังแสดง/เลือกอยู่ตอนนี้ (อัปเดตทุกครั้งใน renderResultsCommon) — ใช้แค่เพื่อสลับตารางดอกเบี้ย/ปีผ่อนของโปร y_general15 (7-8 ปีเท่านั้น) ตอนมันเป็นโปรที่กำลังแสดงอยู่
 let custType = 'individual'; // 'individual' (บุคคลธรรมดา) | 'corporate' (นิติบุคคล) — ใช้คิดค่าจดทะเบียน+พรบ เท่านั้น ไม่กระทบราคา/โปร
 
 // ค่าจดทะเบียน+พรบ (บวกเข้ายอดที่ลูกค้าต้องจ่ายวันรับรถ)
@@ -1750,6 +1761,7 @@ const minorInstallmentInput = document.getElementById('minorInstallmentInput');
 const TOGGLE_DEFS = {
   yanmar: {
     'ทั่วไป': [
+      {key:'general15', label:'ลูกค้าไม่เข้าเงื่อนไขโปรทั่วไป 20%', unlock:'สลับไปใช้โปร 15% แทน (ผ่อนได้ 7-8 ปีเท่านั้น)'},
       {key:'land30', label:'มีพื้นที่(ตนเอง/เช่า) รวม 30 ไร่ขึ้นไป (กอช. 20 ไร่)', unlock:'ปลดล็อกโปร 25%'},
       {key:'baac', label:'ธกส 3A / ผู้นำชุมชน / โรงงานน้ำตาล / หรือที่ดิน 40 ไร่ขึ้นไป', unlock:'ปลดล็อกโปร 30%'},
     ],
@@ -1843,7 +1855,7 @@ const TOGGLE_NOTE = {
 
 // ===== Generic segment + toggle logic (shared by Yanmar & Solis) =====
 const PROGRAM_IDS = {
-  yanmar: { general:'y_general', target_yfsw:'y_target_yfsw', target_rt:'y_target_rt', bob25:'y_bob25', bob30:'y_bob30', special358:'y_358' },
+  yanmar: { general:'y_general', general15:'y_general15', target_yfsw:'y_target_yfsw', target_rt:'y_target_rt', bob25:'y_bob25', bob30:'y_bob30', special358:'y_358' },
   solis:  { general:'s_general', target_yfsw:'s_target_yfsw', target_rt:'s_target_rt', bob25:'s_bob25', bob30:'s_bob30' },
   combine: { general:'c_general', target_yfsw:'c_owner_combine', target_rt:'c_rt', target_tractor_owner:'c_owner_tractor' },
   excavator: {
@@ -1912,7 +1924,12 @@ function findEntries(brand, model, segment, toggles){
 
   // โปร "ทั่วไป" (general) โชว์เฉพาะตอนเลือกกลุ่มลูกค้า "ทั่วไป" เท่านั้น — กลุ่มอื่น (YF,SW / RT / Dry Crop)
   // มีโปร "ทั่วไป 20%" เวอร์ชันเฉพาะกลุ่มของตัวเองอยู่แล้ว (target_yfsw/target_rt) ไม่ต้องโชว์เวอร์ชันทั่วไปซ้ำ
-  if(segment==='ทั่วไป') getDirect(ids.general);
+  // (21/8 ต่อ 3) ถ้าติ๊ก "ลูกค้าไม่เข้าเงื่อนไขโปรทั่วไป 20%" (general15) ให้สลับไปโชว์โปร 15% แทน 20% ไปเลย
+  // (ไม่ใช่โชว์คู่กัน — เพราะชื่อโปร/เงื่อนไขระบุชัดว่าลูกค้ากลุ่มนี้ไม่เข้าเงื่อนไข 20%) — ยังคงปลดล็อก Bob25%/30% ได้ตามปกติถ้าติ๊กแยกไว้ด้วย
+  if(segment==='ทั่วไป'){
+    if(brand==='yanmar' && toggles.general15 && ids.general15) getDirect(ids.general15);
+    else getDirect(ids.general);
+  }
 
   if(brand==='yanmar' && model==='YM358R' && ids.special358){
     const p358 = byId(ids.special358);
@@ -2179,6 +2196,7 @@ function renderResultsCommon(rawRows, model){
     results.innerHTML = '<div class="empty">ไม่พบโปรสำหรับรุ่นและกลุ่มลูกค้านี้</div>';
     summarySupport.textContent = '-';
     summaryCust.textContent = '-';
+    activeProgramId = null;
     return;
   }
 
@@ -2203,6 +2221,8 @@ function renderResultsCommon(rawRows, model){
   const selIdx = (typeof selectedPromoIdx!=='undefined' && selectedPromoIdx < allCards.length) ? selectedPromoIdx : 0;
   const chosen = allCards[selIdx] || best;
   const chosenIsRest = selIdx > 0;
+  // (21/8 ต่อ 3) จำ id ของโปรที่กำลังแสดงอยู่ไว้ ให้ getInterestGroup() รู้ว่าต้องสลับไปใช้ตารางปี/ดอกเบี้ยของ y_general15 (7-8 ปี) หรือไม่
+  activeProgramId = chosen?.program?.id || null;
 
   function makeSelectBtn(idx, label, isSelected){
     return `<button onclick="selectPromo(${idx})" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:7px;border:1.5px solid ${isSelected?'var(--accent)':'#ccc'};background:${isSelected?'var(--accent)':'#fff'};color:${isSelected?'#fff':'#888'};cursor:pointer;margin-bottom:4px">
@@ -2300,7 +2320,7 @@ function populateModels(){
   modelSelect.selectedIndex = 0;
   currentSegment = (getSegListForCurrentGroup(currentBrand) || SEGMENT_LIST[currentBrand] || ['ทั่วไป'])[0];
   yfSwSubType = null;
-  toggleState = {land30:false, baac:false};
+  toggleState = {land30:false, baac:false, general15:false};
   renderSegmentButtons();
   renderCriteria();
   renderToggles();
@@ -2415,7 +2435,7 @@ custTypeToggle.addEventListener('click', (evt)=>{
   if(typeof refreshExportSummary === 'function') refreshExportSummary();
 });
 modelSelect.addEventListener('change', ()=>{
-  toggleState = {land30:false, baac:false};
+  toggleState = {land30:false, baac:false, general15:false};
   yfSwSubType = null;
   eqSelByMode = { new:{}, used:{} }; eqFinByMode = { new:{}, used:{} };
   eqDown = 0; selectedPromoIdx = 0;
