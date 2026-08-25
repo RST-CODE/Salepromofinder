@@ -1810,16 +1810,16 @@ const SEGMENT_LIST = {
   solis:   ['ทั่วไป','YF,SW','RT'],
   combine: ['ทั่วไป','Dry Crop','YF,SW','RT'],
   excavator: ['general7','general15','exp12','YFSW10','RTA10','RTB10'],
-  drone: ['drone_rtskla_3y','drone_yfsw_2y','drone_yfsw_3y','drone_general_1y','drone_general_2y','drone_general_3y'],
+  drone: ['drone_general_1y','drone_general_2y','drone_general_3y','drone_yfsw_2y','drone_yfsw_3y','drone_rtskla_3y'],
 };
 // บางแบรนด์ (รถขุด) แบ่งเป็น 2 ชั้น: เลือก "ประเภทลูกค้า" หลักก่อน (ทั่วไป / พิเศษ)
 // แล้วค่อยเลือกโปรย่อยภายในประเภทนั้น — ลดจำนวนปุ่มที่โชว์พร้อมกัน แต่ยังเลือกได้ทุกโปรเหมือนเดิม
 const SEGMENT_GROUPS = {
   excavator: { 'ทั่วไป': ['general7','general15','exp12'], 'พิเศษ': ['YFSW10','RTA10','RTB10'] },
   drone: {
-    'RT/SKL-A': ['drone_rtskla_3y'],
-    'YF/SW': ['drone_yfsw_2y','drone_yfsw_3y'],
     'ทั่วไป': ['drone_general_1y','drone_general_2y','drone_general_3y'],
+    'YF/SW': ['drone_yfsw_2y','drone_yfsw_3y'],
+    'RT/SKL-A': ['drone_rtskla_3y'],
   },
 };
 let currentMainGroup = null;
