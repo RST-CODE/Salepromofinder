@@ -1401,10 +1401,13 @@ const INTEREST_TABLE = {
     dry_crop: {'6_semi':0.0875,'6_annual':0.0895,'7_semi':0.0875,'7_annual':0.0895},
   },
   combine: {
-    general: {'6_annual':0.085,'6_split_70_30':0.0875,'6_split_50_50':0.085},
-    owner_combine: {'6_annual':0.085,'6_split_70_30':0.0875,'6_split_50_50':0.085},
-    owner_tractor: {'6_annual':0.085,'6_split_70_30':0.0875,'6_split_50_50':0.085},
-    rt: {'6_annual':0.085,'6_split_70_30':0.0875,'6_split_50_50':0.085},
+    // (1/9 ต่อ 5) ดอกเบี้ยฐาน (annual) ปรับจาก 8.5% -> 8.0% ตามไฟล์โปรฯ ก.ย.69 ใหม่ (ยืนยันจากผู้ใช้)
+    // split_70_30/split_50_50 ปรับลง 0.5 จุดตามส่วนต่างเดิมเทียบกับ annual (ไฟล์ไม่ได้ระบุอัตราของสองแบบนี้ตรงๆ)
+    general: {'6_annual':0.08,'6_split_70_30':0.0825,'6_split_50_50':0.08},
+    owner_combine: {'6_annual':0.08,'6_split_70_30':0.0825,'6_split_50_50':0.08},
+    owner_tractor: {'6_annual':0.08,'6_split_70_30':0.0825,'6_split_50_50':0.08},
+    // โปร RT 10% เปลี่ยนจากผ่อน 6 ปี (8.5%) เป็นผ่อน 8 ปี (9.30%) ทั้งหมดตามไฟล์ใหม่ (ยืนยันจากผู้ใช้ — ไม่มีตัวเลือก 6 ปีแล้ว)
+    rt: {'8_annual':0.093},
   },
   excavator: {
     general15: {'7_monthly':0.0795,'7_quarterly':0.0795},
@@ -1428,7 +1431,7 @@ INTEREST_TABLE.drone = {
 const YEARS_OPTIONS = {
   yanmar: { general:[6,7,8,10], general15:[7,8], rt:[6,7,8,10], sw:[6,7,8,10] },
   solis:  { general:[6,7], sw:[6,7], rt:[6,7], dry_crop:[6,7] },
-  combine: { general:[6], owner_combine:[6], owner_tractor:[6], rt:[6] },
+  combine: { general:[6], owner_combine:[6], owner_tractor:[6], rt:[8] },
   excavator: { general15:[7], general7:[7], exp12:[7], YFSW10:[7], RTA10:[7], RTB10:[7] },
 };
 YEARS_OPTIONS.drone = {
@@ -1453,7 +1456,8 @@ const PAYMENT_OPTIONS = {
     general: {6:['annual','split_70_30','split_50_50']},
     owner_combine: {6:['annual','split_70_30','split_50_50']},
     owner_tractor: {6:['annual','split_70_30','split_50_50']},
-    rt: {6:['annual','split_70_30','split_50_50']},
+    // ผ่อน 8 ปี — ไฟล์ใหม่มีแค่แบบ "งวดใหญ่รายปี" อย่างเดียว ไม่มีข้อมูลแบบแบ่งจ่าย 2 ครั้ง/ปี
+    rt: {8:['annual']},
   },
   excavator: {
     general15: {7:['monthly','quarterly']},
