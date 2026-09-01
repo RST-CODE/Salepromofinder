@@ -318,35 +318,193 @@ const DATA = {
       {
         "id": "y_target_yfsw",
         "name": "ทั่วไป 20% (YF,SW)",
-        "groups": ["YF,SW"],
+        "groups": [
+          "YF,SW"
+        ],
         "conditions": [
           "ไม่กำหนดจำนวนไร่",
           "*แบมตรวจเงินดาวน์แล้ว ให้เช็คยอดสนับสนุนให้อีกที"
         ],
         "entries": {
-          "EF393A": {"price":584000,"down":117000,"yct":54000,"ysp":30000,"fire":25000,"customer_out":0,"rst":8000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
-          "EF393T-45th": {"price":584000,"down":117000,"yct":54000,"ysp":30000,"fire":25000,"customer_out":0,"rst":8000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
-          "YM351R": {"price":733000,"down":147000,"yct":64500,"ysp":35000,"fire":30000,"customer_out":0,"rst":17500,"total":586000,"interest":0.0875,"years":10,"total_payback":1098750.0,"annual":109875.0},
-          "YM358R": {"price":831000,"down":167000,"yct":75500,"ysp":40000,"fire":50000,"customer_out":0,"rst":1500,"total":664000,"interest":0.0875,"years":10,"total_payback":1245000.0,"annual":124500.0},
-          "YM358R-L1": {"price":892000,"down":179000,"yct":80000,"ysp":60000,"customer_out":0,"rst":39000,"total":713000,"interest":0.0875,"years":10,"total_payback":1336875.0,"annual":133687.5},
-          "EF725T": {"price":1072000,"down":215000,"yct":108000,"ysp":50000,"fire":35000,"customer_out":0,"rst":22000,"total":857000,"interest":0.0875,"years":10,"total_payback":1606875.0,"annual":160687.5}
+          "EF393A": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 54000,
+            "ysp": 30000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 8000,
+            "total": 467000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 875625.0,
+            "annual": 87562.5
+          },
+          "EF393T-45th": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 54000,
+            "ysp": 30000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": 8000,
+            "total": 467000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 875625.0,
+            "annual": 87562.5
+          },
+          "YM351R": {
+            "price": 733000,
+            "down": 147000,
+            "yct": 64500,
+            "ysp": 35000,
+            "fire": 30000,
+            "customer_out": 0,
+            "rst": 17500,
+            "total": 586000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1098750.0,
+            "annual": 109875.0
+          },
+          "YM358R": {
+            "price": 831000,
+            "down": 167000,
+            "yct": 75500,
+            "ysp": 40000,
+            "fire": 50000,
+            "customer_out": 0,
+            "rst": 1500,
+            "total": 664000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1245000.0,
+            "annual": 124500.0
+          },
+          "YM358R-L1": {
+            "price": 892000,
+            "down": 179000,
+            "yct": 80000,
+            "ysp": 60000,
+            "customer_out": 0,
+            "rst": 39000,
+            "total": 713000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1336875.0,
+            "annual": 133687.5
+          },
+          "EF725T": {
+            "price": 1072000,
+            "down": 215000,
+            "yct": 108000,
+            "ysp": 50000,
+            "fire": 35000,
+            "customer_out": 0,
+            "rst": 22000,
+            "total": 857000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1606875.0,
+            "annual": 160687.5
+          }
         }
       },
       {
         "id": "y_target_rt",
         "name": "ทั่วไป 20% (RT)",
-        "groups": ["RT"],
+        "groups": [
+          "RT"
+        ],
         "conditions": [
           "ไม่กำหนดจำนวนไร่",
           "*แบมตรวจเงินดาวน์แล้ว ให้เช็คยอดสนับสนุนให้อีกที"
         ],
         "entries": {
-          "EF393A": {"price":584000,"down":117000,"yct":67000,"ysp":35000,"fire":25000,"customer_out":0,"rst":-10000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
-          "EF393T-45th": {"price":584000,"down":117000,"yct":67000,"ysp":35000,"fire":25000,"customer_out":0,"rst":-10000,"total":467000,"interest":0.0875,"years":10,"total_payback":875625.0,"annual":87562.5},
-          "YM351R": {"price":733000,"down":147000,"yct":82000,"ysp":40000,"fire":30000,"customer_out":0,"rst":-5000,"total":586000,"interest":0.0875,"years":10,"total_payback":1098750.0,"annual":109875.0},
-          "YM358R": {"price":831000,"down":167000,"yct":98000,"ysp":50000,"fire":50000,"customer_out":0,"rst":-31000,"total":664000,"interest":0.0875,"years":10,"total_payback":1245000.0,"annual":124500.0},
-          "YM358R-L1": {"price":892000,"down":179000,"yct":92000,"ysp":70000,"customer_out":0,"rst":17000,"total":713000,"interest":0.0875,"years":10,"total_payback":1336875.0,"annual":133687.5},
-          "EF725T": {"price":1072000,"down":215000,"yct":108000,"ysp":50000,"fire":35000,"customer_out":0,"rst":22000,"total":857000,"interest":0.0875,"years":10,"total_payback":1606875.0,"annual":160687.5}
+          "EF393A": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 67000,
+            "ysp": 35000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": -10000,
+            "total": 467000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 875625.0,
+            "annual": 87562.5
+          },
+          "EF393T-45th": {
+            "price": 584000,
+            "down": 117000,
+            "yct": 67000,
+            "ysp": 35000,
+            "fire": 25000,
+            "customer_out": 0,
+            "rst": -10000,
+            "total": 467000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 875625.0,
+            "annual": 87562.5
+          },
+          "YM351R": {
+            "price": 733000,
+            "down": 147000,
+            "yct": 82000,
+            "ysp": 40000,
+            "fire": 30000,
+            "customer_out": 0,
+            "rst": -5000,
+            "total": 586000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1098750.0,
+            "annual": 109875.0
+          },
+          "YM358R": {
+            "price": 831000,
+            "down": 167000,
+            "yct": 98000,
+            "ysp": 50000,
+            "fire": 50000,
+            "customer_out": 0,
+            "rst": -31000,
+            "total": 664000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1245000.0,
+            "annual": 124500.0
+          },
+          "YM358R-L1": {
+            "price": 892000,
+            "down": 179000,
+            "yct": 92000,
+            "ysp": 70000,
+            "customer_out": 0,
+            "rst": 17000,
+            "total": 713000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1336875.0,
+            "annual": 133687.5
+          },
+          "EF725T": {
+            "price": 1072000,
+            "down": 215000,
+            "yct": 108000,
+            "ysp": 50000,
+            "fire": 35000,
+            "customer_out": 0,
+            "rst": 22000,
+            "total": 857000,
+            "interest": 0.0875,
+            "years": 10,
+            "total_payback": 1606875.0,
+            "annual": 160687.5
+          }
         }
       },
       {
@@ -1727,10 +1885,10 @@ const DATA = {
             "rst": 275000,
             "customer_out": 0,
             "total": 865000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1306150.0,
-            "annual": 217691.67
+            "total_payback": 1280200,
+            "annual": 213366.67
           },
           "YH700": {
             "price": 1292000,
@@ -1740,10 +1898,10 @@ const DATA = {
             "rst": 159000,
             "customer_out": 100000,
             "total": 904000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1365040.0,
-            "annual": 227506.67
+            "total_payback": 1337920,
+            "annual": 222986.67
           },
           "YH700 Cabin": {
             "price": 1409000,
@@ -1753,10 +1911,10 @@ const DATA = {
             "rst": 50500,
             "customer_out": 270000,
             "total": 986000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1488860.0,
-            "annual": 248143.33
+            "total_payback": 1459280,
+            "annual": 243213.33
           },
           "YH850GUW 2.3": {
             "price": 1562000,
@@ -1766,10 +1924,10 @@ const DATA = {
             "rst": 62000,
             "customer_out": 260000,
             "total": 1093000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1650430.0,
-            "annual": 275071.67
+            "total_payback": 1617640,
+            "annual": 269606.67
           },
           "YH850 Cabin": {
             "price": 1658000,
@@ -1779,10 +1937,10 @@ const DATA = {
             "rst": 62000,
             "customer_out": 306000,
             "total": 1160000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1751600.0,
-            "annual": 291933.33
+            "total_payback": 1716800,
+            "annual": 286133.33
           },
           "YH1180G26WU-TH": {
             "price": 1779000,
@@ -1792,10 +1950,10 @@ const DATA = {
             "rst": 60500,
             "customer_out": 340000,
             "total": 1245000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1879950.0,
-            "annual": 313325.0
+            "total_payback": 1842600,
+            "annual": 307100.0
           }
         }
       },
@@ -1818,10 +1976,10 @@ const DATA = {
             "rst": 125500,
             "customer_out": 0,
             "total": 989000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1493390.0,
-            "annual": 248898.33
+            "total_payback": 1463720,
+            "annual": 243953.33
           },
           "YH700": {
             "price": 1292000,
@@ -1831,10 +1989,10 @@ const DATA = {
             "rst": 104000,
             "customer_out": 0,
             "total": 1033000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1559830.0,
-            "annual": 259971.67
+            "total_payback": 1528840,
+            "annual": 254806.67
           },
           "YH700 Cabin": {
             "price": 1409000,
@@ -1844,10 +2002,10 @@ const DATA = {
             "rst": 52000,
             "customer_out": 90000,
             "total": 1127000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1701770.0,
-            "annual": 283628.33
+            "total_payback": 1667960,
+            "annual": 277993.33
           },
           "YH850GUW 2.3": {
             "price": 1562000,
@@ -1857,10 +2015,10 @@ const DATA = {
             "rst": 66500,
             "customer_out": 60000,
             "total": 1249000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1885990.0,
-            "annual": 314331.67
+            "total_payback": 1848520,
+            "annual": 308086.67
           },
           "YH850 Cabin": {
             "price": 1658000,
@@ -1870,10 +2028,10 @@ const DATA = {
             "rst": 66500,
             "customer_out": 95000,
             "total": 1326000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 2002260.0,
-            "annual": 333710.0
+            "total_payback": 1962480,
+            "annual": 327080.0
           },
           "YH1180G26WU-TH": {
             "price": 1779000,
@@ -1883,10 +2041,10 @@ const DATA = {
             "rst": 60500,
             "customer_out": 100000,
             "total": 1423000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 2148730.0,
-            "annual": 358121.67
+            "total_payback": 2106040,
+            "annual": 351006.67
           }
         }
       },
@@ -1909,10 +2067,10 @@ const DATA = {
             "rst": 187500,
             "customer_out": 0,
             "total": 927000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1399770.0,
-            "annual": 233295.0
+            "total_payback": 1371960,
+            "annual": 228660.0
           },
           "YH700": {
             "price": 1292000,
@@ -1922,10 +2080,10 @@ const DATA = {
             "rst": 108000,
             "customer_out": 60000,
             "total": 969000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1463190.0,
-            "annual": 243865.0
+            "total_payback": 1434120,
+            "annual": 239020.0
           },
           "YH700 Cabin": {
             "price": 1409000,
@@ -1935,10 +2093,10 @@ const DATA = {
             "rst": 52000,
             "customer_out": 161000,
             "total": 1056000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1594560.0,
-            "annual": 265760.0
+            "total_payback": 1562880,
+            "annual": 260480.0
           },
           "YH850GUW 2.3": {
             "price": 1562000,
@@ -1948,10 +2106,10 @@ const DATA = {
             "rst": 66500,
             "customer_out": 138000,
             "total": 1171000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1768210.0,
-            "annual": 294701.67
+            "total_payback": 1733080,
+            "annual": 288846.67
           },
           "YH850 Cabin": {
             "price": 1658000,
@@ -1961,10 +2119,10 @@ const DATA = {
             "rst": 66500,
             "customer_out": 178000,
             "total": 1243000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 1876930.0,
-            "annual": 312821.67
+            "total_payback": 1839640,
+            "annual": 306606.67
           },
           "YH1180G26WU-TH": {
             "price": 1779000,
@@ -1974,10 +2132,10 @@ const DATA = {
             "rst": 60500,
             "customer_out": 189000,
             "total": 1334000,
-            "interest": 0.085,
+            "interest": 0.08,
             "years": 6,
-            "total_payback": 2014340.0,
-            "annual": 335723.33
+            "total_payback": 1974320,
+            "annual": 329053.33
           }
         }
       },
@@ -1997,10 +2155,10 @@ const DATA = {
             "rst": 54000,
             "customer_out": 0,
             "total": 1113000,
-            "interest": 0.085,
-            "years": 6,
-            "total_payback": 1680630.0,
-            "annual": 280105.0
+            "interest": 0.093,
+            "years": 8,
+            "total_payback": 1941072,
+            "annual": 242634.0
           },
           "YH700": {
             "price": 1292000,
@@ -2010,10 +2168,10 @@ const DATA = {
             "rst": 30000,
             "customer_out": 0,
             "total": 1162000,
-            "interest": 0.085,
-            "years": 6,
-            "total_payback": 1754620.0,
-            "annual": 292436.67
+            "interest": 0.093,
+            "years": 8,
+            "total_payback": 2026528,
+            "annual": 253316.0
           },
           "YH700 Cabin": {
             "price": 1409000,
@@ -2023,10 +2181,10 @@ const DATA = {
             "rst": 61000,
             "customer_out": 0,
             "total": 1268000,
-            "interest": 0.085,
-            "years": 6,
-            "total_payback": 1914680.0,
-            "annual": 319113.33
+            "interest": 0.093,
+            "years": 8,
+            "total_payback": 2211392,
+            "annual": 276424.0
           },
           "YH850GUW 2.3": {
             "price": 1562000,
@@ -2036,10 +2194,10 @@ const DATA = {
             "rst": 37000,
             "customer_out": 0,
             "total": 1405000,
-            "interest": 0.085,
-            "years": 6,
-            "total_payback": 2121550.0,
-            "annual": 353591.67
+            "interest": 0.093,
+            "years": 8,
+            "total_payback": 2450320,
+            "annual": 306290.0
           },
           "YH850 Cabin": {
             "price": 1658000,
@@ -2049,10 +2207,10 @@ const DATA = {
             "rst": 66000,
             "customer_out": 0,
             "total": 1492000,
-            "interest": 0.085,
-            "years": 6,
-            "total_payback": 2252920.0,
-            "annual": 375486.67
+            "interest": 0.093,
+            "years": 8,
+            "total_payback": 2602048,
+            "annual": 325256.0
           },
           "YH1180G26WU-TH": {
             "price": 1779000,
@@ -2062,661 +2220,660 @@ const DATA = {
             "rst": 58000,
             "customer_out": 0,
             "total": 1601000,
-            "interest": 0.085,
-            "years": 6,
-            "total_payback": 2417510.0,
-            "annual": 402918.33
+            "interest": 0.093,
+            "years": 8,
+            "total_payback": 2792144,
+            "annual": 349018.0
           }
         }
       }
     ]
   },
   "excavator": {
-  "models": [
-    "Vio17",
-    "Vio23",
-    "Vio30-7",
-    "Vio30-Air-7",
-    "Vio35-7",
-    "Vio35-Air-7",
-    "Vio50",
-    "Vio55 Air",
-    "Vio80",
-    "Vio100"
-  ],
-  "programs": [
-    {
-      "id": "e_general15",
-      "name": "ลูกค้าทั่วไป ดาวน์ 15%",
-      "groups": [
-        "ทั่วไป15"
-      ],
-      "conditions": [
-        "**เลื่อนค่างวดไม่ได้**"
-      ],
-      "entries": {
-        "Vio17": {
-          "price": 805000,
-          "down": 121000,
-          "yct": 41000,
-          "ysp": 15000,
-          "rst": 5000,
-          "customer_out": 60000,
-          "total": 684000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1064646.0,
-          "annual": 152092.29
-        },
-        "Vio23": {
-          "price": 1100000,
-          "down": 165000,
-          "yct": 55000,
-          "ysp": 15000,
-          "rst": 20000,
-          "customer_out": 75000,
-          "total": 935000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1455327.5,
-          "annual": 207903.93
-        },
-        "Vio30-7": {
-          "price": 1244000,
-          "down": 187000,
-          "yct": 63000,
-          "ysp": 30000,
-          "rst": 24000,
-          "customer_out": 70000,
-          "total": 1057000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1645220.5,
-          "annual": 235031.5
-        },
-        "Vio30-Air-7": {
-          "price": 1438000,
-          "down": 216000,
-          "yct": 72000,
-          "ysp": 30000,
-          "rst": 34000,
-          "customer_out": 80000,
-          "total": 1222000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1902043.0,
-          "annual": 271720.43
-        },
-        "Vio35-7": {
-          "price": 1346000,
-          "down": 202000,
-          "yct": 68000,
-          "ysp": 30000,
-          "rst": 34000,
-          "customer_out": 70000,
-          "total": 1144000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1780636.0,
-          "annual": 254376.57
-        },
-        "Vio35-Air-7": {
-          "price": 1550000,
-          "down": 233000,
-          "yct": 78000,
-          "ysp": 30000,
-          "rst": 40000,
-          "customer_out": 85000,
-          "total": 1317000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 2049910.5,
-          "annual": 292844.36
-        },
-        "Vio50": {
-          "price": 1774000,
-          "down": 267000,
-          "yct": 89000,
-          "ysp": 40000,
-          "rst": 43000,
-          "customer_out": 95000,
-          "total": 1507000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 2345645.5,
-          "annual": 335092.21
-        },
-        "Vio55 Air": {
-          "price": 1876000,
-          "down": 282000,
-          "yct": 94000,
-          "ysp": 40000,
-          "rst": 50000,
-          "customer_out": 98000,
-          "total": 1594000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 2481061.0,
-          "annual": 354437.29
-        },
-        "Vio80": {
-          "price": 2539000,
-          "down": 381000,
-          "yct": 127000,
-          "ysp": 40000,
-          "rst": 87000,
-          "customer_out": 127000,
-          "total": 2158000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 3358927.0,
-          "annual": 479846.71
-        },
-        "Vio100": {
-          "price": 2958000,
-          "down": 444000,
-          "yct": 148000,
-          "ysp": 40000,
-          "rst": 108000,
-          "customer_out": 148000,
-          "total": 2514000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 3913041.0,
-          "annual": 559005.86
+    "models": [
+      "Vio17",
+      "Vio23",
+      "Vio30-7",
+      "Vio30-Air-7",
+      "Vio35-7",
+      "Vio35-Air-7",
+      "Vio50",
+      "Vio55 Air",
+      "Vio80",
+      "Vio100"
+    ],
+    "programs": [
+      {
+        "id": "e_general15",
+        "name": "ลูกค้าทั่วไป ดาวน์ 15%",
+        "groups": [
+          "ทั่วไป15"
+        ],
+        "conditions": [
+          "**เลื่อนค่างวดไม่ได้**"
+        ],
+        "entries": {
+          "Vio17": {
+            "price": 805000,
+            "down": 121000,
+            "yct": 41000,
+            "ysp": 15000,
+            "rst": 5000,
+            "customer_out": 60000,
+            "total": 684000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 1064646.0,
+            "annual": 152092.29
+          },
+          "Vio23": {
+            "price": 1100000,
+            "down": 165000,
+            "yct": 55000,
+            "ysp": 15000,
+            "rst": 20000,
+            "customer_out": 75000,
+            "total": 935000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 1455327.5,
+            "annual": 207903.93
+          },
+          "Vio30-7": {
+            "price": 1244000,
+            "down": 187000,
+            "yct": 63000,
+            "ysp": 30000,
+            "rst": 24000,
+            "customer_out": 70000,
+            "total": 1057000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 1645220.5,
+            "annual": 235031.5
+          },
+          "Vio30-Air-7": {
+            "price": 1438000,
+            "down": 216000,
+            "yct": 72000,
+            "ysp": 30000,
+            "rst": 34000,
+            "customer_out": 80000,
+            "total": 1222000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 1902043.0,
+            "annual": 271720.43
+          },
+          "Vio35-7": {
+            "price": 1346000,
+            "down": 202000,
+            "yct": 68000,
+            "ysp": 30000,
+            "rst": 34000,
+            "customer_out": 70000,
+            "total": 1144000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 1780636.0,
+            "annual": 254376.57
+          },
+          "Vio35-Air-7": {
+            "price": 1550000,
+            "down": 233000,
+            "yct": 78000,
+            "ysp": 30000,
+            "rst": 40000,
+            "customer_out": 85000,
+            "total": 1317000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 2049910.5,
+            "annual": 292844.36
+          },
+          "Vio50": {
+            "price": 1774000,
+            "down": 267000,
+            "yct": 89000,
+            "ysp": 40000,
+            "rst": 43000,
+            "customer_out": 95000,
+            "total": 1507000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 2345645.5,
+            "annual": 335092.21
+          },
+          "Vio55 Air": {
+            "price": 1876000,
+            "down": 282000,
+            "yct": 94000,
+            "ysp": 40000,
+            "rst": 50000,
+            "customer_out": 98000,
+            "total": 1594000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 2481061.0,
+            "annual": 354437.29
+          },
+          "Vio80": {
+            "price": 2539000,
+            "down": 381000,
+            "yct": 127000,
+            "ysp": 40000,
+            "rst": 87000,
+            "customer_out": 127000,
+            "total": 2158000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 3358927.0,
+            "annual": 479846.71
+          },
+          "Vio100": {
+            "price": 2958000,
+            "down": 444000,
+            "yct": 148000,
+            "ysp": 40000,
+            "rst": 108000,
+            "customer_out": 148000,
+            "total": 2514000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 3913041.0,
+            "annual": 559005.86
+          }
+        }
+      },
+      {
+        "id": "e_general7",
+        "name": "ลูกค้าทั่วไป ดาวน์ 7%",
+        "groups": [
+          "ทั่วไป7"
+        ],
+        "conditions": [
+          "**เลื่อนค่างวดไม่ได้**",
+          "ลูกค้ายินยอมตรวจเครดิตบูโร",
+          "ตัวเลือกผ่อนรายปี (งวดย่อย 5,000 บาท x 11 เดือน + งวดใหญ่) สำหรับลูกค้าที่มีรายได้จากสวนทุเรียน >50%"
+        ],
+        "entries": {
+          "Vio17": {
+            "price": 805000,
+            "down": 57000,
+            "yct": 17000,
+            "ysp": 15000,
+            "rst": 10000,
+            "customer_out": 15000,
+            "total": 748000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 1164262.0,
+            "annual": 166323.14
+          },
+          "Vio23": {
+            "price": 1100000,
+            "down": 77000,
+            "yct": 22000,
+            "ysp": 15000,
+            "rst": 25000,
+            "customer_out": 15000,
+            "total": 1023000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 1592299.5,
+            "annual": 227471.36
+          },
+          "Vio30-7": {
+            "price": 1244000,
+            "down": 88000,
+            "yct": 25000,
+            "ysp": 30000,
+            "rst": 28000,
+            "customer_out": 5000,
+            "total": 1156000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 1799314.0,
+            "annual": 257044.86
+          },
+          "Vio30-Air-7": {
+            "price": 1438000,
+            "down": 101000,
+            "yct": 29000,
+            "ysp": 30000,
+            "rst": 42000,
+            "customer_out": 0,
+            "total": 1337000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 2081040.5,
+            "annual": 297291.5
+          },
+          "Vio35-7": {
+            "price": 1346000,
+            "down": 95000,
+            "yct": 27000,
+            "ysp": 30000,
+            "rst": 38000,
+            "customer_out": 0,
+            "total": 1251000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 1947181.5,
+            "annual": 278168.79
+          },
+          "Vio35-Air-7": {
+            "price": 1550000,
+            "down": 109000,
+            "yct": 31000,
+            "ysp": 30000,
+            "rst": 48000,
+            "customer_out": 0,
+            "total": 1441000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 2242916.5,
+            "annual": 320416.64
+          },
+          "Vio50": {
+            "price": 1774000,
+            "down": 125000,
+            "yct": 36000,
+            "ysp": 40000,
+            "rst": 49000,
+            "customer_out": 0,
+            "total": 1649000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 2566668.5,
+            "annual": 366666.93
+          },
+          "Vio55 Air": {
+            "price": 1876000,
+            "down": 132000,
+            "yct": 38000,
+            "ysp": 40000,
+            "rst": 54000,
+            "customer_out": 0,
+            "total": 1744000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 2714536.0,
+            "annual": 387790.86
+          },
+          "Vio80": {
+            "price": 2539000,
+            "down": 178000,
+            "yct": 51000,
+            "ysp": 40000,
+            "rst": 87000,
+            "customer_out": 0,
+            "total": 2361000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 3674896.5,
+            "annual": 524985.21
+          },
+          "Vio100": {
+            "price": 2958000,
+            "down": 208000,
+            "yct": 60000,
+            "ysp": 40000,
+            "rst": 108000,
+            "customer_out": 0,
+            "total": 2750000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 4280375.0,
+            "annual": 611482.14
+          }
+        }
+      },
+      {
+        "id": "e_exp12",
+        "name": "ลูกค้ามีประสบการณ์ ดาวน์ 12%",
+        "groups": [
+          "ประสบการณ์"
+        ],
+        "conditions": [
+          "เป็นเจ้าของหรือครอบครองรถขุด หรือมีสัญญาจ้างงานก่อสร้าง หรือรายได้จากสวนทุเรียน >50%",
+          "ไม่สามารถโอนสิทธิ์ได้",
+          "6-7 ปี รายเดือนเท่านั้น"
+        ],
+        "entries": {
+          "Vio50": {
+            "price": 1550000,
+            "down": 186000,
+            "yct": 78000,
+            "ysp": 40000,
+            "rst": 23000,
+            "customer_out": 45000,
+            "total": 1364000,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 2123066.0,
+            "annual": 303295.14
+          },
+          "Vio50-Air": {
+            "price": 1740000,
+            "down": 208800,
+            "yct": 87000,
+            "ysp": 40000,
+            "rst": 47000,
+            "customer_out": 34800,
+            "total": 1531200,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 2383312.8,
+            "annual": 340473.26
+          },
+          "Vio55": {
+            "price": 1840000,
+            "down": 220800,
+            "yct": 92000,
+            "ysp": 40000,
+            "rst": 39000,
+            "customer_out": 49800,
+            "total": 1619200,
+            "interest": 0.0795,
+            "years": 7,
+            "total_payback": 2520284.8,
+            "annual": 360040.69
+          }
+        }
+      },
+      {
+        "id": "e_special10",
+        "name": "พิเศษ ดาวน์ 10%",
+        "groups": [
+          "RTA10",
+          "RTB10",
+          "YFSW10"
+        ],
+        "conditions": [
+          "**เลื่อนค่างวดแรกได้ 3 เดือน**"
+        ],
+        "entries": {
+          "Vio17": {
+            "price": 805000,
+            "down": 81000,
+            "yct": 0,
+            "ysp": 15000,
+            "rst": 5000,
+            "customer_out": 61000,
+            "total": 724000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 1068624.0,
+            "annual": 152660.57
+          },
+          "Vio23": {
+            "price": 1100000,
+            "down": 110000,
+            "yct": 0,
+            "ysp": 15000,
+            "rst": 20000,
+            "customer_out": 75000,
+            "total": 990000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 1461240.0,
+            "annual": 208748.57
+          },
+          "Vio30-7": {
+            "price": 1244000,
+            "down": 125000,
+            "yct": 0,
+            "ysp": 30000,
+            "rst": 24000,
+            "customer_out": 71000,
+            "total": 1119000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 1651644.0,
+            "annual": 235949.14
+          },
+          "Vio30-Air-7": {
+            "price": 1438000,
+            "down": 144000,
+            "yct": 0,
+            "ysp": 30000,
+            "rst": 34000,
+            "customer_out": 80000,
+            "total": 1294000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 1909944.0,
+            "annual": 272849.14
+          },
+          "Vio35-7": {
+            "price": 1346000,
+            "down": 135000,
+            "yct": 0,
+            "ysp": 30000,
+            "rst": 34000,
+            "customer_out": 71000,
+            "total": 1211000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 1787436.0,
+            "annual": 255348.0
+          },
+          "Vio35-Air-7": {
+            "price": 1550000,
+            "down": 155000,
+            "yct": 0,
+            "ysp": 30000,
+            "rst": 40000,
+            "customer_out": 85000,
+            "total": 1395000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 2059020.0,
+            "annual": 294145.71
+          },
+          "Vio50": {
+            "price": 1774000,
+            "down": 178000,
+            "yct": 0,
+            "ysp": 40000,
+            "rst": 43000,
+            "customer_out": 95000,
+            "total": 1596000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 2355696.0,
+            "annual": 336528.0
+          },
+          "Vio55 Air": {
+            "price": 1876000,
+            "down": 188000,
+            "yct": 0,
+            "ysp": 40000,
+            "rst": 50000,
+            "customer_out": 98000,
+            "total": 1688000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 2491488.0,
+            "annual": 355926.86
+          },
+          "Vio80": {
+            "price": 2539000,
+            "down": 254000,
+            "yct": 0,
+            "ysp": 40000,
+            "rst": 87000,
+            "customer_out": 127000,
+            "total": 2285000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 3372660.0,
+            "annual": 481808.57
+          },
+          "Vio100": {
+            "price": 2958000,
+            "down": 296000,
+            "yct": 0,
+            "ysp": 40000,
+            "rst": 108000,
+            "customer_out": 148000,
+            "total": 2662000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 3929112.0,
+            "annual": 561301.71
+          }
+        }
+      },
+      {
+        "id": "e_special15",
+        "name": "พิเศษ Retention/Yanmar Fan ดาวน์ 15%",
+        "groups": [
+          "RTA15",
+          "RTB15",
+          "YFSW15"
+        ],
+        "conditions": [
+          "**เลื่อนค่างวดแรกได้ 3 เดือน**",
+          "สำหรับลูกค้า Retention, Yanmar Fan",
+          "ตัวเลือกผ่อนรายปี (งวดย่อย 5,000 บาท x 11 เดือน + งวดใหญ่) สำหรับลูกค้าที่มีรายได้จากสวนทุเรียน >50%"
+        ],
+        "entries": {
+          "Vio17": {
+            "price": 805000,
+            "down": 119000,
+            "yct": 0,
+            "ysp": 15000,
+            "rst": 5000,
+            "customer_out": 99000,
+            "total": 686000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 1012536.0,
+            "annual": 144648.0
+          },
+          "Vio23": {
+            "price": 1100000,
+            "down": 165000,
+            "yct": 0,
+            "ysp": 15000,
+            "rst": 20000,
+            "customer_out": 130000,
+            "total": 935000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 1380060.0,
+            "annual": 197151.43
+          },
+          "Vio30-7": {
+            "price": 1244000,
+            "down": 186600,
+            "yct": 0,
+            "ysp": 30000,
+            "rst": 24000,
+            "customer_out": 132600,
+            "total": 1057400,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 1560722.4,
+            "annual": 222960.34
+          },
+          "Vio30-Air-7": {
+            "price": 1438000,
+            "down": 212000,
+            "yct": 0,
+            "ysp": 30000,
+            "rst": 34000,
+            "customer_out": 148000,
+            "total": 1226000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 1809576.0,
+            "annual": 258510.86
+          },
+          "Vio35-7": {
+            "price": 1346000,
+            "down": 198000,
+            "yct": 0,
+            "ysp": 30000,
+            "rst": 34000,
+            "customer_out": 134000,
+            "total": 1148000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 1694448.0,
+            "annual": 242064.0
+          },
+          "Vio35-Air-7": {
+            "price": 1550000,
+            "down": 228000,
+            "yct": 0,
+            "ysp": 30000,
+            "rst": 40000,
+            "customer_out": 158000,
+            "total": 1322000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 1951272.0,
+            "annual": 278753.14
+          },
+          "Vio50": {
+            "price": 1774000,
+            "down": 267000,
+            "yct": 0,
+            "ysp": 40000,
+            "rst": 43000,
+            "customer_out": 184000,
+            "total": 1507000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 2224332.0,
+            "annual": 317761.71
+          },
+          "Vio55 Air": {
+            "price": 1876000,
+            "down": 368000,
+            "yct": 0,
+            "ysp": 40000,
+            "rst": 50000,
+            "customer_out": 278000,
+            "total": 1508000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 2225808.0,
+            "annual": 317972.57
+          },
+          "Vio80": {
+            "price": 2539000,
+            "down": 374000,
+            "yct": 0,
+            "ysp": 40000,
+            "rst": 87000,
+            "customer_out": 247000,
+            "total": 2165000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 3195540.0,
+            "annual": 456505.71
+          },
+          "Vio100": {
+            "price": 2958000,
+            "down": 435000,
+            "yct": 0,
+            "ysp": 40000,
+            "rst": 108000,
+            "customer_out": 287000,
+            "total": 2523000,
+            "interest": 0.068,
+            "years": 7,
+            "total_payback": 3723948.0,
+            "annual": 531992.57
+          }
         }
       }
-    },
-    {
-      "id": "e_general7",
-      "name": "ลูกค้าทั่วไป ดาวน์ 7%",
-      "groups": [
-        "ทั่วไป7"
-      ],
-      "conditions": [
-        "**เลื่อนค่างวดไม่ได้**",
-        "ลูกค้ายินยอมตรวจเครดิตบูโร",
-        "ตัวเลือกผ่อนรายปี (งวดย่อย 5,000 บาท x 11 เดือน + งวดใหญ่) สำหรับลูกค้าที่มีรายได้จากสวนทุเรียน >50%"
-      ],
-      "entries": {
-        "Vio17": {
-          "price": 805000,
-          "down": 57000,
-          "yct": 17000,
-          "ysp": 15000,
-          "rst": 10000,
-          "customer_out": 15000,
-          "total": 748000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1164262.0,
-          "annual": 166323.14
-        },
-        "Vio23": {
-          "price": 1100000,
-          "down": 77000,
-          "yct": 22000,
-          "ysp": 15000,
-          "rst": 25000,
-          "customer_out": 15000,
-          "total": 1023000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1592299.5,
-          "annual": 227471.36
-        },
-        "Vio30-7": {
-          "price": 1244000,
-          "down": 88000,
-          "yct": 25000,
-          "ysp": 30000,
-          "rst": 28000,
-          "customer_out": 5000,
-          "total": 1156000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1799314.0,
-          "annual": 257044.86
-        },
-        "Vio30-Air-7": {
-          "price": 1438000,
-          "down": 101000,
-          "yct": 29000,
-          "ysp": 30000,
-          "rst": 42000,
-          "customer_out": 0,
-          "total": 1337000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 2081040.5,
-          "annual": 297291.5
-        },
-        "Vio35-7": {
-          "price": 1346000,
-          "down": 95000,
-          "yct": 27000,
-          "ysp": 30000,
-          "rst": 38000,
-          "customer_out": 0,
-          "total": 1251000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 1947181.5,
-          "annual": 278168.79
-        },
-        "Vio35-Air-7": {
-          "price": 1550000,
-          "down": 109000,
-          "yct": 31000,
-          "ysp": 30000,
-          "rst": 48000,
-          "customer_out": 0,
-          "total": 1441000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 2242916.5,
-          "annual": 320416.64
-        },
-        "Vio50": {
-          "price": 1774000,
-          "down": 125000,
-          "yct": 36000,
-          "ysp": 40000,
-          "rst": 49000,
-          "customer_out": 0,
-          "total": 1649000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 2566668.5,
-          "annual": 366666.93
-        },
-        "Vio55 Air": {
-          "price": 1876000,
-          "down": 132000,
-          "yct": 38000,
-          "ysp": 40000,
-          "rst": 54000,
-          "customer_out": 0,
-          "total": 1744000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 2714536.0,
-          "annual": 387790.86
-        },
-        "Vio80": {
-          "price": 2539000,
-          "down": 178000,
-          "yct": 51000,
-          "ysp": 40000,
-          "rst": 87000,
-          "customer_out": 0,
-          "total": 2361000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 3674896.5,
-          "annual": 524985.21
-        },
-        "Vio100": {
-          "price": 2958000,
-          "down": 208000,
-          "yct": 60000,
-          "ysp": 40000,
-          "rst": 108000,
-          "customer_out": 0,
-          "total": 2750000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 4280375.0,
-          "annual": 611482.14
-        }
-      }
-    },
-    {
-      "id": "e_exp12",
-      "name": "ลูกค้ามีประสบการณ์ ดาวน์ 12%",
-      "groups": [
-        "ประสบการณ์"
-      ],
-      "conditions": [
-        "เป็นเจ้าของหรือครอบครองรถขุด หรือมีสัญญาจ้างงานก่อสร้าง หรือรายได้จากสวนทุเรียน >50%",
-        "ไม่สามารถโอนสิทธิ์ได้",
-        "6-7 ปี รายเดือนเท่านั้น"
-      ],
-      "entries": {
-        "Vio50": {
-          "price": 1550000,
-          "down": 186000,
-          "yct": 78000,
-          "ysp": 40000,
-          "rst": 23000,
-          "customer_out": 45000,
-          "total": 1364000,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 2123066.0,
-          "annual": 303295.14
-        },
-        "Vio50-Air": {
-          "price": 1740000,
-          "down": 208800,
-          "yct": 87000,
-          "ysp": 40000,
-          "rst": 47000,
-          "customer_out": 34800,
-          "total": 1531200,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 2383312.8,
-          "annual": 340473.26
-        },
-        "Vio55": {
-          "price": 1840000,
-          "down": 220800,
-          "yct": 92000,
-          "ysp": 40000,
-          "rst": 39000,
-          "customer_out": 49800,
-          "total": 1619200,
-          "interest": 0.0795,
-          "years": 7,
-          "total_payback": 2520284.8,
-          "annual": 360040.69
-        }
-      }
-    },
-    {
-      "id": "e_special10",
-      "name": "พิเศษ ดาวน์ 10%",
-      "groups": [
-        "RTA10",
-        "RTB10",
-        "YFSW10"
-      ],
-      "conditions": [
-        "**เลื่อนค่างวดแรกได้ 3 เดือน**"
-      ],
-      "entries": {
-        "Vio17": {
-          "price": 805000,
-          "down": 81000,
-          "yct": 0,
-          "ysp": 15000,
-          "rst": 5000,
-          "customer_out": 61000,
-          "total": 724000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1068624.0,
-          "annual": 152660.57
-        },
-        "Vio23": {
-          "price": 1100000,
-          "down": 110000,
-          "yct": 0,
-          "ysp": 15000,
-          "rst": 20000,
-          "customer_out": 75000,
-          "total": 990000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1461240.0,
-          "annual": 208748.57
-        },
-        "Vio30-7": {
-          "price": 1244000,
-          "down": 125000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 24000,
-          "customer_out": 71000,
-          "total": 1119000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1651644.0,
-          "annual": 235949.14
-        },
-        "Vio30-Air-7": {
-          "price": 1438000,
-          "down": 144000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 34000,
-          "customer_out": 80000,
-          "total": 1294000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1909944.0,
-          "annual": 272849.14
-        },
-        "Vio35-7": {
-          "price": 1346000,
-          "down": 135000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 34000,
-          "customer_out": 71000,
-          "total": 1211000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1787436.0,
-          "annual": 255348.0
-        },
-        "Vio35-Air-7": {
-          "price": 1550000,
-          "down": 155000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 40000,
-          "customer_out": 85000,
-          "total": 1395000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 2059020.0,
-          "annual": 294145.71
-        },
-        "Vio50": {
-          "price": 1774000,
-          "down": 178000,
-          "yct": 0,
-          "ysp": 40000,
-          "rst": 43000,
-          "customer_out": 95000,
-          "total": 1596000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 2355696.0,
-          "annual": 336528.0
-        },
-        "Vio55 Air": {
-          "price": 1876000,
-          "down": 188000,
-          "yct": 0,
-          "ysp": 40000,
-          "rst": 50000,
-          "customer_out": 98000,
-          "total": 1688000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 2491488.0,
-          "annual": 355926.86
-        },
-        "Vio80": {
-          "price": 2539000,
-          "down": 254000,
-          "yct": 0,
-          "ysp": 40000,
-          "rst": 87000,
-          "customer_out": 127000,
-          "total": 2285000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 3372660.0,
-          "annual": 481808.57
-        },
-        "Vio100": {
-          "price": 2958000,
-          "down": 296000,
-          "yct": 0,
-          "ysp": 40000,
-          "rst": 108000,
-          "customer_out": 148000,
-          "total": 2662000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 3929112.0,
-          "annual": 561301.71
-        }
-      }
-    },
-    {
-      "id": "e_special15",
-      "name": "พิเศษ Retention/Yanmar Fan ดาวน์ 15%",
-      "groups": [
-        "RTA15",
-        "RTB15",
-        "YFSW15"
-      ],
-      "conditions": [
-        "**เลื่อนค่างวดแรกได้ 3 เดือน**",
-        "สำหรับลูกค้า Retention, Yanmar Fan",
-        "ตัวเลือกผ่อนรายปี (งวดย่อย 5,000 บาท x 11 เดือน + งวดใหญ่) สำหรับลูกค้าที่มีรายได้จากสวนทุเรียน >50%"
-      ],
-      "entries": {
-        "Vio17": {
-          "price": 805000,
-          "down": 119000,
-          "yct": 0,
-          "ysp": 15000,
-          "rst": 5000,
-          "customer_out": 99000,
-          "total": 686000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1012536.0,
-          "annual": 144648.0
-        },
-        "Vio23": {
-          "price": 1100000,
-          "down": 165000,
-          "yct": 0,
-          "ysp": 15000,
-          "rst": 20000,
-          "customer_out": 130000,
-          "total": 935000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1380060.0,
-          "annual": 197151.43
-        },
-        "Vio30-7": {
-          "price": 1244000,
-          "down": 186600,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 24000,
-          "customer_out": 132600,
-          "total": 1057400,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1560722.4,
-          "annual": 222960.34
-        },
-        "Vio30-Air-7": {
-          "price": 1438000,
-          "down": 212000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 34000,
-          "customer_out": 148000,
-          "total": 1226000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1809576.0,
-          "annual": 258510.86
-        },
-        "Vio35-7": {
-          "price": 1346000,
-          "down": 198000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 34000,
-          "customer_out": 134000,
-          "total": 1148000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1694448.0,
-          "annual": 242064.0
-        },
-        "Vio35-Air-7": {
-          "price": 1550000,
-          "down": 228000,
-          "yct": 0,
-          "ysp": 30000,
-          "rst": 40000,
-          "customer_out": 158000,
-          "total": 1322000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 1951272.0,
-          "annual": 278753.14
-        },
-        "Vio50": {
-          "price": 1774000,
-          "down": 267000,
-          "yct": 0,
-          "ysp": 40000,
-          "rst": 43000,
-          "customer_out": 184000,
-          "total": 1507000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 2224332.0,
-          "annual": 317761.71
-        },
-        "Vio55 Air": {
-          "price": 1876000,
-          "down": 368000,
-          "yct": 0,
-          "ysp": 40000,
-          "rst": 50000,
-          "customer_out": 278000,
-          "total": 1508000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 2225808.0,
-          "annual": 317972.57
-        },
-        "Vio80": {
-          "price": 2539000,
-          "down": 374000,
-          "yct": 0,
-          "ysp": 40000,
-          "rst": 87000,
-          "customer_out": 247000,
-          "total": 2165000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 3195540.0,
-          "annual": 456505.71
-        },
-        "Vio100": {
-          "price": 2958000,
-          "down": 435000,
-          "yct": 0,
-          "ysp": 40000,
-          "rst": 108000,
-          "customer_out": 287000,
-          "total": 2523000,
-          "interest": 0.068,
-          "years": 7,
-          "total_payback": 3723948.0,
-          "annual": 531992.57
-        }
-      }
-    }
-  ]
-},
-
+    ]
+  },
   "drone": {
     "models": [
       "P60 Pro (ชุดพ่น)",
@@ -3159,7 +3316,6 @@ const DATA = {
       }
     ]
   },
-
   "yanmar_lookup_keys": {
     "EF393A / EF393T-45th": [
       "EF393A",
