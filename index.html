@@ -1770,25 +1770,37 @@ const summaryCust = document.getElementById('summaryCust');
 const results = document.getElementById('results');
 const minorInstallmentInput = document.getElementById('minorInstallmentInput');
 
+// (2/9 ต่อ 4) ข้อความ checkbox ของกลุ่ม "ทั่วไป" (label) ดึงมาจาก DATA[...].programs[].toggle_label โดยตรง
+// แทนที่จะพิมพ์ซ้ำไว้ในไฟล์นี้อีกที่ — เพราะที่ผ่านมาพอแก้ไฟล์ excel รอบใหม่ มักแก้ data.js (name/conditions)
+// แต่ลืมแก้ label ตรงนี้ด้วย ทำให้ข้อความบนการ์ด/checkbox ไม่ตรงกัน ต้องแก้ซ้ำหลายรอบ
+// ต่อไปเวลาอัปเดตโปรจากไฟล์ excel ใหม่ แก้แค่ toggle_label ใน data.js ที่เดียว หน้าเว็บจะตรงกันเองอัตโนมัติ
+function toggleLabel(brand, programId){
+  const p = DATA[brand] && DATA[brand].programs.find(x=>x.id===programId);
+  if(!p || !p.toggle_label){
+    console.warn('[TOGGLE_DEFS] ไม่พบ toggle_label ของโปรแกรม', brand, programId, '— ต้องเพิ่มฟิลด์นี้ใน data.js');
+    return p ? p.name : '';
+  }
+  return p.toggle_label;
+}
 const TOGGLE_DEFS = {
   yanmar: {
     // (2/9 ต่อ) โปร 15% ไม่เข้าเงื่อนไข (y_general15) เป็น default อยู่แล้วตอนเปิดหน้า "ทั่วไป" — ไม่ต้องมี toggle ให้ติ๊กอีก
     // (โปร "ทั่วไป 20%"/y_general ถูกเอาออกจากระบบแล้ว เพราะไม่มีอยู่ในไฟล์ excel ล่าสุด — ห้ามเอากลับมาโดยไม่ถามก่อน)
     'ทั่วไป': [
-      {key:'noYct20', label:'โปร 20% กอช และ Dry Crop ต้องมี 20 ไร่', unlock:'ปลดล็อกโปร 20% (ไม่มี YCT)'},
-      {key:'land30', label:'โปร 25% ลูกค้าทั่วไป ต้องมี 40 ไร่', unlock:'ปลดล็อกโปร 25%'},
-      {key:'leader25', label:'โปร 25% ผู้นำ/ธกส/SM ไม่กำหนดจำนวนไร่', unlock:'ปลดล็อกโปร 25% ผู้นำชุมชน/ธกส/MF/SM'},
-      {key:'baac', label:'โปร 30% ผู้นำ/ธกส/SM ต้องมี 40 ไร่', unlock:'ปลดล็อกโปร 30%'},
+      {key:'noYct20', label:toggleLabel('yanmar','y_bob20'), unlock:'ปลดล็อกโปร 20% (ไม่มี YCT)'},
+      {key:'land30', label:toggleLabel('yanmar','y_bob25'), unlock:'ปลดล็อกโปร 25%'},
+      {key:'leader25', label:toggleLabel('yanmar','y_bob25_leader'), unlock:'ปลดล็อกโปร 25% ผู้นำชุมชน/ธกส/MF/SM'},
+      {key:'baac', label:toggleLabel('yanmar','y_bob30'), unlock:'ปลดล็อกโปร 30%'},
     ],
     'YF,SW': [],
     'RT': [],
   },
   solis: {
     'ทั่วไป': [
-      {key:'noYct20', label:'โปร 20% กอช และ Dry Crop ต้องมี 20 ไร่', unlock:'ปลดล็อกโปร 20% (ไม่มี YCT)'},
-      {key:'land30', label:'โปร 25% ลูกค้าทั่วไป ต้องมี 40 ไร่', unlock:'ปลดล็อกโปร 25%'},
-      {key:'leader25', label:'โปร 25% ผู้นำ/ธกส/SM ไม่กำหนดจำนวนไร่', unlock:'ปลดล็อกโปร 25% ผู้นำชุมชน/ธกส/MF/SM'},
-      {key:'baac', label:'โปร 30% ผู้นำ/ธกส/SM ต้องมี 40 ไร่', unlock:'ปลดล็อกโปร 30%'},
+      {key:'noYct20', label:toggleLabel('solis','s_bob20'), unlock:'ปลดล็อกโปร 20% (ไม่มี YCT)'},
+      {key:'land30', label:toggleLabel('solis','s_bob25'), unlock:'ปลดล็อกโปร 25%'},
+      {key:'leader25', label:toggleLabel('solis','s_bob25_leader'), unlock:'ปลดล็อกโปร 25% ผู้นำชุมชน/ธกส/MF/SM'},
+      {key:'baac', label:toggleLabel('solis','s_bob30'), unlock:'ปลดล็อกโปร 30%'},
     ],
     'YF,SW': [],
     'RT': [],
