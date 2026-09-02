@@ -400,6 +400,7 @@ const DATA = {
       {
         "id": "y_bob25",
         "name": "โปร 25% ลูกค้าทั่วไป",
+        "toggle_label": "โปร 25% ลูกค้าทั่วไป ต้องมี 40 ไร่",
         "groups": [
           "General"
         ],
@@ -487,6 +488,7 @@ const DATA = {
       {
         "id": "y_bob20",
         "name": "โปร 20% กอช, Dry Crop",
+        "toggle_label": "โปร 20% กอช และ Dry Crop ต้องมี 20 ไร่",
         "groups": [
           "General"
         ],
@@ -567,6 +569,7 @@ const DATA = {
       {
         "id": "y_bob30",
         "name": "โปร 30% ผู้นำชุมชน/ธกส/Mega Farm/Sugar Mill",
+        "toggle_label": "โปร 30% ผู้นำ/ธกส/SM ต้องมี 40 ไร่",
         "groups": [
           "General",
           "YF,SW",
@@ -768,6 +771,7 @@ const DATA = {
       {
         "id": "y_bob25_leader",
         "name": "โปร 25% ผู้นำชุมชน/ธกส/Mega Farm/Sugar Mill",
+        "toggle_label": "โปร 25% ผู้นำ/ธกส/SM ไม่กำหนดจำนวนไร่",
         "groups": [
           "General"
         ],
@@ -1481,6 +1485,7 @@ const DATA = {
       {
         "id": "s_bob25",
         "name": "โปร 25% ลูกค้าทั่วไป",
+        "toggle_label": "โปร 25% ลูกค้าทั่วไป ต้องมี 40 ไร่",
         "groups": [
           "General"
         ],
@@ -1594,6 +1599,7 @@ const DATA = {
       {
         "id": "s_bob20",
         "name": "โปร 20% กอช, Dry Crop",
+        "toggle_label": "โปร 20% กอช และ Dry Crop ต้องมี 20 ไร่",
         "groups": [
           "General"
         ],
@@ -1696,6 +1702,7 @@ const DATA = {
       {
         "id": "s_bob30",
         "name": "โปร 30% ผู้นำชุมชน/ธกส/Mega Farm/Sugar Mill",
+        "toggle_label": "โปร 30% ผู้นำ/ธกส/SM ต้องมี 40 ไร่",
         "groups": [
           "General",
           "YF,SW",
@@ -1962,6 +1969,7 @@ const DATA = {
       {
         "id": "s_bob25_leader",
         "name": "โปร 25% ผู้นำชุมชน/ธกส/Sugar Mill",
+        "toggle_label": "โปร 25% ผู้นำ/ธกส/SM ไม่กำหนดจำนวนไร่",
         "groups": [
           "General"
         ],
