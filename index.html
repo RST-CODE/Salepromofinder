@@ -1727,7 +1727,7 @@ let extraDown = 0;           // แบบที่ 1: ลูกค้าวา�
 let custSubForSupport = 0;   // แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน)
 let minorInstallment = 2000;
 let minorMode = 'normal'; // 'normal' | 'advance' | 'with_down'
-let toggleState = {land30:false, baac:false, general15:false, noYct20:false, leader25:false};
+let toggleState = {land30:false, baac:false, noYct20:false, leader25:false};
 let activeProgramId = null; // id ของโปรที่กำลังแสดง/เลือกอยู่ตอนนี้ (อัปเดตทุกครั้งใน renderResultsCommon) — ใช้แค่เพื่อสลับตารางดอกเบี้ย/ปีผ่อนของโปร y_general15 (7-8 ปีเท่านั้น) ตอนมันเป็นโปรที่กำลังแสดงอยู่
 let custType = 'individual'; // 'individual' (บุคคลธรรมดา) | 'corporate' (นิติบุคคล) — ใช้คิดค่าจดทะเบียน+พรบ เท่านั้น ไม่กระทบราคา/โปร
 
@@ -1772,22 +1772,23 @@ const minorInstallmentInput = document.getElementById('minorInstallmentInput');
 
 const TOGGLE_DEFS = {
   yanmar: {
+    // (2/9 ต่อ) โปร 15% ไม่เข้าเงื่อนไข (y_general15) เป็น default อยู่แล้วตอนเปิดหน้า "ทั่วไป" — ไม่ต้องมี toggle ให้ติ๊กอีก
+    // (โปร "ทั่วไป 20%"/y_general ถูกเอาออกจากระบบแล้ว เพราะไม่มีอยู่ในไฟล์ excel ล่าสุด — ห้ามเอากลับมาโดยไม่ถามก่อน)
     'ทั่วไป': [
-      {key:'general15', label:'ลูกค้าไม่เข้าเงื่อนไข โปร 15%', unlock:''},
-      {key:'noYct20', label:'ลูกค้า กอช. หรือสมาชิกชาวไร่อ้อย (Dry Crop) ที่ทำกินไม่ต่ำกว่า 20 ไร่', unlock:'ปลดล็อกโปร 20% (ไม่มี YCT)'},
-      {key:'land30', label:'มีพื้นที่(ตนเอง/เช่า) รวม 30 ไร่ขึ้นไป (กอช. 20 ไร่)', unlock:'ปลดล็อกโปร 25%'},
-      {key:'leader25', label:'ผู้นำชุมชน / Sugar Mill / ธกส เกรด AAA,AAA+ / Mega Farm', unlock:'ปลดล็อกโปร 25% ผู้นำชุมชน/ธกส/MF/SM'},
-      {key:'baac', label:'ธกส 3A / ผู้นำชุมชน / โรงงานน้ำตาล / หรือที่ดิน 40 ไร่ขึ้นไป', unlock:'ปลดล็อกโปร 30%'},
+      {key:'noYct20', label:'โปร 20% กอช และ Dry Crop', unlock:'ปลดล็อกโปร 20% (ไม่มี YCT)'},
+      {key:'land30', label:'โปร 25% ลูกค้าทั่วไป ต้องมี 40 ไร่', unlock:'ปลดล็อกโปร 25%'},
+      {key:'leader25', label:'โปร 25% ผู้นำ/ธกส/SM ไม่กำหนดจำนวนไร่', unlock:'ปลดล็อกโปร 25% ผู้นำชุมชน/ธกส/MF/SM'},
+      {key:'baac', label:'โปร 30% ผู้นำ/ธกส/SM ต้องมี 40 ไร่', unlock:'ปลดล็อกโปร 30%'},
     ],
     'YF,SW': [],
     'RT': [],
   },
   solis: {
     'ทั่วไป': [
-      {key:'noYct20', label:'ลูกค้า กอช. หรือสมาชิกชาวไร่อ้อย (Dry Crop) ที่ทำกินไม่ต่ำกว่า 20 ไร่', unlock:'ปลดล็อกโปร 20% (ไม่มี YCT)'},
-      {key:'land30', label:'มีพื้นที่(ตนเอง/เช่า) รวม 30 ไร่ขึ้นไป (กอช. 20 ไร่)', unlock:'ปลดล็อกโปร 25%'},
-      {key:'leader25', label:'ผู้นำชุมชน / Sugar Mill / ธกส เกรด AAA,AAA+ / Mega Farm', unlock:'ปลดล็อกโปร 25% ผู้นำชุมชน/ธกส/MF/SM'},
-      {key:'baac', label:'ธกส 3A / ผู้นำชุมชน / โรงงานน้ำตาล / หรือที่ดิน 40 ไร่ขึ้นไป', unlock:'ปลดล็อกโปร 30%'},
+      {key:'noYct20', label:'โปร 20% กอช และ Dry Crop', unlock:'ปลดล็อกโปร 20% (ไม่มี YCT)'},
+      {key:'land30', label:'โปร 25% ลูกค้าทั่วไป ต้องมี 40 ไร่', unlock:'ปลดล็อกโปร 25%'},
+      {key:'leader25', label:'โปร 25% ผู้นำ/ธกส/SM ไม่กำหนดจำนวนไร่', unlock:'ปลดล็อกโปร 25% ผู้นำชุมชน/ธกส/MF/SM'},
+      {key:'baac', label:'โปร 30% ผู้นำ/ธกส/SM ต้องมี 40 ไร่', unlock:'ปลดล็อกโปร 30%'},
     ],
     'YF,SW': [],
     'RT': [],
@@ -1871,7 +1872,7 @@ const TOGGLE_NOTE = {
 
 // ===== Generic segment + toggle logic (shared by Yanmar & Solis) =====
 const PROGRAM_IDS = {
-  yanmar: { general:'y_general', general15:'y_general15', target_yfsw:'y_target_yfsw', target_rt:'y_target_rt', bob25:'y_bob25', bob30:'y_bob30', bob20:'y_bob20', bob25_leader:'y_bob25_leader', special358:'y_358' },
+  yanmar: { general15:'y_general15', target_yfsw:'y_target_yfsw', target_rt:'y_target_rt', bob25:'y_bob25', bob30:'y_bob30', bob20:'y_bob20', bob25_leader:'y_bob25_leader', special358:'y_358' },
   solis:  { general:'s_general', target_yfsw:'s_target_yfsw', target_rt:'s_target_rt', bob25:'s_bob25', bob30:'s_bob30', bob20:'s_bob20', bob25_leader:'s_bob25_leader' },
   combine: { general:'c_general', target_yfsw:'c_owner_combine', target_rt:'c_rt', target_tractor_owner:'c_owner_tractor' },
   excavator: {
@@ -1938,12 +1939,13 @@ function findEntries(brand, model, segment, toggles){
     }
   }
 
-  // โปร "ทั่วไป" (general) โชว์เฉพาะตอนเลือกกลุ่มลูกค้า "ทั่วไป" เท่านั้น — กลุ่มอื่น (YF,SW / RT / Dry Crop)
+  // โปร "ทั่วไป" โชว์เฉพาะตอนเลือกกลุ่มลูกค้า "ทั่วไป" เท่านั้น — กลุ่มอื่น (YF,SW / RT / Dry Crop)
   // มีโปร "ทั่วไป 20%" เวอร์ชันเฉพาะกลุ่มของตัวเองอยู่แล้ว (target_yfsw/target_rt) ไม่ต้องโชว์เวอร์ชันทั่วไปซ้ำ
-  // (21/8 ต่อ 3) ถ้าติ๊ก "ลูกค้าไม่เข้าเงื่อนไขโปรทั่วไป 20%" (general15) ให้สลับไปโชว์โปร 15% แทน 20% ไปเลย
-  // (ไม่ใช่โชว์คู่กัน — เพราะชื่อโปร/เงื่อนไขระบุชัดว่าลูกค้ากลุ่มนี้ไม่เข้าเงื่อนไข 20%) — ยังคงปลดล็อก Bob25%/30% ได้ตามปกติถ้าติ๊กแยกไว้ด้วย
+  // (2/9 ต่อ) Yanmar: y_general ("ทั่วไป 20%") ถูกเอาออกจากระบบแล้ว ไม่มีอยู่ในไฟล์ excel — default ตอนเปิดหน้าคือ
+  // y_general15 (โปร 15% ไม่เข้าเงื่อนไข) เสมอ ไม่ต้องรอติ๊ก toggle ใดๆ (ห้ามเอา y_general กลับมาโดยไม่ถามก่อน)
+  // ยังคงปลดล็อก Bob20%/25%/30% ได้ตามปกติถ้าติ๊ก toggle เพิ่ม — Solis ใช้ s_general เป็น default ตามเดิม (ไม่มี general15 แยก)
   if(segment==='ทั่วไป'){
-    if(brand==='yanmar' && toggles.general15 && ids.general15) getDirect(ids.general15);
+    if(brand==='yanmar') getDirect(ids.general15);
     else getDirect(ids.general);
   }
 
@@ -2338,7 +2340,7 @@ function populateModels(){
   modelSelect.selectedIndex = 0;
   currentSegment = (getSegListForCurrentGroup(currentBrand) || SEGMENT_LIST[currentBrand] || ['ทั่วไป'])[0];
   yfSwSubType = null;
-  toggleState = {land30:false, baac:false, general15:false, noYct20:false, leader25:false};
+  toggleState = {land30:false, baac:false, noYct20:false, leader25:false};
   renderSegmentButtons();
   renderCriteria();
   renderToggles();
@@ -2453,7 +2455,7 @@ custTypeToggle.addEventListener('click', (evt)=>{
   if(typeof refreshExportSummary === 'function') refreshExportSummary();
 });
 modelSelect.addEventListener('change', ()=>{
-  toggleState = {land30:false, baac:false, general15:false, noYct20:false, leader25:false};
+  toggleState = {land30:false, baac:false, noYct20:false, leader25:false};
   yfSwSubType = null;
   eqSelByMode = { new:{}, used:{} }; eqFinByMode = { new:{}, used:{} };
   eqDown = 0; selectedPromoIdx = 0;
