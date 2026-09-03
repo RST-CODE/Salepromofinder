@@ -2356,7 +2356,13 @@ function populateModels(){
   renderSegmentButtons();
   renderCriteria();
   renderToggles();
-  renderTractorSelectors();
+  // (3/9/2569) ห้ามเรียก renderTractorSelectors() ตรงนี้ก่อน renderResults() — ตอนนี้ tractorYears เพิ่งถูกรีเซ็ตเป็น null
+  // แต่ activeProgramId ยังเป็นค่าเก่าจากโปรแกรม/เซกเมนต์ก่อนหน้า (ยังไม่ถูกอัปเดตจนกว่า renderResultsCommon() จะรัน)
+  // ถ้าเรียกตรงนี้ getInterestGroup() จะยึดกลุ่มดอกเบี้ยผิดชั่วคราว (เช่น 'general' แทน 'general15') แล้ว clamp
+  // tractorYears ไปเป็นปีของกลุ่มผิด (เช่น 10 ปีแทน 8 ปี) ค้างอยู่ ทำให้การ์ดที่เพิ่ง render ครั้งแรกโชว์ปี/ดอกเบี้ยผิด
+  // (เช่น โปร "ไม่เข้าเงื่อนไข 15%" โชว์ "ผ่อน 10 ปี @ 8.95%" ทั้งที่ควรเป็น "8 ปี @ 8.75%") จนกว่าจะมีการ render รอบถัดไป
+  // renderResultsCommon() ท้ายๆ renderResults() จะเรียก renderTractorSelectors() เองอยู่แล้วหลัง activeProgramId ถูกต้องแล้ว
+  // และตอน tractorYears ยังเป็น null การ์ดจะ fallback ไปใช้ entry.years/entry.interest ของโปรนั้นๆ ตรงๆ (ถูกต้องเสมอ)
   renderResults();
 }
 
@@ -2440,7 +2446,8 @@ function selectSegment(seg){
     renderSegmentButtons();
     renderCriteria();
     renderToggles();
-    renderTractorSelectors();
+    // (3/9/2569) เอา renderTractorSelectors() ตรงนี้ออก — เหตุผลเดียวกับใน populateModels() ด้านบน
+    // (activeProgramId ยังไม่อัปเดตตอนนี้ ทำให้ getInterestGroup() ยึดกลุ่มดอกเบี้ยผิดชั่วคราวตอน tractorYears เพิ่ง reset เป็น null)
     renderResults();
     maybeAutoStep2();
 }
