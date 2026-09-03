@@ -1527,14 +1527,18 @@ function firstBigAmount(fullAmount, paymentType, finType){
 }
 
 // Segment -> interest group mapping
-function getInterestGroup(brand, segment){
+// (3/9/2569) เพิ่มพารามิเตอร์ที่ 3 (programId) เป็น "ทางเลือก" — ถ้าไม่ใส่จะ fallback ไปใช้ activeProgramId (global) เหมือนเดิมทุกจุดที่เรียกอยู่แล้ว
+// เหตุผล: ตอนแสดงการ์ด "ดูโปรอื่น" (rest cards) แต่ละใบอาจเป็นคนละโปรแกรมกับโปรที่กำลัง active อยู่ (เช่น การ์ดหลักเป็น y_bob25 แต่การ์ดอื่นเป็น y_general15)
+// ถ้ายึด activeProgramId (global, = โปรของการ์ดหลักเท่านั้น) กลุ่มดอกเบี้ย/ปีของการ์ดอื่นจะผิดได้ — ต้องส่ง programId ของการ์ดนั้นๆ เข้ามาตรงๆ แทน
+function getInterestGroup(brand, segment, programId){
+  const pid = (typeof programId !== 'undefined') ? programId : activeProgramId;
   if(brand==='yanmar'){
     if(segment==='RT') return 'rt';
     if(segment==='YF,SW') return 'sw';
     // (21/8 ต่อ 3, ปรับ 2/9 ต่อ) ตอนโปรที่กำลังแสดง/เลือกอยู่เป็นหนึ่งในกลุ่ม "ดอกเบี้ย 8.75% ผ่อนได้ 8 ปีเท่านั้น"
     // ได้แก่ y_general15 (ไม่เข้าเงื่อนไข 20%), y_bob20 (20% ไม่มี YCT), y_bob25_leader (25% ผู้นำชุมชน/ธกส/MF/SM)
     // ให้ใช้ตาราง general15 (8 ปีเท่านั้น) แทน general (20%, 6-10 ปี) — activeProgramId อัปเดตใน renderResultsCommon
-    if(segment==='ทั่วไป' && (activeProgramId==='y_general15' || activeProgramId==='y_bob20' || activeProgramId==='y_bob25_leader')) return 'general15';
+    if(segment==='ทั่วไป' && (pid==='y_general15' || pid==='y_bob20' || pid==='y_bob25_leader')) return 'general15';
     return 'general';
   } else if(brand==='combine'){
     if(segment==='RT') return 'rt';
@@ -1551,24 +1555,24 @@ function getInterestGroup(brand, segment){
     if(segment==='YF,SW') return 'sw';
     // (2/9/2569) s_general (โปร "ไม่เข้าเงื่อนไข" ใหม่), s_bob20 (20% ไม่มี YCT), s_bob25_leader (25% ผู้นำชุมชน/ธกส/MF/SM)
     // ทั้งสามใช้ดอกเบี้ย 8.75%/7 ปีเท่านั้น (ต่างจาก s_bob25/s_bob30 ที่ยังคง 8.95%/7ปี ตามเดิม) — ใช้ activeProgramId แยก เหมือนที่ทำกับ yanmar
-    if(segment==='ทั่วไป' && (activeProgramId==='s_general' || activeProgramId==='s_bob20' || activeProgramId==='s_bob25_leader')) return 'general15';
+    if(segment==='ทั่วไป' && (pid==='s_general' || pid==='s_bob20' || pid==='s_bob25_leader')) return 'general15';
     return 'general';
   }
 }
 
-function lookupInterest(brand, segment, years, paymentType){
-  const group = getInterestGroup(brand, segment);
+function lookupInterest(brand, segment, years, paymentType, programId){
+  const group = getInterestGroup(brand, segment, programId);
   const table = INTEREST_TABLE[brand]?.[group] || {};
   const key = years + '_' + paymentType;
   return table[key] ?? 0.0895;
 }
 
-function getAvailableYears(brand, segment){
-  const group = getInterestGroup(brand, segment);
+function getAvailableYears(brand, segment, programId){
+  const group = getInterestGroup(brand, segment, programId);
   return YEARS_OPTIONS[brand]?.[group] || [7];
 }
-function getAvailablePayments(brand, segment, years){
-  const group = getInterestGroup(brand, segment);
+function getAvailablePayments(brand, segment, years, programId){
+  const group = getInterestGroup(brand, segment, programId);
   return PAYMENT_OPTIONS[brand]?.[group]?.[years] || ['annual'];
 }
 
@@ -2067,11 +2071,22 @@ function cardHtml(r, badge, compareTo, editable){
   const finTotal = Math.max(0, finTotalBase - extra);
   // Use user-selected years/payment, falling back to entry default
   const entryYears = e.years ?? (currentBrand==='yanmar' ? 10 : (currentBrand==='combine' ? 6 : 7));
-  const finYears = tractorYears ?? entryYears;
   const entryInterest = e.interest ?? 0.0895;
-  const finInterest = (tractorYears && tractorPayment)
-    ? lookupInterest(currentBrand, currentSegment, finYears, tractorPayment)
-    : entryInterest;
+  let finYears, finInterest;
+  if(tractorYears){
+    // ผู้ใช้กดเลือกปี/งวดเองแล้วผ่านตัวเลือกด้านล่าง (ตัวเลือกเดียวใช้ร่วมกันทุกการ์ดใน segment นี้) — ใช้ตามที่เลือกไว้เหมือนเดิม
+    finYears = tractorYears;
+    finInterest = lookupInterest(currentBrand, currentSegment, finYears, tractorPayment);
+  } else {
+    // (3/9/2569) ก่อนที่ user จะกดเลือกปีเอง ให้ default เป็น "ปีสูงสุด" ที่โปรของการ์ดนี้ผ่อนได้
+    // ใช้ r.program.id ของการ์ดนี้เอง (ไม่ใช่ activeProgramId ของการ์ดหลักที่กำลัง active) เพราะการ์ด "ดูโปรอื่น"
+    // อาจเป็นคนละโปรกับการ์ดหลัก — ถ้ายึด activeProgramId กลุ่มดอกเบี้ย/ปีของการ์ดอื่นจะผิดได้ (เช่น การ์ดหลัก y_bob25 แต่การ์ดอื่น y_general15)
+    const ownProgramId = r.program?.id;
+    const availYearsForDefault = getAvailableYears(currentBrand, currentSegment, ownProgramId);
+    finYears = (availYearsForDefault && availYearsForDefault.length) ? availYearsForDefault[availYearsForDefault.length-1] : entryYears;
+    const tableInterest = INTEREST_TABLE[currentBrand]?.[getInterestGroup(currentBrand, currentSegment, ownProgramId)]?.[finYears + '_' + tractorPayment];
+    finInterest = tableInterest ?? entryInterest;
+  }
   const finAnnual = finTotal * (1/finYears + finInterest);
 
   const minorBase = getMinorFromPayment(tractorPayment);
