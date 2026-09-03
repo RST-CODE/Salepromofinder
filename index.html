@@ -2072,21 +2072,20 @@ function cardHtml(r, badge, compareTo, editable){
   // Use user-selected years/payment, falling back to entry default
   const entryYears = e.years ?? (currentBrand==='yanmar' ? 10 : (currentBrand==='combine' ? 6 : 7));
   const entryInterest = e.interest ?? 0.0895;
-  let finYears, finInterest;
-  if(tractorYears){
-    // ผู้ใช้กดเลือกปี/งวดเองแล้วผ่านตัวเลือกด้านล่าง (ตัวเลือกเดียวใช้ร่วมกันทุกการ์ดใน segment นี้) — ใช้ตามที่เลือกไว้เหมือนเดิม
-    finYears = tractorYears;
-    finInterest = lookupInterest(currentBrand, currentSegment, finYears, tractorPayment);
-  } else {
-    // (3/9/2569) ก่อนที่ user จะกดเลือกปีเอง ให้ default เป็น "ปีสูงสุด" ที่โปรของการ์ดนี้ผ่อนได้
-    // ใช้ r.program.id ของการ์ดนี้เอง (ไม่ใช่ activeProgramId ของการ์ดหลักที่กำลัง active) เพราะการ์ด "ดูโปรอื่น"
-    // อาจเป็นคนละโปรกับการ์ดหลัก — ถ้ายึด activeProgramId กลุ่มดอกเบี้ย/ปีของการ์ดอื่นจะผิดได้ (เช่น การ์ดหลัก y_bob25 แต่การ์ดอื่น y_general15)
-    const ownProgramId = r.program?.id;
-    const availYearsForDefault = getAvailableYears(currentBrand, currentSegment, ownProgramId);
-    finYears = (availYearsForDefault && availYearsForDefault.length) ? availYearsForDefault[availYearsForDefault.length-1] : entryYears;
-    const tableInterest = INTEREST_TABLE[currentBrand]?.[getInterestGroup(currentBrand, currentSegment, ownProgramId)]?.[finYears + '_' + tractorPayment];
-    finInterest = tableInterest ?? entryInterest;
-  }
+  // (3/9/2569 ต่อ 2 — แก้เพิ่มหลังผู้ใช้เจอ y_bob20/YM358 ยังโชว์ดอกเบี้ยผิด) ทุกการ์ดต้องคำนวณปี/ดอกเบี้ยจาก "โปรแกรมของตัวเอง"
+  // (r.program.id) เสมอ ไม่ว่า tractorYears (ตัวเลือกปีที่ผู้ใช้กดไว้ ใช้ร่วมกันทุกการ์ดใน segment นี้) จะถูกตั้งไว้แล้วหรือยังก็ตาม —
+  // รอบก่อนแก้แค่กรณี tractorYears ยังเป็น null (ตอนเพิ่งเปิดการ์ด) แต่ลืมกรณี tractorYears ถูกตั้งค่าไปแล้วจากการ์ด/โปรแกรมอื่นก่อนหน้า
+  // (เช่น ดูการ์ด "ทั่วไป" กลุ่ม general มาก่อน ทำให้ tractorYears เท่ากับ 10 ค้างอยู่ แล้วค่อยติ๊กเปิดโปร "20% กอช, Dry Crop" (y_bob20)
+  // ที่ผ่อนได้แค่ 8 ปีเท่านั้น) — ถ้ายังใช้ lookupInterest(currentBrand, currentSegment, ...) แบบ global (ยึด activeProgramId ของ
+  // การ์ดหลักเท่านั้น) การ์ดของโปรแกรมอื่นที่ไม่ใช่การ์ดหลักจะได้กลุ่มดอกเบี้ย/ปีผิดได้เสมอ จึงต้องหาปีที่ใช้ได้จริงของโปรแกรมนี้เองก่อน
+  const ownProgramId = r.program?.id;
+  const ownAvailYears = getAvailableYears(currentBrand, currentSegment, ownProgramId);
+  const ownMaxYears = (ownAvailYears && ownAvailYears.length) ? ownAvailYears[ownAvailYears.length-1] : entryYears;
+  // ถ้า tractorYears ที่ผู้ใช้เลือกไว้ (จากการ์ดอื่น/โปรแกรมอื่น) ไม่ใช่ปีที่โปรแกรมนี้ผ่อนได้จริง ให้ใช้ปีสูงสุดของโปรแกรมนี้แทน
+  // (กัน mismatch ปี/ดอกเบี้ย) — ถ้าตรงกับปีที่โปรแกรมนี้รองรับอยู่แล้ว ก็ใช้ตามที่ผู้ใช้เลือกไว้ปกติ
+  const finYears = (tractorYears && ownAvailYears.includes(tractorYears)) ? tractorYears : ownMaxYears;
+  const tableInterest = INTEREST_TABLE[currentBrand]?.[getInterestGroup(currentBrand, currentSegment, ownProgramId)]?.[finYears + '_' + tractorPayment];
+  const finInterest = tableInterest ?? entryInterest;
   const finAnnual = finTotal * (1/finYears + finInterest);
 
   const minorBase = getMinorFromPayment(tractorPayment);
