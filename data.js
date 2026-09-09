@@ -958,10 +958,10 @@ const DATA = {
             "customer_out": 20000,
             "rst": 46000,
             "total": 254000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 409575,
-            "annual": 58510.71
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 435864,
+            "annual": 54483
           },
           "Solis26": {
             "price": 339000,
@@ -970,10 +970,10 @@ const DATA = {
             "customer_out": 30000,
             "rst": 36000,
             "total": 254000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 409575,
-            "annual": 58510.71
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 435864,
+            "annual": 54483
           },
           "YM-Solis22": {
             "price": 312000,
@@ -982,10 +982,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 32000,
             "total": 265000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 427312.5,
-            "annual": 61044.64
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 454740,
+            "annual": 56842.5
           },
           "YM-Solis26": {
             "price": 380000,
@@ -994,10 +994,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 42000,
             "total": 323000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 520837.5,
-            "annual": 74405.36
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 554268,
+            "annual": 69283.5
           },
           "YM-Solis30": {
             "price": 427000,
@@ -1006,10 +1006,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 50000,
             "total": 362000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 583725.0,
-            "annual": 83389.29
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 621192,
+            "annual": 77649
           },
           "YM-Solis30-45th": {
             "price": 438000,
@@ -1017,10 +1017,10 @@ const DATA = {
             "fire": 15000,
             "rst": 51000,
             "total": 372000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 599850.0,
-            "annual": 85692.86
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 638352,
+            "annual": 79794
           },
           "YM-Solis50": {
             "price": 742000,
@@ -1029,10 +1029,10 @@ const DATA = {
             "customer_out": 30000,
             "rst": 94000,
             "total": 593000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 956212.5,
-            "annual": 136601.79
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1017588,
+            "annual": 127198.5
           },
           "YM-Solis50-45th": {
             "price": 762000,
@@ -1040,10 +1040,10 @@ const DATA = {
             "fire": 25000,
             "rst": 128000,
             "total": 609000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 982012.5,
-            "annual": 140287.5
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1045044,
+            "annual": 130630.5
           },
           "YM-Solis 65": {
             "price": 899000,
@@ -1052,10 +1052,10 @@ const DATA = {
             "customer_out": 30000,
             "rst": 115000,
             "total": 719000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1159387.5,
-            "annual": 165626.79
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1233804,
+            "annual": 154225.5
           },
           "YM-Solis75": {
             "price": 1008000,
@@ -1064,10 +1064,10 @@ const DATA = {
             "customer_out": 20000,
             "rst": 142000,
             "total": 806000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1299675.0,
-            "annual": 185667.86
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1383096,
+            "annual": 172887
           },
           "YM-Solis90": {
             "price": 1327000,
@@ -1076,10 +1076,10 @@ const DATA = {
             "customer_out": 45000,
             "rst": 181000,
             "total": 1061000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1710862.5,
-            "annual": 244408.93
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1820676,
+            "annual": 227584.5
           },
           "YM-Solis105": {
             "price": 1517000,
@@ -1088,10 +1088,10 @@ const DATA = {
             "customer_out": 45000,
             "rst": 199000,
             "total": 1213000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1955962.5,
-            "annual": 279423.21
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 2081508,
+            "annual": 260188.5
           },
           "YM-Solis 105 Cabin": {
             "price": 1717000,
@@ -1100,10 +1100,10 @@ const DATA = {
             "customer_out": 60000,
             "rst": 224000,
             "total": 1373000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 2213962.5,
-            "annual": 316280.36
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 2356068,
+            "annual": 294508.5
           }
         }
       },
@@ -1125,10 +1125,10 @@ const DATA = {
             "customer_out": 20000,
             "rst": 46000,
             "total": 254000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 409575.0,
-            "annual": 58510.71
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 435864,
+            "annual": 54483
           },
           "Solis26": {
             "price": 339000,
@@ -1137,10 +1137,10 @@ const DATA = {
             "customer_out": 30000,
             "rst": 36000,
             "total": 254000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 409575.0,
-            "annual": 58510.71
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 435864,
+            "annual": 54483
           },
           "YM-Solis22": {
             "price": 312000,
@@ -1150,10 +1150,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 25500,
             "total": 249000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 401512.5,
-            "annual": 57358.93
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 427284,
+            "annual": 53410.5
           },
           "YM-Solis26": {
             "price": 380000,
@@ -1163,10 +1163,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 35000,
             "total": 304000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 490200.0,
-            "annual": 70028.57
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 521664,
+            "annual": 65208
           },
           "YM-Solis30": {
             "price": 427000,
@@ -1177,10 +1177,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 2000,
             "total": 341000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 549862.53,
-            "annual": 78551.79
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 585156,
+            "annual": 73144.5
           },
           "YM-Solis30-45th": {
             "price": 438000,
@@ -1191,10 +1191,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 3000,
             "total": 350000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 564375.0,
-            "annual": 80625.0
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 600600,
+            "annual": 75075
           },
           "YM-Solis50": {
             "price": 742000,
@@ -1205,10 +1205,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 19000,
             "total": 593000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 956212.53,
-            "annual": 136601.79
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1017588,
+            "annual": 127198.5
           },
           "YM-Solis50-45th": {
             "price": 762000,
@@ -1219,10 +1219,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 21500,
             "total": 609000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 982012.5,
-            "annual": 140287.5
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1045044,
+            "annual": 130630.5
           },
           "YM-Solis 65": {
             "price": 899000,
@@ -1233,10 +1233,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 25000,
             "total": 719000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1159387.5,
-            "annual": 165626.79
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1233804,
+            "annual": 154225.5
           },
           "YM-Solis75": {
             "price": 1008000,
@@ -1247,10 +1247,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 34500,
             "total": 806000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1299675.0,
-            "annual": 185667.86
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1383096,
+            "annual": 172887
           },
           "YM-Solis90": {
             "price": 1327000,
@@ -1260,10 +1260,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 133000,
             "total": 1061000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1710862.5,
-            "annual": 244408.93
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1820676,
+            "annual": 227584.5
           },
           "YM-Solis105": {
             "price": 1517000,
@@ -1274,10 +1274,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 72000,
             "total": 1213000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1955962.5,
-            "annual": 279423.21
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 2081508,
+            "annual": 260188.5
           },
           "YM-Solis 105 Cabin": {
             "price": 1717000,
@@ -1288,10 +1288,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 98500,
             "total": 1373000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 2213962.52,
-            "annual": 316280.36
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 2356068,
+            "annual": 294508.5
           }
         }
       },
@@ -1313,10 +1313,10 @@ const DATA = {
             "customer_out": 20000,
             "rst": 46000,
             "total": 254000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 409575.0,
-            "annual": 58510.71
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 435864,
+            "annual": 54483
           },
           "Solis26": {
             "price": 339000,
@@ -1325,10 +1325,10 @@ const DATA = {
             "customer_out": 30000,
             "rst": 36000,
             "total": 254000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 409575.0,
-            "annual": 58510.71
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 435864,
+            "annual": 54483
           },
           "YM-Solis22": {
             "price": 312000,
@@ -1338,10 +1338,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 22500,
             "total": 249000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 401512.5,
-            "annual": 57358.93
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 427284,
+            "annual": 53410.5
           },
           "YM-Solis26": {
             "price": 380000,
@@ -1350,10 +1350,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 41000,
             "total": 304000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 490200.0,
-            "annual": 70028.57
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 521664,
+            "annual": 65208
           },
           "YM-Solis30": {
             "price": 427000,
@@ -1364,10 +1364,10 @@ const DATA = {
             "customer_out": 0,
             "rst": -2000,
             "total": 341000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 549862.53,
-            "annual": 78551.79
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 585156,
+            "annual": 73144.5
           },
           "YM-Solis30-45th": {
             "price": 438000,
@@ -1378,10 +1378,10 @@ const DATA = {
             "customer_out": 0,
             "rst": -1500,
             "total": 350000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 564375.0,
-            "annual": 80625.0
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 600600,
+            "annual": 75075
           },
           "YM-Solis50": {
             "price": 742000,
@@ -1392,10 +1392,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 11500,
             "total": 593000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 956212.53,
-            "annual": 136601.79
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1017588,
+            "annual": 127198.5
           },
           "YM-Solis50-45th": {
             "price": 762000,
@@ -1406,10 +1406,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 14000,
             "total": 609000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 982012.5,
-            "annual": 140287.5
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1045044,
+            "annual": 130630.5
           },
           "YM-Solis 65": {
             "price": 899000,
@@ -1420,10 +1420,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 16500,
             "total": 719000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1159387.5,
-            "annual": 165626.79
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1233804,
+            "annual": 154225.5
           },
           "YM-Solis75": {
             "price": 1008000,
@@ -1434,10 +1434,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 25000,
             "total": 806000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1299675.0,
-            "annual": 185667.86
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1383096,
+            "annual": 172887
           },
           "YM-Solis90": {
             "price": 1327000,
@@ -1447,10 +1447,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 119500,
             "total": 1061000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1710862.5,
-            "annual": 244408.93
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1820676,
+            "annual": 227584.5
           },
           "YM-Solis105": {
             "price": 1517000,
@@ -1461,10 +1461,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 57000,
             "total": 1213000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1955962.5,
-            "annual": 279423.21
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 2081508,
+            "annual": 260188.5
           },
           "YM-Solis 105 Cabin": {
             "price": 1717000,
@@ -1475,10 +1475,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 82000,
             "total": 1373000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 2213962.52,
-            "annual": 316280.36
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 2356068,
+            "annual": 294508.5
           }
         }
       },
@@ -1512,9 +1512,9 @@ const DATA = {
             "rst": 36000,
             "total": 320000,
             "interest": 0.0895,
-            "years": 7,
-            "total_payback": 520480.0,
-            "annual": 74354.29
+            "years": 8,
+            "total_payback": 549120,
+            "annual": 68640
           },
           "YM-Solis30-45th | General": {
             "price": 438000,
@@ -1525,9 +1525,9 @@ const DATA = {
             "rst": 37000,
             "total": 328000,
             "interest": 0.0895,
-            "years": 7,
-            "total_payback": 533492.0,
-            "annual": 76213.14
+            "years": 8,
+            "total_payback": 562848,
+            "annual": 70356
           },
           "YM-Solis50 | General": {
             "price": 742000,
@@ -1538,9 +1538,9 @@ const DATA = {
             "rst": 79000,
             "total": 556000,
             "interest": 0.0895,
-            "years": 7,
-            "total_payback": 904334.0,
-            "annual": 129190.57
+            "years": 8,
+            "total_payback": 954096,
+            "annual": 119262
           },
           "YM-Solis50-45th | General": {
             "price": 762000,
@@ -1551,9 +1551,9 @@ const DATA = {
             "rst": 92000,
             "total": 571000,
             "interest": 0.0895,
-            "years": 7,
-            "total_payback": 928731.5,
-            "annual": 132675.93
+            "years": 8,
+            "total_payback": 979836,
+            "annual": 122479.5
           },
           "YM-Solis 65 | General": {
             "price": 899000,
@@ -1564,9 +1564,9 @@ const DATA = {
             "rst": 85000,
             "total": 674000,
             "interest": 0.0895,
-            "years": 7,
-            "total_payback": 1096261.0,
-            "annual": 156608.71
+            "years": 8,
+            "total_payback": 1156584,
+            "annual": 144573
           },
           "YM-Solis75 | General": {
             "price": 1008000,
@@ -1577,9 +1577,9 @@ const DATA = {
             "rst": 121000,
             "total": 756000,
             "interest": 0.0895,
-            "years": 7,
-            "total_payback": 1229634.0,
-            "annual": 175662.0
+            "years": 8,
+            "total_payback": 1297296,
+            "annual": 162162
           },
           "YM-Solis105 | General": {
             "price": 1517000,
@@ -1590,16 +1590,16 @@ const DATA = {
             "rst": 179000,
             "total": 1137000,
             "interest": 0.0895,
-            "years": 7,
-            "total_payback": 1849330.5,
-            "annual": 264190.07
+            "years": 8,
+            "total_payback": 1951092,
+            "annual": 243886.5
           }
         }
       },
       {
         "id": "s_bob20",
-        "name": "โปร 20% กอช, Dry Crop",
-        "toggle_label": "โปร 20% กอช และ Dry Crop ต้องมี 20 ไร่",
+        "name": "โปร กอช และ Dry Crop",
+        "toggle_label": "โปร กอช และ Dry Crop ต้องมี 20 ไร่",
         "groups": [
           "General"
         ],
@@ -1623,10 +1623,10 @@ const DATA = {
             "ysp": 44000,
             "rst": 42000,
             "total": 341000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 549862.5,
-            "annual": 78551.79
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 585156,
+            "annual": 73144.5
           },
           "YM-Solis30-45th | General": {
             "price": 438000,
@@ -1634,10 +1634,10 @@ const DATA = {
             "ysp": 45000,
             "rst": 43000,
             "total": 350000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 564375.0,
-            "annual": 80625.0
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 600600,
+            "annual": 75075
           },
           "YM-Solis50 | General": {
             "price": 742000,
@@ -1682,7 +1682,7 @@ const DATA = {
             "total": 806000,
             "interest": 0.0875,
             "years": 7,
-            "total_payback": 1299675.0,
+            "total_payback": 1299675,
             "annual": 185667.86
           },
           "YM-Solis105 | General": {
@@ -1739,9 +1739,9 @@ const DATA = {
             "rst": 36000,
             "total": 298000,
             "interest": 0.0895,
-            "years": 7,
-            "total_payback": 484697.0,
-            "annual": 69242.43
+            "years": 8,
+            "total_payback": 511368,
+            "annual": 63921
           },
           "YM-Solis30 | YF,SW": {
             "price": 427000,
@@ -1753,7 +1753,7 @@ const DATA = {
             "total": 298000,
             "interest": 0.0875,
             "years": 7,
-            "total_payback": 480525.0,
+            "total_payback": 480525,
             "annual": 68646.43
           },
           "YM-Solis30 | RT": {
@@ -1778,9 +1778,9 @@ const DATA = {
             "rst": 37000,
             "total": 306000,
             "interest": 0.0895,
-            "years": 7,
-            "total_payback": 497709.0,
-            "annual": 71101.29
+            "years": 8,
+            "total_payback": 525096,
+            "annual": 65637
           },
           "YM-Solis30-45th | YF,SW": {
             "price": 438000,
@@ -1792,7 +1792,7 @@ const DATA = {
             "total": 306000,
             "interest": 0.0875,
             "years": 7,
-            "total_payback": 493425.0,
+            "total_payback": 493425,
             "annual": 70489.29
           },
           "YM-Solis30-45th | RT": {
@@ -1817,9 +1817,9 @@ const DATA = {
             "rst": 74000,
             "total": 519000,
             "interest": 0.0895,
-            "years": 7,
-            "total_payback": 844153.5,
-            "annual": 120593.36
+            "years": 8,
+            "total_payback": 890604,
+            "annual": 111325.5
           },
           "YM-Solis50 | YF,SW": {
             "price": 742000,
@@ -1856,9 +1856,9 @@ const DATA = {
             "rst": 92000,
             "total": 533000,
             "interest": 0.0895,
-            "years": 7,
-            "total_payback": 866924.5,
-            "annual": 123846.36
+            "years": 8,
+            "total_payback": 914628,
+            "annual": 114328.5
           },
           "YM-Solis50-45th | YF,SW": {
             "price": 762000,
@@ -1895,9 +1895,9 @@ const DATA = {
             "rst": 121000,
             "total": 705000,
             "interest": 0.0895,
-            "years": 7,
-            "total_payback": 1146682.5,
-            "annual": 163811.79
+            "years": 8,
+            "total_payback": 1209780,
+            "annual": 151222.5
           },
           "YM-Solis75 | YF,SW": {
             "price": 1008000,
@@ -1934,9 +1934,9 @@ const DATA = {
             "rst": 94000,
             "total": 629000,
             "interest": 0.0895,
-            "years": 7,
-            "total_payback": 1023068.5,
-            "annual": 146152.64
+            "years": 8,
+            "total_payback": 1079364,
+            "annual": 134920.5
           },
           "YM-Solis 65 | YF,SW": {
             "price": 899000,
@@ -1993,10 +1993,10 @@ const DATA = {
             "ysp": 66000,
             "rst": 41000,
             "total": 320000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 516000.0,
-            "annual": 73714.29
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 549120,
+            "annual": 68640
           },
           "YM-Solis30-45th | General": {
             "price": 438000,
@@ -2004,10 +2004,10 @@ const DATA = {
             "ysp": 67000,
             "rst": 43000,
             "total": 328000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 528900.0,
-            "annual": 75557.14
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 562848,
+            "annual": 70356
           },
           "YM-Solis50 | General": {
             "price": 742000,
@@ -2016,10 +2016,10 @@ const DATA = {
             "customer_out": 15000,
             "rst": 81000,
             "total": 556000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 896550.0,
-            "annual": 128078.57
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 954096,
+            "annual": 119262
           },
           "YM-Solis50-45th | General": {
             "price": 762000,
@@ -2027,10 +2027,10 @@ const DATA = {
             "ysp": 92000,
             "rst": 99000,
             "total": 571000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 920737.5,
-            "annual": 131533.93
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 979836,
+            "annual": 122479.5
           },
           "YM-Solis75 | General": {
             "price": 1008000,
@@ -2039,10 +2039,10 @@ const DATA = {
             "customer_out": 20000,
             "rst": 128000,
             "total": 756000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1219050.0,
-            "annual": 174150.0
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1297296,
+            "annual": 162162
           },
           "YM-Solis 65 | General": {
             "price": 899000,
@@ -2051,10 +2051,10 @@ const DATA = {
             "customer_out": 15000,
             "rst": 102000,
             "total": 674000,
-            "interest": 0.0875,
-            "years": 7,
-            "total_payback": 1086825.0,
-            "annual": 155260.71
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1156584,
+            "annual": 144573
           }
         }
       }
