@@ -1393,15 +1393,16 @@ const INTEREST_TABLE = {
   },
   solis: {
     general: {
-      '6_semi':0.0875,'6_annual':0.0895,
-      '7_semi':0.0875,'7_annual':0.0895,
+      '8_semi':0.0895,'8_annual':0.0895,
     },
-    // โปร "ไม่เข้าเงื่อนไข" ใหม่ (s_general แทนที่ของเดิม) + "20% ไม่มี YCT" (s_bob20) + "25% ผู้นำชุมชน/ธกส/MF/SM" (s_bob25_leader)
-    // (2/9/2569 อัปเดตตามไฟล์ Promotion Sale Solis 130769: ดอกเบี้ย 8.75% ผ่อนได้ 7 ปีเท่านั้น ทั้ง 3 โปรนี้ — ยืนยันจากผู้ใช้)
-    general15: { '7_semi':0.0875,'7_annual':0.0875 },
-    sw: {'6_semi':0.0875,'6_annual':0.0875,'7_semi':0.0875,'7_annual':0.0875},
-    rt: {'6_semi':0.0875,'6_annual':0.0875,'7_semi':0.0875,'7_annual':0.0875},
-    dry_crop: {'6_semi':0.0875,'6_annual':0.0895,'7_semi':0.0875,'7_annual':0.0895},
+    general15: { '8_semi':0.0895,'8_annual':0.0895 },
+    bob20: {
+      '7_semi':0.0875,'7_annual':0.0875,
+      '8_semi':0.0895,'8_annual':0.0895,
+    },
+    // ข้อยกเว้น: โปร 30% กลุ่ม YF,SW และ RT คงเดิม 7 ปี ดอกเบี้ย 8.75%
+    sw30_legacy: {'7_semi':0.0875,'7_annual':0.0875},
+    rt30_legacy: {'7_semi':0.0875,'7_annual':0.0875},
   },
   combine: {
     // (1/9 ต่อ 5) ดอกเบี้ยฐาน (annual) ปรับจาก 8.5% -> 8.0% ตามไฟล์โปรฯ ก.ย.69 ใหม่ (ยืนยันจากผู้ใช้)
@@ -1433,7 +1434,7 @@ INTEREST_TABLE.drone = {
 
 const YEARS_OPTIONS = {
   yanmar: { general:[6,7,8,10], general15:[8], rt:[6,7,8,10], sw:[6,7,8,10] },
-  solis:  { general:[6,7], general15:[7], sw:[6,7], rt:[6,7], dry_crop:[6,7] },
+  solis:  { general:[8], general15:[8], bob20:[7,8], sw30_legacy:[7], rt30_legacy:[7] },
   combine: { general:[6], owner_combine:[6], owner_tractor:[6], rt:[8] },
   excavator: { general15:[7], general7:[7], exp12:[7], YFSW10:[7], RTA10:[7], RTB10:[7] },
 };
@@ -1450,11 +1451,11 @@ const PAYMENT_OPTIONS = {
     sw:      { 6:['semi','annual'], 7:['semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
   },
   solis: {
-    general:  { 6:['semi','annual'], 7:['semi','annual'] },
-    general15:{ 7:['semi','annual'] },
-    sw:       { 6:['semi','annual'], 7:['semi','annual'] },
-    rt:       { 6:['semi','annual'], 7:['semi','annual'] },
-    dry_crop: { 6:['semi','annual'], 7:['semi','annual'] },
+    general:  { 8:['semi','annual'] },
+    general15:{ 8:['semi','annual'] },
+    bob20:    { 7:['semi','annual'], 8:['semi','annual'] },
+    sw30_legacy: { 7:['semi','annual'] },
+    rt30_legacy: { 7:['semi','annual'] },
   },
   combine: {
     general: {6:['annual','split_70_30','split_50_50']},
@@ -1550,12 +1551,10 @@ function getInterestGroup(brand, segment, programId){
   } else if(brand==='drone'){
     return segment; // segment key == interest-group key (1:1) สำหรับโดรน (เหมือนรถขุด)
   } else {
-    if(segment==='Dry Crop') return 'dry_crop';
-    if(segment==='RT') return 'rt';
-    if(segment==='YF,SW') return 'sw';
-    // (2/9/2569) s_general (โปร "ไม่เข้าเงื่อนไข" ใหม่), s_bob20 (20% ไม่มี YCT), s_bob25_leader (25% ผู้นำชุมชน/ธกส/MF/SM)
-    // ทั้งสามใช้ดอกเบี้ย 8.75%/7 ปีเท่านั้น (ต่างจาก s_bob25/s_bob30 ที่ยังคง 8.95%/7ปี ตามเดิม) — ใช้ activeProgramId แยก เหมือนที่ทำกับ yanmar
-    if(segment==='ทั่วไป' && (pid==='s_general' || pid==='s_bob20' || pid==='s_bob25_leader')) return 'general15';
+    if(pid==='s_bob30' && segment==='RT') return 'rt30_legacy';
+    if(pid==='s_bob30' && segment==='YF,SW') return 'sw30_legacy';
+    if(pid==='s_bob20') return 'bob20';
+    if(segment==='ทั่วไป' && (pid==='s_general' || pid==='s_bob25_leader')) return 'general15';
     return 'general';
   }
 }
@@ -1569,6 +1568,10 @@ function lookupInterest(brand, segment, years, paymentType, programId){
 
 function getAvailableYears(brand, segment, programId){
   const group = getInterestGroup(brand, segment, programId);
+  if(brand==='solis' && group==='bob20'){
+    const model = modelSelect.value;
+    return ['YM-Solis50','YM-Solis50-45th','YM-Solis 65','YM-Solis75','YM-Solis105'].includes(model) ? [7] : [8];
+  }
   return YEARS_OPTIONS[brand]?.[group] || [7];
 }
 function getAvailablePayments(brand, segment, years, programId){
