@@ -634,6 +634,9 @@ body.printing #printArea{
 .hist-filter-group.wide{ flex:1 1 160px; }
 .hist-filter-group.narrow{ flex:1 1 110px; }
 .hist-filter-group.med{ flex:1 1 130px; }
+.hf-status-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.hf-status-chip{ font-family:'Kanit',sans-serif; font-size:11px; font-weight:600; padding:4px 10px; border-radius:20px; border:1.5px solid var(--line); background:#fff; color:var(--ink-soft); cursor:pointer; }
+.hf-status-chip.active{ border-color:var(--accent); background:var(--accent); color:#fff; }
 
 /* detail panel ใน right col */
 .hist-detail-panel{ background:var(--card); border-radius:12px; padding:16px; }
@@ -1179,6 +1182,8 @@ body.printing #printArea{
       <select id="hf_sort" onchange="filterHistory()">
         <option value="date_desc">ล่าสุดก่อน</option>
         <option value="date_asc">เก่าสุดก่อน</option>
+        <option value="update_desc">อัปเดตล่าสุดก่อน</option>
+        <option value="followup_asc">ใกล้ครบกำหนดติดตามก่อน</option>
         <option value="name_asc">ชื่อ ก-ฮ</option>
         <option value="amount_desc">ยอดจัดมาก-น้อย</option>
         <option value="amount_asc">ยอดจัดน้อย-มาก</option>
@@ -1241,16 +1246,20 @@ body.printing #printArea{
           <option value="">— ทุกโปร —</option>
         </select>
       </div>
-      <div class="hist-filter-group med">
-        <label>สถานะเคส</label>
-        <select id="hf_status" onchange="filterHistory()">
-          <option value="">— ทุกสถานะ —</option>
-        </select>
+      <div class="hist-filter-group wide">
+        <label>สถานะเคส (แตะเลือกได้หลายข้อ)</label>
+        <div id="hf_statusChips" class="hf-status-chips"></div>
       </div>
       <div class="hist-filter-group narrow" style="display:flex;align-items:flex-end">
         <label style="display:flex;align-items:center;gap:5px;font-weight:600;cursor:pointer">
           <input type="checkbox" id="hf_staleOnly" onchange="filterHistory()" style="width:15px;height:15px;margin:0">
           ⏰ เฉพาะเคสค้างนาน
+        </label>
+      </div>
+      <div class="hist-filter-group narrow" style="display:flex;align-items:flex-end">
+        <label style="display:flex;align-items:center;gap:5px;font-weight:600;cursor:pointer">
+          <input type="checkbox" id="hf_followupDueOnly" onchange="filterHistory()" style="width:15px;height:15px;margin:0">
+          🔔 ถึงกำหนดนัดติดตาม
         </label>
       </div>
     </div>
@@ -1393,16 +1402,15 @@ const INTEREST_TABLE = {
   },
   solis: {
     general: {
-      '8_semi':0.0895,'8_annual':0.0895,
+      '6_semi':0.0875,'6_annual':0.0895,
+      '7_semi':0.0875,'7_annual':0.0895,
     },
-    general15: { '8_semi':0.0895,'8_annual':0.0895 },
-    bob20: {
-      '7_semi':0.0875,'7_annual':0.0875,
-      '8_semi':0.0895,'8_annual':0.0895,
-    },
-    // ข้อยกเว้น: โปร 30% กลุ่ม YF,SW และ RT คงเดิม 7 ปี ดอกเบี้ย 8.75%
-    sw30_legacy: {'7_semi':0.0875,'7_annual':0.0875},
-    rt30_legacy: {'7_semi':0.0875,'7_annual':0.0875},
+    // โปร "ไม่เข้าเงื่อนไข" ใหม่ (s_general แทนที่ของเดิม) + "20% ไม่มี YCT" (s_bob20) + "25% ผู้นำชุมชน/ธกส/MF/SM" (s_bob25_leader)
+    // (2/9/2569 อัปเดตตามไฟล์ Promotion Sale Solis 130769: ดอกเบี้ย 8.75% ผ่อนได้ 7 ปีเท่านั้น ทั้ง 3 โปรนี้ — ยืนยันจากผู้ใช้)
+    general15: { '7_semi':0.0875,'7_annual':0.0875 },
+    sw: {'6_semi':0.0875,'6_annual':0.0875,'7_semi':0.0875,'7_annual':0.0875},
+    rt: {'6_semi':0.0875,'6_annual':0.0875,'7_semi':0.0875,'7_annual':0.0875},
+    dry_crop: {'6_semi':0.0875,'6_annual':0.0895,'7_semi':0.0875,'7_annual':0.0895},
   },
   combine: {
     // (1/9 ต่อ 5) ดอกเบี้ยฐาน (annual) ปรับจาก 8.5% -> 8.0% ตามไฟล์โปรฯ ก.ย.69 ใหม่ (ยืนยันจากผู้ใช้)
@@ -1434,7 +1442,7 @@ INTEREST_TABLE.drone = {
 
 const YEARS_OPTIONS = {
   yanmar: { general:[6,7,8,10], general15:[8], rt:[6,7,8,10], sw:[6,7,8,10] },
-  solis:  { general:[8], general15:[8], bob20:[7,8], sw30_legacy:[7], rt30_legacy:[7] },
+  solis:  { general:[6,7], general15:[7], sw:[6,7], rt:[6,7], dry_crop:[6,7] },
   combine: { general:[6], owner_combine:[6], owner_tractor:[6], rt:[8] },
   excavator: { general15:[7], general7:[7], exp12:[7], YFSW10:[7], RTA10:[7], RTB10:[7] },
 };
@@ -1451,11 +1459,11 @@ const PAYMENT_OPTIONS = {
     sw:      { 6:['semi','annual'], 7:['semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
   },
   solis: {
-    general:  { 8:['semi','annual'] },
-    general15:{ 8:['semi','annual'] },
-    bob20:    { 7:['semi','annual'], 8:['semi','annual'] },
-    sw30_legacy: { 7:['semi','annual'] },
-    rt30_legacy: { 7:['semi','annual'] },
+    general:  { 6:['semi','annual'], 7:['semi','annual'] },
+    general15:{ 7:['semi','annual'] },
+    sw:       { 6:['semi','annual'], 7:['semi','annual'] },
+    rt:       { 6:['semi','annual'], 7:['semi','annual'] },
+    dry_crop: { 6:['semi','annual'], 7:['semi','annual'] },
   },
   combine: {
     general: {6:['annual','split_70_30','split_50_50']},
@@ -1551,10 +1559,12 @@ function getInterestGroup(brand, segment, programId){
   } else if(brand==='drone'){
     return segment; // segment key == interest-group key (1:1) สำหรับโดรน (เหมือนรถขุด)
   } else {
-    if(pid==='s_bob30' && segment==='RT') return 'rt30_legacy';
-    if(pid==='s_bob30' && segment==='YF,SW') return 'sw30_legacy';
-    if(pid==='s_bob20') return 'bob20';
-    if(segment==='ทั่วไป' && (pid==='s_general' || pid==='s_bob25_leader')) return 'general15';
+    if(segment==='Dry Crop') return 'dry_crop';
+    if(segment==='RT') return 'rt';
+    if(segment==='YF,SW') return 'sw';
+    // (2/9/2569) s_general (โปร "ไม่เข้าเงื่อนไข" ใหม่), s_bob20 (20% ไม่มี YCT), s_bob25_leader (25% ผู้นำชุมชน/ธกส/MF/SM)
+    // ทั้งสามใช้ดอกเบี้ย 8.75%/7 ปีเท่านั้น (ต่างจาก s_bob25/s_bob30 ที่ยังคง 8.95%/7ปี ตามเดิม) — ใช้ activeProgramId แยก เหมือนที่ทำกับ yanmar
+    if(segment==='ทั่วไป' && (pid==='s_general' || pid==='s_bob20' || pid==='s_bob25_leader')) return 'general15';
     return 'general';
   }
 }
@@ -1568,10 +1578,6 @@ function lookupInterest(brand, segment, years, paymentType, programId){
 
 function getAvailableYears(brand, segment, programId){
   const group = getInterestGroup(brand, segment, programId);
-  if(brand==='solis' && group==='bob20'){
-    const model = modelSelect.value;
-    return ['YM-Solis50','YM-Solis50-45th','YM-Solis 65','YM-Solis75','YM-Solis105'].includes(model) ? [7] : [8];
-  }
   return YEARS_OPTIONS[brand]?.[group] || [7];
 }
 function getAvailablePayments(brand, segment, years, programId){
@@ -4939,6 +4945,37 @@ function renderDashboard(){
   const winRate = closedCount > 0 ? Math.round((goodRecords.length / closedCount) * 100) : null;
   const pipelineValue = openRecords.reduce((sum, r) => sum + (Number(r.finTotal)||0) + (Number(r.eqTotal)||0), 0);
   const staleList = openRecords.filter(isStaleCase);
+  const dueList = openRecords.filter(isFollowupDue);
+
+  // ===== แยกตามแหล่งที่มา (Lead Source) — อัตราปิดการขาย + มูลค่าที่ยังค้างในไปป์ไลน์ต่อแหล่งที่มา =====
+  // (คำนวณจาก field เดียวกับที่ใช้ export → CRM อยู่แล้ว ไม่ต้องเรียก backend เพิ่ม)
+  function buildBreakdown(keyFn, labelForEmpty){
+    const groups = {};
+    records.forEach(r => {
+      const key = (keyFn(r) || '').trim() || labelForEmpty;
+      if(!groups[key]) groups[key] = [];
+      groups[key].push(r);
+    });
+    return Object.keys(groups).map(key => {
+      const list = groups[key];
+      const good = list.filter(r => statusSlug(r.caseStatus||'รอดำเนินการ') === 'good').length;
+      const bad  = list.filter(r => statusSlug(r.caseStatus||'รอดำเนินการ') === 'bad').length;
+      const closed = good + bad;
+      const rate = closed > 0 ? Math.round((good/closed)*100) : null;
+      const value = list.reduce((sum,r)=> sum + (Number(r.finTotal)||0) + (Number(r.eqTotal)||0), 0);
+      return {key, count: list.length, closed, rate, value};
+    }).sort((a,b)=> b.count - a.count);
+  }
+  const leadSourceBreakdown = buildBreakdown(r=>r.leadSource, '⚠ ไม่ระบุ');
+  const progBreakdown = buildBreakdown(r=>r.progName, '(ไม่ระบุโปร)');
+
+  function breakdownRowsHtml(rows){
+    return rows.map(row => `
+      <div class="dash-status-row">
+        <span style="max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(row.key)}">${escapeHtml(row.key)}</span>
+        <span class="dash-status-count">${row.count} เคส${row.rate!==null ? ' · ปิด '+row.rate+'% ('+row.closed+')' : ' · ยังไม่ปิดเคสไหนเลย'}${row.value>0?' · '+fmt(row.value)+' บาท':''}</span>
+      </div>`).join('');
+  }
 
   const statusRowsHtml = CASE_STATUSES.map(s => {
     const list = byStatus[s];
@@ -4975,18 +5012,39 @@ function renderDashboard(){
         <div class="dash-stat-num"${staleList.length>0?' style="color:#c0392b"':''}>${staleList.length}</div>
         <div class="dash-stat-label">เคสค้างนาน (ไม่มีอัปเดตเกิน ${STALE_DAYS} วัน)</div>
       </div>
+      <div class="dash-stat-tile"${dueList.length>0?' style="border-color:#B8860B;cursor:pointer" onclick="jumpToQuickFilter(\'hf_followupDueOnly\')"':''}>
+        <div class="dash-stat-num"${dueList.length>0?' style="color:#B8860B"':''}>${dueList.length}</div>
+        <div class="dash-stat-label">🔔 ถึงกำหนดนัดติดตามแล้ว</div>
+      </div>
     </div>
     <div style="font-size:12px;font-weight:700;margin:14px 0 6px">แยกตามสถานะ (กดเพื่อดูรายการ)</div>
     <div class="dash-status-list">${statusRowsHtml}</div>
+
+    <div style="font-size:12px;font-weight:700;margin:14px 0 6px">แยกตามแหล่งที่มา (Lead Source)</div>
+    <div class="dash-status-list">${breakdownRowsHtml(leadSourceBreakdown)}</div>
+
+    <div style="font-size:12px;font-weight:700;margin:14px 0 6px">แยกตามโปรแกรม (โปรไหนปิดง่าย/ยาก)</div>
+    <div class="dash-status-list">${breakdownRowsHtml(progBreakdown)}</div>
   `;
+}
+// ปิดแดชบอร์ด แล้วพากลับไปหน้าประวัติ พร้อมติ๊กช่องกรองด่วนที่ระบุให้ทันที (เช่น "ถึงกำหนดนัด")
+function jumpToQuickFilter(checkboxId){
+  closeDashboardModal();
+  const box = document.getElementById('histFilterPanel');
+  if(box) box.style.display = 'block';
+  const el = document.getElementById(checkboxId);
+  if(el) el.checked = true;
+  filterHistory();
 }
 // ปิดแดชบอร์ด แล้วพากลับไปหน้าประวัติที่กรองตามสถานะที่กดเลือก
 function jumpToStatusFilter(status){
   closeDashboardModal();
   const box = document.getElementById('histFilterPanel');
   if(box) box.style.display = 'block';
-  const sel = document.getElementById('hf_status');
-  if(sel) sel.value = status;
+  _selectedStatuses = new Set([status]);
+  document.querySelectorAll('#hf_statusChips .hf-status-chip').forEach(b=>{
+    b.classList.toggle('active', b.dataset.status === status);
+  });
   filterHistory();
 }
 function pickRole(role){
@@ -5262,12 +5320,12 @@ function filterHistory(){
   const fTambon  = (document.getElementById('hf_tambon')?.value||'').trim();
   const fModel   = (document.getElementById('hf_model')?.value||'');
   const fProg    = (document.getElementById('hf_prog')?.value||'');
-  const fStatus  = (document.getElementById('hf_status')?.value||'');
   const fStaleOnly = !!document.getElementById('hf_staleOnly')?.checked;
+  const fFollowupDueOnly = !!document.getElementById('hf_followupDueOnly')?.checked;
   const fSort    = (document.getElementById('hf_sort')?.value||'date_desc');
 
   // ถ้ามีการค้นหา/กรองอยู่ แต่ยังโหลดมาไม่ครบทุกเคส ให้โหลดให้ครบก่อนอัตโนมัติ กันค้นหาแล้วตกหล่นเคสเก่า
-  const hasActiveFilter = !!(fQuick || fName || fPhone || fProv || fAmph || fTambon || fModel || fProg || fStatus || fStaleOnly);
+  const hasActiveFilter = !!(fQuick || fName || fPhone || fProv || fAmph || fTambon || fModel || fProg || _selectedStatuses.size>0 || fStaleOnly || fFollowupDueOnly);
   if(hasActiveFilter && !_historyLoadedFull){
     loadFullHistory(filterHistory);
     return;
@@ -5276,7 +5334,7 @@ function filterHistory(){
   let filtered = _allHistoryRecords.filter(r=>{
     const addr = (r.custAddr||'').toLowerCase();
     if(fQuick){
-      const haystack = [r.custName, r.custPhone, r.custAddr, r.brand, r.model, r.seg, r.progName, r.branch]
+      const haystack = [r.custName, r.custPhone, r.custAddr, r.brand, r.model, r.seg, r.progName, r.branch, r.leadSource]
         .filter(Boolean).join(' ').toLowerCase();
       if(!haystack.includes(fQuick)) return false;
     }
@@ -5287,8 +5345,9 @@ function filterHistory(){
     if(fTambon && !addr.includes('ต.'+fTambon)) return false;
     if(fModel  && (r.model||'') !== fModel) return false;
     if(fProg   && (r.progName||'') !== fProg) return false;
-    if(fStatus && (r.caseStatus||'รอดำเนินการ') !== fStatus) return false;
+    if(_selectedStatuses.size>0 && !_selectedStatuses.has(r.caseStatus||'รอดำเนินการ')) return false;
     if(fStaleOnly && !isStaleCase(r)) return false;
+    if(fFollowupDueOnly && !isFollowupDue(r)) return false;
     return true;
   });
 
@@ -5300,9 +5359,10 @@ function filterHistory(){
       ? `แสดง ${filtered.length} จาก ${_allHistoryRecords.length} รายการ`
       : `ทั้งหมด ${_allHistoryRecords.length} รายการ`;
     const staleCount = _allHistoryRecords.filter(isStaleCase).length;
-    countEl.innerHTML = escapeHtml(baseText) + (staleCount > 0
-      ? ` &nbsp;·&nbsp; <a href="#" onclick="document.getElementById('hf_staleOnly').checked=true;filterHistory();return false" style="color:#c0392b;font-weight:700">⏰ ค้างนาน ${staleCount} เคส</a>`
-      : '');
+    const dueCount = _allHistoryRecords.filter(isFollowupDue).length;
+    countEl.innerHTML = escapeHtml(baseText)
+      + (staleCount > 0 ? ` &nbsp;·&nbsp; <a href="#" onclick="document.getElementById('hf_staleOnly').checked=true;filterHistory();return false" style="color:#c0392b;font-weight:700">⏰ ค้างนาน ${staleCount} เคส</a>` : '')
+      + (dueCount > 0 ? ` &nbsp;·&nbsp; <a href="#" onclick="document.getElementById('hf_followupDueOnly').checked=true;filterHistory();return false" style="color:#B8860B;font-weight:700">🔔 ถึงกำหนดนัด ${dueCount} เคส</a>` : '');
   }
 
   const toggleBtn = document.getElementById('histFilterToggleBtn');
@@ -5326,6 +5386,18 @@ function sortHistoryRecords(records, sortKey){
     case 'amount_asc':
       arr.sort((a,b)=> (Number(a.finTotal)||0) - (Number(b.finTotal)||0));
       break;
+    case 'update_desc':
+      // อัปเดตล่าสุดก่อน — ใช้ดูว่าเคสไหนเพิ่งมีความเคลื่อนไหว (รวมเคสปิดแล้วที่กลับมาคุยต่อด้วย)
+      arr.sort((a,b)=> (b.lastNoteAt||b.savedAt||'').localeCompare(a.lastNoteAt||a.savedAt||''));
+      break;
+    case 'followup_asc':
+      // ใกล้ครบกำหนดติดตามก่อน — เคสที่ไม่ได้ตั้งวันนัดไว้จะถูกไล่ไปท้ายสุด
+      arr.sort((a,b)=>{
+        const da = a.nextFollowUp || '9999-99-99';
+        const db = b.nextFollowUp || '9999-99-99';
+        return da.localeCompare(db);
+      });
+      break;
     case 'date_desc':
     default:
       arr.sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
@@ -5336,8 +5408,10 @@ function sortHistoryRecords(records, sortKey){
 
 function clearHistoryFilter(){
   ['hf_name','hf_phone','hf_quick'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  ['hf_model','hf_prog','hf_province','hf_status'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['hf_model','hf_prog','hf_province'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   const staleEl=document.getElementById('hf_staleOnly'); if(staleEl) staleEl.checked=false;
+  const dueEl=document.getElementById('hf_followupDueOnly'); if(dueEl) dueEl.checked=false;
+  clearStatusChips();
   const sortEl=document.getElementById('hf_sort'); if(sortEl) sortEl.value='date_desc';
   const amphEl=document.getElementById('hf_amphure'), tambonEl=document.getElementById('hf_tambon');
   if(amphEl){ amphEl.innerHTML='<option value="">— อำเภอ —</option>'; amphEl.disabled=true; }
@@ -5357,14 +5431,31 @@ function populateFilterDropdowns(){
   const mSel = document.getElementById('hf_model');
   const pSel = document.getElementById('hf_prog');
   const provSel = document.getElementById('hf_province');
-  const statusSel = document.getElementById('hf_status');
-  // สถานะเป็นลิสต์คงที่ (CASE_STATUSES) ไม่ได้ขึ้นกับข้อมูล — เติมครั้งเดียวพอ (เช็คว่ายังไม่เคยเติมจาก option ที่มีอยู่แค่ตัวเดียว) กันค่าที่เลือกไว้ถูกรีเซ็ตทุกครั้งที่โหลดลิสต์ใหม่
-  if(statusSel && statusSel.options.length <= 1){
-    statusSel.innerHTML = '<option value="">— ทุกสถานะ —</option>' + CASE_STATUSES.map(s=>`<option>${s}</option>`).join('');
-  }
+  renderStatusChips();
   if(mSel) mSel.innerHTML = '<option value="">— ทุกรุ่น —</option>' + models.map(m=>`<option>${m}</option>`).join('');
   if(pSel) pSel.innerHTML = '<option value="">— ทุกโปร —</option>' + progs.map(p=>`<option>${p}</option>`).join('');
   if(provSel) provSel.innerHTML = '<option value="">— ทุกจังหวัด —</option>' + provinces.map(p=>`<option>${p}</option>`).join('');
+}
+
+// ===== สถานะเคส แบบเลือกได้หลายข้อ (chip toggle) =====
+let _selectedStatuses = new Set();
+function renderStatusChips(){
+  const box = document.getElementById('hf_statusChips');
+  if(!box) return;
+  // สถานะเป็นลิสต์คงที่ (CASE_STATUSES) ไม่ได้ขึ้นกับข้อมูล — สร้างครั้งเดียวพอ กันของที่เลือกไว้ถูกรีเซ็ตทุกครั้งที่โหลดลิสต์ใหม่
+  if(box.dataset.built === '1') return;
+  box.innerHTML = CASE_STATUSES.map(s => `<button type="button" class="hf-status-chip" data-status="${escapeHtml(s)}" onclick="toggleStatusChip(this)">${escapeHtml(s)}</button>`).join('');
+  box.dataset.built = '1';
+}
+function toggleStatusChip(btn){
+  const s = btn.dataset.status;
+  if(_selectedStatuses.has(s)){ _selectedStatuses.delete(s); btn.classList.remove('active'); }
+  else { _selectedStatuses.add(s); btn.classList.add('active'); }
+  filterHistory();
+}
+function clearStatusChips(){
+  _selectedStatuses.clear();
+  document.querySelectorAll('#hf_statusChips .hf-status-chip').forEach(b=>b.classList.remove('active'));
 }
 
 function hfProvinceChange(){
@@ -5410,9 +5501,10 @@ function renderHistoryList(records){
   const countEl = document.getElementById('histFilterCount');
   if(countEl){
     const staleCount = _allHistoryRecords.filter(isStaleCase).length;
-    countEl.innerHTML = escapeHtml(`ทั้งหมด ${_allHistoryRecords.length} รายการ`) + (staleCount > 0
-      ? ` &nbsp;·&nbsp; <a href="#" onclick="document.getElementById('hf_staleOnly').checked=true;filterHistory();return false" style="color:#c0392b;font-weight:700">⏰ ค้างนาน ${staleCount} เคส</a>`
-      : '');
+    const dueCount = _allHistoryRecords.filter(isFollowupDue).length;
+    countEl.innerHTML = escapeHtml(`ทั้งหมด ${_allHistoryRecords.length} รายการ`)
+      + (staleCount > 0 ? ` &nbsp;·&nbsp; <a href="#" onclick="document.getElementById('hf_staleOnly').checked=true;filterHistory();return false" style="color:#c0392b;font-weight:700">⏰ ค้างนาน ${staleCount} เคส</a>` : '')
+      + (dueCount > 0 ? ` &nbsp;·&nbsp; <a href="#" onclick="document.getElementById('hf_followupDueOnly').checked=true;filterHistory();return false" style="color:#B8860B;font-weight:700">🔔 ถึงกำหนดนัด ${dueCount} เคส</a>` : '');
   }
   const container = document.getElementById('historyListContainer');
   if(!records || records.length === 0){
@@ -5425,6 +5517,8 @@ function renderHistoryList(records){
 function historyCardHtml(r){
   const stale = isStaleCase(r);
   const staleDays = stale ? daysSince(r.lastNoteAt || r.savedAt) : null;
+  const followupDue = isFollowupDue(r);
+  const followupDaysLeft = (!followupDue && r.nextFollowUp) ? daysUntilFollowup(r) : null;
   return `
     <div class="history-card${stale ? ' stale' : ''}" id="hc_${r.id}" data-record-id="${r.id}">
       <div class="hc-top">
@@ -5442,6 +5536,8 @@ function historyCardHtml(r){
       <div class="hc-statusrow">
         <span class="case-status-badge status-${statusSlug(r.caseStatus||'รอดำเนินการ')}">${escapeHtml(r.caseStatus||'รอดำเนินการ')}</span>
         ${stale ? `<span class="case-status-badge status-stale">⏰ ค้าง ${staleDays} วัน</span>` : ''}
+        ${followupDue ? `<span class="case-status-badge status-stale" style="background:#FCF1D9;color:#8a6a1f">🔔 ถึงกำหนดนัด ${escapeHtml(r.nextFollowUp)}</span>` : ''}
+        ${(!followupDue && followupDaysLeft!==null && followupDaysLeft>=0) ? `<span class="case-status-badge" style="background:#EEF3FA;color:#3F6FA8">📅 นัด ${escapeHtml(r.nextFollowUp)}</span>` : ''}
         ${r.lastNoteAt ? `<span class="hc-lastnote-at">🕒 ${r.lastNoteAt.slice(0,16)}</span>` : ''}
       </div>
       ${r.lastNote ? `<div class="hc-lastnote">💬 ${escapeHtml(r.lastNote)}</div>` : ''}
@@ -5539,6 +5635,22 @@ function isStaleCase(r){
   if(statusSlug(r.caseStatus||'รอดำเนินการ') !== 'wait') return false;
   const days = daysSince(r.lastNoteAt || r.savedAt);
   return days !== null && days >= STALE_DAYS;
+}
+// ===== วันนัดติดตามครั้งถัดไป (nextFollowUp) — ใส่ตอนบันทึกโน้ตในหน้ารายละเอียดเคส =====
+// เคส "ถึงกำหนดนัด" คือมีวันที่นัดตั้งไว้ (r.nextFollowUp, format YYYY-MM-DD) และวันนั้นมาถึง/ผ่านไปแล้ว
+// เช็คเฉพาะเคสที่ยังไม่ปิด (ไม่ใช่ good/bad) เหมือน isStaleCase — เคสที่ปิดแล้วไม่ต้องเตือนซ้ำ
+function isFollowupDue(r){
+  if(!r || !r.nextFollowUp) return false;
+  if(statusSlug(r.caseStatus||'รอดำเนินการ') !== 'wait') return false;
+  const d = new Date(r.nextFollowUp + 'T23:59:59');
+  if(isNaN(d.getTime())) return false;
+  return d.getTime() <= Date.now();
+}
+function daysUntilFollowup(r){
+  if(!r || !r.nextFollowUp) return null;
+  const d = new Date(r.nextFollowUp + 'T00:00:00');
+  if(isNaN(d.getTime())) return null;
+  return Math.floor((d.getTime() - Date.now()) / 86400000);
 }
 
 // เก็บ "ใบสรุป ณ ตอนนั้น" ของแต่ละรายการใน Timeline ไว้ชั่วคราว (เฉพาะระหว่างเปิดหน้านี้อยู่)
@@ -5784,8 +5896,8 @@ function showAddUpdateForm(id){
     <div class="add-update-form">
       <label>บันทึกที่คุยกับลูกค้า</label>
       <textarea id="auNote_${id}" rows="3" placeholder="เช่น ลูกค้าขอเลื่อนนัดโอนเงิน..."></textarea>
-      <label style="margin-top:6px;display:block">นัดครั้งถัดไป (ถ้ามี)</label>
-      <input type="date" id="auFollow_${id}">
+      <label style="margin-top:6px;display:block">นัดครั้งถัดไป (ถ้ามี) — ใช้กรอง/เรียงในหน้าประวัติได้</label>
+      <input type="date" id="auFollow_${id}" value="${escapeHtml(rec.nextFollowUp||'')}">
       ${downAdjustHtml}
       <div style="display:flex;gap:8px;margin-top:8px">
         <button class="btn-reprint" style="flex:1" onclick="submitUpdateNote('${id}')">บันทึก</button>
@@ -5887,13 +5999,19 @@ function submitUpdateNote(id){
   if(recForCard){
     recForCard.lastNote = note;
     recForCard.lastNoteAt = new Date().toISOString();
+    // ถ้าตั้งวันนัดติดตามครั้งถัดไปมาด้วย ให้จำไว้ที่ตัวเคสเลย (ไม่ใช่แค่ในข้อความ Timeline)
+    // เพื่อให้เอาไปเรียง/กรอง/ขึ้นแดชบอร์ดได้ — ถ้าเว้นว่างไว้ ให้คงวันนัดเดิม (ถ้ามี) ไม่ลบทิ้ง
+    if(nextFollowUp) recForCard.nextFollowUp = nextFollowUp;
     // กันไม่ให้ fetchAndPatchFullDetail เอาข้อมูลเก่าจาก backend มาทับตอนตอบกลับช้า
-    _pinnedCardFields[id] = Object.assign({}, _pinnedCardFields[id], { lastNote: recForCard.lastNote, lastNoteAt: recForCard.lastNoteAt });
+    _pinnedCardFields[id] = Object.assign({}, _pinnedCardFields[id], { lastNote: recForCard.lastNote, lastNoteAt: recForCard.lastNoteAt, nextFollowUp: recForCard.nextFollowUp });
     refreshHistoryCardInList(id);
   }
 
   cancelAddUpdateForm(id);
-  gasPost('addUpdate', {action:'addUpdate', id, entry}, (err)=>{
+  // ส่ง nextFollowUp แยกเป็นฟิลด์ระดับเคสไปด้วย (นอกเหนือจากที่ฝังอยู่ใน entry ของ Timeline)
+  // หมายเหตุ: backend (Apps Script) ฝั่ง action "addUpdate" ต้องรับค่านี้ไปบันทึกลงคอลัมน์ของแถวเคสเอง
+  // และ action "list" ต้องส่งฟิลด์ nextFollowUp กลับมาด้วย ไม่งั้นวันนัดจะหายไปหลังโหลดหน้าใหม่/เปิดจากเครื่องอื่น
+  gasPost('addUpdate', {action:'addUpdate', id, entry, nextFollowUp}, (err)=>{
     if(err) alert('บันทึกไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
   });
 
@@ -6146,6 +6264,7 @@ function renderHistoryDetailHtml(id, d, rowNote){
           <div class="ssc-item"><div class="k">งวดใหญ่/ปี · ระยะเวลาผ่อน</div><div class="v accent">${fmt(d.bigPay||0)} บาท / ${d.finYears||'—'} ปี</div></div>
           <div class="ssc-item"><div class="k">วันที่ปิดการขาย</div><div class="v">${d.date || (d.savedAt?.slice(0,10)) || '—'}</div></div>
           <div class="ssc-item"><div class="k">สาขา/ผู้ปิดการขาย</div><div class="v">${d.branch||'—'}</div></div>
+          <div class="ssc-item"><div class="k">นัดติดตามครั้งถัดไป</div><div class="v"${isFollowupDue(d)?' style="color:#c0392b;font-weight:700"':''}>${d.nextFollowUp ? (d.nextFollowUp + (isFollowupDue(d) ? ' ⚠️ ถึงกำหนดแล้ว' : '')) : '—'}</div></div>
         </div>
       </div>
 
