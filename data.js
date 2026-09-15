@@ -1599,7 +1599,7 @@ const DATA = {
       {
         "id": "s_bob20",
         "name": "โปร กอช และ Dry Crop",
-        "toggle_label": "โปร กอช และ Dry Crop ต้องมี 20 ไร่",
+        "toggle_label": "โปร 20% กอช และ Dry Crop ต้องมี 20 ไร่",
         "groups": [
           "General"
         ],
