@@ -1590,18 +1590,51 @@ function getInterestGroup(brand, segment, programId){
   }
 }
 
-function lookupInterest(brand, segment, years, paymentType, programId){
+// (15/9/2569) บางโปรของ Solis ดอกเบี้ย/ปีต่างกันตาม "รุ่น" ในโปรเดียวกัน (ไม่ใช่ตาม segment/toggle เหมือนโปรอื่นๆ) —
+// ปกติ getAvailableYears/getInterestGroup ยึดแค่ (brand, segment, programId) ทำให้ทุกรุ่นในโปรเดียวกันต้องใช้ปี/ดอกเบี้ยชุดเดียวกันหมด
+// ตารางนี้ override เฉพาะรุ่น เพื่อไม่ให้ตัวเลือกปี (เช่น 6/7/8 ปี) โชว์ปีที่ผิดเงื่อนไขจริงให้เลือกได้
+// (บั๊กที่ผู้ใช้เจอ 15/9/2569: การ์ด YM-Solis 65 โปร "ไม่เข้าเงื่อนไข" ยังโชว์ปุ่มเลือก 8 ปีได้ ทั้งที่รุ่นนี้ต้องผ่อนได้แค่ 7 ปีเท่านั้น)
+const MODEL_TERM_OVERRIDE = {
+  solis: {
+    // s_general (ไม่เข้าเงื่อนไข): รุ่น 22/26/30/30-45th = 8.95%/8ปี, รุ่น 50 ขึ้นไป = 8.95%/7ปี
+    s_general: [
+      { models: ['Solis 26','Solis26','YM-Solis22','YM-Solis26','YM-Solis30','YM-Solis30-45th'], years: 8, interest: 0.0895 },
+      { models: ['YM-Solis50','YM-Solis50-45th','YM-Solis 65','YM-Solis75','YM-Solis90','YM-Solis105','YM-Solis 105 Cabin'], years: 7, interest: 0.0895 },
+    ],
+    // s_bob20 (20% กอช, Dry Crop): รุ่น 30/30-45th = 8.95%/8ปี, รุ่นอื่น = 8.75%/7ปี (เดิม)
+    s_bob20: [
+      { models: ['YM-Solis30','YM-Solis30-45th'], years: 8, interest: 0.0895 },
+      { models: ['YM-Solis50','YM-Solis50-45th','YM-Solis 65','YM-Solis75','YM-Solis105'], years: 7, interest: 0.0875 },
+    ],
+  },
+};
+function getModelOverride(brand, programId, model){
+  const list = MODEL_TERM_OVERRIDE[brand]?.[programId];
+  if(!list || !model) return null;
+  return list.find(g => g.models.includes(model)) || null;
+}
+
+function lookupInterest(brand, segment, years, paymentType, programId, model){
+  const pid = (typeof programId !== 'undefined') ? programId : activeProgramId;
+  const override = getModelOverride(brand, pid, model);
+  if(override) return override.interest;
   const group = getInterestGroup(brand, segment, programId);
   const table = INTEREST_TABLE[brand]?.[group] || {};
   const key = years + '_' + paymentType;
   return table[key] ?? 0.0895;
 }
 
-function getAvailableYears(brand, segment, programId){
+function getAvailableYears(brand, segment, programId, model){
+  const pid = (typeof programId !== 'undefined') ? programId : activeProgramId;
+  const override = getModelOverride(brand, pid, model);
+  if(override) return [override.years];
   const group = getInterestGroup(brand, segment, programId);
   return YEARS_OPTIONS[brand]?.[group] || [7];
 }
-function getAvailablePayments(brand, segment, years, programId){
+function getAvailablePayments(brand, segment, years, programId, model){
+  const pid = (typeof programId !== 'undefined') ? programId : activeProgramId;
+  const override = getModelOverride(brand, pid, model);
+  if(override) return ['semi','annual'];
   const group = getInterestGroup(brand, segment, programId);
   return PAYMENT_OPTIONS[brand]?.[group]?.[years] || ['annual'];
 }
@@ -2109,12 +2142,14 @@ function cardHtml(r, badge, compareTo, editable){
   // ที่ผ่อนได้แค่ 8 ปีเท่านั้น) — ถ้ายังใช้ lookupInterest(currentBrand, currentSegment, ...) แบบ global (ยึด activeProgramId ของ
   // การ์ดหลักเท่านั้น) การ์ดของโปรแกรมอื่นที่ไม่ใช่การ์ดหลักจะได้กลุ่มดอกเบี้ย/ปีผิดได้เสมอ จึงต้องหาปีที่ใช้ได้จริงของโปรแกรมนี้เองก่อน
   const ownProgramId = r.program?.id;
-  const ownAvailYears = getAvailableYears(currentBrand, currentSegment, ownProgramId);
+  const ownAvailYears = getAvailableYears(currentBrand, currentSegment, ownProgramId, modelSelect.value);
   const ownMaxYears = (ownAvailYears && ownAvailYears.length) ? ownAvailYears[ownAvailYears.length-1] : entryYears;
   // ถ้า tractorYears ที่ผู้ใช้เลือกไว้ (จากการ์ดอื่น/โปรแกรมอื่น) ไม่ใช่ปีที่โปรแกรมนี้ผ่อนได้จริง ให้ใช้ปีสูงสุดของโปรแกรมนี้แทน
   // (กัน mismatch ปี/ดอกเบี้ย) — ถ้าตรงกับปีที่โปรแกรมนี้รองรับอยู่แล้ว ก็ใช้ตามที่ผู้ใช้เลือกไว้ปกติ
   const finYears = (tractorYears && ownAvailYears.includes(tractorYears)) ? tractorYears : ownMaxYears;
-  const tableInterest = INTEREST_TABLE[currentBrand]?.[getInterestGroup(currentBrand, currentSegment, ownProgramId)]?.[finYears + '_' + tractorPayment];
+  // (15/9/2569) บางรุ่นมี override ดอกเบี้ยเฉพาะรุ่นในโปรเดียวกัน (ดู MODEL_TERM_OVERRIDE) — เช็คก่อนตาราง INTEREST_TABLE ทั่วไป
+  const ownOverride = getModelOverride(currentBrand, ownProgramId, modelSelect.value);
+  const tableInterest = ownOverride ? ownOverride.interest : INTEREST_TABLE[currentBrand]?.[getInterestGroup(currentBrand, currentSegment, ownProgramId)]?.[finYears + '_' + tractorPayment];
   const finInterest = tableInterest ?? entryInterest;
   const finAnnual = finTotal * (1/finYears + finInterest);
 
@@ -2665,10 +2700,10 @@ function renderTractorSelectors(){
   const payRow = document.getElementById('tractorPaymentRow');
   if(!yearsRow || !payRow) return;
 
-  const years = getAvailableYears(currentBrand, currentSegment);
+  const years = getAvailableYears(currentBrand, currentSegment, activeProgramId, modelSelect.value);
   // default first available
   if(!tractorYears || !years.includes(tractorYears)) tractorYears = years[years.length-1];
-  const payments = getAvailablePayments(currentBrand, currentSegment, tractorYears);
+  const payments = getAvailablePayments(currentBrand, currentSegment, tractorYears, activeProgramId, modelSelect.value);
   if(!payments.includes(tractorPayment)) tractorPayment = payments[payments.length-1];
 
   // Auto-set minor installment from payment type
@@ -2676,7 +2711,7 @@ function renderTractorSelectors(){
 
   // Compute preview for active selection (use first entry of best card for price hint)
   function previewAnnual(y, p){
-    const interest = lookupInterest(currentBrand, currentSegment, y, p);
+    const interest = lookupInterest(currentBrand, currentSegment, y, p, activeProgramId, modelSelect.value);
     const minorPrev = minorMode==='normal' ? getMinorFromPayment(p) : 0;
     const periodsPrev = getPeriodsMinor(p);
     // ดึง finTotal จากโปรที่กำลังเลือกอยู่จริง
@@ -2972,8 +3007,10 @@ function collectExportData(){
   const regFee = getRegFee(currentBrand, model, custType);
   const custOut = Math.max(0, (e.customer_out||0) + Math.max(0, extraDown) + subForSupport + minorWithDown + regFee);
   const rst       = e.rst || 0;
-  const finYears  = tractorYears || e.years || (currentBrand==='yanmar'?10:(currentBrand==='combine'?6:7));
-  const finRate   = lookupInterest(currentBrand, currentSegment, finYears, tractorPayment);
+  // (15/9/2569) กัน mismatch เหมือนที่ทำในการ์ดผลลัพธ์ — ถ้า tractorYears (ปีที่เลือกไว้ตอนดูการ์ดอื่น) ไม่ใช่ปีที่โปร/รุ่นนี้ผ่อนได้จริง ให้ใช้ปีสูงสุดที่โปรนี้รองรับแทน
+  const ownAvailYearsExp = getAvailableYears(currentBrand, currentSegment, chosen?.program?.id, model);
+  const finYears  = (tractorYears && ownAvailYearsExp.includes(tractorYears)) ? tractorYears : (ownAvailYearsExp[ownAvailYearsExp.length-1] || e.years || (currentBrand==='yanmar'?10:(currentBrand==='combine'?6:7)));
+  const finRate   = lookupInterest(currentBrand, currentSegment, finYears, tractorPayment, chosen?.program?.id, model);
   const finTotal  = Math.max(0, (e.total ?? (price-e.down||0)) - Math.max(0,extraDown));
   const annualFull= finTotal * (1/finYears + finRate);
   const minor       = getMinorFromPayment(tractorPayment);
