@@ -1381,11 +1381,16 @@ const INTEREST_TABLE = {
       '8_semi':0.0875,'8_annual':0.0895,
       '10_semi':0.0875,'10_annual':0.0895,
     },
-    // โปร "ทั่วไป 15%" (y_general15) + โปรใหม่ "20% ไม่มี YCT" (y_bob20) + "25% ผู้นำชุมชน/ธกส/MF/SM" (y_bob25_leader)
-    // (2/9/2569 อัปเดตตามไฟล์ Promotion Sale Yanmar 130769: ดอกเบี้ย 8.75% ผ่อนได้ 8 ปีเท่านั้น ทั้ง 3 โปรนี้ — ยืนยันจากผู้ใช้)
-    // ทั้ง 3 โปรนี้ใช้ตารางเดียวกัน (ดอกเบี้ย/ปีเท่ากันเป๊ะ) สลับไปใช้ตอนโปรที่กำลังแสดงอยู่ (activeProgramId) เป็นหนึ่งใน 3 นี้ — ดู getInterestGroup ด้านล่าง
+    // โปร "ทั่วไป 15%" (y_general15) + โปรใหม่ "20% ไม่มี YCT" (y_bob20)
+    // (2/9/2569 อัปเดตตามไฟล์ Promotion Sale Yanmar 130769: ดอกเบี้ย 8.75% ผ่อนได้ 8 ปีเท่านั้น ทั้ง 2 โปรนี้ — ยืนยันจากผู้ใช้)
+    // ทั้ง 2 โปรนี้ใช้ตารางเดียวกัน (ดอกเบี้ย/ปีเท่ากันเป๊ะ) สลับไปใช้ตอนโปรที่กำลังแสดงอยู่ (activeProgramId) เป็นหนึ่งใน 2 นี้ — ดู getInterestGroup ด้านล่าง
     general15: {
       '8_semi':0.0875,'8_annual':0.0875,
+    },
+    // (15/9/2569) โปร "25% ผู้นำชุมชน/ธกส/SM" (y_bob25_leader) แยกออกจาก general15 เพราะดอกเบี้ยเปลี่ยนเป็น 8.25% (เดิม 8.75% เท่ากับ general15)
+    // ตามรูปสรุปตารางดอกเบี้ยที่ผู้ใช้ส่งมา — ยังผ่อนได้ 8 ปีเท่านั้นเหมือนเดิม
+    leader25: {
+      '8_semi':0.0825,'8_annual':0.0825,
     },
     rt: {
       '6_semi':0.0875,'6_annual':0.0875,
@@ -1401,16 +1406,25 @@ const INTEREST_TABLE = {
     },
   },
   solis: {
+    // (15/9/2569) เพิ่มปี 8 ให้ general/sw/rt ตามรูปสรุปใหม่: s_bob25 + s_bob30(General) ใช้ 'general' ที่ 8 ปี,
+    // s_bob30(YF,SW)+s_target_yfsw ใช้ 'sw' ที่ 8 ปี, s_bob30(RT)+s_target_rt ใช้ 'rt' ที่ 8 ปี — เรทเดิมคงที่ ไม่เปลี่ยน แค่เพิ่มตัวเลือกปี 8
     general: {
       '6_semi':0.0875,'6_annual':0.0895,
       '7_semi':0.0875,'7_annual':0.0895,
+      '8_semi':0.0875,'8_annual':0.0895,
     },
-    // โปร "ไม่เข้าเงื่อนไข" ใหม่ (s_general แทนที่ของเดิม) + "20% ไม่มี YCT" (s_bob20) + "25% ผู้นำชุมชน/ธกส/MF/SM" (s_bob25_leader)
-    // (2/9/2569 อัปเดตตามไฟล์ Promotion Sale Solis 130769: ดอกเบี้ย 8.75% ผ่อนได้ 7 ปีเท่านั้น ทั้ง 3 โปรนี้ — ยืนยันจากผู้ใช้)
+    // ส่วนที่ยังไม่เปลี่ยนของ "20% ไม่มี YCT" (s_bob20: Solis50/50-45th/65/75/105) เท่านั้น
+    // (2/9/2569 อัปเดตตามไฟล์ Promotion Sale Solis 130769: ดอกเบี้ย 8.75% ผ่อนได้ 7 ปีเท่านั้น — ยืนยันจากผู้ใช้)
+    // (15/9/2569) s_bob25_leader แยกออกไปกลุ่ม leader25 แล้ว, s_general แยกออกจากกลุ่มนี้แล้วด้วย (ตกไปใช้ตาราง 'general' แทน
+    // เพราะดอกเบี้ยเปลี่ยนเป็น 8.95% ทั้ง 2 กลุ่มย่อย ไม่ตรงกับ general15 (8.75%) อีกต่อไป — ดูรายละเอียดที่ getInterestGroup ด้านล่าง)
+    // หมายเหตุ: s_bob20 บางรุ่น (Solis30/30-45th) เปลี่ยนเป็น 8.95%/8ปีแล้วในข้อมูลการ์ดเริ่มต้น (data.js) แต่ตัวเลือกปีแบบ interactive
+    // ของทั้งโปรแกรมยังอิงกลุ่มนี้ (7 ปีเท่านั้น) เพราะรุ่นส่วนใหญ่ในโปรนี้ยังใช้ 7 ปี — ไม่ได้แยกกลุ่มดอกเบี้ยเป็นรายรุ่น
     general15: { '7_semi':0.0875,'7_annual':0.0875 },
-    sw: {'6_semi':0.0875,'6_annual':0.0875,'7_semi':0.0875,'7_annual':0.0875},
-    rt: {'6_semi':0.0875,'6_annual':0.0875,'7_semi':0.0875,'7_annual':0.0875},
+    sw: {'6_semi':0.0875,'6_annual':0.0875,'7_semi':0.0875,'7_annual':0.0875,'8_semi':0.0875,'8_annual':0.0875},
+    rt: {'6_semi':0.0875,'6_annual':0.0875,'7_semi':0.0875,'7_annual':0.0875,'8_semi':0.0875,'8_annual':0.0875},
     dry_crop: {'6_semi':0.0875,'6_annual':0.0895,'7_semi':0.0875,'7_annual':0.0895},
+    // (15/9/2569) โปร "25% ผู้นำชุมชน/ธกส/SM" (s_bob25_leader) — ดอกเบี้ยเปลี่ยนเป็น 8.95%/8ปี ตามรูปสรุปใหม่
+    leader25: { '8_semi':0.0895,'8_annual':0.0895 },
   },
   combine: {
     // (1/9 ต่อ 5) ดอกเบี้ยฐาน (annual) ปรับจาก 8.5% -> 8.0% ตามไฟล์โปรฯ ก.ย.69 ใหม่ (ยืนยันจากผู้ใช้)
@@ -1441,8 +1455,8 @@ INTEREST_TABLE.drone = {
 };
 
 const YEARS_OPTIONS = {
-  yanmar: { general:[6,7,8,10], general15:[8], rt:[6,7,8,10], sw:[6,7,8,10] },
-  solis:  { general:[6,7], general15:[7], sw:[6,7], rt:[6,7], dry_crop:[6,7] },
+  yanmar: { general:[6,7,8,10], general15:[8], leader25:[8], rt:[6,7,8,10], sw:[6,7,8,10] },
+  solis:  { general:[6,7,8], general15:[7], leader25:[8], sw:[6,7,8], rt:[6,7,8], dry_crop:[6,7] },
   combine: { general:[6], owner_combine:[6], owner_tractor:[6], rt:[8] },
   excavator: { general15:[7], general7:[7], exp12:[7], YFSW10:[7], RTA10:[7], RTB10:[7] },
 };
@@ -1455,14 +1469,16 @@ const PAYMENT_OPTIONS = {
   yanmar: {
     general: { 6:['monthly','quarterly','semi','annual'], 7:['monthly','quarterly','semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
     general15: { 8:['semi','annual'] },
+    leader25: { 8:['semi','annual'] },
     rt:      { 6:['semi','annual'], 7:['semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
     sw:      { 6:['semi','annual'], 7:['semi','annual'], 8:['semi','annual'], 10:['semi','annual'] },
   },
   solis: {
-    general:  { 6:['semi','annual'], 7:['semi','annual'] },
+    general:  { 6:['semi','annual'], 7:['semi','annual'], 8:['semi','annual'] },
     general15:{ 7:['semi','annual'] },
-    sw:       { 6:['semi','annual'], 7:['semi','annual'] },
-    rt:       { 6:['semi','annual'], 7:['semi','annual'] },
+    leader25: { 8:['semi','annual'] },
+    sw:       { 6:['semi','annual'], 7:['semi','annual'], 8:['semi','annual'] },
+    rt:       { 6:['semi','annual'], 7:['semi','annual'], 8:['semi','annual'] },
     dry_crop: { 6:['semi','annual'], 7:['semi','annual'] },
   },
   combine: {
@@ -1545,9 +1561,11 @@ function getInterestGroup(brand, segment, programId){
     if(segment==='RT') return 'rt';
     if(segment==='YF,SW') return 'sw';
     // (21/8 ต่อ 3, ปรับ 2/9 ต่อ) ตอนโปรที่กำลังแสดง/เลือกอยู่เป็นหนึ่งในกลุ่ม "ดอกเบี้ย 8.75% ผ่อนได้ 8 ปีเท่านั้น"
-    // ได้แก่ y_general15 (ไม่เข้าเงื่อนไข 20%), y_bob20 (20% ไม่มี YCT), y_bob25_leader (25% ผู้นำชุมชน/ธกส/MF/SM)
+    // ได้แก่ y_general15 (ไม่เข้าเงื่อนไข 15%), y_bob20 (20% ไม่มี YCT)
     // ให้ใช้ตาราง general15 (8 ปีเท่านั้น) แทน general (20%, 6-10 ปี) — activeProgramId อัปเดตใน renderResultsCommon
-    if(segment==='ทั่วไป' && (pid==='y_general15' || pid==='y_bob20' || pid==='y_bob25_leader')) return 'general15';
+    if(segment==='ทั่วไป' && (pid==='y_general15' || pid==='y_bob20')) return 'general15';
+    // (15/9/2569) y_bob25_leader (25% ผู้นำชุมชน/ธกส/SM) แยกออกมาเป็นกลุ่มของตัวเอง เพราะดอกเบี้ยเปลี่ยนเป็น 8.25% ไม่เท่ากับ general15 อีกแล้ว
+    if(pid==='y_bob25_leader') return 'leader25';
     return 'general';
   } else if(brand==='combine'){
     if(segment==='RT') return 'rt';
@@ -1562,9 +1580,12 @@ function getInterestGroup(brand, segment, programId){
     if(segment==='Dry Crop') return 'dry_crop';
     if(segment==='RT') return 'rt';
     if(segment==='YF,SW') return 'sw';
-    // (2/9/2569) s_general (โปร "ไม่เข้าเงื่อนไข" ใหม่), s_bob20 (20% ไม่มี YCT), s_bob25_leader (25% ผู้นำชุมชน/ธกส/MF/SM)
-    // ทั้งสามใช้ดอกเบี้ย 8.75%/7 ปีเท่านั้น (ต่างจาก s_bob25/s_bob30 ที่ยังคง 8.95%/7ปี ตามเดิม) — ใช้ activeProgramId แยก เหมือนที่ทำกับ yanmar
-    if(segment==='ทั่วไป' && (pid==='s_general' || pid==='s_bob20' || pid==='s_bob25_leader')) return 'general15';
+    // (2/9/2569) s_bob20 (20% ไม่มี YCT) ใช้ดอกเบี้ย 8.75%/7 ปีเท่านั้น (ต่างจาก s_bob25/s_bob30 ที่ใช้ตาราง general/sw/rt) — ใช้ activeProgramId แยก เหมือนที่ทำกับ yanmar
+    // (15/9/2569) s_general ("ไม่เข้าเงื่อนไข") เอาออกจากเงื่อนไขนี้แล้ว เพราะแยกเรทเป็นรายรุ่นในตัวมันเองแล้ว (22/26/30/30-45th = 8.95%/8ปี, 50 ขึ้นไป = 8.95%/7ปี)
+    // ทั้งสองกลุ่มดอกเบี้ย 8.95% เท่ากัน ต่างแค่ปี — ปล่อยให้ตกไปใช้ตาราง 'general' ด้านล่าง (มี 7ปีและ8ปีที่ annual=8.95% ให้แล้วพอดี)
+    if(segment==='ทั่วไป' && pid==='s_bob20') return 'general15';
+    // (15/9/2569) s_bob25_leader (25% ผู้นำชุมชน/ธกส/SM) แยกออกมาเป็นกลุ่มของตัวเอง เพราะดอกเบี้ยเปลี่ยนเป็น 8.95%/8ปี ไม่เท่ากับ general15 อีกแล้ว
+    if(pid==='s_bob25_leader') return 'leader25';
     return 'general';
   }
 }
