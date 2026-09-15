@@ -1432,8 +1432,11 @@ const INTEREST_TABLE = {
     general: {'6_annual':0.08,'6_split_70_30':0.0825,'6_split_50_50':0.08},
     owner_combine: {'6_annual':0.08,'6_split_70_30':0.0825,'6_split_50_50':0.08},
     owner_tractor: {'6_annual':0.08,'6_split_70_30':0.0825,'6_split_50_50':0.08},
-    // โปร RT 10% เปลี่ยนจากผ่อน 6 ปี (8.5%) เป็นผ่อน 8 ปี (9.30%) ทั้งหมดตามไฟล์ใหม่ (ยืนยันจากผู้ใช้ — ไม่มีตัวเลือก 6 ปีแล้ว)
+    // (15/9/2569) โปร RT 10% (8ปี, 9.30%) เดิม ยังคงเป็น c_rt — เฉพาะลูกค้ารถเกี่ยวอย่างเดียว (ดูไฟล์ "RT 10% (8ปี)")
     rt: {'8_annual':0.093},
+    // (15/9/2569) เพิ่มโปรใหม่ c_rt6 — RT 10% แบบผ่อน 6 ปี/8% เดิมที่เคยตัดออกไป แต่ไฟล์ใหม่แยกเป็นคุณสมบัติคนละกลุ่ม
+    // (รับทั้งลูกค้ารถเกี่ยว+รถแทรกเตอร์) เลยเพิ่มกลับมาเป็นโปรแยกต่างหาก ไม่ใช่ตัวเลือกปีของ c_rt เดิม (ยืนยันจากผู้ใช้ 15/9/2569)
+    rt6: {'6_annual':0.08,'6_split_70_30':0.0825,'6_split_50_50':0.08},
   },
   excavator: {
     general15: {'7_monthly':0.0795,'7_quarterly':0.0795},
@@ -1457,7 +1460,7 @@ INTEREST_TABLE.drone = {
 const YEARS_OPTIONS = {
   yanmar: { general:[6,7,8,10], general15:[8], leader25:[8], rt:[6,7,8,10], sw:[6,7,8,10] },
   solis:  { general:[6,7,8], general15:[7], leader25:[8], sw:[6,7,8], rt:[6,7,8], dry_crop:[6,7] },
-  combine: { general:[6], owner_combine:[6], owner_tractor:[6], rt:[8] },
+  combine: { general:[6], owner_combine:[6], owner_tractor:[6], rt:[8], rt6:[6] },
   excavator: { general15:[7], general7:[7], exp12:[7], YFSW10:[7], RTA10:[7], RTB10:[7] },
 };
 YEARS_OPTIONS.drone = {
@@ -1487,6 +1490,8 @@ const PAYMENT_OPTIONS = {
     owner_tractor: {6:['annual','split_70_30','split_50_50']},
     // ผ่อน 8 ปี — ไฟล์ใหม่มีแค่แบบ "งวดใหญ่รายปี" อย่างเดียว ไม่มีข้อมูลแบบแบ่งจ่าย 2 ครั้ง/ปี
     rt: {8:['annual']},
+    // (15/9/2569) c_rt6 (RT ผ่อน 6 ปี) ใช้รูปแบบงวดเหมือนกลุ่ม general/owner (annual/split_70_30/split_50_50)
+    rt6: {6:['annual','split_70_30','split_50_50']},
   },
   excavator: {
     general15: {7:['monthly','quarterly']},
@@ -1568,7 +1573,8 @@ function getInterestGroup(brand, segment, programId){
     if(pid==='y_bob25_leader') return 'leader25';
     return 'general';
   } else if(brand==='combine'){
-    if(segment==='RT') return 'rt';
+    // (15/9/2569) segment 'RT' ตอนนี้มี 2 โปรแข่งกัน (c_rt 8ปี/9.3% กับ c_rt6 6ปี/8%) ต้องแยกด้วย pid ไม่ใช่ดู segment อย่างเดียวเหมือนเดิม
+    if(segment==='RT') return (pid==='c_rt6') ? 'rt6' : 'rt';
     if(segment==='YF,SW') return 'owner_combine';
     if(segment==='Dry Crop') return 'owner_tractor';
     return 'general';
@@ -1645,12 +1651,7 @@ USED_EQUIPMENT.excavator = {};
 
 const EQUIPMENT = {"yanmar": {"EF393A / EF393T-45th": [{"name": "ใบมีดดันดินหน้า 1.60 ม.", "price": 55000}, {"name": "ผานบุกเบิก 22\"×4 ใบ", "price": 50000, "special": 42000}, {"name": "ผานพรวน 22\"×5 ใบ", "price": 47500, "special": 38000}, {"name": "ผานพรวน 22\"×6 ใบ", "price": 47500, "special": 39000}, {"name": "โรตารี่ 1.60 ม.", "price": 68900}, {"name": "เครื่องตัดหญ้า 1.20 ม.", "price": 31400}, {"name": "บุ้งกี๋ 3.4 ม.", "price": 177300}, {"name": "เครื่องอัดฟาง 1.35 ม.", "price": 500000}], "YM351R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM351R)", "price": 66100}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000, "special": 53000, "special_models": ["YM351R"]}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500, "special": 61000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000, "special": 58000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000, "special": 54000, "special_models": ["YM351R"]}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 182100}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 187300}], "YM358R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM358R)", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}, {"name": "เครื่องคีบอ้อย (YM358)", "price": 250000, "specialFin": {"years":2,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM358R-L1": [{"name": "ใบมีดดันดินหน้า 1.80 ม.", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "ผานพรวน 24\"×6 ใบ (กระบอกยันจานยาว 11\")", "price": 60000}, {"name": "โรตารี่ 2.00 ม.", "price": 78000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}, {"name": "เครื่องคีบอ้อย", "price": 250000, "specialFin": {"years":2,"rate":0.08,"minor":1000,"bundleMinDown":40000}}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}], "EF725T": [{"name": "ใบมีดดันดินหน้า 2.10 ม.", "price": 69000}, {"name": "ผานบุกเบิก 26\"×3 ใบ รุ่น EF725T", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ รุ่น EF725T", "price": 73600}, {"name": "โรตารี่ 2.20 ม. รุ่น EF725T", "price": 91400}]}, "solis": {"Solis 26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis22": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis30": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis30-45th": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis50": [{"name": "ใบมีดดันดินหน้า 1.90 ม.", "price": 75000}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 64100}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "คีบอ้อย", "price": 250000, "specialFin": {"years":2,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis50-45th": [{"name": "ใบมีดดันดินหน้า 1.90 ม.", "price": 75000}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 64100}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "คีบอ้อย", "price": 250000, "specialFin": {"years":2,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis75": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000, "specialFin": {"years":3,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis75-45th": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000, "specialFin": {"years":3,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis 65": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000, "specialFin": {"years":3,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis90": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000, "specialFin": {"years":3,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis105-45th": [{"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (105 แรง)", "price": 95300}, {"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (110 แรง)", "price": 100200}, {"name": "ผานพรวน 26\"×8 ใบ", "price": 85520}, {"name": "ผานพรวนสับใบ", "price": 126400}, {"name": "วิปเปอร์ 3 ขา", "price": 122300}, {"name": "เครื่องปลูกอ้อย 2 แถว", "price": 109900}, {"name": "เครื่องตัดอ้อย", "price": 330000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}]}};
 EQUIPMENT.combine = {
-  "AW82V": [{"name":"ตัวถังอุ้ม","price":140000}],
-  "YH700": [{"name":"ตัวถังอุ้ม","price":140000}],
-  "YH700 Cabin": [{"name":"ตัวถังอุ้ม","price":140000}],
-  "YH850GUW 2.3": [{"name":"ตัวถังอุ้ม","price":140000}],
-  "YH850 Cabin": [{"name":"ตัวถังอุ้ม","price":140000}],
-  "YH1180G26WU-TH": [{"name":"ตัวถังอุ้ม","price":140000}]
+  "AW82V": [{"name":"ถังอุ้ม","price":140000,"specialFin":{"years":6,"rate":0.08,"minor":0,"bundleMinDown":40000}}]
 };
 EQUIPMENT.excavator = {};
 EQUIPMENT.drone = {};
@@ -1953,7 +1954,7 @@ const TOGGLE_NOTE = {
 const PROGRAM_IDS = {
   yanmar: { general15:'y_general15', target_yfsw:'y_target_yfsw', target_rt:'y_target_rt', bob25:'y_bob25', bob30:'y_bob30', bob20:'y_bob20', bob25_leader:'y_bob25_leader', special358:'y_358' },
   solis:  { general:'s_general', target_yfsw:'s_target_yfsw', target_rt:'s_target_rt', bob25:'s_bob25', bob30:'s_bob30', bob20:'s_bob20', bob25_leader:'s_bob25_leader' },
-  combine: { general:'c_general', target_yfsw:'c_owner_combine', target_rt:'c_rt', target_tractor_owner:'c_owner_tractor' },
+  combine: { general:'c_general', target_yfsw:'c_owner_combine', target_rt:'c_rt', target_rt6:'c_rt6', target_tractor_owner:'c_owner_tractor' },
   excavator: {
     general15:'e_general15', general7:'e_general7', exp12:'e_exp12',
     YFSW10:'e_special10', RTA10:'e_special10', RTB10:'e_special10'
@@ -2046,6 +2047,7 @@ function findEntries(brand, model, segment, toggles){
     getSubsetGroup(ids.bob30, ['YF,SW,RT','YF,SW']); // กลุ่ม YF,SW ปลดล็อก Bob 30% ได้เองอยู่แล้ว (เข้าเงื่อนไขข้อ 4) ไม่ต้องรอติ๊ก
   } else if(segment==='RT'){
     getDirect(ids.target_rt);
+    getDirect(ids.target_rt6); // (15/9/2569) โปร RT ผ่อน 6 ปี — คุณสมบัติกว้างกว่า (รับรถแทรกเตอร์ด้วย) เข้าแข่งพร้อมกับ target_rt (8 ปี) เสมอ
     getSubsetGroup(ids.bob25, 'RT');
     getSubsetGroup(ids.bob30, ['YF,SW,RT','RT']); // กลุ่ม RT ปลดล็อก Bob 30% ได้เองอยู่แล้ว (เข้าเงื่อนไขข้อ 4) ไม่ต้องรอติ๊ก
   } else if(segment==='Dry Crop'){
