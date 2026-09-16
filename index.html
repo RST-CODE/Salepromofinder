@@ -8163,11 +8163,16 @@ loadHistory();
 <div id="printArea"></div>
 
 
-<!-- Firebase SDKs (Realtime Database Compatibility) -->
+<!-- ========================================== -->
+<!-- 1. Firebase & Emoji Picker SDKs -->
+<!-- ========================================== -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js"></script>
 
-<!-- Live Chat Widget CSS -->
+<!-- ========================================== -->
+<!-- 2. Live Chat CSS Style -->
+<!-- ========================================== -->
 <style>
   #chat-widget-button {
     position: fixed;
@@ -8189,8 +8194,8 @@ loadHistory();
     position: fixed;
     bottom: 80px;
     right: 20px;
-    width: 320px;
-    height: 420px;
+    width: 330px;
+    height: 450px;
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.2);
@@ -8236,9 +8241,11 @@ loadHistory();
   }
   #chat-input-area {
     display: flex;
+    align-items: center;
     padding: 8px;
     border-top: 1px solid #eee;
     background: #fff;
+    position: relative;
   }
   #chat-input-area input {
     flex: 1;
@@ -8247,19 +8254,34 @@ loadHistory();
     padding: 8px 12px;
     outline: none;
   }
-  #chat-input-area button {
+  .chat-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 6px;
+  }
+  #send-btn {
     background: #d93025;
     color: white;
-    border: none;
     border-radius: 50%;
     width: 36px;
     height: 36px;
-    margin-left: 8px;
-    cursor: pointer;
+    font-size: 14px;
+    margin-left: 4px;
+  }
+  #emoji-picker-container {
+    display: none;
+    position: absolute;
+    bottom: 55px;
+    right: 10px;
+    z-index: 10000;
   }
 </style>
 
-<!-- Live Chat Widget HTML -->
+<!-- ========================================== -->
+<!-- 3. Live Chat HTML Structure -->
+<!-- ========================================== -->
 <button id="chat-widget-button" onclick="toggleChat()">💬 สนทนาสด</button>
 
 <div id="chat-box">
@@ -8268,16 +8290,22 @@ loadHistory();
     <span style="cursor:pointer;" onclick="toggleChat()">✖</span>
   </div>
   <div id="chat-messages"></div>
+  
   <div id="chat-input-area">
+    <div id="emoji-picker-container"></div>
+    <button class="chat-btn" type="button" onclick="toggleEmojiPicker()">😀</button>
     <input type="text" id="chat-input" placeholder="พิมพ์ข้อความ..." onkeypress="handleKeyPress(event)" />
-    <button onclick="sendMessage()">➤</button>
+    <button id="send-btn" class="chat-btn" type="button" onclick="sendMessage()">➤</button>
   </div>
 </div>
 
-<!-- Live Chat Script -->
+<!-- ========================================== -->
+<!-- 4. Live Chat JavaScript (IIFE Protection) -->
+<!-- ========================================== -->
 <script>
-  // Config จากโปรเจกต์ CRM Chat ของคุณ
-  const firebaseConfig = {
+(function() {
+  // Config Firebase
+  const rstFirebaseConfig = {
     apiKey: "AIzaSyBpbiUgURv1-uaLrNVXAfJatDUSGMbb15w",
     authDomain: "crm-tracker-503906.firebaseapp.com",
     databaseURL: "https://crm-tracker-503906-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -8288,49 +8316,111 @@ loadHistory();
     measurementId: "G-5WJRM17B0W"
   };
 
-  firebase.initializeApp(firebaseConfig);
-  const rtdb = firebase.database();
+  // ป้องกัน Initialize ซ้ำ
+  if (!firebase.apps.length) {
+    firebase.initializeApp(rstFirebaseConfig);
+  }
 
-  // กำหนด Room ID สุ่มชั่วคราว หรือใช้ Username ของผู้ใช้งาน
-  const roomId = localStorage.getItem('chat_room_id') || 'guest_' + Math.floor(Math.random() * 100000);
-  localStorage.setItem('chat_room_id', roomId);
+  const liveChatDb = firebase.database();
+  const liveChatRoomId = localStorage.getItem('chat_room_id') || 'guest_' + Math.floor(Math.random() * 100000);
+  localStorage.setItem('chat_room_id', liveChatRoomId);
 
-  function toggleChat() {
+  // Expose Functions ให้ HTML กดเรียกได้
+  window.toggleChat = function() {
     const box = document.getElementById('chat-box');
     box.style.display = (box.style.display === 'flex') ? 'none' : 'flex';
-  }
+  };
 
-  function handleKeyPress(e) {
+  window.handleKeyPress = function(e) {
     if (e.key === 'Enter') sendMessage();
-  }
+  };
 
-  function sendMessage() {
+  window.sendMessage = function() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
     if (!text) return;
 
-    // บันทึกลง Realtime Database
-    rtdb.ref('chats/' + roomId).push({
+    liveChatDb.ref('chats/' + liveChatRoomId).push({
       sender: 'user',
       text: text,
       timestamp: Date.now()
     });
 
     input.value = '';
+    const emojiBox = document.getElementById('emoji-picker-container');
+    if (emojiBox) emojiBox.style.display = 'none';
+  };
+
+  // เสียงแจ้งเตือนตอนมีข้อความใหม่เข้ามา (สร้างเสียง "ติ้ง" เองด้วย Web Audio API ไม่ต้องใช้ไฟล์เสียงภายนอก)
+  function playChatNotifySound() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch (e) {
+      // บางเบราว์เซอร์อาจบล็อกเสียงจนกว่าจะมีการโต้ตอบจากผู้ใช้ก่อน ไม่ต้องแจ้ง error ให้ผู้ใช้เห็น
+    }
   }
 
-  // ดึงข้อความมาแสดงผล Real-time
-  rtdb.ref('chats/' + roomId).on('child_added', (snapshot) => {
+  // กันเสียงดังรัวๆ ตอนโหลดประวัติแชทเก่าครั้งแรกที่เปิดหน้าต่างแชท (child_added จะยิงย้อนหลังทุกข้อความเก่าด้วย)
+  let liveChatHistoryLoaded = false;
+  setTimeout(() => { liveChatHistoryLoaded = true; }, 1000);
+
+  // ฟังข้อความ Real-time
+  liveChatDb.ref('chats/' + liveChatRoomId).on('child_added', (snapshot) => {
     const data = snapshot.val();
     const msgDiv = document.createElement('div');
     msgDiv.classList.add('msg', data.sender);
     msgDiv.innerText = data.text;
     
     const container = document.getElementById('chat-messages');
-    container.appendChild(msgDiv);
-    container.scrollTop = container.scrollHeight;
+    if (container) {
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // เล่นเสียงเฉพาะข้อความใหม่จริงๆ จากฝั่งแอดมิน (ไม่เล่นตอนโหลดประวัติเก่า และไม่เล่นตอนผู้ใช้ส่งข้อความของตัวเอง)
+    if (liveChatHistoryLoaded && data.sender === 'admin') {
+      playChatNotifySound();
+    }
   });
+
+  // สร้าง Emoji Picker ป้องกันการโหลดก่อน DOM
+  document.addEventListener('DOMContentLoaded', () => {
+    const pickerContainer = document.getElementById('emoji-picker-container');
+    if (pickerContainer && typeof EmojiMart !== 'undefined') {
+      const picker = new EmojiMart.Picker({
+        onEmojiSelect: (emoji) => {
+          const input = document.getElementById('chat-input');
+          input.value += emoji.native;
+          input.focus();
+        },
+        locale: 'th',
+        theme: 'light'
+      });
+      pickerContainer.appendChild(picker);
+    }
+  });
+
+  window.toggleEmojiPicker = function() {
+    const container = document.getElementById('emoji-picker-container');
+    if (container) {
+      container.style.display = (container.style.display === 'block') ? 'none' : 'block';
+    }
+  };
+})();
 </script>
+
+
+
 
 
 
