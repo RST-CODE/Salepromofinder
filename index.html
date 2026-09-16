@@ -4922,7 +4922,7 @@ function filterRecordsByDateRange(records){
   });
 }
 function exportCrmTemplateXLSX(){
-  if(!isManagerUser()){ alert('ฟังก์ชัน Export เข้า CRM นี้ใช้ได้เฉพาะบทบาทแอดมินหรือผู้จัดการเท่านั้น (ตอนนี้บทบาทของคุณคือ ' + roleLabel(userRole) + ')'); return; }
+  if(!canUseCrmActions()){ alert('กรุณาเข้าสู่ระบบก่อนใช้งาน Export CRM'); return; }
   function doExport(){
     if(typeof XLSX === 'undefined'){ alert('กำลังโหลด Excel library... ลองอีกครั้งใน 2-3 วิ'); return; }
     if(typeof CRM_TEMPLATE_XLSX_B64 === 'undefined'){ alert('ไม่พบไฟล์ crm_template_data.js — ใส่ไฟล์นี้ไว้โฟลเดอร์เดียวกับ HTML ด้วย'); return; }
@@ -5013,28 +5013,63 @@ window.addEventListener('rst:authenticated', function(e){
 });
 
 function isAdminUser(){ return userRole === 'admin'; }
-function isManagerUser(){ return userRole === 'admin' || userRole === 'manager'; } // แอดมิน/ผู้จัดการ = สิทธิ์ระดับจัดการ
-function isFinanceUser(){ return isManagerUser(); } // งานปรับยอดดาวน์ (เดิมจำกัดเฉพาะบทบาท "การเงิน") ยกให้แอดมิน/ผู้จัดการดูแลแทนในระบบสิทธิ์ใหม่
+function isManagerUser(){ return userRole === 'admin' || userRole === 'manager'; } // แอดมิน/ผู้จัดการ = สิทธิ์ระดับจัดการ (ใช้กับเมนูจัดการสมาชิก/สิทธิ์เฉพาะทางที่เหลือ)
+function isFinanceUser(){ return isManagerUser(); } // ปรับโครงสร้างเงินดาวน์ — เป็นงานการเงินที่มีผลเปลี่ยนยอดจัดจริง จึงยังคงจำกัดเฉพาะแอดมิน/ผู้จัดการ (ไม่ได้อยู่ในสิทธิ์ที่ขอให้เปิดกว้าง)
+// สิทธิ์ใช้งานฟังก์ชันเกี่ยวกับ "เคสลูกค้า" (เพิ่ม/ลบ/แก้ไข/เปลี่ยนสถานะ/Export) — เปิดให้ทุกคนที่ login แล้วใช้ได้เหมือนก่อนมีระบบ login
+// (คงไว้เฉพาะระบบเพิ่ม/จัดการสมาชิก และปรับโครงสร้างเงินดาวน์ ที่ยังจำกัดเฉพาะแอดมิน/ผู้จัดการ)
+function canUseCrmActions(){ return !!(window.RSTAuth && window.RSTAuth.isLoggedIn && window.RSTAuth.isLoggedIn()); }
 function updateExportCrmButtonVisibility(){
   const btn = document.getElementById('exportCrmTemplateBtn');
-  if(btn) btn.style.display = isManagerUser() ? '' : 'none';
+  if(btn) btn.style.display = canUseCrmActions() ? '' : 'none';
   const dateBox = document.getElementById('exportCrmDateRangeBox');
-  if(dateBox) dateBox.style.display = isManagerUser() ? 'flex' : 'none';
+  if(dateBox) dateBox.style.display = canUseCrmActions() ? 'flex' : 'none';
   const gasBtn = document.getElementById('gasConfigBtn');
   if(gasBtn) gasBtn.style.display = isAdminUser() ? '' : 'none'; // ตั้งค่า GAS จำกัดเฉพาะแอดมิน
 }
 function roleLabel(role){ return role==='admin' ? 'แอดมิน' : (role==='manager' ? 'ผู้จัดการ' : 'พนักงานขาย'); }
-// สิทธิ์แก้ไขข้อมูลเคสที่บันทึกไปแล้ว (กรณีกรอกผิด) — แอดมิน/ผู้จัดการเท่านั้น
-function canEditRecords(){ return isManagerUser(); }
-// สิทธิ์ลบ/แก้ไขสถานะเคส — แอดมิน, ผู้จัดการ, หรือเจ้าของเคส (พนักงานขายที่บันทึกเคสนี้เอง)
-function canManageCase(rec){ return isManagerUser() || !!(rec && userName && (rec.branch||'') === userName); }
+// สิทธิ์แก้ไขข้อมูลเคสที่บันทึกไปแล้ว (กรณีกรอกผิด) — เปิดให้ทุกคนที่ login แล้ว (เหมือนก่อนมีระบบ login)
+function canEditRecords(){ return canUseCrmActions(); }
+// สิทธิ์ลบ/แก้ไขสถานะเคส — เปิดให้ทุกคนที่ login แล้ว (เหมือนก่อนมีระบบ login)
+function canManageCase(rec){ return canUseCrmActions(); }
 
 function openIdentityModal(){
   if(window.RSTAuth && window.RSTAuth.renderIdentity) window.RSTAuth.renderIdentity();
+  const logBtn = document.getElementById('rstOpenActivityLogBtn');
+  if(logBtn) logBtn.style.display = isAdminUser() ? '' : 'none'; // ดู log กิจกรรม เฉพาะแอดมิน
   document.getElementById('identityModalBg').style.display = 'flex';
 }
 function closeIdentityModal(){
   document.getElementById('identityModalBg').style.display = 'none';
+}
+
+// ===== Log กิจกรรม "ใครทำอะไรบ้าง" (เฉพาะแอดมินเห็นได้) =====
+// ดึงจาก GAS action 'listLogs' — ฝั่ง .gs ต้องเพิ่ม action นี้เอง (ยิงกลับเป็น array ของ
+// {ts, byName, byRole, action, id, custName, detail} เรียงใหม่ไปเก่า) และเพิ่มการบันทึกแถว log
+// ทุกครั้งที่ action save/delete/updateStatus/editRecord/addUpdate ทำงาน (ทุก action เหล่านี้
+// ส่ง byName/byRole แนบไปด้วยอยู่แล้วในโค้ดฝั่งนี้ ใช้ค่านี้บันทึกลง sheet log ได้เลย)
+function openActivityLogModal(){
+  if(!isAdminUser()){ alert('ดู Log กิจกรรมได้เฉพาะแอดมินเท่านั้น'); return; }
+  document.getElementById('activityLogModalBg').style.display = 'flex';
+  const box = document.getElementById('activityLogListBox');
+  box.innerHTML = 'กำลังโหลด...';
+  if(!gasUrl){ box.innerHTML = '<div style="color:#c0392b">ยังไม่ได้ตั้งค่า GAS URL</div>'; return; }
+  gasGet(gasUrl, {action:'listLogs'}, (err, data)=>{
+    if(err || !data || data.status === 'error' || !Array.isArray(data.logs)){
+      box.innerHTML = '<div style="color:#c0392b">ยังดึง Log ไม่ได้ — สคริปต์ GAS (.gs) ปัจจุบันอาจยังไม่มี action &quot;listLogs&quot; '
+        + '(ต้องเพิ่มฝั่งเซิร์ฟเวอร์ให้บันทึกและคืนค่ารายการ log ก่อน)</div>';
+      return;
+    }
+    if(!data.logs.length){ box.innerHTML = '<div>ยังไม่มีรายการ log</div>'; return; }
+    box.innerHTML = data.logs.map(l => `
+      <div style="border-bottom:1px solid var(--line);padding:6px 0;font-size:12px">
+        <b>${escapeHtml(l.byName||'-')}</b> (${escapeHtml(roleLabel(l.byRole)||l.byRole||'-')})
+        — ${escapeHtml(l.action||'-')} ${l.custName ? 'เคส: '+escapeHtml(l.custName) : (l.id ? 'เคส #'+escapeHtml(String(l.id)) : '')}
+        <div style="color:var(--ink-soft)">${escapeHtml(l.ts||'')}${l.detail ? ' — '+escapeHtml(l.detail) : ''}</div>
+      </div>`).join('');
+  });
+}
+function closeActivityLogModal(){
+  document.getElementById('activityLogModalBg').style.display = 'none';
 }
 
 // ===== แดชบอร์ดภาพรวมไปป์ไลน์ (จำนวนเคส/มูลค่า/อัตราปิดการขาย/เคสค้างนาน) =====
@@ -5322,7 +5357,7 @@ function saveToHistory(record, callback){
   }
   // ใช้ gasPostReadable แทน gasPost(no-cors) เพื่อให้รู้ผลจริงว่าบันทึกสำเร็จหรือไม่
   // (no-cors แบบเดิม ยิงแบบไม่รู้ผล ถ้าบันทึกไม่สำเร็จก็จะไม่มีทางรู้เลย)
-  gasPostReadable('save', {record}, (err, data)=>{
+  gasPostReadable('save', {record, byName:userName, byRole:userRole}, (err, data)=>{
     if(err || !data || data.status !== 'ok'){
       console.error('Save failed:', err || data);
       if(callback) callback(err || new Error((data && data.message) || 'บันทึกไม่สำเร็จ ไม่ทราบสาเหตุ'));
@@ -5601,10 +5636,7 @@ function hfAmphureChange(){
 
 function renderHistoryList(records){
   records = records || [];
-  // พนักงานขายเห็นเฉพาะเคสของตัวเอง (สาขา/ผู้ปิดการขาย = ชื่อบัญชีที่ login) — แอดมิน/ผู้จัดการเห็นทุกเคส
-  if(!isManagerUser() && userName){
-    records = records.filter(r => (r.branch||'') === userName);
-  }
+  // ทุกคนที่ login แล้วเห็นประวัติทุกเคสได้เหมือนก่อนมีระบบ login (ไม่กรองตามสาขา/ผู้ปิดการขายอีกต่อไป)
   _allHistoryRecords = records;
   populateFilterDropdowns();
   const countEl = document.getElementById('histFilterCount');
@@ -5877,11 +5909,11 @@ function changeCaseStatus(id, status, note){
   }
 }
 
-// ===== แก้ไขข้อมูลลูกค้า (กรณีกรอกผิด) — เฉพาะไฟแนนซ์/ผู้จัดการ =====
+// ===== แก้ไขข้อมูลลูกค้า (กรณีกรอกผิด) — เปิดให้ทุกคนที่ login แล้วแก้ไขได้ =====
 let _editRecordId = null;
 let _editRecordSnapshot = null;
 function openEditRecordModal(id){
-  if(!canEditRecords()){ alert('เฉพาะแอดมินและผู้จัดการเท่านั้นที่แก้ไขข้อมูลได้'); return; }
+  if(!canEditRecords()){ alert('กรุณาเข้าสู่ระบบก่อนใช้งาน'); return; }
   _editRecordId = id;
   jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
     if(err || data.status !== 'ok'){ alert('โหลดข้อมูลไม่ได้: ' + (err?.message||data?.message)); return; }
@@ -6478,9 +6510,9 @@ function reExportXLSX(id){
 
 function deleteRecord(id){
   const rec = (_allHistoryRecords||[]).find(r => String(r.id) === String(id));
-  if(!canManageCase(rec)){ alert('คุณไม่มีสิทธิ์ลบเคสนี้ (เฉพาะแอดมิน/ผู้จัดการ หรือเจ้าของเคสเท่านั้น)'); return; }
+  if(!canManageCase(rec)){ alert('กรุณาเข้าสู่ระบบก่อนใช้งาน'); return; }
   if(!confirm('ลบรายการนี้?')) return;
-  gasPost('delete', {action:'delete', id}, function(err){
+  gasPost('delete', {action:'delete', id, byName:userName, byRole:userRole}, function(err){
     if(err){ alert('ลบไม่ได้: ' + err.message); return; }
     document.getElementById('hc_'+id)?.remove();
     // reload to confirm
@@ -8094,7 +8126,21 @@ loadHistory();
       <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">ข้อมูลบัญชีของคุณ (มาจากการเข้าสู่ระบบ) — ใช้แสดงชื่อผู้บันทึก/ผู้แก้ไขใน Timeline ของแต่ละเคส และกำหนดสิทธิ์การใช้งานบางฟังก์ชัน (เช่น แก้ไขข้อมูลย้อนหลัง, Export ข้อมูลเข้า CRM)</div>
       <div id="rstIdentityDetailBox"></div>
       <button type="button" id="rstOpenAddMemberBtn" class="finance-launch-btn" style="width:100%;margin-top:12px;display:none" onclick="window.RSTAuth && window.RSTAuth.openAddMemberModal()">➕ เพิ่มสมาชิกใหม่</button>
+      <button type="button" id="rstOpenActivityLogBtn" class="finance-launch-btn" style="width:100%;margin-top:10px;display:none" onclick="openActivityLogModal()">📋 ดู Log กิจกรรม (ใครทำอะไรบ้าง)</button>
       <button class="btn-save" style="width:100%;margin-top:10px;background:#c0392b" onclick="window.RSTAuth ? window.RSTAuth.logout() : null">🚪 ออกจากระบบ</button>
+    </div>
+  </div>
+</div>
+
+<div class="preview-modal-bg" id="activityLogModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>📋 Log กิจกรรม (เฉพาะแอดมิน)</span>
+    <button onclick="closeActivityLogModal()">✕ ปิด</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner">
+      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">บันทึกว่าใคร (ชื่อ/บทบาท) ทำอะไรกับเคสไหนบ้าง (เพิ่ม/แก้ไข/ลบ/เปลี่ยนสถานะ) — ดึงจาก Google Sheet ผ่าน GAS</div>
+      <div id="activityLogListBox">กำลังโหลด...</div>
     </div>
   </div>
 </div>
