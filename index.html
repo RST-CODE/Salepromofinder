@@ -8222,23 +8222,49 @@ loadHistory();
     flex-direction: column;
     gap: 8px;
   }
-  .msg {
+  .msg-wrap {
     max-width: 80%;
-    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+  }
+  .msg-wrap.mine { align-self: flex-end; align-items: flex-end; }
+  .msg-wrap.theirs { align-self: flex-start; align-items: flex-start; }
+  .msg-sender {
+    font-size: 11px;
+    color: #888;
+    margin: 0 4px 2px;
+  }
+  .msg {
+    position: relative;
+    padding: 8px 30px 8px 12px;
     border-radius: 12px;
     font-size: 14px;
     word-break: break-word;
   }
-  .msg.user {
-    align-self: flex-end;
+  .msg-wrap.mine .msg {
     background: #d93025;
     color: white;
   }
-  .msg.admin {
-    align-self: flex-start;
+  .msg-wrap.theirs .msg {
     background: #e0e0e0;
     color: #333;
   }
+  .msg-del-btn {
+    display: none;
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+    padding: 2px;
+    opacity: 0.75;
+  }
+  .msg-wrap.mine .msg-del-btn { color: rgba(255,255,255,0.9); }
+  .msg-wrap.theirs .msg-del-btn { color: #555; }
+  .msg:hover .msg-del-btn { display: inline-block; }
   #chat-input-area {
     display: flex;
     align-items: center;
@@ -8322,8 +8348,28 @@ loadHistory();
   }
 
   const liveChatDb = firebase.database();
-  const liveChatRoomId = localStorage.getItem('chat_room_id') || 'guest_' + Math.floor(Math.random() * 100000);
-  localStorage.setItem('chat_room_id', liveChatRoomId);
+  // ห้องแชทเดียวที่พนักงานทุกคนใช้ร่วมกัน (เดิมแต่ละเบราว์เซอร์สุ่มห้องของตัวเอง ทำให้ไม่เห็นข้อความของกัน)
+  // ถ้าต้องการแยกห้องตามสาขา/ทีมในอนาคต เปลี่ยนค่านี้ให้ผูกกับ session.branch หรือคล้ายกันได้
+  const liveChatRoomId = 'staff';
+
+  // ดึงข้อมูลผู้ใช้ปัจจุบันจากระบบ login (auth.js) — ใช้ตัดสินว่าเป็นข้อความของตัวเองหรือไม่ และสิทธิ์ลบ
+  function currentChatUser() {
+    const session = window.RSTAuth && window.RSTAuth.getSession ? window.RSTAuth.getSession() : null;
+    if (session) {
+      return {
+        id: String(session.id || session.username || ''),
+        name: session.name || session.username || 'ผู้ใช้',
+        role: session.role || ''
+      };
+    }
+    // ไม่ได้ login (เช่น ปิดระบบ auth ไว้) — ใช้ guest id ต่อเบราว์เซอร์เป็น fallback เพื่อให้ยังทดสอบ UI ได้
+    let guestId = localStorage.getItem('chat_guest_id');
+    if (!guestId) {
+      guestId = 'guest_' + Math.floor(Math.random() * 100000);
+      localStorage.setItem('chat_guest_id', guestId);
+    }
+    return { id: guestId, name: 'ผู้ใช้ (ไม่ได้ login)', role: '' };
+  }
 
   // Expose Functions ให้ HTML กดเรียกได้
   window.toggleChat = function() {
@@ -8340,8 +8386,11 @@ loadHistory();
     const text = input.value.trim();
     if (!text) return;
 
+    const me = currentChatUser();
     liveChatDb.ref('chats/' + liveChatRoomId).push({
-      sender: 'user',
+      senderId: me.id,
+      senderName: me.name,
+      senderRole: me.role,
       text: text,
       timestamp: Date.now()
     });
@@ -8349,6 +8398,14 @@ loadHistory();
     input.value = '';
     const emojiBox = document.getElementById('emoji-picker-container');
     if (emojiBox) emojiBox.style.display = 'none';
+  };
+
+  // ลบข้อความ — เจ้าของข้อความลบข้อความตัวเองได้ / admin ลบข้อความของใครก็ได้
+  // หมายเหตุ: การเช็คสิทธิ์นี้อยู่ฝั่ง client เท่านั้น (ปุ่มลบจะซ่อน/โชว์ตามสิทธิ์)
+  // ถ้าต้องการบังคับสิทธิ์จริงจังระดับฐานข้อมูล ต้องตั้ง Firebase Realtime Database Security Rules เพิ่มเติม
+  window.deleteChatMessage = function(msgKey) {
+    if (!confirm('ลบข้อความนี้?')) return;
+    liveChatDb.ref('chats/' + liveChatRoomId + '/' + msgKey).remove();
   };
 
   // เสียงแจ้งเตือนตอนมีข้อความใหม่เข้ามา (สร้างเสียง "ติ้ง" เองด้วย Web Audio API ไม่ต้องใช้ไฟล์เสียงภายนอก)
@@ -8370,27 +8427,56 @@ loadHistory();
     }
   }
 
+  function escapeChatHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]);
+    });
+  }
+
   // กันเสียงดังรัวๆ ตอนโหลดประวัติแชทเก่าครั้งแรกที่เปิดหน้าต่างแชท (child_added จะยิงย้อนหลังทุกข้อความเก่าด้วย)
   let liveChatHistoryLoaded = false;
   setTimeout(() => { liveChatHistoryLoaded = true; }, 1000);
 
   // ฟังข้อความ Real-time
   liveChatDb.ref('chats/' + liveChatRoomId).on('child_added', (snapshot) => {
-    const data = snapshot.val();
-    const msgDiv = document.createElement('div');
-    msgDiv.classList.add('msg', data.sender);
-    msgDiv.innerText = data.text;
-    
+    const data = snapshot.val() || {};
+    const me = currentChatUser();
+    const isMine = data.senderId && data.senderId === me.id;
+    const canDelete = isMine || me.role === 'admin';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'msg-wrap ' + (isMine ? 'mine' : 'theirs');
+    wrap.setAttribute('data-msg-key', snapshot.key);
+
+    const nameLabel = document.createElement('div');
+    nameLabel.className = 'msg-sender';
+    nameLabel.textContent = isMine ? 'คุณ' : (data.senderName || 'ผู้ใช้');
+    wrap.appendChild(nameLabel);
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg';
+    bubble.innerHTML = escapeChatHtml(data.text).replace(/\n/g, '<br>') +
+      (canDelete ? '<button type="button" class="msg-del-btn" title="ลบข้อความ" onclick="deleteChatMessage(\'' + snapshot.key + '\')">🗑</button>' : '');
+    wrap.appendChild(bubble);
+
     const container = document.getElementById('chat-messages');
     if (container) {
-      container.appendChild(msgDiv);
+      container.appendChild(wrap);
       container.scrollTop = container.scrollHeight;
     }
 
-    // เล่นเสียงเฉพาะข้อความใหม่จริงๆ จากฝั่งแอดมิน (ไม่เล่นตอนโหลดประวัติเก่า และไม่เล่นตอนผู้ใช้ส่งข้อความของตัวเอง)
-    if (liveChatHistoryLoaded && data.sender === 'admin') {
+    // เล่นเสียงเฉพาะข้อความใหม่จริงๆ จากคนอื่น (ไม่เล่นตอนโหลดประวัติเก่า และไม่เล่นตอนเป็นข้อความของตัวเอง)
+    if (liveChatHistoryLoaded && !isMine) {
       playChatNotifySound();
     }
+  });
+
+  // เมื่อมีการลบข้อความ (โดยตัวเองหรือคนอื่น) เอาออกจากหน้าจอด้วย
+  liveChatDb.ref('chats/' + liveChatRoomId).on('child_removed', (snapshot) => {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    const el = container.querySelector('[data-msg-key="' + snapshot.key + '"]');
+    if (el) el.remove();
   });
 
   // สร้าง Emoji Picker ป้องกันการโหลดก่อน DOM
