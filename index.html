@@ -982,11 +982,57 @@ body.printing #printArea{
 .ssc-item .v{ font-family:'Kanit',sans-serif; font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.3; }
 .ssc-item .v.accent{ color:var(--accent); font-size:15px; }
 .ssc-item.full{ grid-column:1 / -1; }
+
+/* ===== Authentication layer ===== */
+#rstAuthRoot{
+  position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center;
+  padding:20px; background:rgba(38,36,32,.42); backdrop-filter:blur(4px);
+}
+.rst-auth-panel{
+  width:min(100%,390px); background:#fff; border:1.5px solid var(--line); border-radius:16px;
+  padding:24px; box-shadow:0 18px 50px rgba(38,36,32,.22);
+}
+.rst-auth-brand{ color:var(--yanmar); font-family:'Kanit',sans-serif; font-size:13px; font-weight:700; }
+.rst-auth-panel h2{ margin:4px 0 2px; font-family:'Kanit',sans-serif; font-size:24px; }
+.rst-auth-subtitle{ margin:0 0 18px; color:var(--ink-soft); font-size:13px; }
+.rst-auth-panel label{ display:block; margin-top:10px; color:var(--ink-soft); font-size:11px; font-weight:600; }
+.rst-auth-panel input, .rst-auth-panel select{
+  display:block; margin-top:4px; padding:9px 10px; width:100%; background:#fff;
+  border:1.5px solid var(--line); border-radius:9px; color:var(--ink); font:500 14px 'Kanit',sans-serif;
+}
+.rst-auth-panel input:focus, .rst-auth-panel select:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+.rst-auth-primary, .rst-auth-secondary{
+  width:100%; margin-top:16px; padding:10px; border:0; border-radius:9px; cursor:pointer;
+  color:#fff; font:700 14px 'Kanit',sans-serif;
+}
+.rst-auth-primary{ background:var(--yanmar); }
+.rst-auth-secondary{ background:#2d6a4f; }
+.rst-auth-link{ display:block; margin:12px auto 0; border:0; background:none; color:var(--accent); cursor:pointer; font:600 12px 'Kanit',sans-serif; }
+.rst-auth-register{ margin-top:14px; padding-top:12px; border-top:1px solid var(--line); }
+.rst-auth-register h3{ margin:0; font:700 15px 'Kanit',sans-serif; }
+.rst-auth-message{ min-height:18px; margin-top:12px; color:#2d6a4f; font-size:12px; text-align:center; }
+.rst-auth-message.error{ color:#c0392b; }
+.rst-auth-config-note{ margin-top:8px; color:#a86400; font-size:11px; text-align:center; }
+.rst-user-status-bar{
+  display:none; width:100%; margin-top:6px; padding:6px 10px; border:1.5px solid var(--line);
+  border-radius:9px; background:#fff; font-size:11.5px; color:var(--ink); text-align:left;
+  cursor:pointer; font-family:'Sarabun',sans-serif;
+}
+.rst-user-status-bar:hover{ border-color:var(--accent); }
+.rst-user-status-role{ font-weight:400; opacity:.8; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+<script>
+  window.RST_AUTH_CONFIG = {
+    enabled: true,
+    apiUrl: 'https://rst-promo-auth-658033347491.asia-southeast1.run.app/auth',
+    sessionKey: 'rst_auth_session'
+  };
+</script>
+<script src="auth.js?v=20260915"></script>
 </head>
 <body>
 
@@ -997,6 +1043,7 @@ body.printing #printArea{
     <button onclick="openHistory()" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);cursor:pointer;white-space:nowrap">📋 ประวัติ</button>
   </div>
   <div class="sub" id="topbarSub">เลือกรุ่นรถ → เลือกกลุ่มลูกค้า → ดูโปรที่สนับสนุนดีที่สุด</div>
+  <button type="button" id="rstUserStatusBar" class="rst-user-status-bar" onclick="openIdentityModal()"></button>
   <div class="brand-toggle">
     <button class="brand-btn yanmar active" data-brand="yanmar">Yanmar</button>
     <button class="brand-btn solis" data-brand="solis">Solis</button>
@@ -1192,7 +1239,7 @@ body.printing #printArea{
     <button class="history-tab-btn" id="histFilterToggleBtn" onclick="toggleHistFilterPanel()" title="ค้นหา/กรองรายการ">🔍</button>
     <button class="history-tab-btn" onclick="openDashboardModal()" title="ภาพรวมไปป์ไลน์">📊</button>
     <button class="history-tab-btn" onclick="openIdentityModal()" title="ชื่อ/บทบาทของฉัน">👤</button>
-    <button class="history-tab-btn" onclick="openGasConfig()" title="ตั้งค่า GAS">⚙️</button>
+    <button class="history-tab-btn" id="gasConfigBtn" onclick="openGasConfig()" title="ตั้งค่า GAS">⚙️</button>
   </div>
   <div class="gas-config" id="gasConfigBox" style="display:none">
     <label>Google Apps Script URL</label>
@@ -4875,8 +4922,7 @@ function filterRecordsByDateRange(records){
   });
 }
 function exportCrmTemplateXLSX(){
-  if(!userName || !userRole){ openIdentityModal(); alert('กรุณาใส่ชื่อและเลือกบทบาทก่อน (ต้องเป็นบทบาท "ผู้จัดการ" ถึงจะ Export ได้)'); return; }
-  if(!isManagerUser()){ alert('ฟังก์ชัน Export เข้า CRM นี้ใช้ได้เฉพาะบทบาท "ผู้จัดการ" เท่านั้น (ตอนนี้บทบาทของคุณคือ ' + (userRole||'-') + ') — ถ้าต้องเปลี่ยนบทบาท กด 👤 ด้านบน'); return; }
+  if(!isManagerUser()){ alert('ฟังก์ชัน Export เข้า CRM นี้ใช้ได้เฉพาะบทบาทแอดมินหรือผู้จัดการเท่านั้น (ตอนนี้บทบาทของคุณคือ ' + roleLabel(userRole) + ')'); return; }
   function doExport(){
     if(typeof XLSX === 'undefined'){ alert('กำลังโหลด Excel library... ลองอีกครั้งใน 2-3 วิ'); return; }
     if(typeof CRM_TEMPLATE_XLSX_B64 === 'undefined'){ alert('ไม่พบไฟล์ crm_template_data.js — ใส่ไฟล์นี้ไว้โฟลเดอร์เดียวกับ HTML ด้วย'); return; }
@@ -4938,35 +4984,56 @@ const GAS_URL_KEY = 'rst_promo_gas_url';
 const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxnthS6N5IT4i0XjUt_ru9yv-jeoqNM0_oxkS9r8t1NlqNw9FjF43Q0PwOBlcUzfeU1/exec';
 let gasUrl = localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL;
 
-// ===== User Identity (ชื่อ + บทบาท) =====
+// ===== User Identity (ชื่อ + บทบาท) — มาจากการเข้าสู่ระบบจริงผ่าน auth.js (RST_AUTH_CONFIG) =====
+// บทบาทของระบบตอนนี้มี 3 ระดับ: 'admin' (แอดมิน) | 'manager' (ผู้จัดการ) | 'sales' (พนักงานขาย)
+// ค่า 'supervisor'/'finance' เป็นชื่อบทบาทเดิมก่อนเปลี่ยนมาใช้ระบบ login จริง — normalizeRole() แปลงให้เป็น 'manager' อัตโนมัติเพื่อความเข้ากันได้ย้อนหลัง
 const USER_NAME_KEY = 'rst_promo_user_name';
-const USER_ROLE_KEY = 'rst_promo_user_role'; // 'sales' | 'finance' | 'supervisor' — บทบาททั้งหมดที่มีในระบบ: เซลล์/ไฟแนนซ์/ผู้จัดการ (ใช้ค่า 'supervisor' แทน 'ผู้จัดการ' ในโค้ด)
+const USER_ROLE_KEY = 'rst_promo_user_role';
+function normalizeRole(role){
+  if(role === 'supervisor' || role === 'finance') return 'manager';
+  return (role === 'admin' || role === 'manager' || role === 'sales') ? role : 'sales';
+}
 let userName = localStorage.getItem(USER_NAME_KEY) || '';
-let userRole = localStorage.getItem(USER_ROLE_KEY) || '';
-let _pendingRole = userRole;
+let userRole = normalizeRole(localStorage.getItem(USER_ROLE_KEY) || '');
 updateExportCrmButtonVisibility();
 
-function isFinanceUser(){ return userRole === 'finance'; }
-function isManagerUser(){ return userRole === 'supervisor'; } // "ผู้จัดการ" ในหน้าเลือกบทบาท = role 'supervisor' เดิมที่มีอยู่แล้วในระบบ
+// ฟังเหตุการณ์ 'rst:authenticated' ที่ auth.js ยิงออกมาหลัง login สำเร็จ (หรือตอนโหลดหน้าแล้วมี session ค้างอยู่)
+// แล้ว sync เข้ากับตัวแปร userName/userRole เดิมของแอป เพื่อให้ทุกฟังก์ชันที่มีอยู่แล้วทำงานถูกต้องโดยไม่ต้องแก้จุดอื่นเพิ่ม
+window.addEventListener('rst:authenticated', function(e){
+  const sess = (e && e.detail) || {};
+  userName = sess.name || sess.username || userName;
+  userRole = normalizeRole(sess.role);
+  localStorage.setItem(USER_NAME_KEY, userName);
+  localStorage.setItem(USER_ROLE_KEY, userRole);
+  updateExportCrmButtonVisibility();
+  // auto-fill ชื่อผู้ปิดการขาย ถ้ายังว่างอยู่ จะได้ไม่ต้องพิมพ์ซ้ำทุกเคส
+  const bn = document.getElementById('branchName'); if(bn && !bn.value) bn.value = userName;
+  const bnM = document.getElementById('branchNameM'); if(bnM && !bnM.value) bnM.value = userName;
+  if(document.querySelector('.app')?.classList.contains('history')) loadHistory();
+});
+
+function isAdminUser(){ return userRole === 'admin'; }
+function isManagerUser(){ return userRole === 'admin' || userRole === 'manager'; } // แอดมิน/ผู้จัดการ = สิทธิ์ระดับจัดการ
+function isFinanceUser(){ return isManagerUser(); } // งานปรับยอดดาวน์ (เดิมจำกัดเฉพาะบทบาท "การเงิน") ยกให้แอดมิน/ผู้จัดการดูแลแทนในระบบสิทธิ์ใหม่
 function updateExportCrmButtonVisibility(){
   const btn = document.getElementById('exportCrmTemplateBtn');
   if(btn) btn.style.display = isManagerUser() ? '' : 'none';
   const dateBox = document.getElementById('exportCrmDateRangeBox');
   if(dateBox) dateBox.style.display = isManagerUser() ? 'flex' : 'none';
+  const gasBtn = document.getElementById('gasConfigBtn');
+  if(gasBtn) gasBtn.style.display = isAdminUser() ? '' : 'none'; // ตั้งค่า GAS จำกัดเฉพาะแอดมิน
 }
-function roleLabel(role){ return role==='finance' ? 'ไฟแนนซ์' : (role==='supervisor' ? 'ผู้จัดการ' : 'เซลล์'); }
-// สิทธิ์แก้ไขข้อมูลเคสที่บันทึกไปแล้ว (กรณีกรอกผิด) — ไฟแนนซ์กับผู้จัดการเท่านั้น
-function canEditRecords(){ return userRole === 'finance' || userRole === 'supervisor'; }
+function roleLabel(role){ return role==='admin' ? 'แอดมิน' : (role==='manager' ? 'ผู้จัดการ' : 'พนักงานขาย'); }
+// สิทธิ์แก้ไขข้อมูลเคสที่บันทึกไปแล้ว (กรณีกรอกผิด) — แอดมิน/ผู้จัดการเท่านั้น
+function canEditRecords(){ return isManagerUser(); }
+// สิทธิ์ลบ/แก้ไขสถานะเคส — แอดมิน, ผู้จัดการ, หรือเจ้าของเคส (พนักงานขายที่บันทึกเคสนี้เอง)
+function canManageCase(rec){ return isManagerUser() || !!(rec && userName && (rec.branch||'') === userName); }
 
 function openIdentityModal(){
-  document.getElementById('identityNameInput').value = userName;
-  _pendingRole = userRole || 'sales';
-  updateRoleButtons();
+  if(window.RSTAuth && window.RSTAuth.renderIdentity) window.RSTAuth.renderIdentity();
   document.getElementById('identityModalBg').style.display = 'flex';
 }
 function closeIdentityModal(){
-  // ต้องมีทั้งชื่อและบทบาทก่อนถึงจะปิดได้ (บังคับตั้งค่าครั้งแรก)
-  if(!userName || !userRole) return;
   document.getElementById('identityModalBg').style.display = 'none';
 }
 
@@ -5107,32 +5174,8 @@ function jumpToStatusFilter(status){
   });
   filterHistory();
 }
-function pickRole(role){
-  _pendingRole = role;
-  updateRoleButtons();
-}
-function updateRoleButtons(){
-  const sb = document.getElementById('roleBtnSales'), fb = document.getElementById('roleBtnFinance'), pb = document.getElementById('roleBtnSupervisor');
-  if(sb) sb.classList.toggle('active', _pendingRole==='sales');
-  if(fb) fb.classList.toggle('active', _pendingRole==='finance');
-  if(pb) pb.classList.toggle('active', _pendingRole==='supervisor');
-}
-function saveIdentity(){
-  const name = document.getElementById('identityNameInput').value.trim();
-  if(!name || !_pendingRole){ alert('กรุณากรอกชื่อและเลือกบทบาทให้ครบ'); return; }
-  userName = name; userRole = _pendingRole;
-  localStorage.setItem(USER_NAME_KEY, userName);
-  localStorage.setItem(USER_ROLE_KEY, userRole);
-  document.getElementById('identityModalBg').style.display = 'none';
-  updateExportCrmButtonVisibility();
-  // auto-fill ชื่อผู้ปิดการขายให้เซลล์ (ถ้ายังว่างอยู่) จะได้ไม่ต้องพิมพ์ซ้ำทุกเคส
-  if(userRole === 'sales'){
-    const bn = document.getElementById('branchName'); if(bn && !bn.value) bn.value = userName;
-    const bnM = document.getElementById('branchNameM'); if(bnM && !bnM.value) bnM.value = userName;
-  }
-  // ถ้ากำลังดูรายละเอียดเคสอยู่ ให้รีเฟรชสิทธิ์การมองเห็นปุ่ม/dropdown ทันที
-  if(document.querySelector('.app').classList.contains('history')) loadHistory();
-}
+// หมายเหตุ: เดิมตรงนี้เป็น pickRole()/updateRoleButtons()/saveIdentity() สำหรับให้ผู้ใช้เลือกบทบาทเอง (ไม่มีการยืนยันตัวตนจริง)
+// ตอนนี้ชื่อ/บทบาทมาจากการเข้าสู่ระบบผ่าน auth.js เท่านั้น (ดู event listener 'rst:authenticated' ด้านบน) จึงตัดฟังก์ชันกลุ่มนี้ออก
 
 function escapeHtml(str){
   return String(str==null?'':str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -5168,6 +5211,7 @@ function closeHistFilterPanel(){
   if(btn) btn.classList.remove('active');
 }
 function openGasConfig(){
+  if(!isAdminUser()){ alert('ตั้งค่า GAS ได้เฉพาะแอดมินเท่านั้น'); return; }
   const box = document.getElementById('gasConfigBox');
   box.style.display = box.style.display==='none' ? 'block' : 'none';
   document.getElementById('gasUrlInput').value = gasUrl;
@@ -5556,7 +5600,12 @@ function hfAmphureChange(){
 }
 
 function renderHistoryList(records){
-  _allHistoryRecords = records || [];
+  records = records || [];
+  // พนักงานขายเห็นเฉพาะเคสของตัวเอง (สาขา/ผู้ปิดการขาย = ชื่อบัญชีที่ login) — แอดมิน/ผู้จัดการเห็นทุกเคส
+  if(!isManagerUser() && userName){
+    records = records.filter(r => (r.branch||'') === userName);
+  }
+  _allHistoryRecords = records;
   populateFilterDropdowns();
   const countEl = document.getElementById('histFilterCount');
   if(countEl){
@@ -5832,7 +5881,7 @@ function changeCaseStatus(id, status, note){
 let _editRecordId = null;
 let _editRecordSnapshot = null;
 function openEditRecordModal(id){
-  if(!canEditRecords()){ alert('เฉพาะไฟแนนซ์และผู้จัดการเท่านั้นที่แก้ไขข้อมูลได้'); return; }
+  if(!canEditRecords()){ alert('เฉพาะแอดมินและผู้จัดการเท่านั้นที่แก้ไขข้อมูลได้'); return; }
   _editRecordId = id;
   jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
     if(err || data.status !== 'ok'){ alert('โหลดข้อมูลไม่ได้: ' + (err?.message||data?.message)); return; }
@@ -6309,12 +6358,12 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div class="sales-summary-card">
         <div class="ssc-head" style="justify-content:space-between">
           <span>🧾 สรุปการขาย</span>
-          ${isFinanceUser()
+          ${canManageCase(d)
             ? `<select class="case-status-select" id="hdStatusSelect_${id}" data-prev="${escapeHtml(d.caseStatus||'รอดำเนินการ')}" onchange="onCaseStatusSelectChange('${id}', this)">${CASE_STATUSES.map(s=>`<option value="${escapeHtml(s)}" ${((d.caseStatus||'รอดำเนินการ')===s)?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select>`
             : `<span class="case-status-badge status-${statusSlug(d.caseStatus||'รอดำเนินการ')}" id="hdStatusBadge_${id}">${escapeHtml(d.caseStatus||'รอดำเนินการ')}</span>`
           }
         </div>
-        ${isFinanceUser() ? `<div id="hdStatusNoteArea_${id}"></div>` : ''}
+        ${canManageCase(d) ? `<div id="hdStatusNoteArea_${id}"></div>` : ''}
         <div class="ssc-grid">
           <div class="ssc-item"><div class="k">ลูกค้า</div><div class="v">${d.custName||'—'}</div></div>
           <div class="ssc-item"><div class="k">เบอร์โทร</div><div class="v">${d.custPhone||'—'}</div></div>
@@ -6395,6 +6444,7 @@ function renderHistoryDetailHtml(id, d, rowNote){
 
       <div style="display:flex;gap:8px;margin-top:14px">
         <button class="btn-reprint" style="flex:1" onclick="closeHistoryDetail();reprintRecord('${id}')">🖨 พิมพ์ใบสรุป</button>
+        ${canManageCase(d) ? `<button class="btn-del" style="color:#c0392b;border-color:#f2c9c3" onclick="deleteRecord('${id}')">🗑 ลบ</button>` : ''}
         <button class="btn-del" onclick="closeHistoryDetail()">← รายการ</button>
       </div>
       </div>
@@ -6427,6 +6477,8 @@ function reExportXLSX(id){
 }
 
 function deleteRecord(id){
+  const rec = (_allHistoryRecords||[]).find(r => String(r.id) === String(id));
+  if(!canManageCase(rec)){ alert('คุณไม่มีสิทธิ์ลบเคสนี้ (เฉพาะแอดมิน/ผู้จัดการ หรือเจ้าของเคสเท่านั้น)'); return; }
   if(!confirm('ลบรายการนี้?')) return;
   gasPost('delete', {action:'delete', id}, function(err){
     if(err){ alert('ลบไม่ได้: ' + err.message); return; }
@@ -8039,20 +8091,10 @@ loadHistory();
   </div>
   <div class="modal-form-scroll">
     <div class="modal-form-inner">
-      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">ใส่ชื่อและเลือกบทบาทของคุณ — ใช้แสดงชื่อผู้บันทึก/ผู้แก้ไขใน Timeline ของแต่ละเคส และกำหนดสิทธิ์การใช้งานบางฟังก์ชัน (เช่น แก้ไขข้อมูลย้อนหลัง, Export ข้อมูลเข้า CRM)</div>
-      <div class="field-group">
-        <label>ชื่อของคุณ</label>
-        <input type="text" id="identityNameInput" placeholder="เช่น สมชาย ใจดี">
-      </div>
-      <div class="field-group">
-        <label>บทบาท</label>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" id="roleBtnSales" class="role-btn" onclick="pickRole('sales')">🧑‍🌾 เซลล์</button>
-          <button type="button" id="roleBtnFinance" class="role-btn" onclick="pickRole('finance')">💰 การเงิน</button>
-          <button type="button" id="roleBtnSupervisor" class="role-btn" onclick="pickRole('supervisor')">👔 ผู้จัดการ</button>
-        </div>
-      </div>
-      <button class="btn-save" style="width:100%;margin-top:10px" onclick="saveIdentity()">✓ บันทึก</button>
+      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">ข้อมูลบัญชีของคุณ (มาจากการเข้าสู่ระบบ) — ใช้แสดงชื่อผู้บันทึก/ผู้แก้ไขใน Timeline ของแต่ละเคส และกำหนดสิทธิ์การใช้งานบางฟังก์ชัน (เช่น แก้ไขข้อมูลย้อนหลัง, Export ข้อมูลเข้า CRM)</div>
+      <div id="rstIdentityDetailBox"></div>
+      <button type="button" id="rstOpenAddMemberBtn" class="finance-launch-btn" style="width:100%;margin-top:12px;display:none" onclick="window.RSTAuth && window.RSTAuth.openAddMemberModal()">➕ เพิ่มสมาชิกใหม่</button>
+      <button class="btn-save" style="width:100%;margin-top:10px;background:#c0392b" onclick="window.RSTAuth ? window.RSTAuth.logout() : null">🚪 ออกจากระบบ</button>
     </div>
   </div>
 </div>
