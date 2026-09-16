@@ -8162,5 +8162,178 @@ loadHistory();
      document.getElementById('printArea') คืนค่า null แล้ว .innerHTML=... throw error ก่อนถึง window.print() -->
 <div id="printArea"></div>
 
+
+<!-- Firebase SDKs (Realtime Database Compatibility) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+<!-- Live Chat Widget CSS -->
+<style>
+  #chat-widget-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #d93025;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    z-index: 9999;
+  }
+  #chat-box {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 320px;
+    height: 420px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    flex-direction: column;
+    z-index: 9999;
+    overflow: hidden;
+    font-family: sans-serif;
+  }
+  #chat-header {
+    background: #d93025;
+    color: white;
+    padding: 12px 16px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #chat-messages {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+    background: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .msg {
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    word-break: break-word;
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: #d93025;
+    color: white;
+  }
+  .msg.admin {
+    align-self: flex-start;
+    background: #e0e0e0;
+    color: #333;
+  }
+  #chat-input-area {
+    display: flex;
+    padding: 8px;
+    border-top: 1px solid #eee;
+    background: #fff;
+  }
+  #chat-input-area input {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 8px 12px;
+    outline: none;
+  }
+  #chat-input-area button {
+    background: #d93025;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    margin-left: 8px;
+    cursor: pointer;
+  }
+</style>
+
+<!-- Live Chat Widget HTML -->
+<button id="chat-widget-button" onclick="toggleChat()">💬 สนทนาสด</button>
+
+<div id="chat-box">
+  <div id="chat-header">
+    <span>Live Chat Support</span>
+    <span style="cursor:pointer;" onclick="toggleChat()">✖</span>
+  </div>
+  <div id="chat-messages"></div>
+  <div id="chat-input-area">
+    <input type="text" id="chat-input" placeholder="พิมพ์ข้อความ..." onkeypress="handleKeyPress(event)" />
+    <button onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<!-- Live Chat Script -->
+<script>
+  // Config จากโปรเจกต์ CRM Chat ของคุณ
+  const firebaseConfig = {
+    apiKey: "AIzaSyBpbiUgURv1-uaLrNVXAfJatDUSGMbb15w",
+    authDomain: "crm-tracker-503906.firebaseapp.com",
+    databaseURL: "https://crm-tracker-503906-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "crm-tracker-503906",
+    storageBucket: "crm-tracker-503906.firebasestorage.app",
+    messagingSenderId: "658033347491",
+    appId: "1:658033347491:web:86a478c2792853e817e816",
+    measurementId: "G-5WJRM17B0W"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const rtdb = firebase.database();
+
+  // กำหนด Room ID สุ่มชั่วคราว หรือใช้ Username ของผู้ใช้งาน
+  const roomId = localStorage.getItem('chat_room_id') || 'guest_' + Math.floor(Math.random() * 100000);
+  localStorage.setItem('chat_room_id', roomId);
+
+  function toggleChat() {
+    const box = document.getElementById('chat-box');
+    box.style.display = (box.style.display === 'flex') ? 'none' : 'flex';
+  }
+
+  function handleKeyPress(e) {
+    if (e.key === 'Enter') sendMessage();
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    // บันทึกลง Realtime Database
+    rtdb.ref('chats/' + roomId).push({
+      sender: 'user',
+      text: text,
+      timestamp: Date.now()
+    });
+
+    input.value = '';
+  }
+
+  // ดึงข้อความมาแสดงผล Real-time
+  rtdb.ref('chats/' + roomId).on('child_added', (snapshot) => {
+    const data = snapshot.val();
+    const msgDiv = document.createElement('div');
+    msgDiv.classList.add('msg', data.sender);
+    msgDiv.innerText = data.text;
+    
+    const container = document.getElementById('chat-messages');
+    container.appendChild(msgDiv);
+    container.scrollTop = container.scrollHeight;
+  });
+</script>
+
+
+
+
 </body>
 </html>
