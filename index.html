@@ -6309,12 +6309,9 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div class="sales-summary-card">
         <div class="ssc-head" style="justify-content:space-between">
           <span>🧾 สรุปการขาย</span>
-          ${isFinanceUser()
-            ? `<select class="case-status-select" id="hdStatusSelect_${id}" data-prev="${escapeHtml(d.caseStatus||'รอดำเนินการ')}" onchange="onCaseStatusSelectChange('${id}', this)">${CASE_STATUSES.map(s=>`<option value="${escapeHtml(s)}" ${((d.caseStatus||'รอดำเนินการ')===s)?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select>`
-            : `<span class="case-status-badge status-${statusSlug(d.caseStatus||'รอดำเนินการ')}" id="hdStatusBadge_${id}">${escapeHtml(d.caseStatus||'รอดำเนินการ')}</span>`
-          }
+          <select class="case-status-select" id="hdStatusSelect_${id}" data-prev="${escapeHtml(d.caseStatus||'รอดำเนินการ')}" onchange="onCaseStatusSelectChange('${id}', this)">${CASE_STATUSES.map(s=>`<option value="${escapeHtml(s)}" ${((d.caseStatus||'รอดำเนินการ')===s)?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select>
         </div>
-        ${isFinanceUser() ? `<div id="hdStatusNoteArea_${id}"></div>` : ''}
+        <div id="hdStatusNoteArea_${id}"></div>
         <div class="ssc-grid">
           <div class="ssc-item"><div class="k">ลูกค้า</div><div class="v">${d.custName||'—'}</div></div>
           <div class="ssc-item"><div class="k">เบอร์โทร</div><div class="v">${d.custPhone||'—'}</div></div>
