@@ -5762,42 +5762,16 @@ function renderTimelineEntries(updates){
   }).join('');
 }
 
-// เปลี่ยนสถานะเคส — ใส่หมายเหตุแนบไปพร้อมกันได้เลย (ไม่ต้องแยกไปกดเพิ่มบันทึกคุยทีหลัง)
-let _pendingStatusChange = {};
-function onCaseStatusSelectChange(id, selectEl){
-  const newStatus = selectEl.value;
-  const prevStatus = selectEl.getAttribute('data-prev') || newStatus;
-  const area = document.getElementById('hdStatusNoteArea_'+id);
-  if(!area){ changeCaseStatus(id, newStatus); return; }
-  _pendingStatusChange[id] = { newStatus, prevStatus };
-  area.innerHTML = `
-    <div style="margin-top:8px;padding:10px;background:#fff;border:1.5px solid var(--line);border-radius:10px">
-      <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:4px">เปลี่ยนเป็น "${escapeHtml(newStatus)}" — ใส่หมายเหตุด้วยเลยได้ (ถ้ามี)</label>
-      <textarea id="hdStatusNoteInput_${id}" rows="2" placeholder="เช่น ลูกค้าขอเลื่อนนัด..." style="width:100%;box-sizing:border-box;font-family:'Kanit',sans-serif;font-size:12.5px;padding:6px 8px;border-radius:8px;border:1.5px solid var(--line)"></textarea>
-      <div style="display:flex;gap:8px;margin-top:6px">
-        <button class="btn-reprint" style="flex:1" onclick="confirmCaseStatusChange('${id}')">✓ ยืนยันเปลี่ยนสถานะ</button>
-        <button class="btn-del" onclick="cancelCaseStatusChange('${id}')">ยกเลิก</button>
-      </div>
-    </div>`;
-}
+// เปลี่ยนสถานะเคส — แถบบันทึก "คุยอะไรกับลูกค้า" อยู่ติดกับ dropdown สถานะเสมอ (ไม่ต้องเปลี่ยนสถานะก่อนถึงจะพิมพ์/กดบันทึกได้)
+// กด "บันทึก" ครั้งเดียว = ส่งทั้งสถานะปัจจุบันใน dropdown (จะเปลี่ยนหรือไม่เปลี่ยนก็ได้) + หมายเหตุที่พิมพ์ไว้ไปพร้อมกัน
 function confirmCaseStatusChange(id){
-  const pending = _pendingStatusChange[id];
-  if(!pending) return;
-  const note = (document.getElementById('hdStatusNoteInput_'+id)?.value || '').trim();
-  changeCaseStatus(id, pending.newStatus, note);
-  const area = document.getElementById('hdStatusNoteArea_'+id);
-  if(area) area.innerHTML = '';
   const sel = document.getElementById('hdStatusSelect_'+id);
-  if(sel) sel.setAttribute('data-prev', pending.newStatus);
-  delete _pendingStatusChange[id];
-}
-function cancelCaseStatusChange(id){
-  const pending = _pendingStatusChange[id];
-  const sel = document.getElementById('hdStatusSelect_'+id);
-  if(sel && pending) sel.value = pending.prevStatus;
-  const area = document.getElementById('hdStatusNoteArea_'+id);
-  if(area) area.innerHTML = '';
-  delete _pendingStatusChange[id];
+  const status = sel ? sel.value : 'รอดำเนินการ';
+  const noteEl = document.getElementById('hdStatusNoteInput_'+id);
+  const note = (noteEl?.value || '').trim();
+  changeCaseStatus(id, status, note);
+  if(noteEl) noteEl.value = ''; // เคลียร์ช่องพิมพ์ให้พร้อมจดรอบถัดไป แต่แถบยังอยู่เหมือนเดิม ไม่หายไปไหน
+  if(sel) sel.setAttribute('data-prev', status);
 }
 function changeCaseStatus(id, status, note){
   const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
@@ -6309,9 +6283,13 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div class="sales-summary-card">
         <div class="ssc-head" style="justify-content:space-between">
           <span>🧾 สรุปการขาย</span>
-          <select class="case-status-select" id="hdStatusSelect_${id}" data-prev="${escapeHtml(d.caseStatus||'รอดำเนินการ')}" onchange="onCaseStatusSelectChange('${id}', this)">${CASE_STATUSES.map(s=>`<option value="${escapeHtml(s)}" ${((d.caseStatus||'รอดำเนินการ')===s)?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select>
+          <select class="case-status-select" id="hdStatusSelect_${id}" data-prev="${escapeHtml(d.caseStatus||'รอดำเนินการ')}">${CASE_STATUSES.map(s=>`<option value="${escapeHtml(s)}" ${((d.caseStatus||'รอดำเนินการ')===s)?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select>
         </div>
-        <div id="hdStatusNoteArea_${id}"></div>
+        <div class="hd-status-note-bar" style="margin-top:8px;padding:10px;background:#fff;border:1.5px solid var(--line);border-radius:10px">
+          <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:4px">บันทึกว่าคุยอะไรกับลูกค้า (จะเปลี่ยนสถานะด้านบนไปด้วยหรือไม่ก็ได้)</label>
+          <textarea id="hdStatusNoteInput_${id}" rows="2" placeholder="เช่น ลูกค้าขอเลื่อนนัดโอนเงิน..." style="width:100%;box-sizing:border-box;font-family:'Kanit',sans-serif;font-size:12.5px;padding:6px 8px;border-radius:8px;border:1.5px solid var(--line)"></textarea>
+          <button class="btn-reprint" style="width:100%;margin-top:6px" onclick="confirmCaseStatusChange('${id}')">บันทึก</button>
+        </div>
         <div class="ssc-grid">
           <div class="ssc-item"><div class="k">ลูกค้า</div><div class="v">${d.custName||'—'}</div></div>
           <div class="ssc-item"><div class="k">เบอร์โทร</div><div class="v">${d.custPhone||'—'}</div></div>
