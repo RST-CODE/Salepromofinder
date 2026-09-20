@@ -405,6 +405,20 @@
       '.rst-member-delete{color:#c0392b;border-color:#f2c9c3!important}',
       '.rst-identity-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f0ede8;font-size:13px}',
       '.rst-identity-row span{color:var(--ink-soft,#6B6259)}',
+      /* (แก้บั๊ก 2026-09-20 รอบ 7) หน้าจอ Login (#rstAuthRoot) เดิมไม่มี CSS ล็อกเต็มจอเลย —
+         ทำให้ appendChild ต่อท้าย <body> เป็นแค่กล่องข้อความเปล่าๆ ไม่มีสไตล์ ไปโผล่ที่ล่างสุดของหน้า
+         มองไม่เห็น (เข้าเว็บมาเจอหน้าคำนวณโปรตามปกติ เหมือนไม่มีระบบ login เลย) — เพิ่มสไตล์ชุดนี้ให้ล็อกเต็มจอ */
+      '#rstAuthRoot{position:fixed;inset:0;z-index:3000;background:#fff;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;overflow:auto}',
+      '.rst-auth-panel{width:100%;max-width:380px}',
+      '.rst-auth-brand{font-family:\'Kanit\',sans-serif;font-weight:700;font-size:13px;color:var(--accent,#C8372D);letter-spacing:.5px;text-align:center;margin-bottom:2px}',
+      '.rst-auth-panel h2{font-family:\'Kanit\',sans-serif;font-weight:700;font-size:22px;color:var(--ink,#262420);text-align:center;margin:2px 0 4px}',
+      '.rst-auth-subtitle{font-family:\'Sarabun\',sans-serif;font-size:12.5px;color:var(--ink-soft,#6B6259);text-align:center;margin:0 0 18px}',
+      '#rstLoginForm label{display:block;margin-top:12px;color:var(--ink-soft,#6B6259);font-size:11.5px;font-weight:600;font-family:\'Kanit\',sans-serif}',
+      '#rstLoginForm input{display:block;margin-top:4px;padding:10px 12px;width:100%;box-sizing:border-box;background:#fff;border:1.5px solid var(--line,#E4DCCF);border-radius:9px;color:var(--ink,#262420);font:500 14px \'Kanit\',sans-serif}',
+      '.rst-auth-primary{margin-top:18px;width:100%;padding:11px;border:0;border-radius:9px;cursor:pointer;color:#fff;font:700 14.5px \'Kanit\',sans-serif;background:var(--yanmar,#C8372D)}',
+      '.rst-auth-message{min-height:16px;margin-top:10px;font-family:\'Sarabun\',sans-serif;font-size:12.5px;color:var(--ink-soft,#6B6259);text-align:center}',
+      '.rst-auth-message.error{color:#c0392b;font-weight:600}',
+      '.rst-auth-config-note{margin-top:14px;padding:8px 10px;border-radius:8px;background:#fdf3e3;border:1px solid #ecd9a8;color:#8a6500;font-size:11.5px;font-family:\'Sarabun\',sans-serif;text-align:center}',
       /* วิดเจ็ตสถานะผู้ใช้ + เมนู logout/เพิ่มสมาชิก — สร้างเองทั้งหมด ไม่ต้องพึ่ง element ใน index.html
          (กันปัญหากรณีอัปเดตแค่ auth.js โดยไม่ได้แก้ index.html ตาม ก็ยังใช้งานได้ครบ) */
       '.rst-account-widget{position:fixed;bottom:16px;left:16px;z-index:150;font-family:\'Sarabun\',sans-serif}',
