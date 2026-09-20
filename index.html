@@ -4938,35 +4938,48 @@ const GAS_URL_KEY = 'rst_promo_gas_url';
 const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxnthS6N5IT4i0XjUt_ru9yv-jeoqNM0_oxkS9r8t1NlqNw9FjF43Q0PwOBlcUzfeU1/exec';
 let gasUrl = localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL;
 
-// ===== User Identity (ชื่อ + บทบาท) =====
-const USER_NAME_KEY = 'rst_promo_user_name';
-const USER_ROLE_KEY = 'rst_promo_user_role'; // 'sales' | 'finance' | 'supervisor' — บทบาททั้งหมดที่มีในระบบ: เซลล์/ไฟแนนซ์/ผู้จัดการ (ใช้ค่า 'supervisor' แทน 'ผู้จัดการ' ในโค้ด)
-let userName = localStorage.getItem(USER_NAME_KEY) || '';
-let userRole = localStorage.getItem(USER_ROLE_KEY) || '';
-let _pendingRole = userRole;
-updateExportCrmButtonVisibility();
+// ===== User Identity (2026-09-20: เชื่อมกับระบบ Login จริงผ่าน auth.js / RSTAuth) =====
+// ชื่อ/บทบาทของผู้ใช้ตอนนี้มาจาก session ที่ auth.js จัดการทั้งหมด ไม่ได้ให้พิมพ์เองแล้วเก็บ
+// ใน localStorage ของหน้านี้เหมือนเดิมอีกต่อไป (USER_NAME_KEY/USER_ROLE_KEY เดิมถูกลบออกแล้ว)
+// userRole ในไฟล์นี้ใช้ค่า 3 ระดับตามระบบ RSTAuth เสมอ: 'admin' | 'manager' | 'sales'
+// (ฝั่ง backend จริงเก็บเป็น 'admin' | 'staff' | 'sale' — auth.js แปลงให้ตั้งแต่ตอน login แล้ว)
+let userName = '';
+let userRole = '';
 
-function isFinanceUser(){ return userRole === 'finance'; }
-function isManagerUser(){ return userRole === 'supervisor'; } // "ผู้จัดการ" ในหน้าเลือกบทบาท = role 'supervisor' เดิมที่มีอยู่แล้วในระบบ
+function isFinanceUser(){ return userRole === 'admin' || userRole === 'manager'; } // ตามที่ยืนยันไว้ (รอบ 5): งานการเงิน/ปรับโครงสร้างเงินดาวน์ จำกัดเฉพาะ admin/manager
+function isManagerUser(){ return userRole === 'admin' || userRole === 'manager'; } // คุมปุ่ม Export CRM (admin+manager เท่านั้น ตามสเปกเดิม)
 function updateExportCrmButtonVisibility(){
   const btn = document.getElementById('exportCrmTemplateBtn');
   if(btn) btn.style.display = isManagerUser() ? '' : 'none';
   const dateBox = document.getElementById('exportCrmDateRangeBox');
   if(dateBox) dateBox.style.display = isManagerUser() ? 'flex' : 'none';
 }
-function roleLabel(role){ return role==='finance' ? 'ไฟแนนซ์' : (role==='supervisor' ? 'ผู้จัดการ' : 'เซลล์'); }
-// สิทธิ์แก้ไขข้อมูลเคสที่บันทึกไปแล้ว (กรณีกรอกผิด) — ไฟแนนซ์กับผู้จัดการเท่านั้น
-function canEditRecords(){ return userRole === 'finance' || userRole === 'supervisor'; }
+function roleLabel(role){ return role==='admin' ? 'แอดมิน' : (role==='manager' ? 'ผู้จัดการ' : 'พนักงานขาย'); }
+// สิทธิ์แก้ไขข้อมูลเคสที่บันทึกไปแล้ว (กรณีกรอกผิด) — admin/manager เท่านั้น
+function canEditRecords(){ return userRole === 'admin' || userRole === 'manager'; }
+updateExportCrmButtonVisibility(); // ซ่อนปุ่ม Export ไว้ก่อนตั้งแต่ต้น จนกว่าจะ login สำเร็จ
+
+// เรียกทุกครั้งที่ auth.js ยืนยันตัวตนสำเร็จ (login ใหม่ หรือมี session ค้างอยู่ตอนโหลดหน้า) —
+// sync ชื่อ/บทบาทเข้าตัวแปรเดิมของแอป แทนที่ saveIdentity() แบบพิมพ์เองทั้งหมดที่ถูกลบไปแล้ว
+window.addEventListener('rst:authenticated', function(e){
+  const sess = (e && e.detail) || (window.RSTAuth && window.RSTAuth.getSession());
+  if(!sess) return;
+  userName = sess.name || sess.username || '';
+  userRole = sess.role || '';
+  updateExportCrmButtonVisibility();
+  // auto-fill ชื่อผู้ปิดการขาย/สาขา จากบัญชีที่ login (ถ้ายังว่างอยู่) จะได้ไม่ต้องพิมพ์ซ้ำทุกเคส
+  const bn = document.getElementById('branchName'); if(bn && !bn.value) bn.value = sess.branch || userName;
+  const bnM = document.getElementById('branchNameM'); if(bnM && !bnM.value) bnM.value = sess.branch || userName;
+  if(window.RSTAuth && window.RSTAuth.renderIdentity) window.RSTAuth.renderIdentity();
+  // ถ้ากำลังดูหน้าประวัติอยู่ ให้รีเฟรชสิทธิ์การมองเห็นปุ่ม/dropdown ทันที
+  if(document.querySelector('.app') && document.querySelector('.app').classList.contains('history') && typeof loadHistory === 'function') loadHistory();
+});
 
 function openIdentityModal(){
-  document.getElementById('identityNameInput').value = userName;
-  _pendingRole = userRole || 'sales';
-  updateRoleButtons();
+  if(window.RSTAuth && window.RSTAuth.renderIdentity) window.RSTAuth.renderIdentity();
   document.getElementById('identityModalBg').style.display = 'flex';
 }
 function closeIdentityModal(){
-  // ต้องมีทั้งชื่อและบทบาทก่อนถึงจะปิดได้ (บังคับตั้งค่าครั้งแรก)
-  if(!userName || !userRole) return;
   document.getElementById('identityModalBg').style.display = 'none';
 }
 
@@ -5107,32 +5120,9 @@ function jumpToStatusFilter(status){
   });
   filterHistory();
 }
-function pickRole(role){
-  _pendingRole = role;
-  updateRoleButtons();
-}
-function updateRoleButtons(){
-  const sb = document.getElementById('roleBtnSales'), fb = document.getElementById('roleBtnFinance'), pb = document.getElementById('roleBtnSupervisor');
-  if(sb) sb.classList.toggle('active', _pendingRole==='sales');
-  if(fb) fb.classList.toggle('active', _pendingRole==='finance');
-  if(pb) pb.classList.toggle('active', _pendingRole==='supervisor');
-}
-function saveIdentity(){
-  const name = document.getElementById('identityNameInput').value.trim();
-  if(!name || !_pendingRole){ alert('กรุณากรอกชื่อและเลือกบทบาทให้ครบ'); return; }
-  userName = name; userRole = _pendingRole;
-  localStorage.setItem(USER_NAME_KEY, userName);
-  localStorage.setItem(USER_ROLE_KEY, userRole);
-  document.getElementById('identityModalBg').style.display = 'none';
-  updateExportCrmButtonVisibility();
-  // auto-fill ชื่อผู้ปิดการขายให้เซลล์ (ถ้ายังว่างอยู่) จะได้ไม่ต้องพิมพ์ซ้ำทุกเคส
-  if(userRole === 'sales'){
-    const bn = document.getElementById('branchName'); if(bn && !bn.value) bn.value = userName;
-    const bnM = document.getElementById('branchNameM'); if(bnM && !bnM.value) bnM.value = userName;
-  }
-  // ถ้ากำลังดูรายละเอียดเคสอยู่ ให้รีเฟรชสิทธิ์การมองเห็นปุ่ม/dropdown ทันที
-  if(document.querySelector('.app').classList.contains('history')) loadHistory();
-}
+// (2026-09-20) pickRole()/updateRoleButtons()/saveIdentity() แบบให้พิมพ์ชื่อ/เลือกบทบาทเอง
+// ถูกลบออกแล้ว — แทนที่ด้วยระบบ Login จริงผ่าน auth.js (ดู event listener 'rst:authenticated'
+// และ openIdentityModal()/closeIdentityModal() ที่ย้ายไปรวมกับส่วน User Identity ด้านบน)
 
 function escapeHtml(str){
   return String(str==null?'':str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -8009,25 +7999,17 @@ loadHistory();
 
 <div class="preview-modal-bg" id="identityModalBg" style="display:none">
   <div class="preview-modal-header">
-    <span>👤 ชื่อ / บทบาทของฉัน</span>
+    <span>👤 บัญชีของฉัน</span>
     <button onclick="closeIdentityModal()">✕ ปิด</button>
   </div>
   <div class="modal-form-scroll">
     <div class="modal-form-inner">
-      <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">ใส่ชื่อและเลือกบทบาทของคุณ — ใช้แสดงชื่อผู้บันทึก/ผู้แก้ไขใน Timeline ของแต่ละเคส และกำหนดสิทธิ์การใช้งานบางฟังก์ชัน (เช่น แก้ไขข้อมูลย้อนหลัง, Export ข้อมูลเข้า CRM)</div>
-      <div class="field-group">
-        <label>ชื่อของคุณ</label>
-        <input type="text" id="identityNameInput" placeholder="เช่น สมชาย ใจดี">
-      </div>
-      <div class="field-group">
-        <label>บทบาท</label>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" id="roleBtnSales" class="role-btn" onclick="pickRole('sales')">🧑‍🌾 เซลล์</button>
-          <button type="button" id="roleBtnFinance" class="role-btn" onclick="pickRole('finance')">💰 การเงิน</button>
-          <button type="button" id="roleBtnSupervisor" class="role-btn" onclick="pickRole('supervisor')">👔 ผู้จัดการ</button>
-        </div>
-      </div>
-      <button class="btn-save" style="width:100%;margin-top:10px" onclick="saveIdentity()">✓ บันทึก</button>
+      <!-- (2026-09-20) เดิมเป็นฟอร์มให้พิมพ์ชื่อ/เลือกบทบาทเอง เปลี่ยนมาโชว์ข้อมูลจาก session
+           ที่ login จริงแทน — #rstIdentityDetailBox และ #rstOpenAddMemberBtn ถูกเติมเนื้อหา/
+           ควบคุมการแสดงผลโดย auth.js (ดู renderIdentity() ในไฟล์นั้น) -->
+      <div id="rstIdentityDetailBox" style="margin-bottom:14px"></div>
+      <button type="button" id="rstOpenAddMemberBtn" class="finance-launch-btn" style="width:100%;display:none" onclick="window.RSTAuth && window.RSTAuth.openAddMemberModal()">➕ เพิ่มสมาชิกใหม่</button>
+      <button type="button" class="btn-save" style="width:100%;margin-top:10px;background:#c0392b" onclick="window.RSTAuth && window.RSTAuth.logout()">🚪 ออกจากระบบ</button>
     </div>
   </div>
 </div>
@@ -8048,6 +8030,18 @@ loadHistory();
      (พิมพ์ใบสรุป / พิมพ์แบบฟอร์มผู้ค้ำประกัน ทั้งหน้าปกติและหน้าประวัติ) พังเงียบๆ เพราะ
      document.getElementById('printArea') คืนค่า null แล้ว .innerHTML=... throw error ก่อนถึง window.print() -->
 <div id="printArea"></div>
+
+<!-- (2026-09-20) ระบบ Login จริง — เชื่อมกับ backend Apps Script "crm_sheet_bigquery" ตัวเดียวกับ
+     ที่แอป CRM-TRACKER Pro ใช้อยู่ เพื่อให้พนักงานใช้ user/password/role ชุดเดียวกันทั้งสองแอป
+     (ดูรายละเอียดที่มาของ URL นี้และการตัดสินใจทั้งหมดใน claude/auth-implementation-notes.md) -->
+<script>
+  window.RST_AUTH_CONFIG = {
+    enabled: true,
+    apiUrl: 'https://script.google.com/macros/s/AKfycbyJG7iZcsOYRUBjpWO9NkGZelBT4PvPaGIiGyXNEEpsu6KQITULI4RxT1xGb5vyyAzV/exec',
+    sessionKey: 'rst_auth_session'
+  };
+</script>
+<script src="auth.js?v=20260920"></script>
 
 </body>
 </html>

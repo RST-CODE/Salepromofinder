@@ -15,6 +15,17 @@
  *   manager — เพิ่มสมาชิกได้เฉพาะระดับ 'sales', ดู Dashboard/Export CRM ได้
  *   sales   — ใช้งานระบบคำนวณโปร/บันทึกเคส, เห็นประวัติเฉพาะเคสของตัวเอง, ไม่มีสิทธิ์เพิ่มสมาชิก/Export CRM
  *
+ * เชื่อมกับ backend จริง (2026-09-20):
+ *   RST_AUTH_CONFIG.apiUrl ต้องชี้ไปที่ Apps Script Web App "crm_sheet_bigquery" ตัวเดียวกับที่
+ *   แอป CRM-TRACKER Pro ใช้อยู่ (ไม่ใช่ backend Cloud Run แยกต่างหากที่เคยลองทำไว้ก่อนหน้านี้แล้วติด
+ *   ปัญหา — ดู claude/auth-implementation-notes.md ในโปรเจกต์) เพื่อให้พนักงานใช้ username/password/
+ *   role ชุดเดียวกันทั้งสองแอป จากตาราง BigQuery `crm-tracker-503906.crm_tracker.users`
+ *   Role จริงในตารางคือ 'admin' | 'staff' | 'sale' (ไม่มี 'manager') — ไฟล์นี้แปลง 'staff'→'manager'
+ *   และ 'sale'→'sales' ให้อัตโนมัติ (ดู normalizeRole()/toBackendRole()) เป็นแค่การแปลงป้ายชื่อฝั่ง
+ *   Salepromofinder เท่านั้น ไม่กระทบสิทธิ์จริงที่ CRM-TRACKER Pro ให้กับ role เหล่านี้แต่อย่างใด
+ *   ⚠️ เมนู "จัดการสมาชิก" (ดูรายชื่อ/เปลี่ยน role/ระงับ/ลบ) ยังใช้งานไม่ได้ในรอบนี้ — backend ยังไม่มี
+ *   action listUsers/updateUser/deleteUser เลย ถูกซ่อนไว้ก่อน (ดู openAddMemberModal()) รอเฟสถัดไป
+ *
  * โหมด Offline / Mock Fallback:
  *   ถ้าเรียก RST_AUTH_CONFIG.apiUrl ไม่ได้ (เน็ตหลุด/ยังไม่ตั้งค่า/เซิร์ฟเวอร์ตอบผิดปกติ) ระบบจะ fallback
  *   ไปใช้บัญชีทดสอบที่เก็บใน localStorage แทนโดยอัตโนมัติ เพื่อให้เปิดทดสอบ UI ได้ทันทีแม้ backend ยังไม่พร้อม
@@ -32,20 +43,39 @@
   const SESSION_KEY = config.sessionKey || 'rst_auth_session';
   const MOCK_DB_KEY = 'rst_auth_mock_users_v1';
 
-  // ชื่อ action ที่ยิงไปยัง RST_AUTH_CONFIG.apiUrl แบบ POST เดียว { action, ...payload }
-  // (ตรงกับรูปแบบเดิมของ auth.js ที่ตั้งค่า apiUrl ไว้แล้ว) — ถ้า backend จริงใช้คนละชื่อ action
-  // หรือแยก path ต่อ endpoint ให้แก้ตรงนี้ที่เดียวพอ
+  // ===================================================================
+  // เชื่อมกับ backend จริง (2026-09-20): Apps Script "crm_sheet_bigquery" ตัวเดียวกับที่
+  // แอป CRM-TRACKER Pro ใช้อยู่ — ทำให้ Salepromofinder และ CRM-TRACKER Pro ใช้ user/
+  // password/role ชุดเดียวกันจากตาราง BigQuery `crm-tracker-503906.crm_tracker.users`
+  // (ดู claude/auth-implementation-notes.md ในโปรเจกต์สำหรับรายละเอียดการตัดสินใจทั้งหมด)
+  //
+  // Action ชื่อ/รูปแบบ request-response ต้องตรงกับที่ Code.js (doPost) ของ backend ตัวนี้
+  // รองรับจริงเป๊ะๆ (เช็คจากซอร์สแล้ว ไม่ได้เดา):
+  //   - login  : { action:'login', username, password } → { success, token, user:{username,role,name,branch}, message }
+  //   - addUser: { action:'addUser', token, username, password, role, name, branch } → { success, message }
+  //     (role ที่ backend รู้จักคือ 'admin' | 'staff' | 'sale' เท่านั้น — ไม่ใช่ 'manager'/'sales'
+  //     ดู toBackendRole()/normalizeRole() ด้านล่างที่แปลงไปมาให้)
+  //   - logout : { action:'logout', token } → { success }
+  // ⚠️ ตอนนี้ backend ยัง "ไม่มี" action สำหรับดูรายชื่อ/เปลี่ยน role/ระงับ/ลบสมาชิก
+  // (listUsers/updateUser/deleteUser) เลยสักตัว — เมนู "จัดการสมาชิก" จึงถูกซ่อนไว้ก่อนในรอบนี้
+  // (ดู openAddMemberModal() ด้านล่าง) เหลือแค่ "เพิ่มสมาชิก" ที่ใช้งานได้จริง รอเพิ่ม action
+  // ฝั่ง Code.js ในเฟสถัดไปค่อยเปิดใช้งานต่อ
   const ACTIONS = {
     login: 'login',
-    register: 'register',
-    listUsers: 'listUsers',
-    updateUser: 'updateUser',
-    deleteUser: 'deleteUser'
+    register: 'addUser', // backend จริงใช้ action ชื่อ 'addUser' (ไม่ใช่ 'register')
+    logout: 'logout'
   };
 
+  // Role ที่ Salepromofinder ใช้แสดงผล/คุมสิทธิ์เอง (คนละชุดกับ role จริงใน BigQuery ซึ่งเป็น
+  // 'admin' | 'staff' | 'sale') — normalizeRole()/toBackendRole() ด้านล่างแปลงสองฝั่งให้กัน
   const ROLES = ['admin', 'manager', 'sales'];
   const ROLE_LABEL = { admin: 'แอดมิน', manager: 'ผู้จัดการ', sales: 'พนักงานขาย' };
   const ROLE_ICON = { admin: '🛡️', manager: '👔', sales: '🧑‍🌾' };
+  // แปลง role ภายในของ Salepromofinder กลับเป็น role จริงที่ backend (Code.js) รู้จัก ก่อนส่งไป
+  // action 'addUser' — ต้องแปลงเสมอ ไม่งั้น backend จะปฏิเสธด้วย "ไม่รู้จักสิทธิ์ manager/sales"
+  function toBackendRole(role) {
+    return { admin: 'admin', manager: 'staff', sales: 'sale' }[role] || role;
+  }
 
   let session = readSession();
 
@@ -83,8 +113,15 @@
     const r = String(role == null ? '' : role).trim().toLowerCase();
     if (!r) return null;
     if (['admin', 'administrator', 'superadmin', 'super_admin', 'super-admin', 'owner', 'root', 'แอดมิน', 'ผู้ดูแลระบบ'].indexOf(r) >= 0) return 'admin';
-    if (['manager', 'supervisor', 'finance', 'branch_manager', 'ผู้จัดการ', 'หัวหน้า'].indexOf(r) >= 0) return 'manager';
-    if (['sales', 'staff', 'employee', 'เซลล์', 'พนักงานขาย', 'พนักงาน'].indexOf(r) >= 0) return 'sales';
+    // (2026-09-20 แก้บั๊ก) 'staff' คือ role จริงจาก backend ที่ใช้ร่วมกับ CRM-TRACKER Pro
+    // (แปลว่า "พนักงาน") เดิม auth.js เผลอจับ 'staff' เข้ากลุ่ม sales (สิทธิ์ต่ำสุด) ทำให้พนักงาน
+    // ระดับนี้ถูกลดสิทธิ์แบบเงียบๆ ตอนเชื่อมกับ backend จริง — ย้ายมาไว้กลุ่ม manager ให้ถูกต้อง
+    // (Salepromofinder ถือว่า staff ≈ manager ของตัวเอง: เพิ่มสมาชิกระดับ sales ได้, export ได้
+    // เป็นแค่การ map ป้ายชื่อฝั่งนี้เท่านั้น ไม่กระทบสิทธิ์จริงที่ CRM-TRACKER Pro ให้กับ staff)
+    if (['manager', 'staff', 'supervisor', 'finance', 'branch_manager', 'ผู้จัดการ', 'หัวหน้า', 'พนักงาน'].indexOf(r) >= 0) return 'manager';
+    // (2026-09-20 แก้บั๊ก) เพิ่ม 'sale' (เอกพจน์) เข้ากลุ่มนี้ด้วย — เป็นค่าจริงจาก backend
+    // (เดิมมีแค่ 'sales' พหูพจน์ ทำให้ 'sale' ไม่แมตช์อะไรเลยและต้องพึ่ง fallback ท้ายฟังก์ชัน)
+    if (['sales', 'sale', 'employee', 'เซลล์', 'พนักงานขาย'].indexOf(r) >= 0) return 'sales';
     return ROLES.indexOf(r) >= 0 ? r : null;
   }
   // ดึงค่า role ดิบจาก response ของ backend โดยลองหลายชื่อ field ที่พบได้บ่อย (backend แต่ละเจ้าตั้งชื่อไม่เหมือนกัน)
@@ -111,23 +148,31 @@
   }
 
   /* ===================== backend API ===================== */
+  // (2026-09-20) เขียนใหม่ให้ตรงกับ Apps Script Web App จริง (crm_sheet_bigquery) ที่ใช้ร่วมกับ
+  // CRM-TRACKER Pro:
+  //   1) Content-Type ต้องเป็น 'text/plain;charset=utf-8' เท่านั้น (ห้าม 'application/json' หรือ
+  //      แนบ header เพิ่ม เช่น Authorization) ไม่งั้นเบราว์เซอร์จะยิง CORS preflight (OPTIONS) ก่อน
+  //      ซึ่ง Apps Script Web App ไม่รองรับ (ไม่มี doOptions) ทำให้ request ทุกอันถูกบล็อกด้วย CORS
+  //   2) token ต้องส่งเป็น field ชื่อ 'token' ที่ระดับบนสุดของ body (ไม่ใช่ 'sessionToken' และไม่ใช่
+  //      header) เพราะฝั่ง doPost อ่านจาก contents.token ตรงๆ
+  //   3) response ใช้ field 'success' (true/false) บอกผลลัพธ์ ไม่ใช่ 'status':'ok'/'error' แบบเดิม
   function apiRequest(action, payload) {
     if (!config.apiUrl) {
       const err = new Error('ยังไม่ได้ตั้งค่า Auth API URL');
       err.networkError = true;
       return Promise.reject(err);
     }
-    const headers = { 'Content-Type': 'application/json' };
-    if (session && session.token) headers['Authorization'] = 'Bearer ' + session.token;
-    const body = Object.assign(
-      { action: action, sessionToken: session ? session.token : undefined },
-      payload
-    );
-    return fetch(config.apiUrl, { method: 'POST', headers: headers, body: JSON.stringify(body) })
+    const body = Object.assign({ action: action }, payload || {});
+    if (session && session.token) body.token = session.token;
+    return fetch(config.apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    })
       .then(
         function (response) {
           return response.json().catch(function () { return {}; }).then(function (data) {
-            if (data && data.status === 'error') {
+            if (data && data.success === false) {
               // เซิร์ฟเวอร์ตอบกลับมาแล้วจริง แค่ปฏิเสธคำขอ (เช่น รหัสผ่านผิด/ไม่มีสิทธิ์) — ไม่ควร fallback ไป mock
               const err = new Error(data.message || 'เชื่อมต่อ Auth API ไม่สำเร็จ');
               err.networkError = false;
@@ -290,7 +335,11 @@
     if (!session) return Promise.reject(new Error('กรุณาเข้าสู่ระบบก่อน'));
     if (session.role !== 'admin' && session.role !== 'manager') return Promise.reject(new Error('ไม่มีสิทธิ์เพิ่มสมาชิก'));
     if (session.role === 'manager' && payload.role !== 'sales') return Promise.reject(new Error('บทบาทผู้จัดการเพิ่มสมาชิกได้เฉพาะตำแหน่ง "พนักงานขาย" เท่านั้น'));
-    return apiRequest(ACTIONS.register, payload)
+    // แปลง role ภายในของ Salepromofinder ('manager'/'sales') ให้เป็น role จริงที่ backend
+    // รู้จัก ('staff'/'sale') ก่อนส่ง — ส่ง 'manager'/'sales' ตรงๆ ไปจะโดน backend ปฏิเสธด้วย
+    // "ไม่รู้จักสิทธิ์" ทันที (ดู toBackendRole() ด้านบนไฟล์)
+    const backendPayload = Object.assign({}, payload, { role: toBackendRole(payload.role) });
+    return apiRequest(ACTIONS.register, backendPayload)
       .catch(function (err) {
         if (err.networkError) return mockRegister(payload, session);
         throw err;
@@ -314,6 +363,12 @@
   }
 
   function logout() {
+    // แจ้ง backend ให้ลบ session ฝั่งเซิร์ฟเวอร์ทันทีแบบ best-effort (ไม่ต้องรอผลลัพธ์/ไม่ต้อง
+    // สนถ้า error) — ไม่งั้น token เดิมจะยังค้างอยู่ในหน้า "ผู้ใช้งานออนไลน์" ของ backend จนกว่า
+    // จะหมดอายุเอง
+    if (session && session.token) {
+      try { apiRequest(ACTIONS.logout, {}).catch(function () {}); } catch (e) {}
+    }
     clearSession();
     location.reload();
   }
@@ -568,8 +623,13 @@
       return;
     }
     ensureMemberModal();
+    // (2026-09-20) ซ่อนแท็บ "จัดการสมาชิก" ไว้ก่อนเสมอ ไม่ว่า role ไหน — backend จริง
+    // (crm_sheet_bigquery ตัวเดียวกับ CRM-TRACKER Pro) ยังไม่มี action listUsers/updateUser/
+    // deleteUser เลยสักตัว ถ้าเปิดให้กดจะเจอแค่ error "Invalid Action" งงๆ เฉยๆ รอเพิ่ม action
+    // ฝั่ง Code.js ในเฟสถัดไปก่อนค่อยเปิดใช้งาน (โค้ด listMembers/loadMemberList ฯลฯ ด้านล่าง
+    // ยังเก็บไว้เหมือนเดิม พร้อมใช้ทันทีที่ backend รองรับ ไม่ต้องเขียนใหม่)
     const manageTabBtn = document.querySelector('#rstMemberTabs .rst-tab[data-tab="manage"]');
-    if (manageTabBtn) manageTabBtn.style.display = session.role === 'admin' ? '' : 'none';
+    if (manageTabBtn) manageTabBtn.style.display = 'none';
     switchMemberTab('add');
     document.getElementById('rstAddMemberForm').reset();
     populateRoleOptions();
