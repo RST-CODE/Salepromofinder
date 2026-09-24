@@ -5769,9 +5769,12 @@ function changeCaseStatus(id, status, note){
   const rawNote = (note||'').trim();
   const cardNote = rawNote || ('เปลี่ยนสถานะเป็น "'+status+'"');
 
+  const statusEntry = {ts:nowStr, byName:userName, byRole:userRole, type:'status', status, note:rawNote};
   const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
   if(rec){
     rec.caseStatus = status;
+    // เก็บ entry นี้ลง rec.updates ด้วย — เดิมแทรกแค่ใน DOM ของ Timeline พอกดเปิดเคสซ้ำ Timeline ถูกวาดใหม่จาก rec.updates แล้วหมายเหตุหาย
+    if(Array.isArray(rec.updates)) rec.updates.push(statusEntry);
     // อัปเดตบันทึกล่าสุด/เวลา ให้การ์ดฝั่งซ้ายแสดงตรงกับสถานะ+หมายเหตุใหม่ทันที ไม่ต้องรอโหลดลิสต์ใหม่
     rec.lastNote = cardNote;
     rec.lastNoteAt = new Date().toISOString();
@@ -5779,16 +5782,22 @@ function changeCaseStatus(id, status, note){
     _pinnedCardFields[id] = { caseStatus: status, lastNote: cardNote, lastNoteAt: rec.lastNoteAt };
     refreshHistoryCardInList(id);
   }
+  addPendingTimelineEntry(id, statusEntry);
+  updateDetailLastNote(id, cardNote, new Date().toISOString());
 
   // ส่ง cardNote (มี fallback ข้อความสถานะติดไปด้วยถ้าไม่ได้พิมพ์อะไร) ไม่ใช่ rawNote เฉยๆ
   // เพราะถ้าส่ง rawNote ที่เป็นค่าว่าง ตัว backend จะเก็บหมายเหตุว่างไว้ถาวร พอโหลดหน้าใหม่/เปิดจากเครื่องอื่น
   // การ์ดฝั่งซ้ายจะไม่โชว์เหตุผล/หมายเหตุอะไรเลย (ทั้งที่ตอนเปลี่ยนสถานะสดๆ เห็นข้อความ fallback อยู่ในเบราว์เซอร์ตัวเอง)
-  gasPost('updateStatus', {action:'updateStatus', id, status, note: cardNote, byName:userName, byRole:userRole}, (err)=>{
+  // ส่ง entry (รูปแบบเดียวกับ addUpdate) + lastNote/lastNoteAt ไปด้วย เผื่อ backend อ่านหมายเหตุจากฟิลด์เหล่านี้
+  gasPost('updateStatus', {action:'updateStatus', id, status, note: cardNote,
+    entry: {byName:userName, byRole:userRole, type:'status', status, note: cardNote},
+    lastNote: cardNote, lastNoteAt: new Date().toISOString(),
+    byName:userName, byRole:userRole}, (err)=>{
     if(err) alert('บันทึกสถานะไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
   });
   const tlEl = document.getElementById('hdTimelineDynamic_'+id);
   if(tlEl){
-    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([{ts:nowStr, byName:userName, byRole:userRole, type:'status', status, note:rawNote}]));
+    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([statusEntry]));
   }
 }
 
@@ -6012,15 +6021,18 @@ function submitUpdateNote(id){
     newYears: null,
     nextFollowUp
   };
+  const noteEntry = Object.assign({ts:new Date().toLocaleString('th-TH',{hour12:false}), type:'note'}, entry);
   const tlEl = document.getElementById('hdTimelineDynamic_'+id);
   if(tlEl){
-    const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
-    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([Object.assign({ts:nowStr, type:'note'}, entry)]));
+    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([noteEntry]));
   }
+  addPendingTimelineEntry(id, noteEntry);
+  updateDetailLastNote(id, note, new Date().toISOString());
 
   // อัปเดตบันทึกล่าสุด/เวลาในการ์ดฝั่งซ้ายด้วย ให้เห็นบันทึกใหม่ทันทีโดยไม่ต้องโหลดลิสต์ใหม่
   const recForCard = _allHistoryRecords.find(r => String(r.id) === String(id));
   if(recForCard){
+    if(Array.isArray(recForCard.updates)) recForCard.updates.push(noteEntry);
     recForCard.lastNote = note;
     recForCard.lastNoteAt = new Date().toISOString();
     // ถ้าตั้งวันนัดติดตามครั้งถัดไปมาด้วย ให้จำไว้ที่ตัวเคสเลย (ไม่ใช่แค่ในข้อความ Timeline)
@@ -6094,9 +6106,42 @@ function submitUpdateNote(id){
 function deriveLastNoteFromUpdates(updates){
   if(!Array.isArray(updates) || !updates.length) return null;
   for(let i = updates.length - 1; i >= 0; i--){
-    if(updates[i] && updates[i].note) return { note: updates[i].note, at: updates[i].ts || null };
+    const u = updates[i];
+    if(!u) continue;
+    if(u.note) return { note: u.note, at: u.ts || null };
+    // เปลี่ยนสถานะแบบไม่ได้พิมพ์หมายเหตุ — ใช้ข้อความสถานะแทน (ให้ตรงกับที่การ์ดโชว์ตอนเปลี่ยนสดๆ)
+    if(u.type === 'status' && u.status) return { note: 'เปลี่ยนสถานะเป็น "' + u.status + '"', at: u.ts || null };
   }
   return null;
+}
+
+// รายการ Timeline ที่เพิ่งบันทึกในเบราว์เซอร์นี้ แต่ backend อาจยังบันทึกไม่เสร็จ (gasPost เป็น no-cors ยิงแล้วไม่รอผล)
+// ถ้า fetchAndPatchFullDetail โหลดข้อมูลจาก backend มาก่อนที่ backend จะบันทึกเสร็จ จะเอามาต่อท้ายให้ ไม่ให้หมายเหตุหายไปจากจอ
+let _pendingTimeline = {};
+function addPendingTimelineEntry(id, entry){
+  (_pendingTimeline[id] = _pendingTimeline[id] || []).push(entry);
+}
+function mergePendingTimeline(id, updates){
+  const list = Array.isArray(updates) ? updates.slice() : [];
+  const pend = _pendingTimeline[id];
+  if(!pend || !pend.length) return list;
+  const norm = v => String(v||'').trim();
+  const stillPending = pend.filter(p => !list.some(u => u && norm(u.type||'note')===norm(p.type) &&
+    norm(u.status)===norm(p.status) &&
+    (norm(u.note)===norm(p.note) || (p.type==='status' && !p.note && norm(u.note)===('เปลี่ยนสถานะเป็น "'+norm(p.status)+'"')))));
+  _pendingTimeline[id] = stillPending;
+  return list.concat(stillPending);
+}
+// อัปเดตช่อง "หมายเหตุล่าสุด" ในหน้ารายละเอียดเคส (ถ้าเปิดอยู่)
+function updateDetailLastNote(id, note, at){
+  const el = document.getElementById('hdLastNote_'+id);
+  if(!el) return;
+  el.innerHTML = lastNoteHtml(note, at);
+}
+function lastNoteHtml(note, at){
+  if(!note) return '—';
+  const atStr = at ? `<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;margin-top:2px">🕒 ${escapeHtml(String(at).slice(0,16))}</div>` : '';
+  return `<span style="font-weight:500;white-space:pre-wrap">${escapeHtml(note)}</span>${atStr}`;
 }
 
 let _detailFetchToken = 0;
@@ -6108,20 +6153,20 @@ function fetchAndPatchFullDetail(id){
     const full = data.record;
     const idx = _allHistoryRecords.findIndex(r => String(r.id) === String(id));
     if(idx > -1){
+      full.updates = mergePendingTimeline(id, full.updates);
       _allHistoryRecords[idx] = Object.assign({}, _allHistoryRecords[idx], full);
-      // ถ้า backend ไม่ได้ส่ง lastNote กลับมา (หรือส่งมาเป็นค่าว่าง) ให้ลองดึงจาก updates แทน
-      // ไม่ให้การ์ดฝั่งซ้ายว่างเปล่าทั้งที่จริงๆ มีหมายเหตุอยู่ใน Timeline
-      if(!_allHistoryRecords[idx].lastNote){
-        const derived = deriveLastNoteFromUpdates(full.updates);
-        if(derived){
-          _allHistoryRecords[idx].lastNote = derived.note;
-          if(!_allHistoryRecords[idx].lastNoteAt) _allHistoryRecords[idx].lastNoteAt = derived.at;
-        }
+      // ใช้หมายเหตุล่าสุดจาก Timeline (updates) เป็นหลักเสมอ — เดิมดึงจาก updates เฉพาะตอน lastNote ว่าง
+      // ถ้า backend ไม่ได้อัปเดตคอลัมน์ lastNote ตอนเปลี่ยนสถานะ lastNote จะค้างเป็นโน้ตเก่า การ์ดเลยไม่โชว์หมายเหตุใหม่
+      const derived = deriveLastNoteFromUpdates(full.updates);
+      if(derived){
+        _allHistoryRecords[idx].lastNote = derived.note;
+        if(!_allHistoryRecords[idx].lastNoteAt) _allHistoryRecords[idx].lastNoteAt = derived.at;
       }
       // ถ้ามีการเปลี่ยนสถานะ/เพิ่มบันทึกไปแล้วในเบราว์เซอร์ระหว่างที่ยังโหลดฉบับเต็มอยู่
       // ให้ค่าที่เพิ่งอัปเดตนั้นชนะเสมอ ไม่ให้ backend (ที่อาจยังไม่บันทึกเสร็จ) ทับกลับเป็นค่าเก่า
       if(_pinnedCardFields[id]) Object.assign(_allHistoryRecords[idx], _pinnedCardFields[id]);
       refreshHistoryCardInList(id);
+      updateDetailLastNote(id, _allHistoryRecords[idx].lastNote, _allHistoryRecords[idx].lastNoteAt);
     }
 
     if(Array.isArray(full.eqItems) && full.eqItems.length){
@@ -6289,6 +6334,7 @@ function renderHistoryDetailHtml(id, d, rowNote){
           <div class="ssc-item"><div class="k">งวดใหญ่/ปี · ระยะเวลาผ่อน</div><div class="v accent">${fmt(d.bigPay||0)} บาท / ${d.finYears||'—'} ปี</div></div>
           <div class="ssc-item"><div class="k">วันที่ปิดการขาย</div><div class="v">${d.date || (d.savedAt?.slice(0,10)) || '—'}</div></div>
           <div class="ssc-item"><div class="k">สาขา/ผู้ปิดการขาย</div><div class="v">${d.branch||'—'}</div></div>
+          <div class="ssc-item full"><div class="k">หมายเหตุล่าสุด</div><div class="v" id="hdLastNote_${id}">${lastNoteHtml(d.lastNote, d.lastNoteAt)}</div></div>
           <div class="ssc-item"><div class="k">นัดติดตามครั้งถัดไป</div><div class="v"${isFollowupDue(d)?' style="color:#c0392b;font-weight:700"':''}>${d.nextFollowUp ? (d.nextFollowUp + (isFollowupDue(d) ? ' ⚠️ ถึงกำหนดแล้ว' : '')) : '—'}</div></div>
         </div>
       </div>
