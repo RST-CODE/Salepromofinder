@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <script src="ga.js"></script>
-<script src="data.js"></script>
+<!-- (30/9/2569) โหลด data.js แบบต่อท้ายเวลา (เปลี่ยนทุก 1 นาที) เพื่อให้ไฟล์ที่อัปโหลดใหม่จากปุ่ม ☁️ ขึ้นทันที ไม่ติดแคชเบราว์เซอร์ -->
+<script>document.write('<script src="data.js?t=' + Math.floor(Date.now()/60000) + '"><\/script>');</script>
 <script src="crm_template_data.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RST Promo Finder</title>
@@ -982,6 +983,23 @@ body.printing #printArea{
 .ssc-item .v{ font-family:'Kanit',sans-serif; font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.3; }
 .ssc-item .v.accent{ color:var(--accent); font-size:15px; }
 .ssc-item.full{ grid-column:1 / -1; }
+
+/* (30/9/2569) หน้าต่างอัปโหลด data.js ขึ้น GitHub */
+.ghu-sec{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.ghu-sec h4{margin:0 0 6px;font-family:'Kanit',sans-serif;font-size:13.5px}
+.ghu-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px}
+.ghu-grid label,.ghu-sec>label{display:block;font-size:11px;color:var(--ink-soft);font-weight:600;margin-bottom:2px}
+.ghu-sec input[type=text],.ghu-sec input[type=password]{width:100%;padding:7px 8px;border:1.5px solid var(--line);border-radius:7px;font-size:13px;font-family:inherit;box-sizing:border-box}
+.ghu-help{font-size:11px;color:var(--ink-soft);margin-top:4px}
+.ghu-help ol{margin:4px 0 0;padding-left:18px}
+.ghu-status{font-size:12.5px;border-radius:8px;padding:8px 10px;margin-top:8px;white-space:pre-line}
+.ghu-status.ok{background:#E6F4EA;color:#1E6B34}.ghu-status.err{background:#FDECEA;color:#9C1C12}.ghu-status.info{background:#F2EEE6;color:var(--ink)}
+.ghu-diff{font-size:12px;margin-top:6px}
+.ghu-diff ul{margin:2px 0 6px;padding-left:18px}
+.ghu-btn{width:100%;margin-top:8px;padding:10px;border:none;border-radius:9px;font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;cursor:pointer;background:var(--accent);color:#fff}
+.ghu-btn.sec{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.ghu-btn:disabled{opacity:.45;cursor:not-allowed}
+.ghu-sec details summary::before{content:''}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -994,7 +1012,10 @@ body.printing #printArea{
 <div class="topbar" id="topbar">
   <div style="display:flex;justify-content:space-between;align-items:center">
     <h1>โปรไหนเหมาะ? — RST Promo Finder</h1>
-    <button onclick="openHistory()" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);cursor:pointer;white-space:nowrap">📋 ประวัติ</button>
+    <div style="display:flex;gap:6px">
+      <button id="promoUploadTopBtn" onclick="openPromoUploadModal()" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);cursor:pointer;white-space:nowrap;display:none" title="อัปโหลดไฟล์โปรโมชั่น (data.js) ขึ้น GitHub">☁️ อัปโหลดโปร</button>
+      <button onclick="openHistory()" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);cursor:pointer;white-space:nowrap">📋 ประวัติ</button>
+    </div>
   </div>
   <div class="sub" id="topbarSub">เลือกรุ่นรถ → เลือกกลุ่มลูกค้า → ดูโปรที่สนับสนุนดีที่สุด</div>
   <div class="brand-toggle">
@@ -1193,6 +1214,7 @@ body.printing #printArea{
     <button class="history-tab-btn" onclick="openDashboardModal()" title="ภาพรวมไปป์ไลน์">📊</button>
     <button class="history-tab-btn" onclick="openIdentityModal()" title="ชื่อ/บทบาทของฉัน">👤</button>
     <button class="history-tab-btn" onclick="openGasConfig()" title="ตั้งค่า GAS">⚙️</button>
+    <button class="history-tab-btn" id="promoUploadBtn" style="display:none" onclick="openPromoUploadModal()" title="อัปโหลดไฟล์โปรโมชั่น (data.js) ขึ้น GitHub">☁️</button>
   </div>
   <div class="gas-config" id="gasConfigBox" style="display:none">
     <label>Google Apps Script URL</label>
@@ -4967,6 +4989,7 @@ window.addEventListener('rst:authenticated', function(e){
   userName = sess.name || sess.username || '';
   userRole = sess.role || '';
   updateExportCrmButtonVisibility();
+  updatePromoUploadVisibility();
   // auto-fill ชื่อผู้ปิดการขาย/สาขา จากบัญชีที่ login (ถ้ายังว่างอยู่) จะได้ไม่ต้องพิมพ์ซ้ำทุกเคส
   const bn = document.getElementById('branchName'); if(bn && !bn.value) bn.value = sess.branch || userName;
   const bnM = document.getElementById('branchNameM'); if(bnM && !bnM.value) bnM.value = sess.branch || userName;
@@ -4981,6 +5004,247 @@ function openIdentityModal(){
 }
 function closeIdentityModal(){
   document.getElementById('identityModalBg').style.display = 'none';
+}
+
+// ===== PROMO UPLOAD (30/9/2569) — อัปโหลด data.js ขึ้น GitHub แทนไฟล์เดิม จากในหน้าเว็บ =====
+// ใช้ GitHub Contents API (PUT /repos/{owner}/{repo}/contents/{path}) ด้วย fine-grained token ของแอดมิน
+// token เก็บใน localStorage ของเครื่องแอดมินเท่านั้น (ไม่ฝังในโค้ด ไม่ส่งไปที่อื่นนอกจาก api.github.com)
+// ก่อนอัปโหลดจะรันไฟล์ใหม่ในฟังก์ชันแยกเพื่อเช็คว่า syntax ถูก + มี DATA ครบทุกหมวด แล้วสรุปว่าโปรไหนเพิ่ม/หาย/เปลี่ยน
+const GHU_CFG_KEY = 'rst_ghu_cfg', GHU_TOKEN_KEY = 'rst_ghu_token';
+let ghuNewText = null, ghuNewData = null;
+
+// (30/9/2569 ต่อ) เปิดให้ทั้ง admin และ manager + ไม่สนตัวพิมพ์เล็ก/ใหญ่ (กันกรณี role ใน Sheet พิมพ์เป็น Admin)
+function canUploadPromo(){ const r = String(userRole || '').trim().toLowerCase(); return r === 'admin' || r === 'manager'; }
+function updatePromoUploadVisibility(){
+  ['promoUploadBtn','promoUploadTopBtn','promoUploadIdBtn'].forEach(id => {
+    const b = document.getElementById(id);
+    if(b) b.style.display = canUploadPromo() ? '' : 'none';
+  });
+}
+function ghuStore(k, v){ try{ if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }catch(e){} }
+function ghuLoad(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+
+// เดา owner/repo/path จาก URL ของ GitHub Pages เช่น https://rst.github.io/promo/index.html → owner=rst, repo=promo, path=data.js
+function ghuDetect(){
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/i);
+  if(!m) return {owner:'', repo:'', branch:'', path:'data.js'};
+  const segs = location.pathname.split('/').filter(Boolean);
+  if(segs.length && /\.[a-z0-9]+$/i.test(segs[segs.length-1])) segs.pop(); // ตัดชื่อไฟล์ html ออก
+  let repo, dir;
+  if(segs.length){ repo = decodeURIComponent(segs[0]); dir = segs.slice(1); }
+  else { repo = m[1] + '.github.io'; dir = []; }
+  return {owner:m[1], repo, branch:'', path: dir.concat('data.js').map(decodeURIComponent).join('/')};
+}
+
+function openPromoUploadModal(){
+  if(!canUploadPromo()){ alert('เฉพาะแอดมิน/ผู้จัดการเท่านั้นที่อัปโหลดไฟล์โปรโมชั่นได้ (บทบาทตอนนี้: ' + (userRole || 'ยังไม่ได้ login') + ')'); return; }
+  let cfg = ghuDetect();
+  try{ const saved = JSON.parse(ghuLoad(GHU_CFG_KEY) || 'null'); if(saved && saved.owner) cfg = Object.assign(cfg, saved); }catch(e){}
+  document.getElementById('ghuOwner').value = cfg.owner || '';
+  document.getElementById('ghuRepo').value = cfg.repo || '';
+  document.getElementById('ghuBranch').value = cfg.branch || '';
+  document.getElementById('ghuPath').value = cfg.path || 'data.js';
+  document.getElementById('ghuToken').value = ghuLoad(GHU_TOKEN_KEY) || '';
+  document.getElementById('promoUploadModalBg').style.display = 'flex';
+}
+function closePromoUploadModal(){
+  document.getElementById('promoUploadModalBg').style.display = 'none';
+}
+function ghuSetStatus(kind, html){
+  document.getElementById('ghuStatus').innerHTML = html ? `<div class="ghu-status ${kind}">${html}</div>` : '';
+}
+function ghuEsc(t){ return String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+// รันไฟล์ใหม่ในฟังก์ชันแยก (ไม่ทับตัวแปร DATA ที่หน้าเว็บใช้อยู่) แล้วเช็คโครงสร้าง
+function ghuParse(text){
+  if(!/\bDATA\b/.test(text)) throw new Error('ไม่พบตัวแปร DATA ในไฟล์ — เลือกไฟล์ผิดหรือเปล่า?');
+  let D;
+  try{ D = new Function(text + '\n;return (typeof DATA !== "undefined") ? DATA : undefined;')(); }
+  catch(e){ throw new Error('ไฟล์มี syntax ผิด (เช่น ลืม , หรือ } ) — ' + e.message); }
+  if(!D || typeof D !== 'object') throw new Error('อ่านค่า DATA ไม่ได้');
+  const problems = [];
+  const brands = Object.keys(D).filter(k => D[k] && Array.isArray(D[k].programs));
+  if(!brands.length) throw new Error('ไม่พบหมวดสินค้าที่มี programs เลย');
+  brands.forEach(b => {
+    if(!Array.isArray(D[b].models)) problems.push(`${b}: ไม่มีรายชื่อรุ่น (models)`);
+    const ids = new Set();
+    D[b].programs.forEach((p, i) => {
+      const tag = `${b} › ${p && p.id || ('โปรลำดับ ' + (i+1))}`;
+      if(!p || !p.id) problems.push(`${tag}: ไม่มี id`);
+      else if(ids.has(p.id)) problems.push(`${tag}: id ซ้ำ`);
+      else ids.add(p.id);
+      if(!p || !p.name) problems.push(`${tag}: ไม่มีชื่อโปร (name)`);
+      if(!p || !p.entries || typeof p.entries !== 'object' || !Object.keys(p.entries).length) problems.push(`${tag}: ไม่มียอดดาวน์ (entries)`);
+      else Object.entries(p.entries).forEach(([k, e]) => {
+        if(!e || typeof e.down !== 'number') problems.push(`${tag} › ${k}: ไม่มีเงินดาวน์ (down)`);
+        if(e && typeof e.price !== 'number') problems.push(`${tag} › ${k}: ไม่มีราคา (price)`);
+      });
+    });
+  });
+  // หมวดที่เว็บใช้อยู่ตอนนี้ ต้องยังอยู่ในไฟล์ใหม่ ไม่งั้นหน้านั้นจะพัง
+  const cur = (typeof DATA !== 'undefined' && DATA) ? DATA : {};
+  Object.keys(cur).filter(k => cur[k] && Array.isArray(cur[k].programs)).forEach(k => {
+    if(!D[k]) problems.push(`หมวด "${k}" ที่เว็บใช้อยู่หายไปจากไฟล์ใหม่`);
+  });
+  return {D, brands, problems};
+}
+
+function ghuDiff(D){
+  const cur = (typeof DATA !== 'undefined' && DATA) ? DATA : {};
+  const out = [];
+  Object.keys(D).filter(k => D[k] && Array.isArray(D[k].programs)).forEach(b => {
+    const oldP = {}; ((cur[b] && cur[b].programs) || []).forEach(p => oldP[p.id] = p);
+    const newP = {}; D[b].programs.forEach(p => newP[p.id] = p);
+    const added = Object.keys(newP).filter(id => !oldP[id]);
+    const removed = Object.keys(oldP).filter(id => !newP[id]);
+    const changed = Object.keys(newP).filter(id => oldP[id] && JSON.stringify(oldP[id]) !== JSON.stringify(newP[id]));
+    const modelsChanged = JSON.stringify((cur[b]||{}).models||[]) !== JSON.stringify(D[b].models||[]);
+    if(added.length || removed.length || changed.length || modelsChanged)
+      out.push({b, added:added.map(id => newP[id].name + ` (${id})`), removed:removed.map(id => oldP[id].name + ` (${id})`),
+                changed:changed.map(id => newP[id].name + ` (${id})`), modelsChanged});
+  });
+  return out;
+}
+
+function ghuOnFile(input){
+  ghuNewText = null; ghuNewData = null;
+  document.getElementById('ghuUploadBtn').disabled = true;
+  ghuSetStatus('', '');
+  const box = document.getElementById('ghuCheck');
+  const f = input.files && input.files[0];
+  if(!f){ box.innerHTML = ''; return; }
+  const rd = new FileReader();
+  rd.onload = () => {
+    const text = String(rd.result || '');
+    try{
+      const {D, brands, problems} = ghuParse(text);
+      const counts = brands.map(b => `${b} ${D[b].programs.length} โปร`).join(' · ');
+      if(problems.length){
+        box.innerHTML = `<div class="ghu-status err">❌ ไฟล์มีปัญหา ${problems.length} จุด — ยังอัปโหลดไม่ได้\n${problems.slice(0,15).map(ghuEsc).join('\n')}${problems.length>15?'\n...':''}</div>`;
+        return;
+      }
+      const diff = ghuDiff(D);
+      let dh = '';
+      if(!diff.length) dh = '<div class="ghu-diff">ข้อมูลเหมือนไฟล์ที่ใช้อยู่ทุกอย่าง (ไม่มีโปรไหนเปลี่ยน)</div>';
+      else dh = '<div class="ghu-diff">' + diff.map(d => `<b>${ghuEsc(d.b)}</b><ul>` +
+          d.added.map(x => `<li>➕ เพิ่ม: ${ghuEsc(x)}</li>`).join('') +
+          d.removed.map(x => `<li>➖ ลบ: ${ghuEsc(x)}</li>`).join('') +
+          d.changed.map(x => `<li>✏️ แก้: ${ghuEsc(x)}</li>`).join('') +
+          (d.modelsChanged ? '<li>✏️ รายชื่อรุ่นเปลี่ยน</li>' : '') + '</ul>').join('') + '</div>';
+      box.innerHTML = `<div class="ghu-status ok">✅ ไฟล์ถูกต้อง — ${ghuEsc(f.name)} (${(f.size/1024).toFixed(0)} KB)\n${ghuEsc(counts)}</div>` +
+                      `<div style="font-size:12px;font-weight:700;margin-top:8px">เทียบกับไฟล์ที่เว็บใช้อยู่ตอนนี้:</div>${dh}`;
+      ghuNewText = text; ghuNewData = D;
+      document.getElementById('ghuUploadBtn').disabled = false;
+    }catch(e){
+      box.innerHTML = `<div class="ghu-status err">❌ ${ghuEsc(e.message)}</div>`;
+    }
+  };
+  rd.onerror = () => { box.innerHTML = '<div class="ghu-status err">❌ อ่านไฟล์ไม่ได้</div>'; };
+  rd.readAsText(f, 'utf-8');
+}
+
+async function ghuApi(method, path, token, body){
+  const res = await fetch('https://api.github.com' + path, {
+    method,
+    headers: Object.assign({'Authorization':'Bearer ' + token, 'Accept':'application/vnd.github+json', 'X-GitHub-Api-Version':'2022-11-28'},
+                           body ? {'Content-Type':'application/json'} : {}),
+    body: body ? JSON.stringify(body) : undefined,
+    cache: 'no-store'
+  });
+  let j = {}; try{ j = await res.json(); }catch(e){}
+  if(!res.ok){ const err = new Error(j.message || ('HTTP ' + res.status)); err.status = res.status; throw err; }
+  return j;
+}
+function ghuB64(text){
+  const bytes = new TextEncoder().encode(text);
+  let bin = ''; const CH = 0x8000;
+  for(let i = 0; i < bytes.length; i += CH) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
+  return btoa(bin);
+}
+function ghuErrText(e){
+  if(e.status === 401) return 'token ไม่ถูกต้องหรือหมดอายุ — สร้าง token ใหม่แล้ววางอีกครั้ง';
+  if(e.status === 403) return 'token ไม่มีสิทธิ์เขียนไฟล์ — ตอนสร้าง token ต้องเปิด Contents: Read and write และเลือก repo นี้';
+  if(e.status === 404) return 'ไม่พบ repo/branch/ไฟล์ — เช็คชื่อ owner/repo อีกครั้ง หรือ token ไม่ได้เลือก repo นี้ไว้';
+  if(e.status === 409) return 'มีคนอัปเดตไฟล์พร้อมกัน — กดอัปโหลดอีกครั้ง';
+  if(e.status === 422) return 'GitHub ไม่รับไฟล์ (' + e.message + ')';
+  return e.message || 'เชื่อมต่อ GitHub ไม่ได้ — เช็คอินเทอร์เน็ต';
+}
+
+async function ghuUpload(){
+  if(!ghuNewText){ ghuSetStatus('err', 'เลือกไฟล์ data.js ที่ผ่านการตรวจก่อน'); return; }
+  const owner = document.getElementById('ghuOwner').value.trim();
+  const repo = document.getElementById('ghuRepo').value.trim();
+  let branch = document.getElementById('ghuBranch').value.trim();
+  const path = (document.getElementById('ghuPath').value.trim() || 'data.js').replace(/^\/+/, '');
+  const token = document.getElementById('ghuToken').value.trim();
+  if(!owner || !repo){ ghuSetStatus('err', 'ใส่ชื่อ owner และ repo ก่อน'); return; }
+  if(!token){ ghuSetStatus('err', 'วาง GitHub token ก่อน (ดูวิธีสร้างด้านบน)'); return; }
+  if(!confirm(`อัปโหลดไฟล์ใหม่แทน ${path} ใน ${owner}/${repo} ?\nทุกคนที่เปิดเว็บจะเห็นโปรใหม่ภายใน 1–2 นาที`)) return;
+
+  ghuStore(GHU_CFG_KEY, JSON.stringify({owner, repo, branch, path}));
+  ghuStore(GHU_TOKEN_KEY, document.getElementById('ghuRemember').checked ? token : null);
+  const btn = document.getElementById('ghuUploadBtn'); btn.disabled = true;
+  const enc = s => s.split('/').map(encodeURIComponent).join('/');
+  try{
+    ghuSetStatus('info', '⏳ กำลังเชื่อมต่อ GitHub...');
+    const r = await ghuApi('GET', `/repos/${enc(owner)}/${enc(repo)}`, token);
+    if(!branch) branch = r.default_branch || 'main';
+    const put = async () => {
+      let sha;
+      try{ sha = (await ghuApi('GET', `/repos/${enc(owner)}/${enc(repo)}/contents/${enc(path)}?ref=${encodeURIComponent(branch)}`, token)).sha; }
+      catch(e){ if(e.status !== 404) throw e; } // 404 = ยังไม่มีไฟล์ → สร้างใหม่
+      const who = (typeof userName !== 'undefined' && userName) ? userName : 'admin';
+      return ghuApi('PUT', `/repos/${enc(owner)}/${enc(repo)}/contents/${enc(path)}`, token, {
+        message: `อัปเดต ${path} จากหน้าเว็บ Promo โดย ${who} (${new Date().toLocaleString('th-TH')})`,
+        content: ghuB64(ghuNewText), sha, branch
+      });
+    };
+    ghuSetStatus('info', '⏳ กำลังอัปโหลด...');
+    let res;
+    try{ res = await put(); }catch(e){ if(e.status === 409){ res = await put(); } else throw e; } // ชนกัน → ดึง sha ใหม่แล้วลองอีกรอบ
+    const link = res && res.commit && res.commit.html_url;
+    ghuSetStatus('ok', `✅ อัปโหลดขึ้น GitHub แล้ว${link ? ` — <a href="${link}" target="_blank" rel="noopener">ดูรายการที่เปลี่ยน</a>` : ''}\n⏳ รอเว็บอัปเดต (ปกติ 1–2 นาที)...`);
+    ghuWaitLive(path, ghuNewText, link);
+  }catch(e){
+    ghuSetStatus('err', '❌ ' + ghuEsc(ghuErrText(e)));
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+// เช็คทุก 10 วิ ว่า GitHub Pages เอาไฟล์ใหม่ขึ้นเว็บแล้วหรือยัง (สูงสุด ~5 นาที)
+function ghuWaitLive(path, text, link){
+  const rel = path.split('/').pop();
+  let n = 0;
+  const tick = async () => {
+    n++;
+    try{
+      const res = await fetch(rel + '?live=' + Date.now(), {cache:'no-store'});
+      if(res.ok && (await res.text()) === text){
+        ghuSetStatus('ok', `✅ เว็บใช้ไฟล์ใหม่แล้ว${link ? ` — <a href="${link}" target="_blank" rel="noopener">ดูรายการที่เปลี่ยน</a>` : ''}\n<button type="button" class="ghu-btn" onclick="location.reload()">🔄 โหลดหน้าเว็บใหม่เพื่อใช้โปรล่าสุด</button>`);
+        return;
+      }
+    }catch(e){}
+    if(n < 30) setTimeout(tick, 10000);
+    else ghuSetStatus('info', `อัปโหลดสำเร็จแล้ว แต่เว็บยังไม่อัปเดตภายใน 5 นาที — ลองรีโหลดหน้าอีกครั้งภายหลัง หรือเช็คแท็บ Actions ใน repo ว่า GitHub Pages build ผ่านไหม`);
+  };
+  setTimeout(tick, 15000);
+}
+
+async function ghuDownloadCurrent(){
+  try{
+    const res = await fetch('data.js?dl=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const blob = new Blob([await res.text()], {type:'text/javascript'});
+    const a = document.createElement('a');
+    const d = new Date();
+    a.href = URL.createObjectURL(blob);
+    a.download = `data_backup_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}.js`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }catch(e){
+    ghuSetStatus('err', '❌ ดาวน์โหลดไฟล์ปัจจุบันไม่ได้ (' + ghuEsc(e.message) + ')');
+  }
 }
 
 // ===== แดชบอร์ดภาพรวมไปป์ไลน์ (จำนวนเคส/มูลค่า/อัตราปิดการขาย/เคสค้างนาน) =====
@@ -8043,6 +8307,50 @@ loadHistory();
   </div>
 </div>
 
+<!-- (30/9/2569) อัปโหลดไฟล์โปรโมชั่น data.js ขึ้น GitHub จากหน้าเว็บ (admin เท่านั้น) — โค้ดอยู่ที่ส่วน "PROMO UPLOAD" ในสคริปต์หลัก -->
+<div class="preview-modal-bg" id="promoUploadModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>☁️ อัปโหลดไฟล์โปรโมชั่น (data.js)</span>
+    <button onclick="closePromoUploadModal()">✕ ปิด</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner">
+      <div class="ghu-sec">
+        <h4>1) เลือกไฟล์ data.js ใหม่</h4>
+        <input type="file" id="ghuFile" accept=".js,text/javascript" onchange="ghuOnFile(this)">
+        <div id="ghuCheck"></div>
+      </div>
+      <div class="ghu-sec">
+        <h4>2) ปลายทางบน GitHub</h4>
+        <div class="ghu-grid">
+          <div><label>เจ้าของ (owner)</label><input type="text" id="ghuOwner" placeholder="ชื่อบัญชี GitHub"></div>
+          <div><label>Repository</label><input type="text" id="ghuRepo" placeholder="ชื่อ repo"></div>
+          <div><label>Branch (ว่าง = branch หลัก)</label><input type="text" id="ghuBranch" placeholder="main"></div>
+          <div><label>ไฟล์ปลายทาง</label><input type="text" id="ghuPath" placeholder="data.js"></div>
+        </div>
+        <div class="ghu-help">ระบบเดาจากที่อยู่เว็บให้แล้ว — ปกติไม่ต้องแก้</div>
+        <label style="margin-top:8px">GitHub Token</label>
+        <input type="password" id="ghuToken" placeholder="github_pat_..." autocomplete="off">
+        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:400"><input type="checkbox" id="ghuRemember" checked> จำ token ไว้ในเครื่องนี้ (ไม่ต้องวางใหม่ครั้งหน้า)</label>
+        <details class="ghu-help"><summary style="cursor:pointer;color:var(--accent);font-weight:600">วิธีสร้าง token (ทำครั้งเดียว)</summary>
+          <ol>
+            <li>เข้า github.com → รูปโปรไฟล์ → <b>Settings</b> → <b>Developer settings</b></li>
+            <li><b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b></li>
+            <li>Repository access: <b>Only select repositories</b> → เลือก repo ของเว็บนี้</li>
+            <li>Permissions → Repository permissions → <b>Contents: Read and write</b> (อย่างอื่นไม่ต้องเปิด)</li>
+            <li>ตั้งวันหมดอายุ → Generate → คัดลอก token มาวางช่องด้านบน</li>
+          </ol>
+          token นี้แก้ได้แค่ไฟล์ใน repo ที่เลือกเท่านั้น · อย่าส่ง token ให้คนอื่น · ถ้าหลุดให้กด Delete ที่หน้าเดิมแล้วสร้างใหม่
+        </details>
+      </div>
+      <button type="button" class="ghu-btn" id="ghuUploadBtn" onclick="ghuUpload()" disabled>⬆️ อัปโหลดแทนไฟล์เดิม</button>
+      <button type="button" class="ghu-btn sec" onclick="ghuDownloadCurrent()">⬇️ ดาวน์โหลด data.js ที่ใช้อยู่ตอนนี้ (สำรองไว้ก่อน)</button>
+      <div id="ghuStatus"></div>
+      <div class="ghu-help" style="margin-top:8px">ถ้าอัปผิด ย้อนกลับได้: อัปโหลดไฟล์สำรองกลับเข้าไป หรือดูประวัติทุกเวอร์ชันได้ที่หน้า repo → ไฟล์ data.js → History</div>
+    </div>
+  </div>
+</div>
+
 <div class="preview-modal-bg" id="identityModalBg" style="display:none">
   <div class="preview-modal-header">
     <span>👤 บัญชีของฉัน</span>
@@ -8055,6 +8363,7 @@ loadHistory();
            ควบคุมการแสดงผลโดย auth.js (ดู renderIdentity() ในไฟล์นั้น) -->
       <div id="rstIdentityDetailBox" style="margin-bottom:14px"></div>
       <button type="button" id="rstOpenAddMemberBtn" class="finance-launch-btn" style="width:100%;display:none" onclick="window.RSTAuth && window.RSTAuth.openAddMemberModal()">➕ เพิ่มสมาชิกใหม่</button>
+      <button type="button" id="promoUploadIdBtn" class="finance-launch-btn" style="width:100%;margin-top:10px;display:none" onclick="closeIdentityModal();openPromoUploadModal()">☁️ อัปโหลดไฟล์โปรโมชั่น (data.js)</button>
       <button type="button" class="btn-save" style="width:100%;margin-top:10px;background:#c0392b" onclick="window.RSTAuth && window.RSTAuth.logout()">🚪 ออกจากระบบ</button>
     </div>
   </div>
