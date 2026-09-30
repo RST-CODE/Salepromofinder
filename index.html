@@ -1644,6 +1644,8 @@ function getModelOverride(brand, programId, model){
 
 function lookupInterest(brand, segment, years, paymentType, programId, model){
   const pid = (typeof programId !== 'undefined') ? programId : activeProgramId;
+  const ddT = ddTerms(brand, segment, pid, model);
+  if(ddT){ const row = ddT[years] || ddT[ddYears(ddT).slice(-1)[0]] || {}; return row[paymentType] ?? row.annual ?? Object.values(row)[0] ?? 0.0895; }
   const override = getModelOverride(brand, pid, model);
   if(override) return override.interest;
   const group = getInterestGroup(brand, segment, programId);
@@ -1654,6 +1656,8 @@ function lookupInterest(brand, segment, years, paymentType, programId, model){
 
 function getAvailableYears(brand, segment, programId, model){
   const pid = (typeof programId !== 'undefined') ? programId : activeProgramId;
+  const ddT = ddTerms(brand, segment, pid, model);
+  if(ddT) return ddYears(ddT);
   const override = getModelOverride(brand, pid, model);
   if(override) return [override.years];
   const group = getInterestGroup(brand, segment, programId);
@@ -1661,6 +1665,8 @@ function getAvailableYears(brand, segment, programId, model){
 }
 function getAvailablePayments(brand, segment, years, programId, model){
   const pid = (typeof programId !== 'undefined') ? programId : activeProgramId;
+  const ddT = ddTerms(brand, segment, pid, model);
+  if(ddT){ const row = ddT[years] || {}; const list = DD_PAY_ORDER.filter(k => row[k] != null); return list.length ? list : ['annual']; }
   const override = getModelOverride(brand, pid, model);
   if(override) return ['semi','annual'];
   const group = getInterestGroup(brand, segment, programId);
@@ -1694,6 +1700,16 @@ const STANDARD9_GIFTS = [
 ];
 // Special gifts = ทอง, เบียร์, น้ำอัดลม, กระจังหน้า/ปลายท่อ → checkbox
 function isCommonGift(g){
+  // โหมด Excel: ถ้าในไฟล์ระบุประเภทของแถมไว้ (หลัก/มาตรฐาน) ให้ยึดตามไฟล์ก่อน
+  try{
+    for(const b of Object.keys(DATA)){
+      if(!isDD(b)) continue;
+      for(const p of (DATA[b].programs || [])){
+        const t = p.gift_types && p.gift_types[g];
+        if(t) return t === 'มาตรฐาน';
+      }
+    }
+  }catch(e){}
   return STANDARD9_GIFTS.includes(g);
 }
 function isSpecialGift(g){ return !isCommonGift(g); }
@@ -1795,7 +1811,7 @@ const LAND_REF_TABLE = {
 function renderLandRef(){
   const box = document.getElementById('landRefInfo');
   if(!box) return;
-  if(currentSegment !== 'ทั่วไป'){ box.innerHTML = ''; return; }
+  if(currentSegment !== 'ทั่วไป' || isDD(currentBrand)){ box.innerHTML = ''; return; } // โหมด Excel: ตารางไร่เดิมผูกกับโปรชุดเก่า เลยซ่อนไว้
   const rows = LAND_REF_TABLE[currentBrand] || [];
   if(!rows.length){ box.innerHTML = ''; return; }
   box.innerHTML = `<details class="criteria-box">
@@ -1943,6 +1959,7 @@ const SEGMENT_GROUPS = {
 };
 let currentMainGroup = null;
 function getSegListForCurrentGroup(brand){
+  if(isDD(brand)) return (DATA[brand].groups && DATA[brand].groups.length) ? DATA[brand].groups : ['ทั่วไป'];
   const groups = SEGMENT_GROUPS[brand];
   if(!groups) return SEGMENT_LIST[brand];
   const keys = Object.keys(groups);
@@ -1950,7 +1967,7 @@ function getSegListForCurrentGroup(brand){
   return groups[currentMainGroup];
 }
 function renderMainGroupToggle(brand){
-  const groups = SEGMENT_GROUPS[brand];
+  const groups = isDD(brand) ? null : SEGMENT_GROUPS[brand];
   if(!groups){ mainGroupRow.style.display = 'none'; currentMainGroup = null; return; }
   mainGroupRow.style.display = '';
   const keys = Object.keys(groups);
@@ -1987,7 +2004,54 @@ const PROGRAM_IDS = {
   },
 };
 
+// ===== DATA-DRIVEN MODE (30/9/2569) =====
+// ยี่ห้อที่อัปโหลดจากไฟล์ Excel template (ปุ่ม ☁️) จะมี DATA[brand].data_driven = true
+// → เว็บเลือกโปร/สร้าง checkbox/ปุ่มกลุ่ม/ตารางผ่อน จากข้อมูลในไฟล์ทั้งหมด ไม่อิงรหัสโปรตายตัว (PROGRAM_IDS/TOGGLE_DEFS/INTEREST_TABLE)
+// ยี่ห้อที่ยังใช้ data.js แบบเดิม (ไม่มี data_driven) ทำงานเหมือนเดิมทุกอย่าง
+//   program: {id, name, requires_toggle, toggle_label, conditions[], gifts[], gift_types{}, terms{ปี:{annual,semi,quarterly,monthly}}, entries{}}
+//   entry:   {model, group ("ทุกกลุ่ม" = ขึ้นทุกปุ่มกลุ่ม), variant?, price, down, yct, ysp, ysp_topup, fire, customer_out, rst, total, interest, years, terms?, note?}
+const DD_ALL_GROUPS = 'ทุกกลุ่ม';
+const DD_PAY_ORDER = ['monthly','quarterly','semi','annual'];
+function isDD(brand){ return !!(typeof DATA !== 'undefined' && DATA[brand] && DATA[brand].data_driven); }
+function ddGroupMatch(e, segment){ return e.group === segment || e.group === DD_ALL_GROUPS; }
+function ddProgramHasSegment(p, segment){ return Object.values(p.entries || {}).some(e => ddGroupMatch(e, segment)); }
+function ddFindEntries(brand, model, segment, toggles){
+  const rows = [];
+  (DATA[brand].programs || []).forEach(p => {
+    if(p.requires_toggle && !(toggles && toggles['p:' + p.id])) return;
+    const all = Object.values(p.entries || {});
+    const multiGroup = new Set(all.map(e => e.group)).size > 1;
+    all.filter(e => e.model === model && ddGroupMatch(e, segment)).forEach(e => {
+      rows.push({program:p, group:(multiGroup && e.group !== DD_ALL_GROUPS) ? e.group : null, entry:e, variant:e.variant || null});
+    });
+  });
+  return rows;
+}
+function ddToggleDefs(brand, segment){
+  return (DATA[brand].programs || []).filter(p => p.requires_toggle && ddProgramHasSegment(p, segment))
+    .map(p => ({key:'p:' + p.id, label:p.toggle_label || p.name, unlock:'ปลดล็อก ' + p.name}));
+}
+function ddTerms(brand, segment, programId, model){
+  if(!isDD(brand)) return null;
+  const pid = (typeof programId !== 'undefined' && programId !== null) ? programId : activeProgramId;
+  const p = (DATA[brand].programs || []).find(x => x.id === pid);
+  if(!p) return null;
+  const e = model ? Object.values(p.entries || {}).find(x => x.model === model && ddGroupMatch(x, segment)) : null;
+  const t = (e && e.terms) || p.terms;
+  return (t && Object.keys(t).length) ? t : null;
+}
+function ddYears(t){ return Object.keys(t).map(Number).filter(n => n > 0).sort((a,b) => a-b); }
+// อุปกรณ์เสริม/มือสองผูกกับชื่อรุ่นแบบรวม เช่น "EF393A / EF393T-45th" — ถ้า Excel แยกรุ่นเป็น EF393A กับ EF393T-45th ให้หาเจอด้วย
+function eqKeyFor(map, model){
+  if(!map || !model) return model;
+  if(map[model]) return model;
+  const norm = x => String(x).toLowerCase().replace(/[\s_-]/g, '');
+  const k = Object.keys(map).find(k => k.split('/').map(norm).includes(norm(model)));
+  return k || model;
+}
+
 function getKeys(brand, model){
+  if(isDD(brand)) return [model];
   if(brand==='yanmar') return LOOKUP_KEYS[model];
   if(brand==='combine') return [model];
   return [model];
@@ -2013,6 +2077,7 @@ function getKeys(brand, model){
 //   เซลล์กดปุ่ม "เลือกโปรนี้" ที่การ์ดใดก็ได้เพื่อสลับไปใช้โปรนั้นแทนโปรแนะนำ (selectPromo(idx))
 // ============================================================
 function findEntries(brand, model, segment, toggles){
+  if(isDD(brand)) return ddFindEntries(brand, model, segment, toggles);
   const programs = DATA[brand].programs;
   const ids = PROGRAM_IDS[brand];
   const keys = getKeys(brand, model);
@@ -2173,7 +2238,8 @@ function cardHtml(r, badge, compareTo, editable){
   const finYears = (tractorYears && ownAvailYears.includes(tractorYears)) ? tractorYears : ownMaxYears;
   // (15/9/2569) บางรุ่นมี override ดอกเบี้ยเฉพาะรุ่นในโปรเดียวกัน (ดู MODEL_TERM_OVERRIDE) — เช็คก่อนตาราง INTEREST_TABLE ทั่วไป
   const ownOverride = getModelOverride(currentBrand, ownProgramId, modelSelect.value);
-  const tableInterest = ownOverride ? ownOverride.interest : INTEREST_TABLE[currentBrand]?.[getInterestGroup(currentBrand, currentSegment, ownProgramId)]?.[finYears + '_' + tractorPayment];
+  const ownDdTerms = ddTerms(currentBrand, currentSegment, ownProgramId, modelSelect.value);
+  const tableInterest = ownDdTerms ? (ownDdTerms[finYears]?.[tractorPayment] ?? ownDdTerms[finYears]?.annual) : (ownOverride ? ownOverride.interest : INTEREST_TABLE[currentBrand]?.[getInterestGroup(currentBrand, currentSegment, ownProgramId)]?.[finYears + '_' + tractorPayment]);
   const finInterest = tableInterest ?? entryInterest;
   const finAnnual = finTotal * (1/finYears + finInterest);
 
@@ -2475,8 +2541,8 @@ function renderSegmentButtons(){
 
 function renderToggles(){
   renderLandRef();
-  const defs = (TOGGLE_DEFS[currentBrand] && TOGGLE_DEFS[currentBrand][currentSegment]) || [];
-  const note = (currentBrand === 'combine' || currentBrand === 'excavator' || currentBrand === 'drone') ? null : TOGGLE_NOTE[currentSegment];
+  const defs = isDD(currentBrand) ? ddToggleDefs(currentBrand, currentSegment) : ((TOGGLE_DEFS[currentBrand] && TOGGLE_DEFS[currentBrand][currentSegment]) || []);
+  const note = (isDD(currentBrand) || currentBrand === 'combine' || currentBrand === 'excavator' || currentBrand === 'drone') ? null : TOGGLE_NOTE[currentSegment];
   // กลุ่ม YF,SW (Yanmar Fan / Switching) ราคาเท่ากันเลยไม่แยกในระบบราคา แต่ CRM ต้องรู้ว่าเป็นกลุ่มไหนจริง
   // ใช้กับทุกแบรนด์ รวมรถเกี่ยว/combine ด้วย (สำหรับรถเกี่ยว YF,SW = "มีรถเกี่ยวข้าวอยู่แล้ว" — คำถามเดียวกัน
   // แค่เปลี่ยนเป็นถามยี่ห้อรถเกี่ยวที่มีอยู่เดิมแทน ว่าเป็น Yanmar หรือยี่ห้ออื่น)
@@ -5106,41 +5172,260 @@ function ghuDiff(D){
   return out;
 }
 
-function ghuOnFile(input){
+function ghuResetCheck(){
   ghuNewText = null; ghuNewData = null;
   document.getElementById('ghuUploadBtn').disabled = true;
   ghuSetStatus('', '');
+}
+function ghuOnFile(input){
+  ghuResetCheck();
   const box = document.getElementById('ghuCheck');
   const f = input.files && input.files[0];
   if(!f){ box.innerHTML = ''; return; }
   const rd = new FileReader();
-  rd.onload = () => {
-    const text = String(rd.result || '');
-    try{
-      const {D, brands, problems} = ghuParse(text);
-      const counts = brands.map(b => `${b} ${D[b].programs.length} โปร`).join(' · ');
-      if(problems.length){
-        box.innerHTML = `<div class="ghu-status err">❌ ไฟล์มีปัญหา ${problems.length} จุด — ยังอัปโหลดไม่ได้\n${problems.slice(0,15).map(ghuEsc).join('\n')}${problems.length>15?'\n...':''}</div>`;
-        return;
-      }
-      const diff = ghuDiff(D);
-      let dh = '';
-      if(!diff.length) dh = '<div class="ghu-diff">ข้อมูลเหมือนไฟล์ที่ใช้อยู่ทุกอย่าง (ไม่มีโปรไหนเปลี่ยน)</div>';
-      else dh = '<div class="ghu-diff">' + diff.map(d => `<b>${ghuEsc(d.b)}</b><ul>` +
-          d.added.map(x => `<li>➕ เพิ่ม: ${ghuEsc(x)}</li>`).join('') +
-          d.removed.map(x => `<li>➖ ลบ: ${ghuEsc(x)}</li>`).join('') +
-          d.changed.map(x => `<li>✏️ แก้: ${ghuEsc(x)}</li>`).join('') +
-          (d.modelsChanged ? '<li>✏️ รายชื่อรุ่นเปลี่ยน</li>' : '') + '</ul>').join('') + '</div>';
-      box.innerHTML = `<div class="ghu-status ok">✅ ไฟล์ถูกต้อง — ${ghuEsc(f.name)} (${(f.size/1024).toFixed(0)} KB)\n${ghuEsc(counts)}</div>` +
-                      `<div style="font-size:12px;font-weight:700;margin-top:8px">เทียบกับไฟล์ที่เว็บใช้อยู่ตอนนี้:</div>${dh}`;
-      ghuNewText = text; ghuNewData = D;
-      document.getElementById('ghuUploadBtn').disabled = false;
-    }catch(e){
-      box.innerHTML = `<div class="ghu-status err">❌ ${ghuEsc(e.message)}</div>`;
-    }
-  };
+  if(/\.xls[xm]?$/i.test(f.name)){
+    rd.onload = () => ghuHandleExcel(rd.result, f);
+    rd.onerror = () => { box.innerHTML = '<div class="ghu-status err">❌ อ่านไฟล์ไม่ได้</div>'; };
+    rd.readAsArrayBuffer(f);
+    return;
+  }
+  rd.onload = () => ghuCheckText(String(rd.result || ''), `${f.name} (${(f.size/1024).toFixed(0)} KB)`, '');
   rd.onerror = () => { box.innerHTML = '<div class="ghu-status err">❌ อ่านไฟล์ไม่ได้</div>'; };
   rd.readAsText(f, 'utf-8');
+}
+
+// ตรวจ data.js (จะมาจากไฟล์ที่เลือกเอง หรือที่แปลงจาก Excel ก็ได้) แล้วเปิดปุ่มอัปโหลด
+function ghuCheckText(text, label, prefixHtml){
+  const box = document.getElementById('ghuCheck');
+  try{
+    const {D, brands, problems} = ghuParse(text);
+    const counts = brands.map(b => `${b} ${D[b].programs.length} โปร`).join(' · ');
+    if(problems.length){
+      box.innerHTML = prefixHtml + `<div class="ghu-status err">❌ ไฟล์มีปัญหา ${problems.length} จุด — ยังอัปโหลดไม่ได้\n${problems.slice(0,15).map(ghuEsc).join('\n')}${problems.length>15?'\n...':''}</div>`;
+      return;
+    }
+    const diff = ghuDiff(D);
+    let dh = '';
+    if(!diff.length) dh = '<div class="ghu-diff">ข้อมูลเหมือนไฟล์ที่ใช้อยู่ทุกอย่าง (ไม่มีโปรไหนเปลี่ยน)</div>';
+    else dh = '<div class="ghu-diff">' + diff.map(d => `<b>${ghuEsc(d.b)}</b><ul>` +
+        d.added.map(x => `<li>➕ เพิ่ม: ${ghuEsc(x)}</li>`).join('') +
+        d.removed.map(x => `<li>➖ ลบ: ${ghuEsc(x)}</li>`).join('') +
+        d.changed.map(x => `<li>✏️ แก้: ${ghuEsc(x)}</li>`).join('') +
+        (d.modelsChanged ? '<li>✏️ รายชื่อรุ่นเปลี่ยน</li>' : '') + '</ul>').join('') + '</div>';
+    box.innerHTML = prefixHtml + `<div class="ghu-status ok">✅ ไฟล์ถูกต้อง — ${ghuEsc(label)}\n${ghuEsc(counts)}</div>` +
+                    `<div style="font-size:12px;font-weight:700;margin-top:8px">เทียบกับไฟล์ที่เว็บใช้อยู่ตอนนี้:</div>${dh}`;
+    ghuNewText = text; ghuNewData = D;
+    document.getElementById('ghuUploadBtn').disabled = false;
+  }catch(e){
+    box.innerHTML = prefixHtml + `<div class="ghu-status err">❌ ${ghuEsc(e.message)}</div>`;
+  }
+}
+
+// ---------- Excel template → DATA ----------
+// ตำแหน่งเซลล์ตายตัวตาม Promotion_Template.xlsx (ดู claude/promo-upload-template-spec.md)
+const GHU_SKIP_SHEETS = ['วิธีใช้', 'สรุปทุกโปร', 'รายการ'];
+const GHU_COLS = ['C','D','E','F','G','H','I','J','K','L','M','N'];
+const GHU_PAY_COLS = [['K','annual'],['L','semi'],['M','quarterly'],['N','monthly']];
+const GHU_KNOWN_BRANDS = ['yanmar','solis','combine','excavator','drone'];
+
+function ghuXlsxToBrands(wb, fileName){
+  const errors = [], warnings = [], skipped = [], brands = {};
+  const raw = (ws, a) => { const c = ws[a]; return (c && c.v !== undefined) ? c.v : null; };
+  const str = (ws, a) => { const v = raw(ws, a); return v == null ? '' : String(v).trim(); };
+  const num = (ws, a) => {
+    const v = raw(ws, a);
+    if(v == null || v === '') return null;
+    if(typeof v === 'number') return v;
+    const t = String(v).replace(/[,\s]|บาท|฿/g, '');
+    if(t === '' || t === '-' || t === '–') return null;
+    const n = Number(t.replace(/%$/, ''));
+    if(isNaN(n)) return NaN;
+    return /%$/.test(t) ? n / 100 : n;
+  };
+  const rate = (ws, a) => { const n = num(ws, a); if(n == null || isNaN(n)) return n; return n > 1 ? n / 100 : n; }; // พิมพ์ 8.95 แทน 8.95%
+  // ลำดับปุ่มกลุ่มลูกค้าตามชีท "รายการ"
+  let groupOrder = ['ทั่วไป', 'YF,SW', 'RT'];
+  if(wb.Sheets['รายการ']){
+    const g = [];
+    for(let r = 4; r <= 23; r++){ const v = str(wb.Sheets['รายการ'], 'C' + r); if(v && v !== DD_ALL_GROUPS) g.push(v); }
+    if(g.length) groupOrder = g;
+  }
+  wb.SheetNames.forEach(sn => {
+    if(GHU_SKIP_SHEETS.includes(sn)) return;
+    const ws = wb.Sheets[sn];
+    const id = str(ws, 'C2'), name = str(ws, 'C1');
+    const hasModel = GHU_COLS.some(c => str(ws, c + '10'));
+    if(!id && !name && !hasModel){ skipped.push(sn); return; }   // ชีทว่าง เช่น "แม่แบบ"
+    const W = `ชีท "${sn}"`;
+    if(!name) errors.push(`${W}: ยังไม่มีชื่อโปร (C1)`);
+    if(!id) errors.push(`${W}: ยังไม่มีรหัสโปร (C2)`);
+    else if(/\s/.test(id)) errors.push(`${W}: รหัสโปร "${id}" ห้ามเว้นวรรค`);
+    const brand = str(ws, 'C3').toLowerCase();
+    if(!brand) errors.push(`${W}: ยังไม่ได้เลือกยี่ห้อ (C3)`);
+    else if(!GHU_KNOWN_BRANDS.includes(brand)) errors.push(`${W}: ยี่ห้อ "${brand}" ยังไม่มีปุ่มบนเว็บ (ใช้ได้: ${GHU_KNOWN_BRANDS.join(', ')})`);
+    const tg = str(ws, 'C4').toUpperCase();
+    if(tg !== 'Y' && tg !== 'N') errors.push(`${W}: ช่อง "ต้องติ๊กปลดล็อก" (C4) ต้องเป็น Y หรือ N`);
+    const tlabel = str(ws, 'C5');
+    if(tg === 'Y' && !tlabel) errors.push(`${W}: ต้องติ๊กปลดล็อก = Y แต่ยังไม่มีข้อความข้าง checkbox (C5)`);
+
+    const terms = {};
+    for(let r = 5; r <= 8; r++){
+      const y = num(ws, 'J' + r);
+      if(y == null) continue;
+      if(isNaN(y) || y <= 0 || y > 15){ errors.push(`${W}: ตารางผ่อน J${r} จำนวนปีไม่ถูกต้อง`); continue; }
+      const row = {};
+      GHU_PAY_COLS.forEach(([c, k]) => {
+        const v = rate(ws, c + r);
+        if(v != null && isNaN(v)) errors.push(`${W}: ตารางผ่อน ${c}${r} ไม่ใช่ตัวเลข`);
+        else if(v != null) row[k] = v;
+      });
+      if(!Object.keys(row).length) errors.push(`${W}: ตารางผ่อน ${y} ปี ยังไม่มีดอกเบี้ย`);
+      else terms[y] = row;
+    }
+    if(!Object.keys(terms).length) errors.push(`${W}: ยังไม่ได้ใส่ตารางผ่อน (J5:N8)`);
+    const pickRate = t => { const ys = ddYears(t); const top = t[ys[ys.length-1]] || {}; return {years: ys[ys.length-1] || null, rate: top.annual ?? Object.values(top)[0] ?? null}; };
+
+    const conditions = [];
+    for(let r = 30; r <= 41; r++){ const t = str(ws, 'C' + r); if(t) conditions.push(t); }
+    const gifts = [], gift_types = {};
+    for(let r = 10; r <= 29; r++){
+      const g = str(ws, 'P' + r); if(!g) continue;
+      gifts.push(g); gift_types[g] = (str(ws, 'Q' + r) === 'มาตรฐาน') ? 'มาตรฐาน' : 'หลัก';
+    }
+
+    const entries = {};
+    GHU_COLS.forEach(c => {
+      const model = str(ws, c + '10');
+      if(!model) return;
+      const A = `${W} คอลัมน์ ${c} (${model})`;
+      const group = str(ws, c + '9'), variant = str(ws, c + '11');
+      if(!group) errors.push(`${A}: ยังไม่ได้เลือกกลุ่มลูกค้า (แถว 9)`);
+      const price = num(ws, c + '12'), down = num(ws, c + '13');
+      if(!(price > 0)) errors.push(`${A}: ไม่มี Price (แถว 12)`);
+      if(!(down > 0)) errors.push(`${A}: ไม่มี Down (แถว 13)`);
+      else if(price > 0 && down >= price) errors.push(`${A}: Down มากกว่าหรือเท่ากับราคา`);
+      const f = r => { const v = num(ws, c + r); if(v != null && isNaN(v)){ errors.push(`${A}: แถว ${r} ไม่ใช่ตัวเลข`); return 0; } return v || 0; };
+      const yct = f(14) + f(15), ysp = f(16), topup = f(17), fire = f(18), co = f(19);
+      const rst = (down || 0) - (yct + ysp + topup + fire + co);
+      if(rst < 0) warnings.push(`${A}: RST ติดลบ ${rst.toLocaleString('th-TH')}`);
+      const oRate = rate(ws, c + '22'), oYears = num(ws, c + '23');
+      if(oRate != null && isNaN(oRate)) errors.push(`${A}: ดอกเบี้ยแถว 22 ไม่ใช่ตัวเลข`);
+      let eterms = null;
+      const hasRate = oRate != null && !isNaN(oRate), hasYears = oYears != null && !isNaN(oYears) && oYears > 0;
+      if(hasRate || hasYears){
+        eterms = {};
+        const ys = hasYears ? [oYears] : ddYears(terms);
+        ys.forEach(y => {
+          const base = terms[y] || {annual: hasRate ? oRate : (pickRate(terms).rate ?? 0.0895)};
+          const row = {}; Object.keys(base).forEach(k => row[k] = hasRate ? oRate : base[k]);
+          eterms[y] = row;
+        });
+      }
+      const pr = pickRate(eterms || terms);
+      const total = (price || 0) - (down || 0);
+      const yy = pr.years || 10, rr = pr.rate ?? 0.0895;
+      const e = {model, group, price, down, yct, ysp, ysp_topup: topup, fire, customer_out: co, rst, total,
+                 interest: rr, years: yy,
+                 total_payback: Math.round((total * rr * yy + total) * 100) / 100,
+                 annual: Math.round(total * (1 / yy + rr) * 100) / 100};
+      if(variant) e.variant = variant;
+      const note = str(ws, c + '21'); if(note) e.note = note;
+      if(eterms) e.terms = eterms;
+      const key = model + ' | ' + group + (variant ? ' | ' + variant : '');
+      if(entries[key]) errors.push(`${A}: ซ้ำกับคอลัมน์ก่อนหน้า (รุ่น+กลุ่ม+ตัวเลือกย่อยเดียวกัน)`);
+      entries[key] = e;
+    });
+    if(!Object.keys(entries).length) errors.push(`${W}: ยังไม่มีรุ่นเลย (แถว 10)`);
+    if(!brand) return;
+    const p = {id, name, sheet: sn, requires_toggle: tg === 'Y', conditions, terms, entries,
+               groups: [...new Set(Object.values(entries).map(e => e.group))]};
+    if(tg === 'Y') p.toggle_label = tlabel;
+    if(gifts.length){ p.gifts = gifts; p.gift_types = gift_types; }
+    (brands[brand] = brands[brand] || []).push(p);
+  });
+
+  const out = {};
+  Object.entries(brands).forEach(([b, programs]) => {
+    const seen = {};
+    programs.forEach(p => { if(p.id){ if(seen[p.id]) errors.push(`รหัสโปร "${p.id}" ซ้ำกัน (ชีท "${seen[p.id]}" กับ "${p.sheet}")`); seen[p.id] = p.sheet; } });
+    const models = [];
+    programs.forEach(p => Object.values(p.entries).forEach(e => { if(!models.includes(e.model)) models.push(e.model); }));
+    const used = new Set(); programs.forEach(p => Object.values(p.entries).forEach(e => { if(e.group !== DD_ALL_GROUPS) used.add(e.group); }));
+    let groups = groupOrder.filter(g => used.has(g)).concat([...used].filter(g => !groupOrder.includes(g)));
+    if(!groups.length) groups = ['ทั่วไป'];
+    out[b] = {data_driven: true,
+              source: {file: fileName, uploaded_at: new Date().toISOString(), by: (typeof userName !== 'undefined' && userName) || ''},
+              models, groups, programs};
+  });
+  return {brands: out, errors, warnings, skipped};
+}
+
+async function ghuCurrentDataAndHeader(){
+  // ใช้ data.js ตัวจริงบนเซิร์ฟเวอร์เป็นฐาน (ไม่ใช้ DATA ในหน้า เพราะอาจเป็นข้อมูลที่กด "ลองดู" ค้างไว้)
+  try{
+    const t = await (await fetch('data.js?base=' + Date.now(), {cache:'no-store'})).text();
+    const i = t.indexOf('const DATA');
+    const D = new Function(t + '\n;return DATA;')();
+    return {D, header: i > 0 ? t.slice(0, i) : ''};
+  }catch(e){
+    return {D: JSON.parse(JSON.stringify(DATA)), header: ''};
+  }
+}
+
+let ghuExcelBrands = null;
+async function ghuHandleExcel(buf, f){
+  const box = document.getElementById('ghuCheck');
+  if(typeof XLSX === 'undefined'){ box.innerHTML = '<div class="ghu-status err">❌ ตัวอ่าน Excel ยังโหลดไม่เสร็จ — รอสักครู่แล้วเลือกไฟล์ใหม่</div>'; return; }
+  box.innerHTML = '<div class="ghu-status info">⏳ กำลังอ่านไฟล์ Excel...</div>';
+  let wb;
+  try{ wb = XLSX.read(buf, {type:'array'}); }catch(e){ box.innerHTML = `<div class="ghu-status err">❌ เปิดไฟล์ Excel ไม่ได้ (${ghuEsc(e.message)})</div>`; return; }
+  const res = ghuXlsxToBrands(wb, f.name);
+  const bnames = Object.keys(res.brands);
+  let head = '';
+  const summary = bnames.map(b => {
+    const P = res.brands[b].programs;
+    return `<b>${ghuEsc(b)}</b>: ${P.length} โปร · ${res.brands[b].models.length} รุ่น · ปุ่มกลุ่ม ${ghuEsc(res.brands[b].groups.join(' / '))}<ul>` +
+      P.map(p => `<li>${ghuEsc(p.name)} <span style="color:#888">(${Object.keys(p.entries).length} คอลัมน์${p.requires_toggle ? ' · ต้องติ๊ก' : ''})</span></li>`).join('') + '</ul>';
+  }).join('');
+  head += `<div class="ghu-status info">📄 ${ghuEsc(f.name)}\n</div><div class="ghu-diff">${summary}${res.skipped.length ? `<div style="color:#888">ข้ามชีทว่าง: ${ghuEsc(res.skipped.join(', '))}</div>` : ''}</div>`;
+  if(res.warnings.length) head += `<div class="ghu-status info">⚠️ ควรดูอีกครั้ง (ส่งได้)\n${res.warnings.slice(0,12).map(ghuEsc).join('\n')}${res.warnings.length>12?'\n...':''}</div>`;
+  if(res.errors.length || !bnames.length){
+    const errs = res.errors.length ? res.errors : ['ไม่พบชีทโปรในไฟล์นี้ — ใช้ไฟล์ Promotion Template หรือเปล่า?'];
+    box.innerHTML = head + `<div class="ghu-status err">❌ ต้องแก้ใน Excel ก่อน ${errs.length} จุด\n${errs.slice(0,20).map(ghuEsc).join('\n')}${errs.length>20?'\n...':''}</div>`;
+    return;
+  }
+  ghuExcelBrands = res.brands;
+  const {D, header} = await ghuCurrentDataAndHeader();
+  bnames.forEach(b => { D[b] = res.brands[b]; });
+  const stamp = `// อัปเดต ${new Date().toLocaleString('th-TH')} — สร้างอัตโนมัติจากไฟล์ Excel "${f.name}" ผ่านปุ่ม ☁️ บนเว็บ` +
+                `${(typeof userName !== 'undefined' && userName) ? ' โดย ' + userName : ''} (แทนที่ยี่ห้อ: ${bnames.join(', ')})\n`;
+  const text = header + stamp + 'const DATA = ' + JSON.stringify(D, null, 2) + ';\n';
+  const tools = `<div style="display:flex;gap:6px;margin-top:6px">
+      <button type="button" class="ghu-btn sec" style="margin-top:0" onclick="ghuPreviewExcel()">👀 ลองดูการ์ดในหน้านี้ก่อน</button>
+      <button type="button" class="ghu-btn sec" style="margin-top:0" onclick="ghuDownloadConverted()">⬇️ data.js ที่แปลงแล้ว</button></div>`;
+  ghuCheckText(text, `${f.name} → แปลงเป็น data.js แล้ว`, head);
+  if(ghuNewText) document.getElementById('ghuCheck').insertAdjacentHTML('beforeend', tools);
+}
+
+// ลองใช้ข้อมูลจาก Excel ในหน้านี้ชั่วคราว (ยังไม่อัปโหลด) — รีโหลดหน้าเพื่อกลับเป็นข้อมูลจริง
+function ghuPreviewExcel(){
+  if(!ghuExcelBrands) return;
+  Object.keys(ghuExcelBrands).forEach(b => { DATA[b] = JSON.parse(JSON.stringify(ghuExcelBrands[b])); });
+  closePromoUploadModal();
+  if(!document.getElementById('ghuPreviewBanner')){
+    document.body.insertAdjacentHTML('afterbegin', `<div id="ghuPreviewBanner" style="position:sticky;top:0;z-index:9999;background:#FFE699;color:#5a4500;font-size:12.5px;font-weight:700;padding:8px 12px;text-align:center">
+      👀 กำลังลองดูข้อมูลจากไฟล์ Excel (ยังไม่ได้อัปโหลด) — <a href="#" onclick="location.reload();return false">รีโหลดเพื่อกลับเป็นข้อมูลจริง</a> · <a href="#" onclick="openPromoUploadModal();return false">กลับไปอัปโหลด</a></div>`);
+  }
+  const b0 = Object.keys(ghuExcelBrands)[0];
+  setBrand(Object.keys(ghuExcelBrands).includes(currentBrand) ? currentBrand : b0);
+}
+function ghuDownloadConverted(){
+  if(!ghuNewText) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([ghuNewText], {type:'text/javascript'}));
+  a.download = 'data.js';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
 async function ghuApi(method, path, token, body){
@@ -7687,11 +7972,12 @@ const _origGoToResults = goToResults;
 
 function getEquipmentListForMode(brand, model, mode){
   if(mode === 'used'){
-    return (USED_EQUIPMENT[brand]||{})[model] || [];
+    const um = USED_EQUIPMENT[brand]||{};
+    return um[eqKeyFor(um, model)] || [];
   }
   const map = EQUIPMENT[brand];
   if(!map) return [];
-  return map[model] || [];
+  return map[eqKeyFor(map, model)] || [];
 }
 function getEquipmentForModel(brand, model){
   return getEquipmentListForMode(brand, model, eqMode);
@@ -8310,14 +8596,15 @@ loadHistory();
 <!-- (30/9/2569) อัปโหลดไฟล์โปรโมชั่น data.js ขึ้น GitHub จากหน้าเว็บ (admin เท่านั้น) — โค้ดอยู่ที่ส่วน "PROMO UPLOAD" ในสคริปต์หลัก -->
 <div class="preview-modal-bg" id="promoUploadModalBg" style="display:none">
   <div class="preview-modal-header">
-    <span>☁️ อัปโหลดไฟล์โปรโมชั่น (data.js)</span>
+    <span>☁️ อัปโหลดไฟล์โปรโมชั่น</span>
     <button onclick="closePromoUploadModal()">✕ ปิด</button>
   </div>
   <div class="modal-form-scroll">
     <div class="modal-form-inner">
       <div class="ghu-sec">
-        <h4>1) เลือกไฟล์ data.js ใหม่</h4>
-        <input type="file" id="ghuFile" accept=".js,text/javascript" onchange="ghuOnFile(this)">
+        <h4>1) เลือกไฟล์ Excel (Promotion Template) หรือ data.js</h4>
+        <input type="file" id="ghuFile" accept=".xlsx,.xlsm,.js" onchange="ghuOnFile(this)">
+        <div class="ghu-help">ไฟล์ Excel: ยี่ห้อที่อยู่ในไฟล์จะถูกแทนที่ด้วยข้อมูลในไฟล์ทั้งหมด ยี่ห้ออื่นใช้ข้อมูลเดิมต่อ</div>
         <div id="ghuCheck"></div>
       </div>
       <div class="ghu-sec">
