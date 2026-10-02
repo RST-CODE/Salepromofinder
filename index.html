@@ -1038,6 +1038,19 @@ body.printing #printArea{
     </div>
   </div>
 
+  <div class="select-row" id="regPayerRow">
+    <label>ค่าจดทะเบียน+พรบ ใครออก? <span style="color:#c0392b">*</span></label>
+    <div class="segment-toggle" id="regPayerToggle">
+      <button data-payer="customer" class="seg-btn">ลูกค้าจ่าย</button>
+      <button data-payer="shop" class="seg-btn">ร้านออกให้</button>
+      <button data-payer="split" class="seg-btn">ร้านช่วยบางส่วน</button>
+    </div>
+    <div id="regPayerSplitBox" style="display:none;margin-top:6px">
+      <input type="number" id="regShopAmtInput" inputmode="numeric" min="0" placeholder="ร้านออกให้กี่บาท" style="width:100%;box-sizing:border-box;font-family:'Kanit',sans-serif;font-size:13px;padding:6px 8px;border-radius:8px;border:1.5px solid var(--line)">
+    </div>
+    <div id="regPayerHint" style="font-size:11px;color:var(--ink-soft);margin-top:4px"></div>
+  </div>
+
   <div class="select-row" id="mainGroupRow" style="display:none">
     <label>ประเภทลูกค้า</label>
     <div class="segment-toggle" id="mainGroupToggle"></div>
@@ -1227,7 +1240,7 @@ body.printing #printArea{
       <div class="hist-filter-group hist-quicksearch">
         <label>ค้นหาด่วน</label>
         <div class="hist-quicksearch-input-wrap">
-          <input type="text" id="hf_quick" placeholder="ชื่อ, เบอร์, ที่อยู่, รุ่น, โปร, สาขา..." oninput="filterHistory()">
+          <input type="text" id="hf_quick" placeholder="ชื่อ, เบอร์, เลขแอพ, ที่อยู่, รุ่น, โปร, สาขา..." oninput="filterHistory()">
         </div>
       </div>
       <div class="hist-filter-group wide">
@@ -1864,6 +1877,50 @@ function getRegFee(brand, model, ct){
   return REGISTRATION_FEE.tractor[ct] || REGISTRATION_FEE.tractor.individual;
 }
 
+// (1/10/2569) ค่าจดทะเบียน+พรบ ต้องจ่ายทุกราย — บังคับเลือกว่าใครออก (ลูกค้า / ร้านออกให้ / ร้านช่วยบางส่วน)
+// ยอดเต็ม (full) ยังบันทึกไว้เสมอ แค่แยกว่าส่วนไหนลูกค้าจ่าย (cust) ส่วนไหนร้านออก (shop) — ร้านออกไม่นับเป็น "ช่วยดาวน์"
+let regFeePayer = null; // null = ยังไม่ได้เลือก | 'customer' | 'shop' | 'split'
+let regShopAmt = 0;     // ใช้เฉพาะ 'split'
+function getRegSplit(brand, model, ct){
+  const full = getRegFee(brand, model, ct);
+  let shop = 0;
+  if(regFeePayer === 'shop') shop = full;
+  else if(regFeePayer === 'split') shop = Math.max(0, Math.min(full, Number(regShopAmt) || 0));
+  return { full, shop, cust: full - shop };
+}
+function regPayerLabel(payer){
+  return payer === 'shop' ? 'ร้านออกให้ทั้งหมด' : (payer === 'split' ? 'ร้านช่วยบางส่วน' : (payer === 'customer' ? 'ลูกค้าจ่าย' : '—'));
+}
+function updateRegPayerUI(){
+  const row = document.getElementById('regPayerRow');
+  if(!row) return;
+  const r = getRegSplit(currentBrand, document.getElementById('modelSelect').value, custType);
+  row.style.display = r.full > 0 ? '' : 'none'; // โดรน/รุ่นที่ไม่มีค่าจดทะเบียน ไม่ต้องเลือก
+  document.querySelectorAll('#regPayerToggle .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.payer === regFeePayer));
+  const splitBox = document.getElementById('regPayerSplitBox');
+  if(splitBox) splitBox.style.display = regFeePayer === 'split' ? '' : 'none';
+  const hint = document.getElementById('regPayerHint');
+  if(hint){
+    if(!regFeePayer) hint.innerHTML = '<span style="color:#c0392b">⚠️ กรุณาเลือกก่อน (ค่าจดทะเบียน+พรบ ' + fmt(r.full) + ' บาท)</span>';
+    else if(r.shop > 0) hint.textContent = 'ยอดเต็ม ' + fmt(r.full) + ' · ร้านออก ' + fmt(r.shop) + ' · ลูกค้าจ่าย ' + fmt(r.cust) + ' บาท';
+    else hint.textContent = 'ลูกค้าจ่ายเต็ม ' + fmt(r.full) + ' บาท';
+  }
+}
+function validateRegPayer(){
+  const r = getRegSplit(currentBrand, document.getElementById('modelSelect').value, custType);
+  if(r.full <= 0) return true;
+  const focusRow = ()=>{ const row = document.getElementById('regPayerRow'); if(row) row.scrollIntoView({behavior:'smooth', block:'center'}); };
+  if(!regFeePayer){
+    alert('กรุณาเลือกว่า "ค่าจดทะเบียน+พรบ" ใครเป็นคนออก (ลูกค้าจ่าย / ร้านออกให้ / ร้านช่วยบางส่วน)');
+    focusRow(); return false;
+  }
+  if(regFeePayer === 'split' && !(Number(regShopAmt) > 0)){
+    alert('เลือก "ร้านช่วยบางส่วน" แล้ว กรุณากรอกจำนวนเงินที่ร้านออกให้');
+    focusRow(); const el = document.getElementById('regShopAmtInput'); if(el) el.focus(); return false;
+  }
+  return true;
+}
+
 const modelSelect = document.getElementById('modelSelect');
 const segmentToggle = document.getElementById('segmentToggle');
 const mainGroupToggle = document.getElementById('mainGroupToggle');
@@ -2171,7 +2228,9 @@ function cardHtml(r, badge, compareTo, editable){
   const totalSupportBase = down - (e.customer_out ?? 0);
   // แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน) — จำกัดไม่ให้เกินยอดสนับสนุนที่มีจริง
   const subForSupport = editable ? Math.max(0, Math.min(Number(custSubForSupport)||0, totalSupportBase)) : 0;
-  const regFee = getRegFee(currentBrand, modelSelect.value, custType);
+  const _regCard = getRegSplit(currentBrand, modelSelect.value, custType);
+  const regFee = _regCard.cust; // ส่วนที่ลูกค้าจ่ายจริง (หักส่วนที่ร้านออกให้แล้ว)
+  const regFeeShop = _regCard.shop;
   // ส่วนของเงินดาวน์ที่ลูกค้าจ่ายเอง (ไม่รวมค่าจดทะเบียน+พรบ) — ใช้คิดสัดส่วนแท่งกราฟดาวน์
   const custDown = (e.customer_out ?? 0) + extra + subForSupport;
   // ยอดที่ลูกค้าต้องจ่ายจริงวันรับรถ = ส่วนดาวน์ที่ลูกค้าออกเอง + ค่าจดทะเบียน+พรบ
@@ -2338,7 +2397,7 @@ function cardHtml(r, badge, compareTo, editable){
           <div class="numbers">
             <div class="num-box cust full"><div class="k">ส่วนสนับสนุนรวม (ลูกค้าได้รับ)</div><div class="v">${fmt(totalSupport)} บาท${supportDelta}</div></div>
             <div class="num-box"><div class="k">เงินดาวน์รวม</div><div class="v">${fmt(downDisp)}${extra>0 ? `<div class="vv">(เดิม ${fmt(down)} + วางเพิ่ม ${fmt(extra)})</div>` : ''}</div></div>
-            <div class="num-box"><div class="k">ลูกค้าออก(รวมจดทะเบียน+พรบ)</div><div class="v">${fmt(cust)}${custDelta}${regFee>0 ? `<div class="vv">(ดาวน์รถ ${fmt(custDown)} + จดทะเบียน+พรบ ${fmt(regFee)})</div>` : ''}</div></div>
+            <div class="num-box"><div class="k">ลูกค้าออก(รวมจดทะเบียน+พรบ)</div><div class="v">${fmt(cust)}${custDelta}${(regFee>0||regFeeShop>0) ? `<div class="vv">(ดาวน์รถ ${fmt(custDown)} + จดทะเบียน+พรบ ${fmt(regFee)}${regFeeShop>0 ? ` · ร้านออกให้ ${fmt(regFeeShop)}` : ''})</div>` : ''}</div></div>
             <div class="num-box"><div class="k">RST ออก</div><div class="v">${fmt(rst)}${rstDelta}</div></div>
             ${editable ? `<div class="num-box full extra-down-box"><div class="k">แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (ถ้ามี)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="extraDownInput" value="${extra||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">กรอกเพิ่มเพื่อ เพิ่มดาวน์ ลดค่างวด</div></div>
             <div class="num-box full extra-down-box"><div class="k">แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="subForSupportInput" value="${subForSupport||''}" placeholder="0" max="${totalSupportBase}"></div><div class="vv" style="margin-top:2px">กรอกเพิ่มเพื่อ ออกแทนช่วยดาวน์</div></div>` : ''}
@@ -2408,10 +2467,12 @@ function renderResultsCommon(rawRows, model){
     const down = best.entry.down || 0;
     const cust = best.entry.customer_out ?? 0;
     const supportPct = Math.round((down-cust)/price*100);
-    const regFeeSummary = getRegFee(currentBrand, model, custType);
+    const _regSum = getRegSplit(currentBrand, model, custType);
+    const regFeeSummary = _regSum.cust;
     summarySupport.textContent = supportPct + '%';
     summaryCust.innerHTML = fmt(cust + regFeeSummary) + ' บาท'
-      + (regFeeSummary>0 ? `<div style="font-size:10px;font-weight:400;color:var(--ink-soft);margin-top:2px">(ดาวน์รถ ${fmt(cust)} + จดทะเบียน+พรบ ${fmt(regFeeSummary)})</div>` : '');
+      + ((regFeeSummary>0||_regSum.shop>0) ? `<div style="font-size:10px;font-weight:400;color:var(--ink-soft);margin-top:2px">(ดาวน์รถ ${fmt(cust)} + จดทะเบียน+พรบ ${fmt(regFeeSummary)}${_regSum.shop>0 ? ` · ร้านออกให้ ${fmt(_regSum.shop)}` : ''})</div>` : '')
+      + ((_regSum.full>0 && !regFeePayer) ? `<div style="font-size:10px;font-weight:600;color:#c0392b;margin-top:2px">⚠️ ยังไม่ได้เลือกว่าใครออกค่าจดทะเบียน+พรบ</div>` : '');
   } else {
     summarySupport.textContent = '-';
     summaryCust.textContent = '-';
@@ -2546,22 +2607,26 @@ function renderToggles(){
   // กลุ่ม YF,SW (Yanmar Fan / Switching) ราคาเท่ากันเลยไม่แยกในระบบราคา แต่ CRM ต้องรู้ว่าเป็นกลุ่มไหนจริง
   // ใช้กับทุกแบรนด์ รวมรถเกี่ยว/combine ด้วย (สำหรับรถเกี่ยว YF,SW = "มีรถเกี่ยวข้าวอยู่แล้ว" — คำถามเดียวกัน
   // แค่เปลี่ยนเป็นถามยี่ห้อรถเกี่ยวที่มีอยู่เดิมแทน ว่าเป็น Yanmar หรือยี่ห้ออื่น)
-  const showYfSwPicker = currentSegment === 'YF,SW';
-  const yfSwEquipWord = currentBrand === 'combine' ? 'รถเกี่ยว' : currentBrand === 'excavator' ? 'รถขุด' : 'รถ';
+  // (2/10/2569) แยกกลุ่ม CRM จากชื่อกลุ่ม/โปรแบบยืดหยุ่น — รองรับกลุ่มรวม เช่น "RT,YF,SW" (โหมด data-driven),
+  // "YFSW10" (รถขุด), "drone_yfsw_2y" (โดรน) ไม่ใช่แค่ 'YF,SW' ตรงตัวเหมือนเดิม
+  const relOpts = crmRelOptions();
+  const showYfSwPicker = relOpts.length > 1;
+  const yfSwEquipWord = currentBrand === 'combine' ? 'รถเกี่ยว' : currentBrand === 'excavator' ? 'รถขุด' : currentBrand === 'drone' ? 'โดรน' : 'รถ';
+  const relBtnInfo = {
+    'Retention':  {icon:'⭐', title:'RT (Retention)', sub:'ลูกค้าเก่าชั้นดี ซื้อกับร้านมาแล้ว'},
+    'Yanmar Fan': {icon:'🚜', title:'YF (Yanmar Fan)', sub:'มี' + yfSwEquipWord + ' Yanmar อยู่แล้ว'},
+    'Switching':  {icon:'🔄', title:'SW (Switching)', sub:'มี' + yfSwEquipWord + 'ยี่ห้ออื่นอยู่'},
+  };
   const yfSwPickerHtml = showYfSwPicker ? `
     <div class="yfsw-picker" style="margin:8px 0 4px">
-      <div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px">👥 กลุ่มลูกค้า</div>
-      <div style="display:flex;gap:8px">
-        <button type="button" onclick="selectYfSwSubType('Yanmar Fan')"
-          style="flex:1;padding:8px;border-radius:8px;border:2px solid ${yfSwSubType==='Yanmar Fan'?'var(--accent)':'var(--line)'};background:${yfSwSubType==='Yanmar Fan'?'var(--accent)':'#fff'};color:${yfSwSubType==='Yanmar Fan'?'#fff':'var(--ink)'};font-weight:700;font-size:12.5px;cursor:pointer">
-          🚜 Yanmar Fan<br><span style="font-weight:400;font-size:10.5px">มี${yfSwEquipWord} Yanmar อยู่แล้ว</span>
-        </button>
-        <button type="button" onclick="selectYfSwSubType('Switching')"
-          style="flex:1;padding:8px;border-radius:8px;border:2px solid ${yfSwSubType==='Switching'?'var(--accent)':'var(--line)'};background:${yfSwSubType==='Switching'?'var(--accent)':'#fff'};color:${yfSwSubType==='Switching'?'#fff':'var(--ink)'};font-weight:700;font-size:12.5px;cursor:pointer">
-          🔄 Switching<br><span style="font-weight:400;font-size:10.5px">มี${yfSwEquipWord}ยี่ห้ออื่นอยู่</span>
-        </button>
+      <div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px">👥 กลุ่มลูกค้า (สำหรับ CRM) <span style="color:#c0392b">*</span></div>
+      <div style="display:flex;gap:6px">
+        ${relOpts.map(v=>{ const on = yfSwSubType===v; const b = relBtnInfo[v]; return `<button type="button" onclick="selectYfSwSubType('${v}')"
+          style="flex:1;padding:8px 4px;border-radius:8px;border:2px solid ${on?'var(--accent)':'var(--line)'};background:${on?'var(--accent)':'#fff'};color:${on?'#fff':'var(--ink)'};font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;cursor:pointer">
+          ${b.icon} ${b.title}<br><span style="font-weight:400;font-size:10px">${b.sub}</span>
+        </button>`; }).join('')}
       </div>
-      ${!yfSwSubType ? '<div style="font-size:10.5px;color:#B8860B;margin-top:4px">⚠ ยังไม่เลือก — เลือกไว้ก่อนบันทึก จะได้ export เข้า CRM ได้ถูกกลุ่ม</div>' : ''}
+      ${!relOpts.includes(yfSwSubType) ? '<div style="font-size:10.5px;color:#B8860B;margin-top:4px">⚠ ยังไม่เลือก — ต้องเลือกก่อนบันทึก จะได้ import เข้า CRM Yanmar ได้ถูกกลุ่ม</div>' : ''}
     </div>` : '';
   if(defs.length === 0 && note){
     togglesContainer.innerHTML = yfSwPickerHtml + `<div class="toggle-auto-note">✓ ${note}</div>`;
@@ -2571,7 +2636,7 @@ function renderToggles(){
     togglesContainer.innerHTML = yfSwPickerHtml;
     return;
   }
-  togglesContainer.innerHTML = defs.map(t=>`
+  togglesContainer.innerHTML = yfSwPickerHtml + defs.map(t=>`
     <label class="toggle-row">
       <input type="checkbox" data-key="${t.key}" ${toggleState[t.key] ? 'checked':''}>
       <span class="tx"><b>${t.label}</b><span class="unlock">${t.unlock}</span></span>
@@ -2580,10 +2645,51 @@ function renderToggles(){
   togglesContainer.querySelectorAll('input[type=checkbox]').forEach(cb=>{
     cb.addEventListener('change', ()=>{
       toggleState[cb.dataset.key] = cb.checked;
+      if(isDD(currentBrand)){ renderToggles(); if(typeof refreshExportSummary === 'function') refreshExportSummary(); }
       renderResults();
       maybeAutoStep2();
     });
   });
+}
+
+// แยกกลุ่ม CRM ที่เป็นไปได้จากข้อความ (ชื่อกลุ่ม/รหัสกลุ่ม/ชื่อโปร): RT → Retention, YF → Yanmar Fan, SW → Switching
+function crmRelTokens(text){
+  const t = String(text || '').toUpperCase();
+  const out = [];
+  if(/(^|[^A-Z])RT|RETENTION/.test(t)) out.push('Retention');
+  if(/YF|YANMAR\s*FAN/.test(t)) out.push('Yanmar Fan');
+  if(/SW|SWITCH/.test(t)) out.push('Switching');
+  return out;
+}
+function isGeneralSegText(text){ return /ทั่วไป|GENERAL/i.test(String(text || '')); }
+// ตัวเลือกกลุ่ม CRM ของสถานะปัจจุบัน: จากกลุ่มที่เลือก + (โหมด data-driven) ชื่อโปรที่ติ๊กปลดล็อกไว้
+function crmRelOptions(){
+  let opts = crmRelTokens(currentSegment);
+  if(isDD(currentBrand)){
+    (DATA[currentBrand].programs || []).forEach(p=>{
+      if(p.requires_toggle && toggleState['p:' + p.id]) crmRelTokens([p.id, p.name, p.toggle_label].join(' ')).forEach(v=>{ if(!opts.includes(v)) opts.push(v); });
+    });
+  }
+  const order = ['Retention','Yanmar Fan','Switching'];
+  return order.filter(v => opts.includes(v));
+}
+// ค่ากลุ่ม CRM ที่จะบันทึก: มีตัวเลือกเดียว = ใช้เลย, หลายตัวเลือก = ตามที่ผู้ใช้เลือก, ไม่มี = General (ถ้าเป็นกลุ่มทั่วไป)
+function currentCrmRelType(){
+  const opts = crmRelOptions();
+  if(opts.length === 1) return opts[0];
+  if(opts.length > 1) return opts.includes(yfSwSubType) ? yfSwSubType : '';
+  return isGeneralSegText(currentSegment) ? 'General' : '';
+}
+function validateCrmRelType(){
+  const opts = crmRelOptions();
+  if(opts.length > 1 && !opts.includes(yfSwSubType)){
+    alert('กรุณาเลือกกลุ่มลูกค้าสำหรับ CRM: ' + opts.map(v => v === 'Retention' ? 'RT (Retention)' : v === 'Yanmar Fan' ? 'YF (Yanmar Fan)' : 'SW (Switching)').join(' / '));
+    const el = document.querySelector('.yfsw-picker');
+    if(el && el.offsetParent) el.scrollIntoView({behavior:'smooth', block:'center'});
+    else if(typeof goToForm === 'function'){ goToForm(); setTimeout(()=>{ const e2 = document.querySelector('.yfsw-picker'); if(e2) e2.scrollIntoView({behavior:'smooth', block:'center'}); }, 50); }
+    return false;
+  }
+  return true;
 }
 
 function selectYfSwSubType(val){
@@ -2593,6 +2699,7 @@ function selectYfSwSubType(val){
 }
 
 function renderResults(){
+  if(typeof updateRegPayerUI === 'function') updateRegPayerUI();
   const model = modelSelect.value;
   const rows = findEntries(currentBrand, model, currentSegment, toggleState);
   renderResultsCommon(rows, model);
@@ -2633,6 +2740,19 @@ mainGroupToggle.addEventListener('click', (evt)=>{
   renderSegmentToggleButtons(currentBrand);
   const list = getSegListForCurrentGroup(currentBrand);
   selectSegment(list[0]);
+});
+document.getElementById('regPayerToggle').addEventListener('click', (evt)=>{
+  const b = evt.target.closest('.seg-btn');
+  if(!b) return;
+  regFeePayer = b.dataset.payer;
+  if(regFeePayer === 'split') setTimeout(()=>{ const el = document.getElementById('regShopAmtInput'); if(el) el.focus(); }, 30);
+  renderResults();
+  if(typeof refreshExportSummary === 'function') refreshExportSummary();
+});
+document.getElementById('regShopAmtInput').addEventListener('input', (evt)=>{
+  regShopAmt = Math.max(0, Number(evt.target.value) || 0);
+  renderResults();
+  if(typeof refreshExportSummary === 'function') refreshExportSummary();
 });
 custTypeToggle.addEventListener('click', (evt)=>{
   const b = evt.target.closest('.seg-btn');
@@ -2713,6 +2833,7 @@ function toggleMore(id){
 }
 
 function goToResults(){
+  if(!validateRegPayer()) return;
   document.querySelector('.app').classList.remove('step3');
   document.querySelector('.app').classList.add('step2');
   initAddrDropdowns();
@@ -3094,8 +3215,11 @@ function collectExportData(){
   const minorAdvanceTotal = baseMinorCollect * periodsBeforeBigCollect;
   // แบบ 3: งวดย่อยรวมดาวน์ → บวกเพิ่มใน custOut (จ่ายจริง)
   const minorWithDown = minorMode === 'with_down' ? minorAdvanceTotal : 0;
-  const regFee = getRegFee(currentBrand, model, custType);
-  const custOut = Math.max(0, (e.customer_out||0) + Math.max(0, extraDown) + subForSupport + minorWithDown + regFee);
+  const _regExp = getRegSplit(currentBrand, model, custType);
+  const regFee = _regExp.full;       // ค่าจดทะเบียน+พรบ ยอดเต็ม (ต้องจ่ายทุกราย)
+  const regFeeShop = _regExp.shop;   // ส่วนที่ร้านออกให้ (ต่อรองได้)
+  const regFeeCust = _regExp.cust;   // ส่วนที่ลูกค้าจ่ายจริง
+  const custOut = Math.max(0, (e.customer_out||0) + Math.max(0, extraDown) + subForSupport + minorWithDown + regFeeCust);
   const rst       = e.rst || 0;
   // (15/9/2569) กัน mismatch เหมือนที่ทำในการ์ดผลลัพธ์ — ถ้า tractorYears (ปีที่เลือกไว้ตอนดูการ์ดอื่น) ไม่ใช่ปีที่โปร/รุ่นนี้ผ่อนได้จริง ให้ใช้ปีสูงสุดที่โปรนี้รองรับแทน
   const ownAvailYearsExp = getAvailableYears(currentBrand, currentSegment, chosen?.program?.id, model);
@@ -3114,10 +3238,7 @@ function collectExportData(){
   // Equipment — รวมทั้งที่เลือกไว้ในโหมดใหม่และมือสอง (เลือกพร้อมกันได้)
   // กลุ่มลูกค้าสำหรับ CRM (Retention/Yanmar Fan/Switching/General) — คนละเรื่องกับ seg ที่ใช้คำนวณราคา
   // ทั่วไป -> General, RT -> Retention, YF,SW -> ตามที่เลือกไว้ (Yanmar Fan/Switching), Dry Crop(รถเกี่ยว) -> ไม่ระบุ
-  let crmCustRelType = '';
-  if(seg === 'ทั่วไป') crmCustRelType = 'General';
-  else if(seg === 'RT') crmCustRelType = 'Retention';
-  else if(seg === 'YF,SW') crmCustRelType = yfSwSubType || '';
+  const crmCustRelType = currentCrmRelType();
   const leadSourceSelected = (document.getElementById('leadSource')?.value || document.getElementById('leadSourceM')?.value || '').trim();
   const leadSourceOtherText = (document.getElementById('leadSourceOther')?.value || document.getElementById('leadSourceOtherM')?.value || '').trim();
   const leadSource = (leadSourceSelected === LEAD_SOURCE_OTHER_VALUE && leadSourceOtherText)
@@ -3206,6 +3327,7 @@ function collectExportData(){
     byName: _editingRecordId ? userName : undefined,
     byRole: _editingRecordId ? userRole : undefined,
     price, down, support, custOut, rst, regFee, custType,
+    regFeePayer: regFee>0 ? regFeePayer : null, regFeeShop, regFeeCust,
     supportTotal: support + rst, // ยอดสนับสนุนรวมที่ถูกต้อง (รวม RST ด้วย) ใช้แสดงแทน support เดี่ยวๆ กันโชว์ไม่ตรง
     yctAmt: e.yct||0, yspAmt: e.ysp||0, fireAmt: e.fire||0, yspTopupAmt: e.ysp_topup||0, subForSupport,
     finYears, finRate, finTotal: Math.round(finTotal), annualFull: Math.round(annualFull),
@@ -3293,7 +3415,7 @@ function refreshExportSummary(){
   const html = `<div class="export-summary">
     <div class="es-row"><span class="es-label">รุ่นรถ</span><span class="es-val">${d.model}</span></div>
     <div class="es-row"><span class="es-label">โปร</span><span class="es-val">${d.progName}</span></div>
-    ${d.crmCustRelType !== undefined ? `<div class="es-row"><span class="es-label">กลุ่มลูกค้า (CRM)</span><span class="es-val" style="${!d.crmCustRelType && d.seg==='YF,SW' ? 'color:#B8860B' : ''}">${d.crmCustRelType || (d.seg==='YF,SW' ? '⚠ ยังไม่เลือก Yanmar Fan/Switching' : '-')}</span></div>` : ''}
+    ${d.crmCustRelType !== undefined ? `<div class="es-row"><span class="es-label">กลุ่มลูกค้า (CRM)</span><span class="es-val" style="${!d.crmCustRelType && crmRelOptions().length>1 ? 'color:#B8860B' : ''}">${d.crmCustRelType || (crmRelOptions().length>1 ? '⚠ ยังไม่เลือก ' + crmRelOptions().map(v=>v==='Retention'?'RT':v==='Yanmar Fan'?'YF':'SW').join('/') : '-')}</span></div>` : ''}
     ${d.leadSource !== undefined ? `<div class="es-row"><span class="es-label">Lead Source (CRM)</span><span class="es-val" style="${!d.leadSource ? 'color:#B8860B' : ''}">${d.leadSource || '⚠ ยังไม่เลือก'}</span></div>` : ''}
     <div class="es-row"><span class="es-label">ราคารถ</span><span class="es-val">${fmt(d.price)} บาท</span></div>
     <div class="es-row"><span class="es-label">เงินดาวน์รวม</span><span class="es-val">${fmt(d.down)} บาท</span></div>
@@ -3323,6 +3445,8 @@ function saveAndPrint(){
   if(_isSavingRecord){
     return; // มีการบันทึกค้างอยู่แล้ว ไม่ต้องทำซ้ำ
   }
+  if(!validateRegPayer()) return;
+  if(!validateCrmRelType()) return;
   const d = collectExportData();
   const phoneDigits = (d.custPhone||'').replace(/\D/g,'');
   if(phoneDigits.length !== 10){
@@ -3567,6 +3691,7 @@ function buildPrintHtml(d){
               <tr><td style="color:#888;padding:1px 0">ช่วยดาวน์</td><td style="text-align:right;color:#888">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</td></tr>
               ${d.eqItems.length>1 ? Array(d.eqItems.length-1).fill('<tr><td style="padding:1px 0"> </td><td></td></tr>').join('') : ''}
               ${d.regFee>0 ? `<tr><td style="color:#888;padding:1px 0">ค่าจดทะเบียน+พรบ (${d.custType==='corporate'?'นิติบุคคล':'บุคคลธรรมดา'})</td><td style="text-align:right;color:#888">${fmt(d.regFee)}</td></tr>` : ''}
+              ${d.regFeeShop>0 ? `<tr><td style="color:#1e7e34;padding:1px 0">หัก: ร้านออกค่าจดทะเบียน+พรบ ให้</td><td style="text-align:right;color:#1e7e34">-${fmt(d.regFeeShop)}</td></tr>` : ''}
               <tr><td style="padding:1px 0;font-weight:bold">จ่ายจริง (วันรับรถ)</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.custOut)}</td></tr>
               <tr><td style="color:#888;padding:1px 0">ยอดจัด</td><td style="text-align:right;color:#888">${fmt(d.finTotal)}</td></tr>
               <tr style="background:#fff3e0"><td style="padding:1px 0;font-weight:bold">งวดใหญ่/ปี</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.bigPay)}</td></tr>
@@ -4758,6 +4883,8 @@ function exportXLSX(){
     ...(d.yspTopupAmt ? [['  - YSP เพิ่มเติม', d.yspTopupAmt]] : []),
     ['  - RST ออก', d.rst||0],
     ['ค่าจดทะเบียน+พรบ (' + (d.custType==='corporate' ? 'นิติบุคคล' : 'บุคคลธรรมดา') + ')', d.regFee||0],
+    ['  - ผู้ออกค่าจดทะเบียน+พรบ', regPayerLabel(d.regFeePayer)],
+    ...(d.regFeeShop ? [['  - ร้านออกให้', d.regFeeShop], ['  - ลูกค้าจ่าย', d.regFeeCust||0]] : []),
     ['จ่ายดาวน์จริง (รวมจดทะเบียน+พรบ)', d.custOut],
     ['RST ออก', d.rst],
     ['ยอดจัด (รถ)', d.finTotal],
@@ -4908,9 +5035,10 @@ function crmRelTypeFromRec(rec){
   // เคสใหม่ (หลังอัปเดตนี้) จะมี rec.crmCustRelType บันทึกมาให้ตรงๆ อยู่แล้ว (มาจากตัวเลือก Yanmar Fan/Switching
   // หรือ auto จาก General/Retention ตอนออกใบสรุป) — เคสเก่าก่อนอัปเดตนี้ไม่มี field นี้ เลย fallback เดาจาก seg แทน
   if(rec.crmCustRelType) return rec.crmCustRelType;
-  if(rec.seg === 'ทั่วไป') return 'General';
-  if(rec.seg === 'RT') return 'Retention';
-  return ''; // seg === 'YF,SW' (เคสเก่า) เดาไม่ได้ว่า Yanmar Fan หรือ Switching ต้องเลือกเอง
+  const opts = crmRelTokens(rec.seg);
+  if(opts.length === 1) return opts[0];
+  if(!opts.length && isGeneralSegText(rec.seg)) return 'General';
+  return ''; // กลุ่มรวม (เช่น YF,SW หรือ RT,YF,SW) เคสเก่า เดาไม่ได้ ต้องเลือกเอง
 }
 function buildCrmTemplateRow(rec, no, provinces){
   const addr = crmParseAddress(rec.custAddr);
@@ -5933,7 +6061,7 @@ function filterHistory(){
   let filtered = _allHistoryRecords.filter(r=>{
     const addr = (r.custAddr||'').toLowerCase();
     if(fQuick){
-      const haystack = [r.custName, r.custPhone, r.custAddr, r.brand, r.model, r.seg, r.progName, r.branch, r.leadSource]
+      const haystack = [r.custName, r.custPhone, r.appNo, r.custAddr, r.brand, r.model, r.seg, r.progName, r.branch, r.leadSource]
         .filter(Boolean).join(' ').toLowerCase();
       if(!haystack.includes(fQuick)) return false;
     }
@@ -6132,6 +6260,7 @@ function historyCardHtml(r){
         ${r.eqTotal ? ` &nbsp;·&nbsp; อุปกรณ์: <b>${fmt(Number(r.eqTotal)||0)}</b>` : ''}
       </div>
       ${r.custPhone ? `<div class="hc-nums" style="margin-top:2px">📞 ${r.custPhone} ${r.branch ? '· '+r.branch : ''}</div>` : ''}
+      ${r.appNo ? `<div class="hc-nums" style="margin-top:2px">📝 เลขแอพ: <b>${escapeHtml(r.appNo)}</b></div>` : ''}
       <div class="hc-statusrow">
         <span class="case-status-badge status-${statusSlug(r.caseStatus||'รอดำเนินการ')}">${escapeHtml(r.caseStatus||'รอดำเนินการ')}</span>
         ${stale ? `<span class="case-status-badge status-stale">⏰ ค้าง ${staleDays} วัน</span>` : ''}
@@ -6400,6 +6529,10 @@ function editProductAndPromo(){
   applyLeadSourceToForm(d.leadSource || '');
   custType = (d.custType === 'corporate') ? 'corporate' : 'individual';
   custTypeToggle.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.custtype===custType));
+  // เคสเก่าที่ยังไม่มีฟิลด์นี้ = ลูกค้าจ่ายเอง (เหมือนการคิดเดิม)
+  regFeePayer = d.regFeePayer || (d.regFee ? 'customer' : null);
+  regShopAmt = Number(d.regFeeShop) || 0;
+  { const el = document.getElementById('regShopAmtInput'); if(el) el.value = regShopAmt || ''; }
   setBrand((d.brand||'').toLowerCase().indexOf('solis') > -1 ? 'solis' : 'yanmar');
   window.scrollTo(0,0);
   alert('กำลังแก้ไขข้อมูลของ "' + (d.custName||'-') + '" — เลือกรุ่นรถ/โปรใหม่ได้เลยตามปกติ พอกด "บันทึก & พิมพ์ PDF" ท้ายสุด ระบบจะอัปเดตทับเคสเดิมให้อัตโนมัติ ไม่สร้างเคสใหม่ซ้ำ');
@@ -6446,6 +6579,35 @@ function submitEditRecord(){
       refreshHistoryCardInList(id); // อัปเดตการ์ดฝั่งซ้ายให้ตรงกับข้อมูลใหม่ทันที (เดิมไม่มีบรรทัดนี้ ทำให้การ์ดยังโชว์ชื่อ/เบอร์เก่าอยู่)
     }
     viewHistoryDetail(id); // โหลดรายละเอียดใหม่ทั้งหมด (รวม Timeline ที่มี log การแก้ไขที่เพิ่งเพิ่มไว้ด้านบนนี้ด้วย)
+  });
+}
+
+// (1/10/2569) บันทึกเลขแอพ (เลขที่ใบสมัครไฟแนนซ์) ของเคส — ใช้ action editRecord เดิม (เหมือนแก้ข้อมูลลูกค้า)
+function saveAppNo(id){
+  const input = document.getElementById('hdAppNo_'+id);
+  const msg = document.getElementById('hdAppNoMsg_'+id);
+  if(!input) return;
+  const appNo = (input.value || '').trim();
+  const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
+  const oldAppNo = (rec && rec.appNo) ? String(rec.appNo) : '';
+  if(appNo === oldAppNo){ if(msg){ msg.style.color = 'var(--ink-soft)'; msg.textContent = 'ไม่มีการเปลี่ยนแปลง'; } return; }
+  if(msg){ msg.style.color = 'var(--ink-soft)'; msg.textContent = 'กำลังบันทึก...'; }
+  const changes = { appNo };
+  const logNote = oldAppNo ? ('แก้ไขเลขแอพ: "' + oldAppNo + '" → "' + (appNo || '(ลบ)') + '"') : ('บันทึกเลขแอพ: ' + appNo);
+  gasPostReadable('editRecord', {id, changes, byName:userName, byRole:userRole}, function(err, data){
+    if(err || !data || data.status !== 'ok'){
+      if(msg){ msg.style.color = '#c0392b'; msg.textContent = 'บันทึกไม่สำเร็จ: ' + ((data && data.message) || (err && err.message) || 'ไม่ทราบสาเหตุ'); }
+      return;
+    }
+    if(rec){
+      rec.appNo = appNo;
+      if(!Array.isArray(rec.updates)) rec.updates = [];
+      rec.updates.push({ts:new Date().toLocaleString('th-TH',{hour12:false}), byName:userName, byRole:userRole, type:'edit', note:logNote});
+    }
+    if(_editRecordSnapshot && String(_editRecordId) === String(id)) _editRecordSnapshot.appNo = appNo;
+    _pinnedCardFields[id] = Object.assign({}, _pinnedCardFields[id], { appNo });
+    refreshHistoryCardInList(id);
+    if(msg){ msg.style.color = '#1e7e34'; msg.textContent = '✓ บันทึกเลขแอพแล้ว'; }
   });
 }
 
@@ -6722,6 +6884,9 @@ function fetchAndPatchFullDetail(id){
       const eqBlock = document.getElementById('hdEqItems_'+id);
       if(eqBlock) eqBlock.innerHTML = full.eqItems.map(eq=>`<div class="hd-row"><span class="hd-label">อุปกรณ์ (${eq.finType||'R'})</span><span class="hd-val">${eq.name} — ${fmt(eq.price)}</span></div>`).join('');
     }
+    const appNoEl = document.getElementById('hdAppNo_'+id);
+    const effAppNo = (_pinnedCardFields[id] && _pinnedCardFields[id].appNo !== undefined) ? _pinnedCardFields[id].appNo : full.appNo;
+    if(appNoEl && document.activeElement !== appNoEl && !appNoEl.value && effAppNo) appNoEl.value = effAppNo;
     const mmEl = document.getElementById('hdMinorMode_'+id);
     if(mmEl && full.minorMode) mmEl.textContent = MINOR_LABELS[full.minorMode] || 'แบบปกติ';
 
@@ -6883,6 +7048,13 @@ function renderHistoryDetailHtml(id, d, rowNote){
           <div class="ssc-item"><div class="k">งวดใหญ่/ปี · ระยะเวลาผ่อน</div><div class="v accent">${fmt(d.bigPay||0)} บาท / ${d.finYears||'—'} ปี</div></div>
           <div class="ssc-item"><div class="k">วันที่ปิดการขาย</div><div class="v">${d.date || (d.savedAt?.slice(0,10)) || '—'}</div></div>
           <div class="ssc-item"><div class="k">สาขา/ผู้ปิดการขาย</div><div class="v">${d.branch||'—'}</div></div>
+          <div class="ssc-item full"><div class="k">เลขแอพ (เลขที่ใบสมัครไฟแนนซ์)</div>
+            <div style="display:flex;gap:6px;align-items:center;margin-top:2px">
+              <input type="text" id="hdAppNo_${id}" value="${escapeHtml(d.appNo||'')}" placeholder="กรอกเลขแอพ" oninput="document.getElementById('hdAppNoMsg_${id}').textContent=''" onkeydown="if(event.key==='Enter')saveAppNo('${id}')" style="flex:1;min-width:0;font-family:'Kanit',sans-serif;font-size:13px;font-weight:600;padding:5px 8px;border-radius:8px;border:1.5px solid var(--line)">
+              <button class="btn-reprint" style="white-space:nowrap;padding:5px 12px" onclick="saveAppNo('${id}')">บันทึก</button>
+            </div>
+            <div id="hdAppNoMsg_${id}" style="font-size:10.5px;margin-top:2px"></div>
+          </div>
           <div class="ssc-item full"><div class="k">หมายเหตุล่าสุด</div><div class="v" id="hdLastNote_${id}">${lastNoteHtml(d.lastNote, d.lastNoteAt)}</div></div>
           <div class="ssc-item"><div class="k">นัดติดตามครั้งถัดไป</div><div class="v"${isFollowupDue(d)?' style="color:#c0392b;font-weight:700"':''}>${d.nextFollowUp ? (d.nextFollowUp + (isFollowupDue(d) ? ' ⚠️ ถึงกำหนดแล้ว' : '')) : '—'}</div></div>
         </div>
@@ -6927,6 +7099,7 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div class="hd-row"><span class="hd-label">ดาวน์รวม</span><span class="hd-val">${fmt(d.down||0)}</span></div>
       <div class="hd-row"><span class="hd-label">โปรที่ใช้</span><span class="hd-val" style="color:var(--accent)">${d.progName||'—'}</span></div>
       ${d.regFee ? `<div class="hd-row"><span class="hd-label">ค่าจดทะเบียน+พรบ (${d.custType==='corporate'?'นิติบุคคล':'บุคคลธรรมดา'})</span><span class="hd-val">${fmt(d.regFee)}</span></div>` : ''}
+      ${d.regFeePayer ? `<div class="hd-row"><span class="hd-label">ผู้ออกค่าจดทะเบียน+พรบ</span><span class="hd-val"${d.regFeeShop>0?' style="color:#1e7e34"':''}>${regPayerLabel(d.regFeePayer)}${d.regFeeShop>0 ? ' ' + fmt(d.regFeeShop) + ' บาท' : ''}</span></div>` : ''}
       <div class="hd-row"><span class="hd-label">ลูกค้าจ่ายจริง (วันรับรถ)</span><span class="hd-val" style="color:var(--accent)">${fmt(d.custOut||0)}</span></div>
       <div class="hd-row"><span class="hd-label">ช่วยดาวน์รวม</span><span class="hd-val">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</span></div>
       <div class="hd-row"><span class="hd-label">ค่างวดใหญ่/ปี</span><span class="hd-val" style="color:var(--accent);font-size:15px">${fmt(d.bigPay||0)} บาท</span></div>
