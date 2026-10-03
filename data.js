@@ -84,6 +84,7 @@
 //   Validate แล้ว: node --check ผ่าน, ตรวจ down=yct+ysp+fire+customer_out+rst และ total=price-down ทุกเอนทรีทั้งไฟล์ผ่านหมด (ยกเว้น quirk เดิมของ Solis 26 ที่ตั้งใจปล่อยไว้), diff กับไฟล์ก่อนแก้ยืนยันว่ามีแค่จุดที่ระบุไว้ข้างต้นเท่านั้นที่เปลี่ยน ไม่มีจุดอื่นถูกแก้โดยไม่ตั้งใจ
 // อัปเดต 30/9/2569 13:55:01 — สร้างอัตโนมัติจากไฟล์ Excel "Promotion_Template_Yanmar_130769_v2.xlsx" ผ่านปุ่ม ☁️ บนเว็บ โดย admin (แทนที่ยี่ห้อ: yanmar)
 // อัปเดต 30/9/2569 17:05:25 — สร้างอัตโนมัติจากไฟล์ Excel "Promotion_Template_Solis_130769_1.xlsx" ผ่านปุ่ม ☁️ บนเว็บ โดย admin (แทนที่ยี่ห้อ: solis)
+// อัปเดต 3/10/2569 08:54:01 — สร้างอัตโนมัติจากไฟล์ Excel "Promotion_Template_Solis_130769_1.xlsx" ผ่านปุ่ม ☁️ บนเว็บ โดย admin (แทนที่ยี่ห้อ: solis)
 const DATA = {
   "yanmar": {
     "data_driven": true,
@@ -1473,7 +1474,7 @@ const DATA = {
     "data_driven": true,
     "source": {
       "file": "Promotion_Template_Solis_130769_1.xlsx",
-      "uploaded_at": "2026-09-30T10:05:25.425Z",
+      "uploaded_at": "2026-10-03T01:54:00.865Z",
       "by": "admin"
     },
     "models": [
@@ -1489,7 +1490,8 @@ const DATA = {
       "YM-Solis75",
       "YM-Solis90",
       "YM-Solis105",
-      "YM-Solis 105 Cabin"
+      "YM-Solis 105 Cabin",
+      "YM-Solis 105"
     ],
     "groups": [
       "ทั่วไป",
@@ -2075,15 +2077,15 @@ const DATA = {
         ],
         "terms": {
           "6": {
-            "annual": 0.0875,
+            "annual": 0.0895,
             "semi": 0.0875
           },
           "7": {
-            "annual": 0.0875,
+            "annual": 0.0895,
             "semi": 0.0875
           },
           "8": {
-            "annual": 0.0875,
+            "annual": 0.0895,
             "semi": 0.0875
           }
         },
@@ -2100,10 +2102,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 25500,
             "total": 249000,
-            "interest": 0.0875,
+            "interest": 0.0895,
             "years": 8,
-            "total_payback": 423300,
-            "annual": 52912.5
+            "total_payback": 427284,
+            "annual": 53410.5
           },
           "YM-Solis26 | ทั่วไป": {
             "model": "YM-Solis26",
@@ -2117,10 +2119,10 @@ const DATA = {
             "customer_out": 0,
             "rst": 35000,
             "total": 304000,
-            "interest": 0.0875,
+            "interest": 0.0895,
             "years": 8,
-            "total_payback": 516800,
-            "annual": 64600
+            "total_payback": 521664,
+            "annual": 65208
           },
           "YM-Solis30 | ทั่วไป": {
             "model": "YM-Solis30",
@@ -2134,10 +2136,10 @@ const DATA = {
             "customer_out": 10000,
             "rst": 40000,
             "total": 320000,
-            "interest": 0.0875,
+            "interest": 0.0895,
             "years": 8,
-            "total_payback": 544000,
-            "annual": 68000
+            "total_payback": 549120,
+            "annual": 68640
           },
           "YM-Solis30-45th | ทั่วไป": {
             "model": "YM-Solis30-45th",
@@ -2151,10 +2153,10 @@ const DATA = {
             "customer_out": 10000,
             "rst": 42000,
             "total": 328000,
-            "interest": 0.0875,
+            "interest": 0.0895,
             "years": 8,
-            "total_payback": 557600,
-            "annual": 69700
+            "total_payback": 562848,
+            "annual": 70356
           },
           "YM-Solis50 | ทั่วไป": {
             "model": "YM-Solis50",
@@ -2168,10 +2170,10 @@ const DATA = {
             "customer_out": 30000,
             "rst": 59000,
             "total": 556000,
-            "interest": 0.0875,
+            "interest": 0.0895,
             "years": 8,
-            "total_payback": 945200,
-            "annual": 118150
+            "total_payback": 954096,
+            "annual": 119262
           },
           "YM-Solis50-45th | ทั่วไป": {
             "model": "YM-Solis50-45th",
@@ -2185,10 +2187,10 @@ const DATA = {
             "customer_out": 15000,
             "rst": 76000,
             "total": 571000,
-            "interest": 0.0875,
+            "interest": 0.0895,
             "years": 8,
-            "total_payback": 970700,
-            "annual": 121337.5
+            "total_payback": 979836,
+            "annual": 122479.5
           },
           "YM-Solis75 | ทั่วไป": {
             "model": "YM-Solis75",
@@ -2202,10 +2204,10 @@ const DATA = {
             "customer_out": 45000,
             "rst": 74000,
             "total": 756000,
-            "interest": 0.0875,
+            "interest": 0.0895,
             "years": 8,
-            "total_payback": 1285200,
-            "annual": 160650
+            "total_payback": 1297296,
+            "annual": 162162
           },
           "YM-Solis 65 | ทั่วไป": {
             "model": "YM-Solis 65",
@@ -2219,10 +2221,44 @@ const DATA = {
             "customer_out": 40000,
             "rst": 68000,
             "total": 674000,
-            "interest": 0.0875,
+            "interest": 0.0895,
             "years": 8,
-            "total_payback": 1145800,
-            "annual": 143225
+            "total_payback": 1156584,
+            "annual": 144573
+          },
+          "YM-Solis 105 | ทั่วไป": {
+            "model": "YM-Solis 105",
+            "group": "ทั่วไป",
+            "price": 1517000,
+            "down": 380000,
+            "yct": 86000,
+            "ysp": 112000,
+            "ysp_topup": 0,
+            "fire": 0,
+            "customer_out": 80000,
+            "rst": 102000,
+            "total": 1137000,
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 1951092,
+            "annual": 243886.5
+          },
+          "YM-Solis 105 Cabin | ทั่วไป": {
+            "model": "YM-Solis 105 Cabin",
+            "group": "ทั่วไป",
+            "price": 1717000,
+            "down": 430000,
+            "yct": 127000,
+            "ysp": 97000,
+            "ysp_topup": 0,
+            "fire": 0,
+            "customer_out": 90000,
+            "rst": 116000,
+            "total": 1287000,
+            "interest": 0.0895,
+            "years": 8,
+            "total_payback": 2208492,
+            "annual": 276061.5
           }
         },
         "groups": [
