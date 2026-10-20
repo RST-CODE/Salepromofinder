@@ -6432,16 +6432,92 @@ function renderTimelineEntries(updates){
 
 // เปลี่ยนสถานะเคส — แถบบันทึก "คุยอะไรกับลูกค้า" อยู่ติดกับ dropdown สถานะเสมอ (ไม่ต้องเปลี่ยนสถานะก่อนถึงจะพิมพ์/กดบันทึกได้)
 // กด "บันทึก" ครั้งเดียว = ส่งทั้งสถานะปัจจุบันใน dropdown (จะเปลี่ยนหรือไม่เปลี่ยนก็ได้) + หมายเหตุที่พิมพ์ไว้ไปพร้อมกัน
+// (20/10/2569) สถานะที่ต้องถามเลขแอพก่อนเปลี่ยน — ตอนยื่นเคสเข้าระบบยันม่าร์เสร็จ จะได้เลขแอพทันที
+const APPNO_PROMPT_STATUS = 'ส่งไฟแนนซ์แล้ว';
 function confirmCaseStatusChange(id){
+  const sel = document.getElementById('hdStatusSelect_'+id);
+  const status = sel ? sel.value : 'รอดำเนินการ';
+  const prev = sel ? (sel.getAttribute('data-prev') || '') : '';
+  // เปลี่ยนเป็น "ส่งไฟแนนซ์แล้ว" + เคสนี้ยังไม่มีเลขแอพ → ถามเลขแอพก่อน (กรอกทีหลังได้)
+  if(status === APPNO_PROMPT_STATUS && prev !== status && !getCurrentAppNo(id)){
+    openAppNoPrompt(id);
+    return;
+  }
+  doConfirmCaseStatusChange(id, null);
+}
+// ทำการเปลี่ยนสถานะจริง — appNo (ถ้ามี) จะถูกบันทึกต่อหลังจาก updateStatus ส่งเสร็จ (ไม่ยิงพร้อมกัน กันเขียนแถวเดียวกันชนกัน)
+function doConfirmCaseStatusChange(id, appNo){
   const sel = document.getElementById('hdStatusSelect_'+id);
   const status = sel ? sel.value : 'รอดำเนินการ';
   const noteEl = document.getElementById('hdStatusNoteInput_'+id);
   const note = (noteEl?.value || '').trim();
-  changeCaseStatus(id, status, note);
+  changeCaseStatus(id, status, note, appNo ? function(err){
+    if(!err) saveAppNo(id, appNo);
+    else {
+      // สถานะส่งไม่สำเร็จ — ใส่เลขไว้ในช่องให้ก่อน จะได้กดบันทึกเองได้โดยไม่ต้องพิมพ์ใหม่
+      const inp = document.getElementById('hdAppNo_'+id);
+      if(inp) inp.value = appNo;
+    }
+  } : null);
   if(noteEl) noteEl.value = ''; // เคลียร์ช่องพิมพ์ให้พร้อมจดรอบถัดไป แต่แถบยังอยู่เหมือนเดิม ไม่หายไปไหน
   if(sel) sel.setAttribute('data-prev', status);
 }
-function changeCaseStatus(id, status, note){
+// เลขแอพปัจจุบันของเคส (เช็คจากช่องในหน้ารายละเอียด → ค่าที่เพิ่งบันทึก → ข้อมูลในลิสต์)
+function getCurrentAppNo(id){
+  const inp = document.getElementById('hdAppNo_'+id);
+  if(inp && inp.value.trim()) return inp.value.trim();
+  const pinned = _pinnedCardFields[id];
+  if(pinned && pinned.appNo) return String(pinned.appNo).trim();
+  const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
+  return (rec && rec.appNo) ? String(rec.appNo).trim() : '';
+}
+// ===== ป๊อปอัปถามเลขแอพ =====
+let _appNoPromptId = null;
+function openAppNoPrompt(id){
+  _appNoPromptId = id;
+  const rec = _allHistoryRecords.find(r => String(r.id) === String(id)) || {};
+  document.getElementById('appNoPromptCust').textContent =
+    (rec.custName || '(ไม่ระบุชื่อ)') + ((rec.brand || rec.model) ? ' · ' + [rec.brand, rec.model].filter(Boolean).join(' ') : '');
+  const inp = document.getElementById('appNoPromptInput');
+  inp.value = '';
+  document.getElementById('appNoPromptMsg').textContent = '';
+  document.getElementById('appNoPromptBg').style.display = 'flex';
+  setTimeout(function(){ inp.focus(); }, 50);
+}
+function closeAppNoPrompt(){
+  document.getElementById('appNoPromptBg').style.display = 'none';
+  _appNoPromptId = null;
+}
+// ✕ ยกเลิก = ยังไม่เปลี่ยนสถานะ — คืน dropdown กลับเป็นสถานะเดิม
+function cancelAppNoPrompt(){
+  const id = _appNoPromptId;
+  const sel = id ? document.getElementById('hdStatusSelect_'+id) : null;
+  if(sel && sel.getAttribute('data-prev')) sel.value = sel.getAttribute('data-prev');
+  closeAppNoPrompt();
+}
+// ยังไม่ได้เลข / กรอกทีหลัง = เปลี่ยนสถานะไปก่อน ไม่บันทึกเลขแอพ
+function skipAppNoPrompt(){
+  const id = _appNoPromptId;
+  closeAppNoPrompt();
+  if(id) doConfirmCaseStatusChange(id, null);
+}
+function submitAppNoPrompt(){
+  const id = _appNoPromptId;
+  if(!id) return;
+  const msg = document.getElementById('appNoPromptMsg');
+  const appNo = (document.getElementById('appNoPromptInput').value || '').trim();
+  if(!appNo){
+    msg.textContent = 'กรุณากรอกเลขแอพ หรือกด "ยังไม่ได้เลข / กรอกทีหลัง"';
+    document.getElementById('appNoPromptInput').focus();
+    return;
+  }
+  // เตือนถ้าเลขนี้ไปอยู่กับเคสอื่นแล้ว (อาจพิมพ์ผิด/ก๊อปผิดเคส)
+  const dup = _allHistoryRecords.find(r => String(r.id) !== String(id) && r.appNo && String(r.appNo).trim() === appNo);
+  if(dup && !confirm('เลขแอพ "' + appNo + '" มีอยู่แล้วในเคสของ ' + (dup.custName || '(ไม่ระบุชื่อ)') + '\nยืนยันจะใช้เลขนี้กับเคสนี้ด้วยหรือไม่?')) return;
+  closeAppNoPrompt();
+  doConfirmCaseStatusChange(id, appNo);
+}
+function changeCaseStatus(id, status, note, onDone){
   const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
   // เก็บ "หมายเหตุดิบ" ที่พิมพ์เอง แยกจากข้อความสถานะ — ถ้าไม่ได้พิมพ์อะไรมา ให้ใช้ข้อความสถานะแทนไว้กันการ์ดว่างเปล่า
   const rawNote = (note||'').trim();
@@ -6472,6 +6548,7 @@ function changeCaseStatus(id, status, note){
     lastNote: cardNote, lastNoteAt: new Date().toISOString(),
     byName:userName, byRole:userRole}, (err)=>{
     if(err) alert('บันทึกสถานะไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
+    if(onDone) onDone(err);
   });
   const tlEl = document.getElementById('hdTimelineDynamic_'+id);
   if(tlEl){
@@ -6583,11 +6660,13 @@ function submitEditRecord(){
 }
 
 // (1/10/2569) บันทึกเลขแอพ (เลขที่ใบสมัครไฟแนนซ์) ของเคส — ใช้ action editRecord เดิม (เหมือนแก้ข้อมูลลูกค้า)
-function saveAppNo(id){
+// valueOverride: ส่งเลขมาตรงๆ (จากป๊อปอัปตอนเปลี่ยนเป็น "ส่งไฟแนนซ์แล้ว") — ใช้ได้แม้ปิดหน้ารายละเอียดไปแล้ว
+function saveAppNo(id, valueOverride){
   const input = document.getElementById('hdAppNo_'+id);
   const msg = document.getElementById('hdAppNoMsg_'+id);
-  if(!input) return;
-  const appNo = (input.value || '').trim();
+  if(!input && valueOverride === undefined) return;
+  if(input && valueOverride !== undefined) input.value = valueOverride;
+  const appNo = (valueOverride !== undefined ? String(valueOverride) : (input.value || '')).trim();
   const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
   const oldAppNo = (rec && rec.appNo) ? String(rec.appNo) : '';
   if(appNo === oldAppNo){ if(msg){ msg.style.color = 'var(--ink-soft)'; msg.textContent = 'ไม่มีการเปลี่ยนแปลง'; } return; }
@@ -6596,7 +6675,9 @@ function saveAppNo(id){
   const logNote = oldAppNo ? ('แก้ไขเลขแอพ: "' + oldAppNo + '" → "' + (appNo || '(ลบ)') + '"') : ('บันทึกเลขแอพ: ' + appNo);
   gasPostReadable('editRecord', {id, changes, byName:userName, byRole:userRole}, function(err, data){
     if(err || !data || data.status !== 'ok'){
-      if(msg){ msg.style.color = '#c0392b'; msg.textContent = 'บันทึกไม่สำเร็จ: ' + ((data && data.message) || (err && err.message) || 'ไม่ทราบสาเหตุ'); }
+      const errText = 'บันทึกไม่สำเร็จ: ' + ((data && data.message) || (err && err.message) || 'ไม่ทราบสาเหตุ');
+      if(msg){ msg.style.color = '#c0392b'; msg.textContent = errText; }
+      else alert('บันทึกเลขแอพ "' + appNo + '" ' + errText + '\n(สถานะเปลี่ยนแล้ว — เปิดเคสแล้วกรอกเลขแอพใหม่อีกครั้ง)');
       return;
     }
     if(rec){
@@ -8708,6 +8789,23 @@ loadHistory();
       </div>
       <button class="btn-save" style="width:100%;margin-top:10px" onclick="confirmBrightnessAdjust()">✓ ใช้ค่านี้ & อัปโหลด</button>
     </div>
+  </div>
+</div>
+
+<!-- (20/10/2569) ป๊อปอัปถามเลขแอพ ตอนเปลี่ยนสถานะเป็น "ส่งไฟแนนซ์แล้ว" -->
+<div id="appNoPromptBg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:700;align-items:center;justify-content:center;padding:16px;box-sizing:border-box">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:400px;padding:18px;box-sizing:border-box;box-shadow:0 6px 24px rgba(0,0,0,.25);font-family:'Kanit',sans-serif">
+    <div style="font-size:16px;font-weight:700;margin-bottom:4px">📝 กรอกเลขแอพจากยันม่าร์</div>
+    <div style="font-size:12px;color:var(--ink-soft);margin-bottom:2px">เปลี่ยนสถานะเป็น "ส่งไฟแนนซ์แล้ว"</div>
+    <div id="appNoPromptCust" style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px"></div>
+    <input type="text" id="appNoPromptInput" placeholder="เลขแอพ (เลขที่ใบสมัครไฟแนนซ์)" autocomplete="off"
+      oninput="document.getElementById('appNoPromptMsg').textContent=''"
+      onkeydown="if(event.key==='Enter')submitAppNoPrompt();else if(event.key==='Escape')cancelAppNoPrompt()"
+      style="width:100%;box-sizing:border-box;font-family:'Kanit',sans-serif;font-size:16px;font-weight:600;padding:9px 10px;border-radius:9px;border:1.5px solid var(--accent)">
+    <div id="appNoPromptMsg" style="font-size:11.5px;color:#c0392b;margin-top:4px;min-height:14px"></div>
+    <button class="btn-save" style="width:100%;margin-top:6px" onclick="submitAppNoPrompt()">✓ บันทึกเลขแอพ + เปลี่ยนสถานะ</button>
+    <button class="btn-reprint" style="width:100%;margin-top:6px" onclick="skipAppNoPrompt()">ยังไม่ได้เลข / กรอกทีหลัง</button>
+    <button onclick="cancelAppNoPrompt()" style="width:100%;margin-top:6px;font-family:'Kanit',sans-serif;font-size:12.5px;background:none;border:none;color:#888;cursor:pointer;padding:6px">✕ ยกเลิก (ยังไม่เปลี่ยนสถานะ)</button>
   </div>
 </div>
 
