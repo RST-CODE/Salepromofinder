@@ -1001,115 +1001,31 @@ body.printing #printArea{
 .ghu-btn:disabled{opacity:.45;cursor:not-allowed}
 .ghu-sec details summary::before{content:''}
 
-/* ===== (21/10/2569) หน้าประวัติ — ช่องค้นหาด่วน/ตัวกรอง (ทุกขนาดจอ) ===== */
-.hf-quick-row{ display:flex; gap:6px; align-items:stretch; }
-.hf-quick-row .hist-quicksearch-input-wrap{ flex:1; min-width:0; }
-.hf-mfilter-btn, .hf-apply-btn{ display:none; }
-.hf-badge:empty{ display:none; }
-@media (min-width:760px){
-  /* จอใหญ่: ให้ตัวกรองขึ้นบรรทัดใหม่ได้ สถานะเคสเรียงแนวนอนเต็มแถว (เดิมอัดอยู่คอลัมน์แคบ เรียงลงยาว) */
-  .hist-filter-scroll{ flex-wrap:wrap; overflow:visible; row-gap:10px; }
-  .hist-filter-group.hf-full{ flex:1 1 100%; }
-  .hist-filter-group.hf-check{ flex:0 0 auto; }
-  .hist-filter-group.hf-check label{ padding:6px 10px; border:1.5px solid var(--line); border-radius:8px; background:#fff; font-size:12px; }
-  #exportCrmDateRangeBox input[type=date]{ width:auto; }
-}
-
-@media (max-width:759px){
-  /* แถบบน: ปุ่มไอคอนเล็กลง ไม่ล้นจอ (เดิมล้นจนทั้งหน้ากว้างเกินจอ หน้ารายละเอียดเคสโดนตัดขอบขวา) */
-  .history-topbar{ padding:8px 10px; gap:6px; }
-  .history-topbar .back-btn{ padding:7px 10px; font-size:12.5px; white-space:nowrap; flex-shrink:0; }
-  .history-topbar h2{ font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
-  .history-tab-btn{ width:38px; height:38px; padding:0; font-size:16px; flex:0 0 38px;
-    display:inline-flex; align-items:center; justify-content:center; border-radius:10px; }
-  #histFilterToggleBtn{ display:none !important; }
-
-  /* ช่องค้นหาด่วน: โชว์ตลอด อยู่แถวเดียวกับ "เรียง" + ปุ่ม "ตัวกรอง" */
-  .hist-filter{ padding:8px 10px; }
-  .hist-filter-scroll{ display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:12px 8px;
-    overflow:visible; padding-bottom:0; }
-  .hist-filter-group, .hist-filter-group.wide, .hist-filter-group.narrow, .hist-filter-group.med{
-    grid-column:span 3; flex:none; min-width:0; max-width:none; }
-  .hist-filter-group.hist-quicksearch, .hist-filter-group.hf-full{ grid-column:1 / -1; }
-  .hist-filter-group.hf-span2{ grid-column:span 2; }
-  .hist-filter input, .hist-filter select{ font-size:16px; padding:9px 10px; min-height:44px; border-radius:10px; }
-  .hist-filter select:disabled{ background:#f1ede6; color:#aaa; }
-  .hist-filter label{ font-size:12.5px; font-weight:600; margin-bottom:4px; white-space:normal; }
-  .hist-quicksearch-input-wrap input{ padding-left:32px; }
-  .hist-quicksearch-input-wrap::before{ left:11px; font-size:14px; }
-  .hf-sort-slot-m{ flex:0 0 auto; display:flex; }
-  .hf-sort-slot-m .hist-sort-header label{ display:none; }
-  .hf-sort-slot-m .hist-sort-header select{ max-width:104px; height:44px; font-size:13px; font-weight:600; }
-  .hf-mfilter-btn{ display:inline-flex; align-items:center; gap:4px; flex:0 0 auto; position:relative;
-    font-family:'Kanit',sans-serif; font-size:13.5px; font-weight:700; padding:0 12px; min-height:44px;
-    border-radius:10px; border:1.5px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; }
-  .hf-mfilter-btn::before{ content:'☰'; font-size:14px; }
-  .hf-mfilter-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
-  .hf-badge{ min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--accent); color:#fff;
-    font-size:11px; line-height:18px; text-align:center; box-sizing:border-box; }
-  .hf-mfilter-btn.active .hf-badge{ background:#fff; color:var(--accent); }
-
-  /* ตอนหุบ: เหลือแค่แถวค้นหา + บรรทัดจำนวนรายการ */
-  .hist-filter:not(.open) .hist-filter-group:not(.hist-quicksearch){ display:none !important; }
-  .hist-filter:not(.open) .hist-quicksearch > label{ display:none; }
-  .hist-filter:not(.open) #exportCrmDateRangeBox{ display:none !important; }
-  .hist-filter:not(.open) .hist-filter-footer button{ display:none !important; }
-  .hist-filter:not(.open) .hist-filter-footer{ margin-top:6px; }
-
-  /* ตอนกาง: เป็นแผงเลื่อนได้ในตัว ปุ่มด้านล่างติดขอบล่างเสมอ */
-  .hist-filter.open{ max-height:calc(100vh - 64px); max-height:calc(100dvh - 64px); overflow-y:auto;
-    -webkit-overflow-scrolling:touch; padding-bottom:0; box-shadow:0 8px 18px -10px rgba(0,0,0,.25); }
-  .hist-filter.open .hist-quicksearch > label{ display:none; }
-  .hf-status-chips{ gap:7px; }
-  .hf-status-chip{ font-size:13px; padding:8px 13px; }
-  .hist-filter-group.hf-check{ grid-column:span 3; }
-  .hist-filter-group.hf-check label{ width:100%; box-sizing:border-box; min-height:46px; padding:8px 10px;
-    border:1.5px solid var(--line); border-radius:10px; background:#fff; font-size:13px; line-height:1.3; }
-  .hist-filter-group.hf-check input[type=checkbox]{ min-height:0; width:18px !important; height:18px !important; flex-shrink:0; accent-color:var(--accent); }
-  #exportCrmDateRangeBox{ margin-top:12px !important; padding:10px !important; gap:8px !important; }
-  #exportCrmDateRangeBox > span:first-child{ flex:1 1 100%; font-size:12.5px !important; }
-  #exportCrmDateRangeBox input[type=date]{ flex:1 1 0; min-width:0; font-size:15px !important; padding:8px !important;
-    min-height:42px; border-radius:9px !important; }
-  #exportCrmDateRangeBox > a{ flex:1 1 100%; font-size:12.5px !important; }
-  .hist-filter.open .hist-filter-footer{ position:sticky; bottom:0; z-index:2; background:#f7f3ee;
-    flex-wrap:wrap; gap:8px; margin:12px -10px 0; padding:10px; border-top:1.5px solid var(--line); }
-  .hist-filter.open #histFilterCount{ flex:1 1 100%; }
-  .hist-filter.open .hist-filter-footer .hist-filter-clear{ min-height:44px; font-size:13px; padding:0 14px; border-radius:10px; }
-  .hist-filter.open .hf-apply-btn{ display:block; flex:1 1 100%; min-height:44px; border:none; border-radius:10px;
-    background:var(--accent); color:#fff; font-family:'Kanit',sans-serif; font-size:14.5px; font-weight:700; cursor:pointer; }
-  .hist-count{ font-size:12.5px; line-height:1.5; }
-
-  /* รายการเคส */
-  .history-list{ padding:10px; }
-  .history-card{ padding:12px; }
-  .history-card .hc-actions .btn-reprint{ min-height:38px; }
-  /* หน้ารายละเอียดเคส: หัวข้อ (ชื่อลูกค้า + ปุ่ม ✕) ติดด้านบนตลอด เลื่อนลงไปไกลแค่ไหนก็กดปิดได้ */
-  #historyDetailContent .hd-content-fade > div:first-child{ position:sticky; top:-16px; z-index:5; background:#fff;
-    margin:-16px -16px 12px !important; padding:12px 16px; border-bottom:1.5px solid var(--line); }
-  #historyDetailContent .hd-content-fade > div:first-child .hd-title{ margin:0; font-size:17px; }
-  #historyDetailContent .hd-content-fade > div:first-child button{ width:40px; height:40px; }
-  /* ดรอปดาวน์สถานะเคส: แยกเป็นแถวเต็มความกว้าง กดง่ายขึ้น */
-  .sales-summary-card .ssc-head{ flex-wrap:wrap; }
-  .sales-summary-card .ssc-head .case-status-select{ flex:1 1 100%; min-height:44px; border-radius:10px; }
-  .hd-status-note-bar .btn-reprint, .ssc-item .btn-reprint{ min-height:42px; }
-}
-/* (21/10/2569) iPhone จะซูมหน้าจออัตโนมัติทุกครั้งที่แตะช่องกรอกที่ตัวอักษรเล็กกว่า 16px (ต้องซูมออกเองทุกครั้ง)
-   → มือถือบังคับช่องกรอก/ตัวเลือกทั้งแอปเป็น 16px (ไม่ปิดการซูมด้วยนิ้ว เพื่อให้ยังขยายดูเอกสารได้) */
-@media (max-width:759px){
-  input[type=text], input[type=tel], input[type=number], input[type=search], input[type=date],
-  input[type=email], input[type=password], input:not([type]), select, textarea{ font-size:16px !important; }
-}
-
-/* ===== (22/10/2569) รายงานเคสรายวัน ===== */
-.rpt-controls{ display:flex; flex-wrap:wrap; gap:8px; padding:10px 14px; background:var(--card); border-bottom:1.5px solid var(--line); flex-shrink:0; }
-.rpt-quick{ display:flex; gap:6px; flex-wrap:wrap; flex:1 1 100%; }
-.rpt-quick button{ font-family:'Kanit',sans-serif; font-size:13px; font-weight:600; padding:7px 12px; border-radius:18px; border:1.5px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; }
-.rpt-quick button:hover{ border-color:var(--accent); color:var(--accent); }
-.rpt-dates{ display:flex; gap:6px; align-items:center; flex:1 1 300px; }
-.rpt-dates input, .rpt-dates select{ flex:1 1 0; min-width:0; font-family:'Kanit',sans-serif; font-size:14px; padding:8px; border-radius:9px; border:1.5px solid var(--line); background:#fff; }
-.rpt-dates span{ font-size:12px; color:var(--ink-soft); }
-.rpt-print-btn{ flex:0 0 auto; font-family:'Kanit',sans-serif; font-size:14px; font-weight:700; padding:9px 16px; border-radius:9px; border:none; background:var(--accent); color:#fff; cursor:pointer; }
-.modal-form-inner.rpt-wrap{ max-width:1100px; }
+/* (2026-10-22) รถมือสองจากสต็อก */
+#usedCarModalBg{ z-index:650; }
+.uc-note{ font-size:12.5px; padding:9px 11px; border-radius:8px; background:#fdf8f0; color:#8a6500; margin-bottom:10px; line-height:1.55; }
+.uc-warn{ background:#fdecea; color:#b3261e; }
+.uc-msg{ font-size:12px; color:#b3261e; min-height:16px; margin:4px 0 8px; }
+.uc-list{ display:flex; flex-direction:column; gap:5px; }
+.uc-row{ display:flex; justify-content:space-between; gap:8px; text-align:left; padding:8px 10px; border:1.5px solid var(--line); border-radius:9px; background:#fff; cursor:pointer; font-family:'Sarabun',sans-serif; font-size:12.5px; color:var(--ink); line-height:1.4; width:100%; }
+.uc-row:hover{ border-color:var(--accent); }
+.uc-row small{ color:var(--ink-soft); }
+.uc-row-r{ text-align:right; white-space:nowrap; font-size:12px; color:var(--ink-soft); }
+.uc-row-r b{ color:var(--accent); }
+.uc-browse{ margin-top:10px; border:1.5px dashed #cbb98f; border-radius:10px; padding:8px 10px; background:#fdf8f0; }
+.uc-browse summary::before{ content:none; }
+.uc-browse summary{ cursor:pointer; font-family:'Kanit',sans-serif; font-size:12.5px; font-weight:600; color:#8a6500; }
+.uc-browse select{ width:100%; padding:7px; border-radius:8px; border:1.5px solid var(--line); font-family:'Sarabun',sans-serif; font-size:13px; background:#fff; }
+.uc-card{ border:1.5px solid var(--line); border-radius:12px; padding:10px; background:#fff; }
+.uc-cover{ width:100%; aspect-ratio:4/3; border-radius:9px; background:#f1ece3; display:flex; align-items:center; justify-content:center; overflow:hidden; color:#a99f8f; font-size:12px; margin-bottom:8px; }
+.uc-cover img{ width:100%; height:100%; object-fit:contain; background:#000; }
+.uc-title{ font-family:'Kanit',sans-serif; font-weight:700; font-size:16px; }
+.uc-sub{ font-size:11.5px; color:var(--ink-soft); margin-bottom:6px; }
+.uc-tag{ display:inline-block; font-size:10.5px; font-weight:700; padding:1px 7px; border-radius:6px; background:var(--gold-bg); color:#8a6500; vertical-align:middle; }
+.uc-photos{ display:grid; grid-template-columns:repeat(4,1fr); gap:4px; margin-top:6px; }
+.uc-photos img{ width:100%; aspect-ratio:1; object-fit:cover; border-radius:6px; cursor:pointer; }
+.uc-foot{ font-size:11.5px; color:var(--ink-soft); margin:6px 0; }
+.uc-clear{ width:100%; margin-top:12px; background:none; border:none; color:#b3261e; font-size:12.5px; cursor:pointer; text-decoration:underline; font-family:'Sarabun',sans-serif; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1146,19 +1062,6 @@ body.printing #printArea{
       <button data-custtype="individual" class="seg-btn active">บุคคลธรรมดา</button>
       <button data-custtype="corporate" class="seg-btn">นิติบุคคล</button>
     </div>
-  </div>
-
-  <div class="select-row" id="regPayerRow">
-    <label>ค่าจดทะเบียน+พรบ ใครออก? <span style="color:#c0392b">*</span></label>
-    <div class="segment-toggle" id="regPayerToggle">
-      <button data-payer="customer" class="seg-btn">ลูกค้าจ่าย</button>
-      <button data-payer="shop" class="seg-btn">ร้านออกให้</button>
-      <button data-payer="split" class="seg-btn">ร้านช่วยบางส่วน</button>
-    </div>
-    <div id="regPayerSplitBox" style="display:none;margin-top:6px">
-      <input type="number" id="regShopAmtInput" inputmode="numeric" min="0" placeholder="ร้านออกให้กี่บาท" style="width:100%;box-sizing:border-box;font-family:'Kanit',sans-serif;font-size:13px;padding:6px 8px;border-radius:8px;border:1.5px solid var(--line)">
-    </div>
-    <div id="regPayerHint" style="font-size:11px;color:var(--ink-soft);margin-top:4px"></div>
   </div>
 
   <div class="select-row" id="mainGroupRow" style="display:none">
@@ -1229,6 +1132,7 @@ body.printing #printArea{
     <span><i style="background:var(--rst)"></i>RST ออก</span>
   </div>
   <button type="button" class="finance-launch-btn" style="margin-bottom:10px" onclick="openTradeInModal()">🔄 ตีเทิร์นรถเก่า <span class="fl-status" id="tradeInStatus"></span></button>
+  <button type="button" class="finance-launch-btn" style="margin-bottom:10px" onclick="openUsedCarModal()">🚜 ขายรถมือสองจากสต็อก <span class="fl-status" id="usedCarStatus"></span></button>
   <div id="results"></div>
   <div id="eqAnchor" style="scroll-margin-top:8px"></div>
   <div id="equipmentSection"></div>
@@ -1321,7 +1225,7 @@ body.printing #printArea{
   <div class="history-topbar">
     <button class="back-btn" onclick="closeHistory()" style="display:block">← กลับ</button>
     <h2>📋 ประวัติใบสรุป</h2>
-    <div class="hist-sort-header" id="histSortHeader">
+    <div class="hist-sort-header">
       <label for="hf_sort">เรียง</label>
       <select id="hf_sort" onchange="filterHistory()">
         <option value="date_desc">ล่าสุดก่อน</option>
@@ -1333,10 +1237,8 @@ body.printing #printArea{
         <option value="amount_asc">ยอดจัดน้อย-มาก</option>
       </select>
     </div>
-    <span id="histSortHomeAnchor" style="display:none"></span>
     <button class="history-tab-btn" id="histFilterToggleBtn" onclick="toggleHistFilterPanel()" title="ค้นหา/กรองรายการ">🔍</button>
     <button class="history-tab-btn" onclick="openDashboardModal()" title="ภาพรวมไปป์ไลน์">📊</button>
-    <button class="history-tab-btn" onclick="openDailyReportModal()" title="รายงานเคสรายวัน (พิมพ์ได้)">🗓️</button>
     <button class="history-tab-btn" onclick="openIdentityModal()" title="ชื่อ/บทบาทของฉัน">👤</button>
     <button class="history-tab-btn" onclick="openGasConfig()" title="ตั้งค่า GAS">⚙️</button>
     <button class="history-tab-btn" id="promoUploadBtn" style="display:none" onclick="openPromoUploadModal()" title="อัปโหลดไฟล์โปรโมชั่น (data.js) ขึ้น GitHub">☁️</button>
@@ -1351,13 +1253,8 @@ body.printing #printArea{
     <div class="hist-filter-scroll">
       <div class="hist-filter-group hist-quicksearch">
         <label>ค้นหาด่วน</label>
-        <div class="hf-quick-row">
-          <div class="hist-quicksearch-input-wrap">
-            <input type="search" id="hf_quick" placeholder="ชื่อ, เบอร์, เลขแอพ, ที่อยู่, รุ่น, โปร, สาขา..." oninput="filterHistory()" enterkeyhint="search">
-          </div>
-          <!-- (21/10/2569) มือถือ: ย้ายช่อง "เรียง" มาไว้ตรงนี้ + ปุ่มเปิดตัวกรองละเอียด -->
-          <div id="hfSortSlotMobile" class="hf-sort-slot-m"></div>
-          <button type="button" id="hfMobileFilterBtn" class="hf-mfilter-btn" onclick="toggleHistFilterPanel()">ตัวกรอง<span id="hfMobileFilterBadge" class="hf-badge"></span></button>
+        <div class="hist-quicksearch-input-wrap">
+          <input type="text" id="hf_quick" placeholder="ชื่อ, เบอร์, ที่อยู่, รุ่น, โปร, สาขา..." oninput="filterHistory()">
         </div>
       </div>
       <div class="hist-filter-group wide">
@@ -1368,19 +1265,19 @@ body.printing #printArea{
         <label>เบอร์โทร</label>
         <input type="text" id="hf_phone" placeholder="0xx-xxx" inputmode="tel" oninput="filterHistory()">
       </div>
-      <div class="hist-filter-group narrow hf-span2">
+      <div class="hist-filter-group narrow">
         <label>จังหวัด</label>
         <select id="hf_province" onchange="hfProvinceChange()">
           <option value="">— ทุกจังหวัด —</option>
         </select>
       </div>
-      <div class="hist-filter-group narrow hf-span2">
+      <div class="hist-filter-group narrow">
         <label>อำเภอ</label>
         <select id="hf_amphure" onchange="hfAmphureChange()" disabled>
           <option value="">— อำเภอ —</option>
         </select>
       </div>
-      <div class="hist-filter-group narrow hf-span2">
+      <div class="hist-filter-group narrow">
         <label>ตำบล</label>
         <select id="hf_tambon" onchange="filterHistory()" disabled>
           <option value="">— ตำบล —</option>
@@ -1398,17 +1295,17 @@ body.printing #printArea{
           <option value="">— ทุกโปร —</option>
         </select>
       </div>
-      <div class="hist-filter-group wide hf-full">
+      <div class="hist-filter-group wide">
         <label>สถานะเคส (แตะเลือกได้หลายข้อ)</label>
         <div id="hf_statusChips" class="hf-status-chips"></div>
       </div>
-      <div class="hist-filter-group narrow hf-check" style="display:flex;align-items:flex-end">
+      <div class="hist-filter-group narrow" style="display:flex;align-items:flex-end">
         <label style="display:flex;align-items:center;gap:5px;font-weight:600;cursor:pointer">
           <input type="checkbox" id="hf_staleOnly" onchange="filterHistory()" style="width:15px;height:15px;margin:0">
           ⏰ เฉพาะเคสค้างนาน
         </label>
       </div>
-      <div class="hist-filter-group narrow hf-check" style="display:flex;align-items:flex-end">
+      <div class="hist-filter-group narrow" style="display:flex;align-items:flex-end">
         <label style="display:flex;align-items:center;gap:5px;font-weight:600;cursor:pointer">
           <input type="checkbox" id="hf_followupDueOnly" onchange="filterHistory()" style="width:15px;height:15px;margin:0">
           🔔 ถึงกำหนดนัดติดตาม
@@ -1426,7 +1323,6 @@ body.printing #printArea{
       <span id="histFilterCount" class="hist-count"></span>
       <button id="exportCrmTemplateBtn" class="hist-filter-clear" onclick="exportCrmTemplateXLSX()" title="Export ข้อมูลลูกค้า/ลีดใส่แบบฟอร์ม CRM Import (Yanmar) เพื่อนำไป import เข้า kintone — เฉพาะผู้จัดการ (เลือกช่วงวันที่ด้านบนได้ ถ้าไม่เลือกจะ export ทั้งหมด)" style="background:var(--support);color:#fff;border-color:var(--support);display:none">📤 Export → CRM Template</button>
       <button class="hist-filter-clear" onclick="clearHistoryFilter()">✕ ล้าง</button>
-      <button type="button" id="hfApplyBtn" class="hf-apply-btn" onclick="closeHistFilterPanel()">✓ ดูผลลัพธ์</button>
     </div>
   </div>
   <div class="history-body">
@@ -1995,50 +1891,6 @@ function getRegFee(brand, model, ct){
   return REGISTRATION_FEE.tractor[ct] || REGISTRATION_FEE.tractor.individual;
 }
 
-// (1/10/2569) ค่าจดทะเบียน+พรบ ต้องจ่ายทุกราย — บังคับเลือกว่าใครออก (ลูกค้า / ร้านออกให้ / ร้านช่วยบางส่วน)
-// ยอดเต็ม (full) ยังบันทึกไว้เสมอ แค่แยกว่าส่วนไหนลูกค้าจ่าย (cust) ส่วนไหนร้านออก (shop) — ร้านออกไม่นับเป็น "ช่วยดาวน์"
-let regFeePayer = null; // null = ยังไม่ได้เลือก | 'customer' | 'shop' | 'split'
-let regShopAmt = 0;     // ใช้เฉพาะ 'split'
-function getRegSplit(brand, model, ct){
-  const full = getRegFee(brand, model, ct);
-  let shop = 0;
-  if(regFeePayer === 'shop') shop = full;
-  else if(regFeePayer === 'split') shop = Math.max(0, Math.min(full, Number(regShopAmt) || 0));
-  return { full, shop, cust: full - shop };
-}
-function regPayerLabel(payer){
-  return payer === 'shop' ? 'ร้านออกให้ทั้งหมด' : (payer === 'split' ? 'ร้านช่วยบางส่วน' : (payer === 'customer' ? 'ลูกค้าจ่าย' : '—'));
-}
-function updateRegPayerUI(){
-  const row = document.getElementById('regPayerRow');
-  if(!row) return;
-  const r = getRegSplit(currentBrand, document.getElementById('modelSelect').value, custType);
-  row.style.display = r.full > 0 ? '' : 'none'; // โดรน/รุ่นที่ไม่มีค่าจดทะเบียน ไม่ต้องเลือก
-  document.querySelectorAll('#regPayerToggle .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.payer === regFeePayer));
-  const splitBox = document.getElementById('regPayerSplitBox');
-  if(splitBox) splitBox.style.display = regFeePayer === 'split' ? '' : 'none';
-  const hint = document.getElementById('regPayerHint');
-  if(hint){
-    if(!regFeePayer) hint.innerHTML = '<span style="color:#c0392b">⚠️ กรุณาเลือกก่อน (ค่าจดทะเบียน+พรบ ' + fmt(r.full) + ' บาท)</span>';
-    else if(r.shop > 0) hint.textContent = 'ยอดเต็ม ' + fmt(r.full) + ' · ร้านออก ' + fmt(r.shop) + ' · ลูกค้าจ่าย ' + fmt(r.cust) + ' บาท';
-    else hint.textContent = 'ลูกค้าจ่ายเต็ม ' + fmt(r.full) + ' บาท';
-  }
-}
-function validateRegPayer(){
-  const r = getRegSplit(currentBrand, document.getElementById('modelSelect').value, custType);
-  if(r.full <= 0) return true;
-  const focusRow = ()=>{ const row = document.getElementById('regPayerRow'); if(row) row.scrollIntoView({behavior:'smooth', block:'center'}); };
-  if(!regFeePayer){
-    alert('กรุณาเลือกว่า "ค่าจดทะเบียน+พรบ" ใครเป็นคนออก (ลูกค้าจ่าย / ร้านออกให้ / ร้านช่วยบางส่วน)');
-    focusRow(); return false;
-  }
-  if(regFeePayer === 'split' && !(Number(regShopAmt) > 0)){
-    alert('เลือก "ร้านช่วยบางส่วน" แล้ว กรุณากรอกจำนวนเงินที่ร้านออกให้');
-    focusRow(); const el = document.getElementById('regShopAmtInput'); if(el) el.focus(); return false;
-  }
-  return true;
-}
-
 const modelSelect = document.getElementById('modelSelect');
 const segmentToggle = document.getElementById('segmentToggle');
 const mainGroupToggle = document.getElementById('mainGroupToggle');
@@ -2346,9 +2198,7 @@ function cardHtml(r, badge, compareTo, editable){
   const totalSupportBase = down - (e.customer_out ?? 0);
   // แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม แค่สัดส่วนสนับสนุน/ลูกค้าเปลี่ยน) — จำกัดไม่ให้เกินยอดสนับสนุนที่มีจริง
   const subForSupport = editable ? Math.max(0, Math.min(Number(custSubForSupport)||0, totalSupportBase)) : 0;
-  const _regCard = getRegSplit(currentBrand, modelSelect.value, custType);
-  const regFee = _regCard.cust; // ส่วนที่ลูกค้าจ่ายจริง (หักส่วนที่ร้านออกให้แล้ว)
-  const regFeeShop = _regCard.shop;
+  const regFee = getRegFee(currentBrand, modelSelect.value, custType);
   // ส่วนของเงินดาวน์ที่ลูกค้าจ่ายเอง (ไม่รวมค่าจดทะเบียน+พรบ) — ใช้คิดสัดส่วนแท่งกราฟดาวน์
   const custDown = (e.customer_out ?? 0) + extra + subForSupport;
   // ยอดที่ลูกค้าต้องจ่ายจริงวันรับรถ = ส่วนดาวน์ที่ลูกค้าออกเอง + ค่าจดทะเบียน+พรบ
@@ -2515,7 +2365,7 @@ function cardHtml(r, badge, compareTo, editable){
           <div class="numbers">
             <div class="num-box cust full"><div class="k">ส่วนสนับสนุนรวม (ลูกค้าได้รับ)</div><div class="v">${fmt(totalSupport)} บาท${supportDelta}</div></div>
             <div class="num-box"><div class="k">เงินดาวน์รวม</div><div class="v">${fmt(downDisp)}${extra>0 ? `<div class="vv">(เดิม ${fmt(down)} + วางเพิ่ม ${fmt(extra)})</div>` : ''}</div></div>
-            <div class="num-box"><div class="k">ลูกค้าออก(รวมจดทะเบียน+พรบ)</div><div class="v">${fmt(cust)}${custDelta}${(regFee>0||regFeeShop>0) ? `<div class="vv">(ดาวน์รถ ${fmt(custDown)} + จดทะเบียน+พรบ ${fmt(regFee)}${regFeeShop>0 ? ` · ร้านออกให้ ${fmt(regFeeShop)}` : ''})</div>` : ''}</div></div>
+            <div class="num-box"><div class="k">ลูกค้าออก(รวมจดทะเบียน+พรบ)</div><div class="v">${fmt(cust)}${custDelta}${regFee>0 ? `<div class="vv">(ดาวน์รถ ${fmt(custDown)} + จดทะเบียน+พรบ ${fmt(regFee)})</div>` : ''}</div></div>
             <div class="num-box"><div class="k">RST ออก</div><div class="v">${fmt(rst)}${rstDelta}</div></div>
             ${editable ? `<div class="num-box full extra-down-box"><div class="k">แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (ถ้ามี)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="extraDownInput" value="${extra||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">กรอกเพิ่มเพื่อ เพิ่มดาวน์ ลดค่างวด</div></div>
             <div class="num-box full extra-down-box"><div class="k">แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="subForSupportInput" value="${subForSupport||''}" placeholder="0" max="${totalSupportBase}"></div><div class="vv" style="margin-top:2px">กรอกเพิ่มเพื่อ ออกแทนช่วยดาวน์</div></div>` : ''}
@@ -2585,12 +2435,10 @@ function renderResultsCommon(rawRows, model){
     const down = best.entry.down || 0;
     const cust = best.entry.customer_out ?? 0;
     const supportPct = Math.round((down-cust)/price*100);
-    const _regSum = getRegSplit(currentBrand, model, custType);
-    const regFeeSummary = _regSum.cust;
+    const regFeeSummary = getRegFee(currentBrand, model, custType);
     summarySupport.textContent = supportPct + '%';
     summaryCust.innerHTML = fmt(cust + regFeeSummary) + ' บาท'
-      + ((regFeeSummary>0||_regSum.shop>0) ? `<div style="font-size:10px;font-weight:400;color:var(--ink-soft);margin-top:2px">(ดาวน์รถ ${fmt(cust)} + จดทะเบียน+พรบ ${fmt(regFeeSummary)}${_regSum.shop>0 ? ` · ร้านออกให้ ${fmt(_regSum.shop)}` : ''})</div>` : '')
-      + ((_regSum.full>0 && !regFeePayer) ? `<div style="font-size:10px;font-weight:600;color:#c0392b;margin-top:2px">⚠️ ยังไม่ได้เลือกว่าใครออกค่าจดทะเบียน+พรบ</div>` : '');
+      + (regFeeSummary>0 ? `<div style="font-size:10px;font-weight:400;color:var(--ink-soft);margin-top:2px">(ดาวน์รถ ${fmt(cust)} + จดทะเบียน+พรบ ${fmt(regFeeSummary)})</div>` : '');
   } else {
     summarySupport.textContent = '-';
     summaryCust.textContent = '-';
@@ -2725,26 +2573,22 @@ function renderToggles(){
   // กลุ่ม YF,SW (Yanmar Fan / Switching) ราคาเท่ากันเลยไม่แยกในระบบราคา แต่ CRM ต้องรู้ว่าเป็นกลุ่มไหนจริง
   // ใช้กับทุกแบรนด์ รวมรถเกี่ยว/combine ด้วย (สำหรับรถเกี่ยว YF,SW = "มีรถเกี่ยวข้าวอยู่แล้ว" — คำถามเดียวกัน
   // แค่เปลี่ยนเป็นถามยี่ห้อรถเกี่ยวที่มีอยู่เดิมแทน ว่าเป็น Yanmar หรือยี่ห้ออื่น)
-  // (2/10/2569) แยกกลุ่ม CRM จากชื่อกลุ่ม/โปรแบบยืดหยุ่น — รองรับกลุ่มรวม เช่น "RT,YF,SW" (โหมด data-driven),
-  // "YFSW10" (รถขุด), "drone_yfsw_2y" (โดรน) ไม่ใช่แค่ 'YF,SW' ตรงตัวเหมือนเดิม
-  const relOpts = crmRelOptions();
-  const showYfSwPicker = relOpts.length > 1;
-  const yfSwEquipWord = currentBrand === 'combine' ? 'รถเกี่ยว' : currentBrand === 'excavator' ? 'รถขุด' : currentBrand === 'drone' ? 'โดรน' : 'รถ';
-  const relBtnInfo = {
-    'Retention':  {icon:'⭐', title:'RT (Retention)', sub:'ลูกค้าเก่าชั้นดี ซื้อกับร้านมาแล้ว'},
-    'Yanmar Fan': {icon:'🚜', title:'YF (Yanmar Fan)', sub:'มี' + yfSwEquipWord + ' Yanmar อยู่แล้ว'},
-    'Switching':  {icon:'🔄', title:'SW (Switching)', sub:'มี' + yfSwEquipWord + 'ยี่ห้ออื่นอยู่'},
-  };
+  const showYfSwPicker = currentSegment === 'YF,SW';
+  const yfSwEquipWord = currentBrand === 'combine' ? 'รถเกี่ยว' : currentBrand === 'excavator' ? 'รถขุด' : 'รถ';
   const yfSwPickerHtml = showYfSwPicker ? `
     <div class="yfsw-picker" style="margin:8px 0 4px">
-      <div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px">👥 กลุ่มลูกค้า (สำหรับ CRM) <span style="color:#c0392b">*</span></div>
-      <div style="display:flex;gap:6px">
-        ${relOpts.map(v=>{ const on = yfSwSubType===v; const b = relBtnInfo[v]; return `<button type="button" onclick="selectYfSwSubType('${v}')"
-          style="flex:1;padding:8px 4px;border-radius:8px;border:2px solid ${on?'var(--accent)':'var(--line)'};background:${on?'var(--accent)':'#fff'};color:${on?'#fff':'var(--ink)'};font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;cursor:pointer">
-          ${b.icon} ${b.title}<br><span style="font-weight:400;font-size:10px">${b.sub}</span>
-        </button>`; }).join('')}
+      <div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px">👥 กลุ่มลูกค้า</div>
+      <div style="display:flex;gap:8px">
+        <button type="button" onclick="selectYfSwSubType('Yanmar Fan')"
+          style="flex:1;padding:8px;border-radius:8px;border:2px solid ${yfSwSubType==='Yanmar Fan'?'var(--accent)':'var(--line)'};background:${yfSwSubType==='Yanmar Fan'?'var(--accent)':'#fff'};color:${yfSwSubType==='Yanmar Fan'?'#fff':'var(--ink)'};font-weight:700;font-size:12.5px;cursor:pointer">
+          🚜 Yanmar Fan<br><span style="font-weight:400;font-size:10.5px">มี${yfSwEquipWord} Yanmar อยู่แล้ว</span>
+        </button>
+        <button type="button" onclick="selectYfSwSubType('Switching')"
+          style="flex:1;padding:8px;border-radius:8px;border:2px solid ${yfSwSubType==='Switching'?'var(--accent)':'var(--line)'};background:${yfSwSubType==='Switching'?'var(--accent)':'#fff'};color:${yfSwSubType==='Switching'?'#fff':'var(--ink)'};font-weight:700;font-size:12.5px;cursor:pointer">
+          🔄 Switching<br><span style="font-weight:400;font-size:10.5px">มี${yfSwEquipWord}ยี่ห้ออื่นอยู่</span>
+        </button>
       </div>
-      ${!relOpts.includes(yfSwSubType) ? '<div style="font-size:10.5px;color:#B8860B;margin-top:4px">⚠ ยังไม่เลือก — ต้องเลือกก่อนบันทึก จะได้ import เข้า CRM Yanmar ได้ถูกกลุ่ม</div>' : ''}
+      ${!yfSwSubType ? '<div style="font-size:10.5px;color:#B8860B;margin-top:4px">⚠ ยังไม่เลือก — เลือกไว้ก่อนบันทึก จะได้ export เข้า CRM ได้ถูกกลุ่ม</div>' : ''}
     </div>` : '';
   if(defs.length === 0 && note){
     togglesContainer.innerHTML = yfSwPickerHtml + `<div class="toggle-auto-note">✓ ${note}</div>`;
@@ -2754,7 +2598,7 @@ function renderToggles(){
     togglesContainer.innerHTML = yfSwPickerHtml;
     return;
   }
-  togglesContainer.innerHTML = yfSwPickerHtml + defs.map(t=>`
+  togglesContainer.innerHTML = defs.map(t=>`
     <label class="toggle-row">
       <input type="checkbox" data-key="${t.key}" ${toggleState[t.key] ? 'checked':''}>
       <span class="tx"><b>${t.label}</b><span class="unlock">${t.unlock}</span></span>
@@ -2763,51 +2607,10 @@ function renderToggles(){
   togglesContainer.querySelectorAll('input[type=checkbox]').forEach(cb=>{
     cb.addEventListener('change', ()=>{
       toggleState[cb.dataset.key] = cb.checked;
-      if(isDD(currentBrand)){ renderToggles(); if(typeof refreshExportSummary === 'function') refreshExportSummary(); }
       renderResults();
       maybeAutoStep2();
     });
   });
-}
-
-// แยกกลุ่ม CRM ที่เป็นไปได้จากข้อความ (ชื่อกลุ่ม/รหัสกลุ่ม/ชื่อโปร): RT → Retention, YF → Yanmar Fan, SW → Switching
-function crmRelTokens(text){
-  const t = String(text || '').toUpperCase();
-  const out = [];
-  if(/(^|[^A-Z])RT|RETENTION/.test(t)) out.push('Retention');
-  if(/YF|YANMAR\s*FAN/.test(t)) out.push('Yanmar Fan');
-  if(/SW|SWITCH/.test(t)) out.push('Switching');
-  return out;
-}
-function isGeneralSegText(text){ return /ทั่วไป|GENERAL/i.test(String(text || '')); }
-// ตัวเลือกกลุ่ม CRM ของสถานะปัจจุบัน: จากกลุ่มที่เลือก + (โหมด data-driven) ชื่อโปรที่ติ๊กปลดล็อกไว้
-function crmRelOptions(){
-  let opts = crmRelTokens(currentSegment);
-  if(isDD(currentBrand)){
-    (DATA[currentBrand].programs || []).forEach(p=>{
-      if(p.requires_toggle && toggleState['p:' + p.id]) crmRelTokens([p.id, p.name, p.toggle_label].join(' ')).forEach(v=>{ if(!opts.includes(v)) opts.push(v); });
-    });
-  }
-  const order = ['Retention','Yanmar Fan','Switching'];
-  return order.filter(v => opts.includes(v));
-}
-// ค่ากลุ่ม CRM ที่จะบันทึก: มีตัวเลือกเดียว = ใช้เลย, หลายตัวเลือก = ตามที่ผู้ใช้เลือก, ไม่มี = General (ถ้าเป็นกลุ่มทั่วไป)
-function currentCrmRelType(){
-  const opts = crmRelOptions();
-  if(opts.length === 1) return opts[0];
-  if(opts.length > 1) return opts.includes(yfSwSubType) ? yfSwSubType : '';
-  return isGeneralSegText(currentSegment) ? 'General' : '';
-}
-function validateCrmRelType(){
-  const opts = crmRelOptions();
-  if(opts.length > 1 && !opts.includes(yfSwSubType)){
-    alert('กรุณาเลือกกลุ่มลูกค้าสำหรับ CRM: ' + opts.map(v => v === 'Retention' ? 'RT (Retention)' : v === 'Yanmar Fan' ? 'YF (Yanmar Fan)' : 'SW (Switching)').join(' / '));
-    const el = document.querySelector('.yfsw-picker');
-    if(el && el.offsetParent) el.scrollIntoView({behavior:'smooth', block:'center'});
-    else if(typeof goToForm === 'function'){ goToForm(); setTimeout(()=>{ const e2 = document.querySelector('.yfsw-picker'); if(e2) e2.scrollIntoView({behavior:'smooth', block:'center'}); }, 50); }
-    return false;
-  }
-  return true;
 }
 
 function selectYfSwSubType(val){
@@ -2817,7 +2620,6 @@ function selectYfSwSubType(val){
 }
 
 function renderResults(){
-  if(typeof updateRegPayerUI === 'function') updateRegPayerUI();
   const model = modelSelect.value;
   const rows = findEntries(currentBrand, model, currentSegment, toggleState);
   renderResultsCommon(rows, model);
@@ -2858,19 +2660,6 @@ mainGroupToggle.addEventListener('click', (evt)=>{
   renderSegmentToggleButtons(currentBrand);
   const list = getSegListForCurrentGroup(currentBrand);
   selectSegment(list[0]);
-});
-document.getElementById('regPayerToggle').addEventListener('click', (evt)=>{
-  const b = evt.target.closest('.seg-btn');
-  if(!b) return;
-  regFeePayer = b.dataset.payer;
-  if(regFeePayer === 'split') setTimeout(()=>{ const el = document.getElementById('regShopAmtInput'); if(el) el.focus(); }, 30);
-  renderResults();
-  if(typeof refreshExportSummary === 'function') refreshExportSummary();
-});
-document.getElementById('regShopAmtInput').addEventListener('input', (evt)=>{
-  regShopAmt = Math.max(0, Number(evt.target.value) || 0);
-  renderResults();
-  if(typeof refreshExportSummary === 'function') refreshExportSummary();
 });
 custTypeToggle.addEventListener('click', (evt)=>{
   const b = evt.target.closest('.seg-btn');
@@ -2951,13 +2740,12 @@ function toggleMore(id){
 }
 
 function goToResults(){
-  if(!validateRegPayer()) return;
   document.querySelector('.app').classList.remove('step3');
   document.querySelector('.app').classList.add('step2');
   initAddrDropdowns();
   const model = document.getElementById('modelSelect').value;
   const seg = currentSegment;
-  const brand = currentBrand === 'yanmar' ? 'Yanmar' : (currentBrand === 'solis' ? 'Solis' : (currentBrand === 'combine' ? 'รถเกี่ยว' : (currentBrand === 'drone' ? 'โดรน' : 'รถขุด'))); // (22/10/2569) เดิมโดรนถูกบันทึกเป็น "รถขุด"
+  const brand = currentBrand === 'yanmar' ? 'Yanmar' : (currentBrand === 'solis' ? 'Solis' : (currentBrand === 'combine' ? 'รถเกี่ยว' : 'รถขุด'));
   const sum = document.getElementById('backSummary');
   if(sum) sum.textContent = brand + ' · ' + model + ' · ' + seg;
   refreshExportSummary();
@@ -3311,7 +3099,7 @@ function collectExportData(){
   const refs = (typeof refList !== 'undefined' ? refList : []).filter(r => r.name || r.phone || r.relation);
 
   const model = modelSelect.value;
-  const brand = currentBrand === 'yanmar' ? 'Yanmar' : (currentBrand === 'solis' ? 'Solis' : (currentBrand === 'combine' ? 'รถเกี่ยว' : (currentBrand === 'drone' ? 'โดรน' : 'รถขุด'))); // (22/10/2569) เดิมโดรนถูกบันทึกเป็น "รถขุด"
+  const brand = currentBrand === 'yanmar' ? 'Yanmar' : (currentBrand === 'solis' ? 'Solis' : (currentBrand === 'combine' ? 'รถเกี่ยว' : 'รถขุด'));
   const seg   = currentSegment;
 
   // Get best card entry
@@ -3333,11 +3121,8 @@ function collectExportData(){
   const minorAdvanceTotal = baseMinorCollect * periodsBeforeBigCollect;
   // แบบ 3: งวดย่อยรวมดาวน์ → บวกเพิ่มใน custOut (จ่ายจริง)
   const minorWithDown = minorMode === 'with_down' ? minorAdvanceTotal : 0;
-  const _regExp = getRegSplit(currentBrand, model, custType);
-  const regFee = _regExp.full;       // ค่าจดทะเบียน+พรบ ยอดเต็ม (ต้องจ่ายทุกราย)
-  const regFeeShop = _regExp.shop;   // ส่วนที่ร้านออกให้ (ต่อรองได้)
-  const regFeeCust = _regExp.cust;   // ส่วนที่ลูกค้าจ่ายจริง
-  const custOut = Math.max(0, (e.customer_out||0) + Math.max(0, extraDown) + subForSupport + minorWithDown + regFeeCust);
+  const regFee = getRegFee(currentBrand, model, custType);
+  const custOut = Math.max(0, (e.customer_out||0) + Math.max(0, extraDown) + subForSupport + minorWithDown + regFee);
   const rst       = e.rst || 0;
   // (15/9/2569) กัน mismatch เหมือนที่ทำในการ์ดผลลัพธ์ — ถ้า tractorYears (ปีที่เลือกไว้ตอนดูการ์ดอื่น) ไม่ใช่ปีที่โปร/รุ่นนี้ผ่อนได้จริง ให้ใช้ปีสูงสุดที่โปรนี้รองรับแทน
   const ownAvailYearsExp = getAvailableYears(currentBrand, currentSegment, chosen?.program?.id, model);
@@ -3356,7 +3141,10 @@ function collectExportData(){
   // Equipment — รวมทั้งที่เลือกไว้ในโหมดใหม่และมือสอง (เลือกพร้อมกันได้)
   // กลุ่มลูกค้าสำหรับ CRM (Retention/Yanmar Fan/Switching/General) — คนละเรื่องกับ seg ที่ใช้คำนวณราคา
   // ทั่วไป -> General, RT -> Retention, YF,SW -> ตามที่เลือกไว้ (Yanmar Fan/Switching), Dry Crop(รถเกี่ยว) -> ไม่ระบุ
-  const crmCustRelType = currentCrmRelType();
+  let crmCustRelType = '';
+  if(seg === 'ทั่วไป') crmCustRelType = 'General';
+  else if(seg === 'RT') crmCustRelType = 'Retention';
+  else if(seg === 'YF,SW') crmCustRelType = yfSwSubType || '';
   const leadSourceSelected = (document.getElementById('leadSource')?.value || document.getElementById('leadSourceM')?.value || '').trim();
   const leadSourceOtherText = (document.getElementById('leadSourceOther')?.value || document.getElementById('leadSourceOtherM')?.value || '').trim();
   const leadSource = (leadSourceSelected === LEAD_SOURCE_OTHER_VALUE && leadSourceOtherText)
@@ -3440,12 +3228,12 @@ function collectExportData(){
     custCurrentAddr, gtorName, gtorAddr, gtorPhone, refs,
     finInfo,
     tradeIn,
+    usedCar: usedCarSel || undefined, // (2026-10-22) รถมือสองจากสต็อกที่ผูกกับเคสนี้
     id: finalId,
     editSummaryNote: editSummaryNote || undefined,
     byName: _editingRecordId ? userName : undefined,
     byRole: _editingRecordId ? userRole : undefined,
     price, down, support, custOut, rst, regFee, custType,
-    regFeePayer: regFee>0 ? regFeePayer : null, regFeeShop, regFeeCust,
     supportTotal: support + rst, // ยอดสนับสนุนรวมที่ถูกต้อง (รวม RST ด้วย) ใช้แสดงแทน support เดี่ยวๆ กันโชว์ไม่ตรง
     yctAmt: e.yct||0, yspAmt: e.ysp||0, fireAmt: e.fire||0, yspTopupAmt: e.ysp_topup||0, subForSupport,
     finYears, finRate, finTotal: Math.round(finTotal), annualFull: Math.round(annualFull),
@@ -3533,7 +3321,7 @@ function refreshExportSummary(){
   const html = `<div class="export-summary">
     <div class="es-row"><span class="es-label">รุ่นรถ</span><span class="es-val">${d.model}</span></div>
     <div class="es-row"><span class="es-label">โปร</span><span class="es-val">${d.progName}</span></div>
-    ${d.crmCustRelType !== undefined ? `<div class="es-row"><span class="es-label">กลุ่มลูกค้า (CRM)</span><span class="es-val" style="${!d.crmCustRelType && crmRelOptions().length>1 ? 'color:#B8860B' : ''}">${d.crmCustRelType || (crmRelOptions().length>1 ? '⚠ ยังไม่เลือก ' + crmRelOptions().map(v=>v==='Retention'?'RT':v==='Yanmar Fan'?'YF':'SW').join('/') : '-')}</span></div>` : ''}
+    ${d.crmCustRelType !== undefined ? `<div class="es-row"><span class="es-label">กลุ่มลูกค้า (CRM)</span><span class="es-val" style="${!d.crmCustRelType && d.seg==='YF,SW' ? 'color:#B8860B' : ''}">${d.crmCustRelType || (d.seg==='YF,SW' ? '⚠ ยังไม่เลือก Yanmar Fan/Switching' : '-')}</span></div>` : ''}
     ${d.leadSource !== undefined ? `<div class="es-row"><span class="es-label">Lead Source (CRM)</span><span class="es-val" style="${!d.leadSource ? 'color:#B8860B' : ''}">${d.leadSource || '⚠ ยังไม่เลือก'}</span></div>` : ''}
     <div class="es-row"><span class="es-label">ราคารถ</span><span class="es-val">${fmt(d.price)} บาท</span></div>
     <div class="es-row"><span class="es-label">เงินดาวน์รวม</span><span class="es-val">${fmt(d.down)} บาท</span></div>
@@ -3563,8 +3351,6 @@ function saveAndPrint(){
   if(_isSavingRecord){
     return; // มีการบันทึกค้างอยู่แล้ว ไม่ต้องทำซ้ำ
   }
-  if(!validateRegPayer()) return;
-  if(!validateCrmRelType()) return;
   const d = collectExportData();
   const phoneDigits = (d.custPhone||'').replace(/\D/g,'');
   if(phoneDigits.length !== 10){
@@ -3809,7 +3595,6 @@ function buildPrintHtml(d){
               <tr><td style="color:#888;padding:1px 0">ช่วยดาวน์</td><td style="text-align:right;color:#888">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</td></tr>
               ${d.eqItems.length>1 ? Array(d.eqItems.length-1).fill('<tr><td style="padding:1px 0"> </td><td></td></tr>').join('') : ''}
               ${d.regFee>0 ? `<tr><td style="color:#888;padding:1px 0">ค่าจดทะเบียน+พรบ (${d.custType==='corporate'?'นิติบุคคล':'บุคคลธรรมดา'})</td><td style="text-align:right;color:#888">${fmt(d.regFee)}</td></tr>` : ''}
-              ${d.regFeeShop>0 ? `<tr><td style="color:#1e7e34;padding:1px 0">หัก: ร้านออกค่าจดทะเบียน+พรบ ให้</td><td style="text-align:right;color:#1e7e34">-${fmt(d.regFeeShop)}</td></tr>` : ''}
               <tr><td style="padding:1px 0;font-weight:bold">จ่ายจริง (วันรับรถ)</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.custOut)}</td></tr>
               <tr><td style="color:#888;padding:1px 0">ยอดจัด</td><td style="text-align:right;color:#888">${fmt(d.finTotal)}</td></tr>
               <tr style="background:#fff3e0"><td style="padding:1px 0;font-weight:bold">งวดใหญ่/ปี</td><td style="text-align:right;font-weight:bold;color:#c9813a">${fmt(d.bigPay)}</td></tr>
@@ -3863,6 +3648,8 @@ function buildPrintHtml(d){
         <tr style="background:#eef4fb;font-weight:bold"><td style="padding:2px 4px">ยอดตีเทิร์นรวม (ดาวน์คันใหม่ + ปิดหนี้ + เงินคืน)</td><td style="padding:2px 4px;text-align:right">${fmt(tradeInTotal)}</td></tr>
       </table>`;
       })()}
+
+      ${renderUsedCarPrintBlock(d)}
 
       <div style="font-size:7.5pt;font-weight:bold;margin-bottom:1px">ตารางงวดชำระ — ${d.finYears} ปี (${d.finYears*12} งวด)${(d.eqAnnual>0 && !d.eqSeparateSpecial)?(()=>{
         const pt=d.tractorPayment;
@@ -5001,8 +4788,6 @@ function exportXLSX(){
     ...(d.yspTopupAmt ? [['  - YSP เพิ่มเติม', d.yspTopupAmt]] : []),
     ['  - RST ออก', d.rst||0],
     ['ค่าจดทะเบียน+พรบ (' + (d.custType==='corporate' ? 'นิติบุคคล' : 'บุคคลธรรมดา') + ')', d.regFee||0],
-    ['  - ผู้ออกค่าจดทะเบียน+พรบ', regPayerLabel(d.regFeePayer)],
-    ...(d.regFeeShop ? [['  - ร้านออกให้', d.regFeeShop], ['  - ลูกค้าจ่าย', d.regFeeCust||0]] : []),
     ['จ่ายดาวน์จริง (รวมจดทะเบียน+พรบ)', d.custOut],
     ['RST ออก', d.rst],
     ['ยอดจัด (รถ)', d.finTotal],
@@ -5153,10 +4938,9 @@ function crmRelTypeFromRec(rec){
   // เคสใหม่ (หลังอัปเดตนี้) จะมี rec.crmCustRelType บันทึกมาให้ตรงๆ อยู่แล้ว (มาจากตัวเลือก Yanmar Fan/Switching
   // หรือ auto จาก General/Retention ตอนออกใบสรุป) — เคสเก่าก่อนอัปเดตนี้ไม่มี field นี้ เลย fallback เดาจาก seg แทน
   if(rec.crmCustRelType) return rec.crmCustRelType;
-  const opts = crmRelTokens(rec.seg);
-  if(opts.length === 1) return opts[0];
-  if(!opts.length && isGeneralSegText(rec.seg)) return 'General';
-  return ''; // กลุ่มรวม (เช่น YF,SW หรือ RT,YF,SW) เคสเก่า เดาไม่ได้ ต้องเลือกเอง
+  if(rec.seg === 'ทั่วไป') return 'General';
+  if(rec.seg === 'RT') return 'Retention';
+  return ''; // seg === 'YF,SW' (เคสเก่า) เดาไม่ได้ว่า Yanmar Fan หรือ Switching ต้องเลือกเอง
 }
 function buildCrmTemplateRow(rec, no, provinces){
   const addr = crmParseAddress(rec.custAddr);
@@ -5266,6 +5050,355 @@ function exportCrmTemplateXLSX(){
   }
 }
 
+
+// ===== (2026-10-22) รถมือสองจากสต็อก — เชื่อมกับแอป "RST รูปรถและทรัพย์สิน มือสอง · รถสาธิต" (Apps Script r16+) =====
+// เซลล์คีย์เลขตัวรถ/เลขเครื่อง หรือเลือกจาก สาขา → ประเภท → รุ่น แล้วผูกรถคันนั้นเข้ากับเคส (record.usedCar)
+// ล็อกอินแอปรถมือสองด้วยบัญชี CRM ชุดเดียวกัน: ตอนล็อกอิน Promo Finder ระบบจะเชื่อมให้เองเงียบๆ (ดู fetch hook ท้ายไฟล์)
+// ถ้า token หมดอายุ (12 ชม.) จะมีช่องให้ใส่รหัสผ่านอีกครั้งในหน้าต่างนี้
+const UC_TOK_KEY = 'rst_usedcar_tok';
+const UC_STOCK_TTL = 5 * 60 * 1000;
+let usedCarSel = null;          // รถมือสองที่เลือกไว้สำหรับเคสนี้ (snapshot ตอนเลือก)
+let _ucStock = null, _ucStockAt = 0, _ucView = null, _ucViewOnly = false, _ucBusy = false;
+
+function ucUrl(){ return ((window.RST_USED_CAR_CONFIG && window.RST_USED_CAR_CONFIG.apiUrl) || '').trim(); }
+function ucConfigured(){ return /^https:\/\/script\.google\.com\/.+\/exec$/.test(ucUrl()); }
+function ucGetTok(){
+  try{ const o = JSON.parse(localStorage.getItem(UC_TOK_KEY) || 'null'); if(o && o.tok && o.exp > Date.now()) return o; }catch(e){}
+  return null;
+}
+function ucSetTok(res){
+  try{ localStorage.setItem(UC_TOK_KEY, JSON.stringify({ tok: res.token, user: res.user, exp: Date.now() + ((res.hours||12) * 3600e3) - 60e3 })); }catch(e){}
+}
+function ucClearTok(){ try{ localStorage.removeItem(UC_TOK_KEY); }catch(e){} }
+function ucNorm(v){ return String(v==null?'':v).toUpperCase().replace(/[^0-9A-Z฀-๿]/g,'').replace(/^0+(?=.)/,''); }
+function ucEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function ucPost(body){
+  const r = await fetch(ucUrl(), { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body) });
+  const txt = await r.text();
+  let j; try{ j = JSON.parse(txt); }catch(e){ throw new Error('แอปรถมือสองตอบกลับไม่ใช่ JSON (เช็คลิงก์ /exec และสิทธิ์ Deploy = Anyone)'); }
+  if(!j.ok){
+    const msg = String(j.error || 'ไม่ทราบสาเหตุ');
+    if(/^AUTH:/.test(msg)){ ucClearTok(); const e = new Error(msg.replace(/^AUTH:\s*/,'')); e.auth = true; throw e; }
+    throw new Error(msg.replace(/^PIN:\s*/,''));
+  }
+  return j.result;
+}
+async function ucCall(fn, args){
+  const t = ucGetTok();
+  if(!t){ const e = new Error('ยังไม่ได้เชื่อมบัญชีแอปรถมือสอง'); e.auth = true; throw e; }
+  return ucPost({ fn, args: args || [], tok: t.tok });
+}
+async function ucLogin(user, pass){
+  const res = await ucPost({ fn:'login', args:[user, pass] });
+  if(res && res.token) ucSetTok(res);
+  return res;
+}
+// เรียกจาก fetch hook ตอนล็อกอิน Promo Finder สำเร็จ (ไม่โชว์ error ให้ผู้ใช้เห็น)
+function ucSilentLogin(user, pass){
+  if(!ucConfigured() || !user || !pass) return;
+  ucLogin(user, pass).then(()=>{ if(document.getElementById('usedCarModalBg')?.style.display === 'flex') ucRender(); })
+    .catch(err=>console.warn('[usedCar] เชื่อมบัญชีอัตโนมัติไม่สำเร็จ:', err && err.message));
+}
+
+async function ucLoadStock(force){
+  if(!force && _ucStock && (Date.now() - _ucStockAt) < UC_STOCK_TTL) return _ucStock;
+  const res = await ucCall('saleStock');
+  _ucStock = (res && res.cars) || [];
+  _ucStockAt = Date.now();
+  return _ucStock;
+}
+
+const UC_PRICE_SRC = { 'ecount':'Ecount ล่าสุด', 'ecount-old':'Ecount ครั้งก่อน', 'manual':'ใส่เอง', 'legacy':'ระบบเก่า' };
+function ucCarTitle(c){ return (c.series || c.name || c.key || '-'); }
+function ucSnapshot(c){
+  const o = {};
+  ['key','serial','chassis','engine','tag','code','name','series','type','kind','branch','spot','price','priceSrc','cond','hours','year','reg','status'].forEach(k=>{ o[k] = c[k]==null ? '' : String(c[k]); });
+  o.pickedAt = new Date().toISOString();
+  o.pickedBy = userName || '';
+  return o;
+}
+
+// ---------- เปิด/ปิด ----------
+// opts.viewKey = เปิดดูอย่างเดียว (จากหน้าประวัติ) ดึงสถานะ/รูปล่าสุดของรถคันนั้น
+function openUsedCarModal(opts){
+  opts = opts || {};
+  _ucViewOnly = !!opts.viewKey;
+  _ucView = null;
+  document.getElementById('usedCarModalBg').style.display = 'flex';
+  document.getElementById('usedCarModalTitle').textContent = _ucViewOnly ? '🚜 ข้อมูลรถมือสอง (ล่าสุด)' : '🚜 เลือกรถมือสองจากสต็อก';
+  ucRender();
+  if(_ucViewOnly) ucLookup(opts.viewKey, true);
+  else if(usedCarSel && ucGetTok()) ucLookup(usedCarSel.key); // ดึงข้อมูล/รูปล่าสุดของคันที่เลือกไว้
+}
+function closeUsedCarModal(){ document.getElementById('usedCarModalBg').style.display = 'none'; }
+
+function ucRender(){
+  const box = document.getElementById('usedCarBody');
+  if(!ucConfigured()){
+    box.innerHTML = `<div class="uc-note uc-warn">ยังไม่ได้ตั้งลิงก์แอปรถมือสอง — ใส่ลิงก์ /exec ใน <b>RST_USED_CAR_CONFIG.apiUrl</b> ท้ายไฟล์ index.html</div>`;
+    return;
+  }
+  if(!ucGetTok()){
+    const sess = (window.RSTAuth && window.RSTAuth.getSession && window.RSTAuth.getSession()) || {};
+    box.innerHTML = `
+      <div class="uc-note">เชื่อมบัญชีแอปรถมือสองครั้งเดียว ใช้ <b>user / รหัสผ่านเดียวกับ CRM</b> (อยู่ได้ 12 ชม.)</div>
+      <div class="field-group"><label>ชื่อผู้ใช้</label><input type="text" id="ucUser" autocomplete="username" value="${ucEsc(sess.username || sess.user || '')}"></div>
+      <div class="field-group"><label>รหัสผ่าน</label><input type="password" id="ucPass" autocomplete="current-password" onkeydown="if(event.key==='Enter')ucDoLogin()"></div>
+      <div id="ucLoginMsg" class="uc-msg"></div>
+      <button class="btn-save" style="width:100%" onclick="ucDoLogin()">🔑 เชื่อมต่อ</button>`;
+    return;
+  }
+  if(_ucViewOnly){
+    box.innerHTML = `<div id="ucCardBox"><div class="uc-note">⏳ กำลังโหลด...</div></div>`;
+    return;
+  }
+  box.innerHTML = `
+    <div class="field-group" style="margin-bottom:6px">
+      <label>เลขตัวรถ หรือ เลขเครื่อง</label>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="ucQ" placeholder="เช่น YM351R-12345 หรือ 3TNV88" autocomplete="off" style="flex:1;text-transform:uppercase"
+          oninput="ucSuggest()" onkeydown="if(event.key==='Enter'){event.preventDefault();ucLookup(this.value)}">
+        <button class="btn-save" style="width:auto;padding:0 14px;margin:0" onclick="ucLookup(document.getElementById('ucQ').value)">ค้นหา</button>
+      </div>
+    </div>
+    <div id="ucSuggest" class="uc-list"></div>
+    <details id="ucBrowse" class="uc-browse" ontoggle="if(this.open)ucInitBrowse()">
+      <summary>🔎 ไม่ทราบเลข? ค้นจาก สาขา / ประเภท / รุ่น</summary>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">
+        <select id="ucBranch" onchange="ucBrowseChange('branch')"><option value="">ทุกสาขา</option></select>
+        <select id="ucType" onchange="ucBrowseChange('type')"><option value="">ทุกประเภท</option></select>
+        <select id="ucSeries" onchange="ucBrowseChange('series')" style="grid-column:1/-1"><option value="">ทุกรุ่น</option></select>
+      </div>
+      <div id="ucBrowseList" class="uc-list" style="margin-top:6px"></div>
+    </details>
+    <div id="ucCardBox" style="margin-top:10px"></div>
+    <div id="ucStockInfo" class="uc-foot"></div>
+    ${usedCarSel ? `<button type="button" class="uc-clear" onclick="ucClearSel()">✕ ไม่ใช้รถมือสองในเคสนี้ (ล้างที่เลือกไว้)</button>` : ''}`;
+  // โหลดรายการสต็อกล่วงหน้า (ใช้กับช่องแนะนำและ dropdown)
+  ucLoadStock().then(list=>{
+    const inf = document.getElementById('ucStockInfo');
+    if(inf) inf.innerHTML = `มีรถในสต็อก ${list.length} คัน · <a href="#" onclick="ucRefresh();return false">โหลดใหม่</a>`;
+    ucSuggest();
+  }).catch(ucHandleErr);
+}
+
+async function ucDoLogin(){
+  const u = (document.getElementById('ucUser')?.value || '').trim(), p = document.getElementById('ucPass')?.value || '';
+  const msg = document.getElementById('ucLoginMsg');
+  if(!u || !p){ msg.textContent = 'ใส่ชื่อผู้ใช้และรหัสผ่าน'; return; }
+  msg.textContent = '⏳ กำลังเชื่อมต่อ...';
+  try{ await ucLogin(u, p); ucRender(); if(_ucViewOnly && _ucPendingKey) ucLookup(_ucPendingKey, true); }
+  catch(err){ msg.textContent = '❌ ' + (err.message || 'เชื่อมต่อไม่สำเร็จ'); }
+}
+let _ucPendingKey = '';
+function ucHandleErr(err){
+  if(err && err.auth){ ucRender(); return; }
+  const box = document.getElementById('ucCardBox');
+  if(box) box.innerHTML = `<div class="uc-note uc-warn">❌ ${ucEsc(err && err.message || 'เกิดข้อผิดพลาด')}</div>`;
+}
+function ucRefresh(){ _ucStock = null; ucRender(); }
+
+// ---------- ค้นจากเลข ----------
+function ucRowHtml(c){
+  const p = Number(c.price) > 0 ? fmt(Number(c.price)) + ' ฿' : 'ไม่มีราคา';
+  return `<button type="button" class="uc-row" onclick="ucPick('${ucEsc(c.key)}')">
+    <span><b>${ucEsc(ucCarTitle(c))}</b> <small>${ucEsc(c.type||'')}${c.kind==='รถสาธิต'?' · สาธิต':''}</small><br>
+    <small>ตัวรถ ${ucEsc(c.chassis||c.key)}${c.engine?' · เครื่อง '+ucEsc(c.engine):''}</small></span>
+    <span class="uc-row-r">${ucEsc(c.branch||'-')}<br><b>${p}</b></span></button>`;
+}
+function ucSuggest(){
+  const el = document.getElementById('ucSuggest'); if(!el) return;
+  const q = ucNorm(document.getElementById('ucQ')?.value);
+  if(q.length < 3 || !_ucStock){ el.innerHTML = ''; return; }
+  const hits = _ucStock.filter(c => [c.key, c.chassis, c.engine].some(x => ucNorm(x).indexOf(q) >= 0)).slice(0, 8);
+  el.innerHTML = hits.length ? hits.map(ucRowHtml).join('') : `<div class="uc-foot">ไม่พบในรายการสต็อก — กด "ค้นหา" เพื่อค้นรวมคันที่ออกจากสต็อกแล้ว</div>`;
+}
+function ucPick(key){
+  const c = (_ucStock || []).find(x => x.key === key);
+  if(c) ucShowCar(c); else ucLookup(key);
+}
+async function ucLookup(q, viewOnly){
+  q = String(q||'').trim();
+  if(ucNorm(q).length < 3){ alert('ใส่เลขตัวรถหรือเลขเครื่องอย่างน้อย 3 ตัว'); return; }
+  _ucPendingKey = q;
+  const box = document.getElementById('ucCardBox');
+  if(box) box.innerHTML = `<div class="uc-note">⏳ กำลังค้นหา...</div>`;
+  try{
+    const res = await ucCall('saleCar', [q]);
+    if(res.car){ ucShowCar(res.car); return; }
+    if(res.matches && res.matches.length){
+      box.innerHTML = `<div class="uc-foot">พบ ${res.matches.length} คันที่ใกล้เคียง เลือกคันที่ต้องการ:</div><div class="uc-list">${res.matches.map(ucRowHtml).join('')}</div>`;
+      res.matches.forEach(m=>{ if(_ucStock && !_ucStock.some(x=>x.key===m.key)) _ucStock.push(m); }); // ให้ ucPick หาเจอ
+      return;
+    }
+    box.innerHTML = `<div class="uc-note uc-warn">ไม่พบรถเลข "${ucEsc(q)}" ในแอปรถมือสอง</div>`;
+  }catch(err){ ucHandleErr(err); }
+}
+
+// ---------- ค้นจาก สาขา / ประเภท / รุ่น ----------
+function ucOpts(id, values, label){
+  const el = document.getElementById(id); if(!el) return;
+  const cur = el.value;
+  el.innerHTML = `<option value="">${label}</option>` + values.map(v=>`<option value="${ucEsc(v)}">${ucEsc(v)}</option>`).join('');
+  if(values.indexOf(cur) >= 0) el.value = cur;
+}
+function ucUniq(list, k){ return Array.from(new Set(list.map(c=>c[k]).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'th')); }
+function ucInitBrowse(){
+  if(!_ucStock){ ucLoadStock().then(ucInitBrowse).catch(ucHandleErr); return; }
+  // ตั้งสาขาเริ่มต้นเป็นสาขาของผู้ใช้ (ถ้ามีในรายการ)
+  const sess = (window.RSTAuth && window.RSTAuth.getSession && window.RSTAuth.getSession()) || {};
+  const br = document.getElementById('ucBranch');
+  const branches = ucUniq(_ucStock, 'branch');
+  ucOpts('ucBranch', branches, 'ทุกสาขา');
+  if(br && !br.value && sess.branch){ const hit = branches.find(b => b.indexOf(sess.branch) >= 0 || sess.branch.indexOf(b) >= 0); if(hit) br.value = hit; }
+  ucBrowseChange('branch');
+}
+function ucBrowseChange(level){
+  const s = _ucStock || [];
+  const b = document.getElementById('ucBranch').value;
+  let list = b ? s.filter(c=>c.branch===b) : s;
+  if(level === 'branch') ucOpts('ucType', ucUniq(list, 'type'), 'ทุกประเภท');
+  const t = document.getElementById('ucType').value;
+  if(t) list = list.filter(c=>c.type===t);
+  if(level !== 'series') ucOpts('ucSeries', ucUniq(list, 'series'), 'ทุกรุ่น');
+  const m = document.getElementById('ucSeries').value;
+  if(m) list = list.filter(c=>c.series===m);
+  const el = document.getElementById('ucBrowseList');
+  const MAX = 40;
+  el.innerHTML = list.length
+    ? list.slice(0, MAX).map(ucRowHtml).join('') + (list.length > MAX ? `<div class="uc-foot">แสดง ${MAX} จาก ${list.length} คัน — เลือกประเภท/รุ่นเพิ่มเพื่อให้แคบลง</div>` : `<div class="uc-foot">${list.length} คัน</div>`)
+    : `<div class="uc-foot">ไม่มีรถตามเงื่อนไขนี้</div>`;
+}
+
+// ---------- การ์ดรถ ----------
+function ucCardHtml(c, fromSel){
+  const price = Number(c.price) > 0 ? fmt(Number(c.price)) + ' บาท' : '—';
+  const out = c.status && c.status !== 'stock';
+  const row = (l, v) => v ? `<div class="hd-row"><span class="hd-label">${l}</span><span class="hd-val">${ucEsc(v)}</span></div>` : '';
+  const isSel = usedCarSel && usedCarSel.key === c.key;
+  return `
+    <div class="uc-card">
+      <div class="uc-cover" id="ucCover"><span>${Number(c.photos)>0 ? '⏳ รูป' : 'ไม่มีรูป'}</span></div>
+      <div class="uc-title">${ucEsc(ucCarTitle(c))} ${c.tag==='GPS'?'<span class="uc-tag">GPS</span>':''} ${c.kind==='รถสาธิต'?'<span class="uc-tag">รถสาธิต</span>':''}</div>
+      <div class="uc-sub">${ucEsc(c.name||'')}</div>
+      ${out ? `<div class="uc-note uc-warn" style="margin:6px 0">⚠️ รถคันนี้ออกจากสต็อกแล้ว${c.outDate?' ('+ucEsc(c.outDate)+')':''} — อาจขายไปแล้ว เช็คกับสาขาก่อนทำสัญญา</div>` : ''}
+      ${fromSel && !_ucViewOnly ? `<div class="uc-foot">ข้อมูล ณ ตอนเลือก · ${ucEsc((c.pickedAt||'').slice(0,10))}</div>` : ''}
+      ${row('ประเภท', [c.type, c.kind].filter(Boolean).join(' · '))}
+      ${row('เลขตัวรถ', c.chassis || c.key)}
+      ${row('เลขเครื่อง', c.engine)}
+      ${row('สาขา / ที่เก็บ', [c.branch, c.spot].filter(Boolean).join(' · '))}
+      ${row('ปีรถ', c.year)}
+      ${row('ชั่วโมงใช้งาน', c.hours ? fmt(Number(c.hours)) + ' ชม.' : '')}
+      ${row('เล่มทะเบียน', c.reg)}
+      ${row('สภาพ', c.cond)}
+      <div class="hd-row"><span class="hd-label"><b>ราคาขาย</b></span><span class="hd-val" style="font-weight:700;color:var(--accent)">${price}${c.priceSrc?` <small style="color:#999;font-weight:400">(${UC_PRICE_SRC[c.priceSrc]||c.priceSrc})</small>`:''}</span></div>
+      ${Number(c.photos)>0 ? `<button type="button" class="btn-reprint" style="width:100%;margin-top:8px" onclick="ucShowPhotos('${ucEsc(c.key)}')">🖼️ ดูรูปทั้งหมด (${Number(c.photos)})</button>` : ''}
+      <div id="ucPhotos" class="uc-photos"></div>
+      ${_ucViewOnly ? '' : (isSel
+        ? `<div class="uc-note" style="margin-top:10px;background:#e3f7ea;color:#1e7e34">✓ เลือกคันนี้ไว้ในเคสแล้ว</div><button class="btn-save" style="width:100%;margin-top:8px" onclick="closeUsedCarModal()">✓ เสร็จแล้ว</button>`
+        : `<button class="btn-save" style="width:100%;margin-top:10px" onclick="ucSelect()">✓ เลือกคันนี้ทำสัญญา</button>`)}
+    </div>`;
+}
+function ucShowCar(c, fromSel){
+  _ucView = c;
+  const box = document.getElementById('ucCardBox'); if(!box) return;
+  box.innerHTML = ucCardHtml(c, fromSel);
+  box.scrollIntoView({behavior:'smooth', block:'nearest'});
+  const sug = document.getElementById('ucSuggest'); if(sug) sug.innerHTML = '';
+  if(!ucGetTok()) return;
+  // รูปปก (ถ้าเป็น snapshot จากเคส ดึงจำนวนรูปล่าสุดไม่ได้ ก็ลองโหลดปกอยู่ดี)
+  ucCall('getCovers', [[c.key]]).then(m=>{
+    const el = document.getElementById('ucCover');
+    if(!el || !_ucView || _ucView.key !== c.key) return;
+    el.innerHTML = m && m[c.key] ? `<img src="${m[c.key]}" alt="">` : '<span>ไม่มีรูป</span>';
+  }).catch(()=>{ const el = document.getElementById('ucCover'); if(el) el.innerHTML = '<span>โหลดรูปไม่ได้</span>'; });
+}
+async function ucShowPhotos(key){
+  const el = document.getElementById('ucPhotos'); if(!el) return;
+  el.innerHTML = '<div class="uc-foot">⏳ กำลังโหลดรูป...</div>';
+  try{
+    const list = await ucCall('getPhotos', [key]);
+    el.innerHTML = list.length ? list.map(p=>`<img src="${p.thumb}" title="${ucEsc(p.label||'')}" onclick="ucFullPhoto('${ucEsc(p.photoId)}', this)">`).join('') : '<div class="uc-foot">ไม่มีรูป</div>';
+  }catch(err){ el.innerHTML = `<div class="uc-foot">โหลดรูปไม่ได้: ${ucEsc(err.message)}</div>`; }
+}
+async function ucFullPhoto(photoId, imgEl){
+  const cover = document.getElementById('ucCover'); if(!cover) return;
+  cover.innerHTML = '<span>⏳</span>';
+  try{ const r = await ucCall('getPhotoFull', [photoId]); cover.innerHTML = `<img src="${r.src}" alt="">`; cover.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+  catch(err){ cover.innerHTML = `<img src="${imgEl.src}" alt="">`; }
+}
+function ucSelect(){
+  if(!_ucView) return;
+  if(_ucView.status && _ucView.status !== 'stock' && !confirm('รถคันนี้ออกจากสต็อกแล้ว ยืนยันจะเลือกคันนี้ใช่ไหม?')) return;
+  usedCarSel = ucSnapshot(_ucView);
+  updateUsedCarStatus();
+  ucShowCar(Object.assign({}, _ucView), false);
+  const b = document.getElementById('ucBrowse'); if(b) b.open = false;
+}
+function ucClearSel(){
+  if(!confirm('ล้างรถมือสองที่เลือกไว้ในเคสนี้?')) return;
+  usedCarSel = null; _ucView = null; updateUsedCarStatus(); ucRender();
+}
+function updateUsedCarStatus(){
+  const txt = usedCarSel ? ('✓ ' + ucCarTitle(usedCarSel) + ' · ' + (usedCarSel.chassis || usedCarSel.key)) : '';
+  ['usedCarStatus','usedCarStatusM'].forEach(id=>{ const el = document.getElementById(id); if(el) el.textContent = txt; });
+}
+
+// ---------- แสดงในหน้าประวัติ ----------
+function renderUsedCarSectionWrap(d){
+  const c = d && d.usedCar;
+  if(!c || !c.key) return '';
+  const row = (l, v) => v ? `<div class="hd-row"><span class="hd-label">${l}</span><span class="hd-val">${ucEsc(v)}</span></div>` : '';
+  return `
+      <div class="hd-section">รถมือสองที่ขาย (จากสต็อก)</div>
+      ${row('รุ่น', ucCarTitle(c) + (c.kind==='รถสาธิต' ? ' (รถสาธิต)' : ''))}
+      ${row('เลขตัวรถ', c.chassis || c.key)}
+      ${row('เลขเครื่อง', c.engine)}
+      ${row('สาขา', c.branch)}
+      ${row('ปีรถ', c.year)}
+      ${row('ชั่วโมงใช้งาน', c.hours ? fmt(Number(c.hours)) + ' ชม.' : '')}
+      ${row('เล่มทะเบียน', c.reg)}
+      ${Number(c.price) > 0 ? `<div class="hd-row"><span class="hd-label">ราคาขาย (ตอนเลือก)</span><span class="hd-val" style="font-weight:700;color:var(--accent)">${fmt(Number(c.price))} บาท</span></div>` : ''}
+      <button class="btn-reprint" style="width:100%;margin-top:6px" onclick="openUsedCarModal({viewKey:'${ucEsc(c.key)}'})">🖼️ ดูรูป / สถานะล่าสุดในแอปรถมือสอง</button>
+  `;
+}
+// แสดงในใบสรุป (พิมพ์)
+function renderUsedCarPrintBlock(d){
+  const c = d && d.usedCar;
+  if(!c || !c.key) return '';
+  return `
+      <div style="font-weight:bold;background:#f3eee4;padding:3px 6px;border-radius:4px;margin-bottom:3px;font-size:8.5pt">🚜 รถมือสองที่ขาย${c.kind==='รถสาธิต'?' (รถสาธิต)':''}</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:3px;font-size:7.5pt">
+        <tr>
+          <td style="width:50%;padding:1px 4px"><b>รุ่น:</b> ${ucEsc(ucCarTitle(c))}</td>
+          <td style="width:50%;padding:1px 4px"><b>ประเภท:</b> ${ucEsc(c.type||'-')}</td>
+        </tr>
+        <tr>
+          <td style="padding:1px 4px"><b>เลขตัวรถ:</b> ${ucEsc(c.chassis||c.key)}</td>
+          <td style="padding:1px 4px"><b>เลขเครื่อง:</b> ${ucEsc(c.engine||'-')}</td>
+        </tr>
+        <tr>
+          <td style="padding:1px 4px"><b>ปีรถ:</b> ${ucEsc(c.year||'-')} · <b>ชม.:</b> ${c.hours?fmt(Number(c.hours)):'-'}</td>
+          <td style="padding:1px 4px"><b>สาขา:</b> ${ucEsc(c.branch||'-')}${c.reg?' · <b>เล่มทะเบียน:</b> '+ucEsc(c.reg):''}</td>
+        </tr>
+        ${Number(c.price) > 0 ? `<tr style="background:#f8f4ec;font-weight:bold"><td style="padding:2px 4px">ราคาขายรถมือสอง</td><td style="padding:2px 4px;text-align:right">${fmt(Number(c.price))}</td></tr>` : ''}
+      </table>`;
+}
+
+// ล้าง token รถมือสองเมื่อ logout จาก Promo Finder / เปลี่ยนผู้ใช้
+window.addEventListener('rst:authenticated', function(e){
+  const sess = (e && e.detail) || (window.RSTAuth && window.RSTAuth.getSession && window.RSTAuth.getSession()) || {};
+  const t = ucGetTok(), u = String(sess.username || sess.user || '').toLowerCase();
+  if(t && u && String(t.user||'').toLowerCase() !== u) ucClearTok();
+});
+window.addEventListener('load', function(){
+  if(window.RSTAuth && typeof window.RSTAuth.logout === 'function' && !window.RSTAuth._ucWrapped){
+    const orig = window.RSTAuth.logout;
+    window.RSTAuth.logout = function(){ ucClearTok(); usedCarSel = null; return orig.apply(this, arguments); };
+    window.RSTAuth._ucWrapped = true;
+  }
+});
 
 // ===== History System =====
 const GAS_URL_KEY = 'rst_promo_gas_url';
@@ -5941,15 +6074,6 @@ function toggleHistFilterPanel(){
   const box = document.getElementById('histFilterPanel');
   const btn = document.getElementById('histFilterToggleBtn');
   if(!box) return;
-  // (21/10/2569) มือถือ: ช่องค้นหาด่วนโชว์ตลอด — ปุ่ม "ตัวกรอง" แค่กาง/หุบตัวกรองละเอียด (class .open)
-  if(isMobileHist()){
-    box.style.display = 'block';
-    const willOpen = !box.classList.contains('open');
-    box.classList.toggle('open', willOpen);
-    document.getElementById('hfMobileFilterBtn')?.classList.toggle('active', willOpen);
-    if(willOpen) box.scrollTop = 0;
-    return;
-  }
   const willOpen = box.style.display === 'none';
   box.style.display = willOpen ? 'block' : 'none';
   if(btn) btn.classList.toggle('active', willOpen);
@@ -5958,241 +6082,8 @@ function toggleHistFilterPanel(){
 function closeHistFilterPanel(){
   const box = document.getElementById('histFilterPanel');
   const btn = document.getElementById('histFilterToggleBtn');
-  if(box){
-    box.classList.remove('open');
-    box.style.display = isMobileHist() ? 'block' : 'none';
-  }
+  if(box) box.style.display = 'none';
   if(btn) btn.classList.remove('active');
-  document.getElementById('hfMobileFilterBtn')?.classList.remove('active');
-}
-// ===== (21/10/2569) จัดหน้าประวัติให้เหมาะกับมือถือ =====
-const _histMobileMQ = window.matchMedia('(max-width:759px)');
-function isMobileHist(){ return _histMobileMQ.matches; }
-// มือถือ: ย้ายช่อง "เรียง" จากแถบบนลงมาข้างช่องค้นหาด่วน (แถบบนจะได้ไม่ล้นจอ) / จอใหญ่: ย้ายกลับที่เดิม
-function applyHistMobileLayout(){
-  const sortEl = document.getElementById('histSortHeader');
-  const slot = document.getElementById('hfSortSlotMobile');
-  const anchor = document.getElementById('histSortHomeAnchor');
-  if(sortEl && slot && anchor){
-    if(isMobileHist()){ if(sortEl.parentNode !== slot) slot.appendChild(sortEl); }
-    else if(sortEl.nextSibling !== anchor){ anchor.parentNode.insertBefore(sortEl, anchor); }
-  }
-  closeHistFilterPanel();
-}
-// จำนวนตัวกรองละเอียดที่เลือกอยู่ (ไม่นับค้นหาด่วน) — โชว์เป็นตัวเลขบนปุ่ม "ตัวกรอง" ในมือถือ
-function updateHistMobileFilterBadge(shownCount){
-  const ids = ['hf_name','hf_phone','hf_province','hf_model','hf_prog'];
-  let n = ids.filter(id => (document.getElementById(id)?.value||'').trim()).length;
-  n += _selectedStatuses.size;
-  if(document.getElementById('hf_staleOnly')?.checked) n++;
-  if(document.getElementById('hf_followupDueOnly')?.checked) n++;
-  const badge = document.getElementById('hfMobileFilterBadge');
-  if(badge) badge.textContent = n > 0 ? String(n) : '';
-  const apply = document.getElementById('hfApplyBtn');
-  if(apply) apply.textContent = (typeof shownCount === 'number') ? ('✓ ดูผลลัพธ์ (' + shownCount + ')') : '✓ ดูผลลัพธ์';
-}
-if(_histMobileMQ.addEventListener) _histMobileMQ.addEventListener('change', applyHistMobileLayout);
-else if(_histMobileMQ.addListener) _histMobileMQ.addListener(applyHistMobileLayout);
-if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyHistMobileLayout);
-else applyHistMobileLayout();
-// ===== (22/10/2569) รายงานเคสรายวัน — ดูว่าแต่ละวันเปิดเคสอะไร กี่เคส ที่ไหน แล้วพิมพ์/บันทึก PDF ได้ =====
-// นับตาม "วันที่บันทึกเคส" (savedAt) — เคสที่เปิดใหม่ในช่วงวันที่เลือก
-function _rptYmd(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
-function _rptThaiDate(ymd){
-  const p = String(ymd||'').split('-'); if(p.length !== 3) return ymd || '';
-  const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][Number(p[1])-1] || p[1];
-  return Number(p[2]) + ' ' + m + ' ' + (Number(p[0]) + 543);
-}
-// (22/10/2569) ประเภทรถของเคส — Yanmar / Solis / รถเกี่ยว / รถขุด / โดรน / รถมือสอง
-// เคสโดรนเก่าที่เคยถูกบันทึกยี่ห้อเป็น "รถขุด" (บั๊กเดิม) ดูจากชื่อรุ่น P60/P100 แทน
-const RPT_VEHICLE_TYPES = ['Yanmar','Solis','รถเกี่ยว','รถขุด','โดรน'];
-function _rptVehicleType(r){
-  const brand = String(r.brand||'').trim(), model = String(r.model||'');
-  if(/มือสอง/.test(brand + ' ' + model + ' ' + (r.progName||''))) return 'รถมือสอง';
-  if(/^P(60|100)\b/i.test(model) || /โดรน|drone/i.test(brand)) return 'โดรน';
-  if(/yanmar/i.test(brand)) return 'Yanmar';
-  if(/solis/i.test(brand)) return 'Solis';
-  if(/รถเกี่ยว|combine/i.test(brand)) return 'รถเกี่ยว';
-  if(/รถขุด|excavator/i.test(brand)) return 'รถขุด';
-  return brand || '(ไม่ระบุ)';
-}
-function _rptAddrPart(addr, prefix){
-  const m = String(addr||'').match(new RegExp(prefix.replace('.','\\.') + '\\s*([^\\s,]+)'));
-  return m ? m[1] : '';
-}
-function openDailyReportModal(){
-  const today = _rptYmd(new Date());
-  const f = document.getElementById('rptFrom'), t = document.getElementById('rptTo');
-  if(f && !f.value) f.value = today;
-  if(t && !t.value) t.value = today;
-  document.getElementById('dailyReportModalBg').style.display = 'flex';
-  const out = document.getElementById('rptContent');
-  if(!gasUrl){ out.innerHTML = '<div class="history-empty">⚠️ ยังไม่ได้ตั้งค่า GAS URL</div>'; return; }
-  // ต้องใช้ข้อมูลครบทุกเคส ไม่งั้นรายงานย้อนหลังจะนับขาด
-  if(!_historyLoadedFull){
-    out.innerHTML = '<div class="history-loading">⏳ กำลังโหลดข้อมูลทุกเคส...</div>';
-    loadFullHistory(function(){ populateReportBranches(); renderDailyReport(); });
-    return;
-  }
-  populateReportBranches();
-  renderDailyReport();
-}
-function closeDailyReportModal(){ document.getElementById('dailyReportModalBg').style.display = 'none'; }
-function setReportRange(kind){
-  const d = new Date(); let from = new Date(d), to = new Date(d);
-  if(kind === 'yesterday'){ from.setDate(d.getDate()-1); to = new Date(from); }
-  else if(kind === '7d'){ from.setDate(d.getDate()-6); }
-  else if(kind === 'month'){ from = new Date(d.getFullYear(), d.getMonth(), 1); }
-  document.getElementById('rptFrom').value = _rptYmd(from);
-  document.getElementById('rptTo').value = _rptYmd(to);
-  renderDailyReport();
-}
-function populateReportBranches(){
-  const sel = document.getElementById('rptBranch'); if(!sel) return;
-  const cur = sel.value;
-  const branches = [...new Set(_allHistoryRecords.map(r => (r.branch||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'th'));
-  sel.innerHTML = '<option value="">ทุกสาขา/ผู้ขาย</option>' + branches.map(b => `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`).join('');
-  sel.value = branches.includes(cur) ? cur : '';
-}
-function getDailyReportRecords(){
-  let from = document.getElementById('rptFrom').value || '';
-  let to = document.getElementById('rptTo').value || from;
-  if(from && to && from > to){ const x = from; from = to; to = x; }
-  const branch = document.getElementById('rptBranch')?.value || '';
-  const recs = _allHistoryRecords.filter(r => {
-    const d = String(r.savedAt || r.date || '').slice(0,10);
-    if(!d) return false;
-    if(from && d < from) return false;
-    if(to && d > to) return false;
-    if(branch && (r.branch||'').trim() !== branch) return false;
-    return true;
-  }).sort((a,b) => String(a.savedAt||'').localeCompare(String(b.savedAt||'')));
-  return { recs, from, to, branch };
-}
-// นับจำนวน + รวมยอดจัด แยกตาม key — คืนค่าเรียงจากมากไปน้อย
-function _rptGroup(recs, keyFn){
-  const m = new Map();
-  recs.forEach(r => {
-    const k = keyFn(r) || '(ไม่ระบุ)';
-    const g = m.get(k) || { key:k, count:0, fin:0 };
-    g.count++; g.fin += Number(r.finTotal)||0; m.set(k, g);
-  });
-  return [...m.values()].sort((a,b) => b.count - a.count || a.key.localeCompare(b.key,'th'));
-}
-function _rptGroupTable(title, rows, opts){
-  opts = opts || {};
-  if(!rows.length) return '';
-  const total = rows.reduce((s,g)=>s+g.count,0);
-  return `<div class="rpt-block"><div class="rpt-h">${title}</div>
-    <table class="rpt-table"><thead><tr><th>${opts.label||'รายการ'}</th><th class="n">เคส</th><th class="n">%</th>${opts.noFin?'':'<th class="n">ยอดจัดรวม</th>'}</tr></thead><tbody>
-    ${rows.map(g=>`<tr><td>${escapeHtml(g.key)}</td><td class="n"><b>${g.count}</b></td><td class="n">${Math.round(g.count*100/total)}%</td>${opts.noFin?'':`<td class="n">${fmt(g.fin)}</td>`}</tr>`).join('')}
-    </tbody></table></div>`;
-}
-function buildDailyReportHtml(){
-  const { recs, from, to, branch } = getDailyReportRecords();
-  const rangeText = (from === to) ? _rptThaiDate(from) : (_rptThaiDate(from) + ' – ' + _rptThaiDate(to));
-  const nowStr = new Date().toLocaleString('th-TH', { hour12:false, dateStyle:'medium', timeStyle:'short' });
-  const head = `<div class="rpt-title">📋 รายงานเคสประจำวัน — ${escapeHtml(rangeText)}</div>
-    <div class="rpt-sub">${branch ? 'สาขา/ผู้ขาย: <b>' + escapeHtml(branch) + '</b> · ' : ''}นับจากวันที่บันทึกเคส · พิมพ์โดย ${escapeHtml(userName||'-')} เมื่อ ${escapeHtml(nowStr)}</div>`;
-  if(!recs.length) return head + '<div class="rpt-empty">ไม่มีเคสที่บันทึกในช่วงวันที่นี้</div>';
-
-  const finSum = recs.reduce((s,r)=>s+(Number(r.finTotal)||0),0);
-  const days = _rptGroup(recs, r => String(r.savedAt||r.date||'').slice(0,10)).sort((a,b)=>a.key.localeCompare(b.key));
-  // ประเภทรถ: โชว์ครบทุกประเภทหลักเสมอ (แม้ 0 เคส) ให้รายงานแต่ละวันหน้าตาเหมือนกัน เทียบกันง่าย
-  const vtGroups = _rptGroup(recs, _rptVehicleType);
-  const vtMap = new Map(vtGroups.map(g => [g.key, g]));
-  const vtKeys = RPT_VEHICLE_TYPES.concat(vtGroups.map(g => g.key).filter(k => !RPT_VEHICLE_TYPES.includes(k)));
-  const vtRows = vtKeys.map(k => vtMap.get(k) || { key:k, count:0, fin:0 });
-  const kpi = `<div class="rpt-kpis">
-    <div class="rpt-kpi main"><div class="v">${recs.length}</div><div class="k">เคสทั้งหมด</div></div>
-    <div class="rpt-kpi main"><div class="v">${fmt(finSum)}</div><div class="k">ยอดจัดรวม (บาท)</div></div>
-  </div>
-  <div class="rpt-kpis">
-    ${vtRows.map(g=>`<div class="rpt-kpi vt${g.count?'':' zero'}"><div class="v">${g.count}</div><div class="k">${escapeHtml(g.key)}</div></div>`).join('')}
-  </div>`;
-
-  const groups = `<div class="rpt-grid">
-    ${days.length > 1 ? _rptGroupTable('📅 แยกตามวัน', days.map(g=>Object.assign({}, g, {key:_rptThaiDate(g.key)})), {label:'วันที่'}) : ''}
-    ${_rptGroupTable('🚜 แยกตามประเภทรถ', vtRows.filter(g => g.count > 0), {label:'ประเภทรถ'})}
-    ${_rptGroupTable('🏢 แยกตามสาขา / ผู้ปิดการขาย', _rptGroup(recs, r => (r.branch||'').trim()), {label:'สาขา/ผู้ขาย'})}
-    ${_rptGroupTable('📍 แยกตามจังหวัด', _rptGroup(recs, r => _rptAddrPart(r.custAddr,'จ.')), {label:'จังหวัด'})}
-    ${_rptGroupTable('📍 แยกตามอำเภอ', _rptGroup(recs, r => { const a=_rptAddrPart(r.custAddr,'อ.'), p=_rptAddrPart(r.custAddr,'จ.'); return a ? (a + (p ? ' (จ.'+p+')' : '')) : ''; }), {label:'อำเภอ', noFin:true})}
-    ${_rptGroupTable('🔧 แยกตามรุ่นรถ', _rptGroup(recs, r => [r.brand, r.model].filter(Boolean).join(' ')), {label:'รุ่น'})}
-    ${_rptGroupTable('📌 แยกตามสถานะเคสตอนนี้', _rptGroup(recs, r => r.caseStatus || 'รอดำเนินการ'), {label:'สถานะ', noFin:true})}
-  </div>`;
-
-  const multiDay = days.length > 1;
-  const list = `<div class="rpt-block"><div class="rpt-h">🧾 รายชื่อเคส (${recs.length})</div>
-    <div class="rpt-scroll"><table class="rpt-table rpt-list"><thead><tr>
-      <th class="n">#</th><th>${multiDay?'วัน-เวลา':'เวลา'}</th><th>ลูกค้า</th><th>เบอร์โทร</th><th>อำเภอ / จังหวัด</th>
-      <th>รุ่น</th><th>โปร</th><th class="n">ยอดจัด</th><th>สาขา/ผู้ขาย</th><th>สถานะ</th><th>เลขแอพ</th>
-    </tr></thead><tbody>
-    ${recs.map((r,i)=>{
-      const s = String(r.savedAt||'');
-      const when = multiDay ? (_rptThaiDate(s.slice(0,10)) + ' ' + s.slice(11,16)) : s.slice(11,16);
-      const a = _rptAddrPart(r.custAddr,'อ.'), p = _rptAddrPart(r.custAddr,'จ.');
-      return `<tr><td class="n">${i+1}</td><td class="nw">${escapeHtml(when)}</td><td>${escapeHtml(r.custName||'-')}</td>
-        <td class="nw">${escapeHtml(r.custPhone||'')}</td><td>${escapeHtml([a&&('อ.'+a), p&&('จ.'+p)].filter(Boolean).join(' ') || (r.custAddr||''))}</td>
-        <td>${escapeHtml([r.brand,r.model].filter(Boolean).join(' '))}</td><td>${escapeHtml(r.progName||'')}</td>
-        <td class="n">${fmt(Number(r.finTotal)||0)}</td><td>${escapeHtml(r.branch||'')}</td>
-        <td>${escapeHtml(r.caseStatus||'รอดำเนินการ')}</td><td>${escapeHtml(r.appNo||'')}</td></tr>`;
-    }).join('')}
-    </tbody><tfoot><tr><td colspan="7" style="text-align:right"><b>รวม</b></td><td class="n"><b>${fmt(finSum)}</b></td><td colspan="3"></td></tr></tfoot></table></div></div>`;
-  return head + kpi + groups + list;
-}
-// CSS ของรายงาน — ใช้ทั้งตอนแสดงบนจอ (ในหน้าต่าง) และตอนพิมพ์ (ใน iframe)
-const DAILY_REPORT_CSS = `
-.rpt-title{font-family:'Kanit',sans-serif;font-size:17px;font-weight:700;margin-bottom:2px}
-.rpt-sub{font-size:11.5px;color:#777;margin-bottom:10px}
-.rpt-empty{padding:30px 10px;text-align:center;color:#888}
-.rpt-kpis{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-.rpt-kpi{flex:1 1 90px;border:1.5px solid #e4ddd2;border-radius:10px;padding:8px 10px;background:#fff}
-.rpt-kpi .v{font-family:'Kanit',sans-serif;font-size:19px;font-weight:700;color:#b5322a}
-.rpt-kpi .k{font-size:11px;color:#777}
-.rpt-kpi.vt{flex:1 1 50px;min-width:0;padding:6px 7px}
-.rpt-kpi.vt .k{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rpt-kpi.vt .v{font-size:17px;color:#333}
-.rpt-kpi.zero .v,.rpt-kpi.zero .k{color:#bbb}
-.rpt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-bottom:12px}
-.rpt-block{margin-bottom:10px;break-inside:avoid}
-.rpt-h{font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;margin-bottom:4px}
-.rpt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.rpt-table{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
-.rpt-table th,.rpt-table td{border:1px solid #ddd;padding:4px 6px;text-align:left;vertical-align:top}
-.rpt-table th{background:#f3eee6;font-weight:700;white-space:nowrap}
-.rpt-table .n{text-align:right;white-space:nowrap}
-.rpt-table .nw{white-space:nowrap}
-.rpt-list{min-width:860px}
-.rpt-table tfoot td{background:#faf7f2}
-`;
-function renderDailyReport(){
-  if(!document.getElementById('rptScreenCss')){
-    const st = document.createElement('style'); st.id = 'rptScreenCss'; st.textContent = DAILY_REPORT_CSS; document.head.appendChild(st);
-  }
-  const out = document.getElementById('rptContent');
-  if(out) out.innerHTML = buildDailyReportHtml();
-}
-// พิมพ์ผ่าน iframe ซ่อน — ไม่ไปยุ่งกับ #printArea ของใบสรุปการขาย, หน้ากระดาษ A4 แนวนอนให้ตารางรายชื่อไม่ล้น
-function printDailyReport(){
-  const html = buildDailyReportHtml();
-  const old = document.getElementById('rptPrintFrame'); if(old) old.remove();
-  const ifr = document.createElement('iframe');
-  ifr.id = 'rptPrintFrame';
-  ifr.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
-  document.body.appendChild(ifr);
-  const doc = ifr.contentWindow.document;
-  doc.open();
-  doc.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>รายงานเคสประจำวัน</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
-    <style>@page{size:A4 landscape;margin:10mm}body{font-family:'Sarabun','Kanit',sans-serif;color:#000;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    ${DAILY_REPORT_CSS}.rpt-list{min-width:0}.rpt-scroll{overflow:visible}.rpt-table{font-size:10.5px}.rpt-grid{grid-template-columns:repeat(3,1fr)}
-    thead{display:table-header-group}tr{break-inside:avoid}</style></head><body>${html}</body></html>`);
-  doc.close();
-  const go = () => { try { ifr.contentWindow.focus(); ifr.contentWindow.print(); } catch(e){ alert('พิมพ์ไม่ได้: ' + e.message); } };
-  // รอฟอนต์โหลดก่อน (ถ้าโหลดไม่ได้ภายใน 1.5 วิ ก็พิมพ์เลย)
-  let done = false; const once = () => { if(!done){ done = true; go(); } };
-  try { ifr.contentWindow.document.fonts.ready.then(() => setTimeout(once, 150)); } catch(e){}
-  setTimeout(once, 1500);
 }
 function openGasConfig(){
   const box = document.getElementById('gasConfigBox');
@@ -6421,7 +6312,7 @@ function filterHistory(){
   let filtered = _allHistoryRecords.filter(r=>{
     const addr = (r.custAddr||'').toLowerCase();
     if(fQuick){
-      const haystack = [r.custName, r.custPhone, r.appNo, r.custAddr, r.brand, r.model, r.seg, r.progName, r.branch, r.leadSource]
+      const haystack = [r.custName, r.custPhone, r.custAddr, r.brand, r.model, r.seg, r.progName, r.branch, r.leadSource]
         .filter(Boolean).join(' ').toLowerCase();
       if(!haystack.includes(fQuick)) return false;
     }
@@ -6454,7 +6345,6 @@ function filterHistory(){
 
   const toggleBtn = document.getElementById('histFilterToggleBtn');
   if(toggleBtn) toggleBtn.classList.toggle('has-filter', hasActiveFilter);
-  updateHistMobileFilterBadge(filtered.length);
 
   renderHistoryCards(filtered);
 }
@@ -6611,7 +6501,7 @@ function historyCardHtml(r){
     <div class="history-card${stale ? ' stale' : ''}" id="hc_${r.id}" data-record-id="${r.id}">
       <div class="hc-top">
         <div class="hc-name">${r.custName || '(ไม่ระบุชื่อ)'}</div>
-        <div class="hc-date">${(r.savedAt||'').slice(0,16).replace('T',' ')}</div>
+        <div class="hc-date">${r.savedAt?.slice(0,16) || ''}</div>
       </div>
       <div class="hc-model">${r.brand} · ${r.model} · ${r.seg}</div>
       <div class="hc-nums">
@@ -6621,13 +6511,12 @@ function historyCardHtml(r){
         ${r.eqTotal ? ` &nbsp;·&nbsp; อุปกรณ์: <b>${fmt(Number(r.eqTotal)||0)}</b>` : ''}
       </div>
       ${r.custPhone ? `<div class="hc-nums" style="margin-top:2px">📞 ${r.custPhone} ${r.branch ? '· '+r.branch : ''}</div>` : ''}
-      ${r.appNo ? `<div class="hc-nums" style="margin-top:2px">📝 เลขแอพ: <b>${escapeHtml(r.appNo)}</b></div>` : ''}
       <div class="hc-statusrow">
         <span class="case-status-badge status-${statusSlug(r.caseStatus||'รอดำเนินการ')}">${escapeHtml(r.caseStatus||'รอดำเนินการ')}</span>
         ${stale ? `<span class="case-status-badge status-stale">⏰ ค้าง ${staleDays} วัน</span>` : ''}
         ${followupDue ? `<span class="case-status-badge status-stale" style="background:#FCF1D9;color:#8a6a1f">🔔 ถึงกำหนดนัด ${escapeHtml(r.nextFollowUp)}</span>` : ''}
         ${(!followupDue && followupDaysLeft!==null && followupDaysLeft>=0) ? `<span class="case-status-badge" style="background:#EEF3FA;color:#3F6FA8">📅 นัด ${escapeHtml(r.nextFollowUp)}</span>` : ''}
-        ${r.lastNoteAt ? `<span class="hc-lastnote-at">🕒 ${r.lastNoteAt.slice(0,16).replace('T',' ')}</span>` : ''}
+        ${r.lastNoteAt ? `<span class="hc-lastnote-at">🕒 ${r.lastNoteAt.slice(0,16)}</span>` : ''}
       </div>
       ${r.lastNote ? `<div class="hc-lastnote">💬 ${escapeHtml(r.lastNote)}</div>` : ''}
       <div class="hc-actions">
@@ -6793,92 +6682,16 @@ function renderTimelineEntries(updates){
 
 // เปลี่ยนสถานะเคส — แถบบันทึก "คุยอะไรกับลูกค้า" อยู่ติดกับ dropdown สถานะเสมอ (ไม่ต้องเปลี่ยนสถานะก่อนถึงจะพิมพ์/กดบันทึกได้)
 // กด "บันทึก" ครั้งเดียว = ส่งทั้งสถานะปัจจุบันใน dropdown (จะเปลี่ยนหรือไม่เปลี่ยนก็ได้) + หมายเหตุที่พิมพ์ไว้ไปพร้อมกัน
-// (20/10/2569) สถานะที่ต้องถามเลขแอพก่อนเปลี่ยน — ตอนยื่นเคสเข้าระบบยันม่าร์เสร็จ จะได้เลขแอพทันที
-const APPNO_PROMPT_STATUS = 'ส่งไฟแนนซ์แล้ว';
 function confirmCaseStatusChange(id){
-  const sel = document.getElementById('hdStatusSelect_'+id);
-  const status = sel ? sel.value : 'รอดำเนินการ';
-  const prev = sel ? (sel.getAttribute('data-prev') || '') : '';
-  // เปลี่ยนเป็น "ส่งไฟแนนซ์แล้ว" + เคสนี้ยังไม่มีเลขแอพ → ถามเลขแอพก่อน (กรอกทีหลังได้)
-  if(status === APPNO_PROMPT_STATUS && prev !== status && !getCurrentAppNo(id)){
-    openAppNoPrompt(id);
-    return;
-  }
-  doConfirmCaseStatusChange(id, null);
-}
-// ทำการเปลี่ยนสถานะจริง — appNo (ถ้ามี) จะถูกบันทึกต่อหลังจาก updateStatus ส่งเสร็จ (ไม่ยิงพร้อมกัน กันเขียนแถวเดียวกันชนกัน)
-function doConfirmCaseStatusChange(id, appNo){
   const sel = document.getElementById('hdStatusSelect_'+id);
   const status = sel ? sel.value : 'รอดำเนินการ';
   const noteEl = document.getElementById('hdStatusNoteInput_'+id);
   const note = (noteEl?.value || '').trim();
-  changeCaseStatus(id, status, note, appNo ? function(err){
-    if(!err) saveAppNo(id, appNo);
-    else {
-      // สถานะส่งไม่สำเร็จ — ใส่เลขไว้ในช่องให้ก่อน จะได้กดบันทึกเองได้โดยไม่ต้องพิมพ์ใหม่
-      const inp = document.getElementById('hdAppNo_'+id);
-      if(inp) inp.value = appNo;
-    }
-  } : null);
+  changeCaseStatus(id, status, note);
   if(noteEl) noteEl.value = ''; // เคลียร์ช่องพิมพ์ให้พร้อมจดรอบถัดไป แต่แถบยังอยู่เหมือนเดิม ไม่หายไปไหน
   if(sel) sel.setAttribute('data-prev', status);
 }
-// เลขแอพปัจจุบันของเคส (เช็คจากช่องในหน้ารายละเอียด → ค่าที่เพิ่งบันทึก → ข้อมูลในลิสต์)
-function getCurrentAppNo(id){
-  const inp = document.getElementById('hdAppNo_'+id);
-  if(inp && inp.value.trim()) return inp.value.trim();
-  const pinned = _pinnedCardFields[id];
-  if(pinned && pinned.appNo) return String(pinned.appNo).trim();
-  const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
-  return (rec && rec.appNo) ? String(rec.appNo).trim() : '';
-}
-// ===== ป๊อปอัปถามเลขแอพ =====
-let _appNoPromptId = null;
-function openAppNoPrompt(id){
-  _appNoPromptId = id;
-  const rec = _allHistoryRecords.find(r => String(r.id) === String(id)) || {};
-  document.getElementById('appNoPromptCust').textContent =
-    (rec.custName || '(ไม่ระบุชื่อ)') + ((rec.brand || rec.model) ? ' · ' + [rec.brand, rec.model].filter(Boolean).join(' ') : '');
-  const inp = document.getElementById('appNoPromptInput');
-  inp.value = '';
-  document.getElementById('appNoPromptMsg').textContent = '';
-  document.getElementById('appNoPromptBg').style.display = 'flex';
-  setTimeout(function(){ inp.focus(); }, 50);
-}
-function closeAppNoPrompt(){
-  document.getElementById('appNoPromptBg').style.display = 'none';
-  _appNoPromptId = null;
-}
-// ✕ ยกเลิก = ยังไม่เปลี่ยนสถานะ — คืน dropdown กลับเป็นสถานะเดิม
-function cancelAppNoPrompt(){
-  const id = _appNoPromptId;
-  const sel = id ? document.getElementById('hdStatusSelect_'+id) : null;
-  if(sel && sel.getAttribute('data-prev')) sel.value = sel.getAttribute('data-prev');
-  closeAppNoPrompt();
-}
-// ยังไม่ได้เลข / กรอกทีหลัง = เปลี่ยนสถานะไปก่อน ไม่บันทึกเลขแอพ
-function skipAppNoPrompt(){
-  const id = _appNoPromptId;
-  closeAppNoPrompt();
-  if(id) doConfirmCaseStatusChange(id, null);
-}
-function submitAppNoPrompt(){
-  const id = _appNoPromptId;
-  if(!id) return;
-  const msg = document.getElementById('appNoPromptMsg');
-  const appNo = (document.getElementById('appNoPromptInput').value || '').trim();
-  if(!appNo){
-    msg.textContent = 'กรุณากรอกเลขแอพ หรือกด "ยังไม่ได้เลข / กรอกทีหลัง"';
-    document.getElementById('appNoPromptInput').focus();
-    return;
-  }
-  // เตือนถ้าเลขนี้ไปอยู่กับเคสอื่นแล้ว (อาจพิมพ์ผิด/ก๊อปผิดเคส)
-  const dup = _allHistoryRecords.find(r => String(r.id) !== String(id) && r.appNo && String(r.appNo).trim() === appNo);
-  if(dup && !confirm('เลขแอพ "' + appNo + '" มีอยู่แล้วในเคสของ ' + (dup.custName || '(ไม่ระบุชื่อ)') + '\nยืนยันจะใช้เลขนี้กับเคสนี้ด้วยหรือไม่?')) return;
-  closeAppNoPrompt();
-  doConfirmCaseStatusChange(id, appNo);
-}
-function changeCaseStatus(id, status, note, onDone){
+function changeCaseStatus(id, status, note){
   const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
   // เก็บ "หมายเหตุดิบ" ที่พิมพ์เอง แยกจากข้อความสถานะ — ถ้าไม่ได้พิมพ์อะไรมา ให้ใช้ข้อความสถานะแทนไว้กันการ์ดว่างเปล่า
   const rawNote = (note||'').trim();
@@ -6909,7 +6722,6 @@ function changeCaseStatus(id, status, note, onDone){
     lastNote: cardNote, lastNoteAt: new Date().toISOString(),
     byName:userName, byRole:userRole}, (err)=>{
     if(err) alert('บันทึกสถานะไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
-    if(onDone) onDone(err);
   });
   const tlEl = document.getElementById('hdTimelineDynamic_'+id);
   if(tlEl){
@@ -6967,11 +6779,9 @@ function editProductAndPromo(){
   applyLeadSourceToForm(d.leadSource || '');
   custType = (d.custType === 'corporate') ? 'corporate' : 'individual';
   custTypeToggle.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.custtype===custType));
-  // เคสเก่าที่ยังไม่มีฟิลด์นี้ = ลูกค้าจ่ายเอง (เหมือนการคิดเดิม)
-  regFeePayer = d.regFeePayer || (d.regFee ? 'customer' : null);
-  regShopAmt = Number(d.regFeeShop) || 0;
-  { const el = document.getElementById('regShopAmtInput'); if(el) el.value = regShopAmt || ''; }
   setBrand((d.brand||'').toLowerCase().indexOf('solis') > -1 ? 'solis' : 'yanmar');
+  usedCarSel = (d.usedCar && d.usedCar.key) ? d.usedCar : null; // (2026-10-22) คงรถมือสองที่ผูกไว้เดิม
+  updateUsedCarStatus();
   window.scrollTo(0,0);
   alert('กำลังแก้ไขข้อมูลของ "' + (d.custName||'-') + '" — เลือกรุ่นรถ/โปรใหม่ได้เลยตามปกติ พอกด "บันทึก & พิมพ์ PDF" ท้ายสุด ระบบจะอัปเดตทับเคสเดิมให้อัตโนมัติ ไม่สร้างเคสใหม่ซ้ำ');
 }
@@ -7017,39 +6827,6 @@ function submitEditRecord(){
       refreshHistoryCardInList(id); // อัปเดตการ์ดฝั่งซ้ายให้ตรงกับข้อมูลใหม่ทันที (เดิมไม่มีบรรทัดนี้ ทำให้การ์ดยังโชว์ชื่อ/เบอร์เก่าอยู่)
     }
     viewHistoryDetail(id); // โหลดรายละเอียดใหม่ทั้งหมด (รวม Timeline ที่มี log การแก้ไขที่เพิ่งเพิ่มไว้ด้านบนนี้ด้วย)
-  });
-}
-
-// (1/10/2569) บันทึกเลขแอพ (เลขที่ใบสมัครไฟแนนซ์) ของเคส — ใช้ action editRecord เดิม (เหมือนแก้ข้อมูลลูกค้า)
-// valueOverride: ส่งเลขมาตรงๆ (จากป๊อปอัปตอนเปลี่ยนเป็น "ส่งไฟแนนซ์แล้ว") — ใช้ได้แม้ปิดหน้ารายละเอียดไปแล้ว
-function saveAppNo(id, valueOverride){
-  const input = document.getElementById('hdAppNo_'+id);
-  const msg = document.getElementById('hdAppNoMsg_'+id);
-  if(!input && valueOverride === undefined) return;
-  if(input && valueOverride !== undefined) input.value = valueOverride;
-  const appNo = (valueOverride !== undefined ? String(valueOverride) : (input.value || '')).trim();
-  const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
-  const oldAppNo = (rec && rec.appNo) ? String(rec.appNo) : '';
-  if(appNo === oldAppNo){ if(msg){ msg.style.color = 'var(--ink-soft)'; msg.textContent = 'ไม่มีการเปลี่ยนแปลง'; } return; }
-  if(msg){ msg.style.color = 'var(--ink-soft)'; msg.textContent = 'กำลังบันทึก...'; }
-  const changes = { appNo };
-  const logNote = oldAppNo ? ('แก้ไขเลขแอพ: "' + oldAppNo + '" → "' + (appNo || '(ลบ)') + '"') : ('บันทึกเลขแอพ: ' + appNo);
-  gasPostReadable('editRecord', {id, changes, byName:userName, byRole:userRole}, function(err, data){
-    if(err || !data || data.status !== 'ok'){
-      const errText = 'บันทึกไม่สำเร็จ: ' + ((data && data.message) || (err && err.message) || 'ไม่ทราบสาเหตุ');
-      if(msg){ msg.style.color = '#c0392b'; msg.textContent = errText; }
-      else alert('บันทึกเลขแอพ "' + appNo + '" ' + errText + '\n(สถานะเปลี่ยนแล้ว — เปิดเคสแล้วกรอกเลขแอพใหม่อีกครั้ง)');
-      return;
-    }
-    if(rec){
-      rec.appNo = appNo;
-      if(!Array.isArray(rec.updates)) rec.updates = [];
-      rec.updates.push({ts:new Date().toLocaleString('th-TH',{hour12:false}), byName:userName, byRole:userRole, type:'edit', note:logNote});
-    }
-    if(_editRecordSnapshot && String(_editRecordId) === String(id)) _editRecordSnapshot.appNo = appNo;
-    _pinnedCardFields[id] = Object.assign({}, _pinnedCardFields[id], { appNo });
-    refreshHistoryCardInList(id);
-    if(msg){ msg.style.color = '#1e7e34'; msg.textContent = '✓ บันทึกเลขแอพแล้ว'; }
   });
 }
 
@@ -7326,9 +7103,6 @@ function fetchAndPatchFullDetail(id){
       const eqBlock = document.getElementById('hdEqItems_'+id);
       if(eqBlock) eqBlock.innerHTML = full.eqItems.map(eq=>`<div class="hd-row"><span class="hd-label">อุปกรณ์ (${eq.finType||'R'})</span><span class="hd-val">${eq.name} — ${fmt(eq.price)}</span></div>`).join('');
     }
-    const appNoEl = document.getElementById('hdAppNo_'+id);
-    const effAppNo = (_pinnedCardFields[id] && _pinnedCardFields[id].appNo !== undefined) ? _pinnedCardFields[id].appNo : full.appNo;
-    if(appNoEl && document.activeElement !== appNoEl && !appNoEl.value && effAppNo) appNoEl.value = effAppNo;
     const mmEl = document.getElementById('hdMinorMode_'+id);
     if(mmEl && full.minorMode) mmEl.textContent = MINOR_LABELS[full.minorMode] || 'แบบปกติ';
 
@@ -7346,6 +7120,10 @@ function fetchAndPatchFullDetail(id){
     const tradeInWrap = document.getElementById('hdTradeIn_'+id);
     if(tradeInWrap && !tradeInWrap.innerHTML.trim()){
       tradeInWrap.innerHTML = renderTradeInSectionWrap(full);
+    }
+    const usedCarWrap = document.getElementById('hdUsedCar_'+id);
+    if(usedCarWrap && !usedCarWrap.innerHTML.trim()){
+      usedCarWrap.innerHTML = renderUsedCarSectionWrap(full);
     }
 
     // ใช้ hdTimelineDynamic_ (container ที่มีอยู่เสมอ) แทน hdTimelineLoading_ (ซึ่งเดิมมีเฉพาะรอบแรกที่เปิดดู)
@@ -7490,13 +7268,6 @@ function renderHistoryDetailHtml(id, d, rowNote){
           <div class="ssc-item"><div class="k">งวดใหญ่/ปี · ระยะเวลาผ่อน</div><div class="v accent">${fmt(d.bigPay||0)} บาท / ${d.finYears||'—'} ปี</div></div>
           <div class="ssc-item"><div class="k">วันที่ปิดการขาย</div><div class="v">${d.date || (d.savedAt?.slice(0,10)) || '—'}</div></div>
           <div class="ssc-item"><div class="k">สาขา/ผู้ปิดการขาย</div><div class="v">${d.branch||'—'}</div></div>
-          <div class="ssc-item full"><div class="k">เลขแอพ (เลขที่ใบสมัครไฟแนนซ์)</div>
-            <div style="display:flex;gap:6px;align-items:center;margin-top:2px">
-              <input type="text" id="hdAppNo_${id}" value="${escapeHtml(d.appNo||'')}" placeholder="กรอกเลขแอพ" oninput="document.getElementById('hdAppNoMsg_${id}').textContent=''" onkeydown="if(event.key==='Enter')saveAppNo('${id}')" style="flex:1;min-width:0;font-family:'Kanit',sans-serif;font-size:13px;font-weight:600;padding:5px 8px;border-radius:8px;border:1.5px solid var(--line)">
-              <button class="btn-reprint" style="white-space:nowrap;padding:5px 12px" onclick="saveAppNo('${id}')">บันทึก</button>
-            </div>
-            <div id="hdAppNoMsg_${id}" style="font-size:10.5px;margin-top:2px"></div>
-          </div>
           <div class="ssc-item full"><div class="k">หมายเหตุล่าสุด</div><div class="v" id="hdLastNote_${id}">${lastNoteHtml(d.lastNote, d.lastNoteAt)}</div></div>
           <div class="ssc-item"><div class="k">นัดติดตามครั้งถัดไป</div><div class="v"${isFollowupDue(d)?' style="color:#c0392b;font-weight:700"':''}>${d.nextFollowUp ? (d.nextFollowUp + (isFollowupDue(d) ? ' ⚠️ ถึงกำหนดแล้ว' : '')) : '—'}</div></div>
         </div>
@@ -7510,6 +7281,8 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div id="hdFinInfo_${id}">${renderFinInfoSectionWrap(id, d)}</div>
 
       <div id="hdTradeIn_${id}">${renderTradeInSectionWrap(d)}</div>
+
+      <div id="hdUsedCar_${id}">${renderUsedCarSectionWrap(d)}</div>
 
       <div class="hd-section">เอกสารประกอบ</div>
       <button class="btn-reprint" style="width:100%" onclick="openDocsModal('${id}', 'buyer')">📎 แนบ/ดูเอกสารประกอบ — ผู้ซื้อ</button>
@@ -7541,7 +7314,6 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div class="hd-row"><span class="hd-label">ดาวน์รวม</span><span class="hd-val">${fmt(d.down||0)}</span></div>
       <div class="hd-row"><span class="hd-label">โปรที่ใช้</span><span class="hd-val" style="color:var(--accent)">${d.progName||'—'}</span></div>
       ${d.regFee ? `<div class="hd-row"><span class="hd-label">ค่าจดทะเบียน+พรบ (${d.custType==='corporate'?'นิติบุคคล':'บุคคลธรรมดา'})</span><span class="hd-val">${fmt(d.regFee)}</span></div>` : ''}
-      ${d.regFeePayer ? `<div class="hd-row"><span class="hd-label">ผู้ออกค่าจดทะเบียน+พรบ</span><span class="hd-val"${d.regFeeShop>0?' style="color:#1e7e34"':''}>${regPayerLabel(d.regFeePayer)}${d.regFeeShop>0 ? ' ' + fmt(d.regFeeShop) + ' บาท' : ''}</span></div>` : ''}
       <div class="hd-row"><span class="hd-label">ลูกค้าจ่ายจริง (วันรับรถ)</span><span class="hd-val" style="color:var(--accent)">${fmt(d.custOut||0)}</span></div>
       <div class="hd-row"><span class="hd-label">ช่วยดาวน์รวม</span><span class="hd-val">${fmt(d.supportTotal!=null ? d.supportTotal : ((d.support||0)+(d.rst||0)))}</span></div>
       <div class="hd-row"><span class="hd-label">ค่างวดใหญ่/ปี</span><span class="hd-val" style="color:var(--accent);font-size:15px">${fmt(d.bigPay||0)} บาท</span></div>
@@ -9055,6 +8827,16 @@ loadHistory();
   </div>
 </div>
 
+<div class="preview-modal-bg" id="usedCarModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span id="usedCarModalTitle">🚜 เลือกรถมือสองจากสต็อก</span>
+    <button onclick="closeUsedCarModal()">✕ ปิด</button>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner" id="usedCarBody"></div>
+  </div>
+</div>
+
 <div class="preview-modal-bg" id="docsModalBg" style="display:none">
   <div class="preview-modal-header">
     <span id="docsModalTitle">📎 แนบเอกสารประกอบ</span>
@@ -9150,23 +8932,6 @@ loadHistory();
       </div>
       <button class="btn-save" style="width:100%;margin-top:10px" onclick="confirmBrightnessAdjust()">✓ ใช้ค่านี้ & อัปโหลด</button>
     </div>
-  </div>
-</div>
-
-<!-- (20/10/2569) ป๊อปอัปถามเลขแอพ ตอนเปลี่ยนสถานะเป็น "ส่งไฟแนนซ์แล้ว" -->
-<div id="appNoPromptBg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:700;align-items:center;justify-content:center;padding:16px;box-sizing:border-box">
-  <div style="background:#fff;border-radius:14px;width:100%;max-width:400px;padding:18px;box-sizing:border-box;box-shadow:0 6px 24px rgba(0,0,0,.25);font-family:'Kanit',sans-serif">
-    <div style="font-size:16px;font-weight:700;margin-bottom:4px">📝 กรอกเลขแอพจากยันม่าร์</div>
-    <div style="font-size:12px;color:var(--ink-soft);margin-bottom:2px">เปลี่ยนสถานะเป็น "ส่งไฟแนนซ์แล้ว"</div>
-    <div id="appNoPromptCust" style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px"></div>
-    <input type="text" id="appNoPromptInput" placeholder="เลขแอพ (เลขที่ใบสมัครไฟแนนซ์)" autocomplete="off"
-      oninput="document.getElementById('appNoPromptMsg').textContent=''"
-      onkeydown="if(event.key==='Enter')submitAppNoPrompt();else if(event.key==='Escape')cancelAppNoPrompt()"
-      style="width:100%;box-sizing:border-box;font-family:'Kanit',sans-serif;font-size:16px;font-weight:600;padding:9px 10px;border-radius:9px;border:1.5px solid var(--accent)">
-    <div id="appNoPromptMsg" style="font-size:11.5px;color:#c0392b;margin-top:4px;min-height:14px"></div>
-    <button class="btn-save" style="width:100%;margin-top:6px" onclick="submitAppNoPrompt()">✓ บันทึกเลขแอพ + เปลี่ยนสถานะ</button>
-    <button class="btn-reprint" style="width:100%;margin-top:6px" onclick="skipAppNoPrompt()">ยังไม่ได้เลข / กรอกทีหลัง</button>
-    <button onclick="cancelAppNoPrompt()" style="width:100%;margin-top:6px;font-family:'Kanit',sans-serif;font-size:12.5px;background:none;border:none;color:#888;cursor:pointer;padding:6px">✕ ยกเลิก (ยังไม่เปลี่ยนสถานะ)</button>
   </div>
 </div>
 
@@ -9288,34 +9053,6 @@ loadHistory();
   </div>
 </div>
 
-<!-- (22/10/2569) รายงานเคสรายวัน -->
-<div class="preview-modal-bg" id="dailyReportModalBg" style="display:none">
-  <div class="preview-modal-header">
-    <span>🗓️ รายงานเคสรายวัน</span>
-    <button onclick="closeDailyReportModal()">✕ ปิด</button>
-  </div>
-  <div class="rpt-controls">
-    <div class="rpt-quick">
-      <button type="button" onclick="setReportRange('today')">วันนี้</button>
-      <button type="button" onclick="setReportRange('yesterday')">เมื่อวาน</button>
-      <button type="button" onclick="setReportRange('7d')">7 วันล่าสุด</button>
-      <button type="button" onclick="setReportRange('month')">เดือนนี้</button>
-    </div>
-    <div class="rpt-dates">
-      <input type="date" id="rptFrom" onchange="renderDailyReport()" title="ตั้งแต่วันที่">
-      <span>ถึง</span>
-      <input type="date" id="rptTo" onchange="renderDailyReport()" title="ถึงวันที่">
-    </div>
-    <div class="rpt-dates">
-      <select id="rptBranch" onchange="renderDailyReport()"><option value="">ทุกสาขา/ผู้ขาย</option></select>
-      <button type="button" class="rpt-print-btn" onclick="printDailyReport()">🖨 พิมพ์ / PDF</button>
-    </div>
-  </div>
-  <div class="modal-form-scroll">
-    <div class="modal-form-inner rpt-wrap" id="rptContent"></div>
-  </div>
-</div>
-
 <div class="preview-modal-bg" id="dashboardModalBg" style="display:none">
   <div class="preview-modal-header">
     <span>📊 ภาพรวมไปป์ไลน์</span>
@@ -9333,6 +9070,40 @@ loadHistory();
      document.getElementById('printArea') คืนค่า null แล้ว .innerHTML=... throw error ก่อนถึง window.print() -->
 <div id="printArea"></div>
 
+<!-- (2026-10-22) รถมือสองจากสต็อก: ลิงก์ /exec ของแอป "RST รูปรถและทรัพย์สิน มือสอง" (Apps Script r16 ขึ้นไป)
+     + ดักจังหวะล็อกอิน Promo Finder เพื่อเชื่อมบัญชีแอปรถมือสองให้อัตโนมัติด้วย user/pass ชุดเดียวกัน
+     (รหัสผ่านไม่ถูกเก็บไว้ที่ไหน ใช้ส่งต่อครั้งเดียวแล้วเก็บแค่ token อายุ 12 ชม.) ต้องวางก่อน auth.js เสมอ -->
+<script>
+  window.RST_USED_CAR_CONFIG = {
+    apiUrl: 'https://script.google.com/macros/s/AKfycbyAQ8R1vdY6-OmmHpIeC3IRH4ZV6x-Wp9jIKyBjk5N5gTz9p__rpoZvuYSepwNpaLTq1Q/exec'
+  };
+  (function(){
+    var origFetch = window.fetch;
+    if(!origFetch) return;
+    window.fetch = function(input, init){
+      var p = origFetch.apply(this, arguments);
+      try{
+        var url = typeof input === 'string' ? input : (input && input.url) || '';
+        var authUrl = (window.RST_AUTH_CONFIG && window.RST_AUTH_CONFIG.apiUrl) || '';
+        if(authUrl && url.indexOf(authUrl.split('?')[0]) === 0){
+          var j = null, body = init && typeof init.body === 'string' ? init.body : '';
+          if(body){ try{ j = JSON.parse(body); }catch(e){ try{ j = Object.fromEntries(new URLSearchParams(body)); }catch(e2){} } }
+          if(!j || !j.action){ try{ j = Object.fromEntries(new URL(url).searchParams); }catch(e3){} }
+          if(j && String(j.action || '').toLowerCase() === 'login'){
+            var u = j.username || j.user || j.email, pw = j.password || j.pass;
+            if(u && pw){
+              p.then(function(r){ return r.clone().json(); }).then(function(res){
+                var bad = !res || res.success === false || res.ok === false || res.error || String(res.status||'').toLowerCase() === 'error';
+                if(!bad && typeof ucSilentLogin === 'function') ucSilentLogin(String(u).trim(), String(pw));
+              }).catch(function(){});
+            }
+          }
+        }
+      }catch(e){}
+      return p;
+    };
+  })();
+</script>
 <!-- (2026-09-20) ระบบ Login จริง — เชื่อมกับ backend Apps Script "crm_sheet_bigquery" ตัวเดียวกับ
      ที่แอป CRM-TRACKER Pro ใช้อยู่ เพื่อให้พนักงานใช้ user/password/role ชุดเดียวกันทั้งสองแอป
      (ดูรายละเอียดที่มาของ URL นี้และการตัดสินใจทั้งหมดใน claude/auth-implementation-notes.md) -->
