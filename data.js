@@ -88,12 +88,13 @@
 // อัปเดต 12/10/2569 13:47:13 — สร้างอัตโนมัติจากไฟล์ Excel "Promotion_Template_Solis_130769.xlsx" ผ่านปุ่ม ☁️ บนเว็บ โดย admin (แทนที่ยี่ห้อ: solis)
 // อัปเดต 12/10/2569 14:10:32 — สร้างอัตโนมัติจากไฟล์ Excel "Promotion_Template_Yanmar_130769_v3.xlsx" ผ่านปุ่ม ☁️ บนเว็บ โดย admin (แทนที่ยี่ห้อ: yanmar)
 // อัปเดต 22/10/2569 15:39:27 — สร้างอัตโนมัติจากไฟล์ Excel "Promotion_Template_Combine_Oct69.xlsx" ผ่านปุ่ม ☁️ บนเว็บ โดย admin (แทนที่ยี่ห้อ: combine)
+// อัปเดต 22/10/2569 15:48:30 — สร้างอัตโนมัติจากไฟล์ Excel "Promotion_Template_Yanmar_130769_v4.xlsx" ผ่านปุ่ม ☁️ บนเว็บ โดย admin (แทนที่ยี่ห้อ: yanmar)
 const DATA = {
   "yanmar": {
     "data_driven": true,
     "source": {
-      "file": "Promotion_Template_Yanmar_130769_v3.xlsx",
-      "uploaded_at": "2026-10-12T07:10:31.111Z",
+      "file": "Promotion_Template_Yanmar_130769_v4.xlsx",
+      "uploaded_at": "2026-10-22T08:48:30.395Z",
       "by": "admin"
     },
     "models": [
@@ -885,8 +886,8 @@ const DATA = {
             "ysp": 44500,
             "ysp_topup": 0,
             "fire": 0,
-            "customer_out": 9000,
-            "rst": 60000,
+            "customer_out": 13000,
+            "rst": 56000,
             "total": 438000,
             "interest": 0.0895,
             "years": 10,
@@ -902,8 +903,8 @@ const DATA = {
             "ysp": 44500,
             "ysp_topup": 0,
             "fire": 0,
-            "customer_out": 9000,
-            "rst": 60000,
+            "customer_out": 13000,
+            "rst": 56000,
             "total": 438000,
             "interest": 0.0895,
             "years": 10,
@@ -936,8 +937,8 @@ const DATA = {
             "ysp": 27000,
             "ysp_topup": 0,
             "fire": 0,
-            "customer_out": 15000,
-            "rst": 77000,
+            "customer_out": 20000,
+            "rst": 72000,
             "total": 456000,
             "interest": 0.0895,
             "years": 10,
