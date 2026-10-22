@@ -1026,6 +1026,50 @@ body.printing #printArea{
 .uc-photos img{ width:100%; aspect-ratio:1; object-fit:cover; border-radius:6px; cursor:pointer; }
 .uc-foot{ font-size:11.5px; color:var(--ink-soft); margin:6px 0; }
 .uc-clear{ width:100%; margin-top:12px; background:none; border:none; color:#b3261e; font-size:12.5px; cursor:pointer; text-decoration:underline; font-family:'Sarabun',sans-serif; }
+/* (2026-10-22) หน้าขายรถมือสอง */
+.sale-mode-toggle{ display:flex; gap:6px; margin:8px 0 6px; }
+.sale-mode-toggle button{ flex:1; font-family:'Kanit',sans-serif; font-size:13.5px; font-weight:700; padding:8px 6px; border-radius:10px; border:1.5px solid var(--line); background:#fff; color:var(--ink-soft); cursor:pointer; }
+.sale-mode-toggle button.active{ background:var(--ink); border-color:var(--ink); color:#fff; }
+.app:not(.used-mode) .used-only{ display:none !important; }
+.app.used-mode .new-only{ display:none !important; }
+.app.used-mode #tractorFinRow, .app.used-mode #minorModeSection, .app.used-mode #eqScrollBtn{ display:none !important; }
+.us-label{ display:block; font-size:11.5px; color:var(--ink-soft); font-weight:600; margin:8px 0 4px; }
+.us-input{ width:100%; box-sizing:border-box; padding:9px 10px; border-radius:9px; border:1.5px solid var(--line); font-family:'Kanit',sans-serif; font-size:16px; font-weight:600; background:#fff; color:var(--ink); }
+.us-chips{ display:flex; gap:5px; flex-wrap:wrap; }
+.us-chip{ font-family:'Kanit',sans-serif; font-size:13px; font-weight:600; padding:6px 11px; border-radius:8px; border:1.5px solid var(--line); background:#fff; color:var(--ink-soft); cursor:pointer; }
+.us-chip.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.us-chip small{ font-weight:400; opacity:.85; }
+.us-radio{ display:flex; align-items:center; gap:8px; font-size:12.5px; cursor:pointer; padding:6px 9px; border:1.5px solid var(--line); border-radius:8px; background:#fff; margin-bottom:4px; }
+.us-mini{ display:flex; gap:10px; align-items:center; border:1.5px solid var(--line); border-radius:10px; padding:8px; background:#fff; margin-bottom:6px; }
+.us-mini img{ width:64px; height:48px; object-fit:cover; border-radius:6px; background:#f1ece3; flex-shrink:0; }
+.us-mini .t{ font-family:'Kanit',sans-serif; font-weight:700; font-size:14px; }
+.us-mini .s{ font-size:11px; color:var(--ink-soft); line-height:1.4; }
+.us-support{ display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 10px; border-radius:9px; background:var(--gold-bg); color:#8a6500; font-size:12.5px; margin-top:8px; }
+.us-support b{ font-family:'Kanit',sans-serif; font-size:15px; white-space:nowrap; }
+.us-res{ border:1.5px solid var(--line); border-radius:12px; background:#fff; padding:12px; margin-bottom:10px; }
+.us-res h3{ margin:0 0 2px; font-family:'Kanit',sans-serif; font-size:17px; }
+.us-res .row{ display:flex; justify-content:space-between; gap:8px; font-size:13px; padding:4px 0; border-bottom:1px dashed #eee; }
+.us-res .row b{ font-family:'Kanit',sans-serif; text-align:right; }
+.us-res .big{ margin-top:10px; padding:10px; border-radius:10px; background:#fdf8f0; text-align:center; }
+.us-res .big .v{ font-family:'Kanit',sans-serif; font-size:24px; font-weight:800; color:var(--accent); }
+.us-res .big .k{ font-size:12px; color:var(--ink-soft); }
+.us-res .note{ font-size:11.5px; color:var(--ink-soft); margin-top:6px; line-height:1.5; }
+.us-warn{ padding:10px 12px; border-radius:10px; background:#fdecea; color:#b3261e; font-size:13px; margin-bottom:10px; line-height:1.5; }
+.us-eq-sub{ font-family:'Kanit',sans-serif; font-size:12.5px; font-weight:700; margin:10px 0 4px; color:var(--ink); }
+.us-eq-sub span{ font-weight:400; font-size:11px; color:var(--ink-soft); }
+.us-eq-model{ flex:1; min-width:180px; padding:6px 8px; border-radius:8px; border:1.5px solid var(--line); font-family:'Sarabun',sans-serif; font-size:13px; background:#fff; }
+.us-fr{ font-family:'Kanit',sans-serif; font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px; border:1.5px solid #ccc; background:#fff; color:#999; cursor:pointer; }
+.us-fr.f{ border-color:var(--accent); background:var(--accent); color:#fff; }
+.us-fr.r{ border-color:#1e7e34; background:#1e7e34; color:#fff; }
+.us-eq-note{ font-size:12.5px; line-height:1.6; padding:8px 11px; border-radius:9px; background:#eef4fb; color:#2c5282; margin:4px 0 8px; }
+.us-eq-note b{ font-weight:700; }
+.us-cu-row{ display:flex; gap:5px; align-items:center; margin-bottom:5px; }
+.us-cu-name{ flex:1; min-width:0; padding:7px 8px; border-radius:8px; border:1.5px solid var(--line); font-family:'Sarabun',sans-serif; font-size:13px; }
+.us-cu-price{ width:96px; padding:7px 8px; border-radius:8px; border:1.5px solid var(--line); font-family:'Kanit',sans-serif; font-size:13px; text-align:right; }
+.us-cu-del{ border:none; background:none; color:#b3261e; font-size:15px; cursor:pointer; padding:2px 4px; }
+.us-cu-add{ width:100%; padding:8px; border-radius:9px; border:1.5px dashed #cbb98f; background:#fdf8f0; color:#8a6500; font-family:'Kanit',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer; margin-top:2px; }
+.us-empty{ padding:18px 12px; border-radius:12px; border:1.5px dashed #cbb98f; background:#fdf8f0; color:#8a6500; text-align:center; font-size:13.5px; margin-bottom:10px; }
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1044,19 +1088,29 @@ body.printing #printArea{
     </div>
   </div>
   <div class="sub" id="topbarSub">เลือกรุ่นรถ → เลือกกลุ่มลูกค้า → ดูโปรที่สนับสนุนดีที่สุด</div>
-  <div class="brand-toggle">
+  <!-- (2026-10-22) แยกหน้า รถใหม่ (มีโปร) / รถมือสอง (ไม่มีโปร: เซลล์ใส่ดาวน์ + เลือกรูปแบบผ่อนเอง) -->
+  <div class="sale-mode-toggle" id="saleModeToggle">
+    <button type="button" data-mode="new" class="active" onclick="setSaleMode('new')">🆕 รถใหม่</button>
+    <button type="button" data-mode="used" onclick="setSaleMode('used')">🚜 รถมือสอง</button>
+  </div>
+  <div id="usedTopPanel" class="used-only">
+    <button type="button" class="finance-launch-btn" style="margin:6px 0 8px" onclick="openUsedCarModal()">🔎 เลือกรถมือสองจากสต็อก <span class="fl-status" id="usedCarStatus"></span></button>
+    <div id="usedCarMini"></div>
+    <div id="usedForm"></div>
+  </div>
+  <div class="brand-toggle new-only">
     <button class="brand-btn yanmar active" data-brand="yanmar">Yanmar</button>
     <button class="brand-btn solis" data-brand="solis">Solis</button>
     <button class="brand-btn combine" data-brand="combine">รถเกี่ยว</button>
     <button class="brand-btn excavator" data-brand="excavator">รถขุด</button>
     <button class="brand-btn drone" data-brand="drone">โดรน</button>
   </div>
-  <div class="select-row">
+  <div class="select-row new-only">
     <label for="modelSelect">เลือกรุ่นรถ</label>
     <select id="modelSelect"></select>
   </div>
 
-  <div class="select-row" id="custTypeRow">
+  <div class="select-row new-only" id="custTypeRow">
     <label>ประเภทลูกค้า</label>
     <div class="segment-toggle" id="custTypeToggle">
       <button data-custtype="individual" class="seg-btn active">บุคคลธรรมดา</button>
@@ -1064,11 +1118,11 @@ body.printing #printArea{
     </div>
   </div>
 
-  <div class="select-row" id="mainGroupRow" style="display:none">
+  <div class="select-row new-only" id="mainGroupRow" style="display:none">
     <label>ประเภทลูกค้า</label>
     <div class="segment-toggle" id="mainGroupToggle"></div>
   </div>
-  <div class="select-row">
+  <div class="select-row new-only">
     <label id="segmentLabel">กลุ่มลูกค้า</label>
     <div class="segment-toggle" id="segmentToggle">
       <button data-seg="ทั่วไป" class="seg-btn active">ทั่วไป</button>
@@ -1076,15 +1130,15 @@ body.printing #printArea{
       <button data-seg="RT" class="seg-btn">RT</button>
     </div>
   </div>
-  <div id="criteriaInfo"></div>
-  <div id="landRefInfo"></div>
-  <div class="toggles" id="togglesContainer"></div>
+  <div id="criteriaInfo" class="new-only"></div>
+  <div id="landRefInfo" class="new-only"></div>
+  <div class="toggles new-only" id="togglesContainer"></div>
 
-  <div class="price-strip">
+  <div class="price-strip new-only">
     <span class="label">ราคาขาย (Price)</span>
     <span class="value" id="priceValue">-</span>
   </div>
-  <div class="summary-banner">
+  <div class="summary-banner new-only">
     <div class="summary-box">
       <div class="k">ช่วยดาวน์ (% ของราคารถ)</div>
       <div class="v" id="summarySupport">-</div>
@@ -1126,16 +1180,17 @@ body.printing #printArea{
     </div>
     <div id="minorModeDetail" style="font-size:10.5px;color:var(--accent);margin-top:4px;padding:4px 8px;background:#fdf8f5;border-radius:6px;display:none"></div>
   </div>
-  <div class="legend">
+  <div class="legend new-only">
     <span><i style="background:var(--accent)"></i>ลูกค้าจ่าย</span>
     <span><i style="background:var(--support)"></i>ส่วนสนับสนุน (YCT/YSP/ไฟไหม้)</span>
     <span><i style="background:var(--rst)"></i>RST ออก</span>
   </div>
   <button type="button" class="finance-launch-btn" style="margin-bottom:10px" onclick="openTradeInModal()">🔄 ตีเทิร์นรถเก่า <span class="fl-status" id="tradeInStatus"></span></button>
-  <button type="button" class="finance-launch-btn" style="margin-bottom:10px" onclick="openUsedCarModal()">🚜 ขายรถมือสองจากสต็อก <span class="fl-status" id="usedCarStatus"></span></button>
-  <div id="results"></div>
-  <div id="eqAnchor" style="scroll-margin-top:8px"></div>
-  <div id="equipmentSection"></div>
+  <div id="usedResult" class="used-only"></div>
+  <div id="usedEqSection" class="used-only"></div>
+  <div id="results" class="new-only"></div>
+  <div id="eqAnchor" class="new-only" style="scroll-margin-top:8px"></div>
+  <div id="equipmentSection" class="new-only"></div>
   <button id="showExportBtn" class="btn-export" onclick="goToExport()">📋 ออกใบสรุป ▶</button>
   <div class="export-panel" id="exportPanelDesktop">
     <h2>📋 ส่งออกใบสรุป</h2>
@@ -1216,7 +1271,7 @@ body.printing #printArea{
       <button class="btn-save" onclick="saveAndPrint()">💾 บันทึก & พิมพ์ PDF</button>
     </div>
   </div>
-  <div class="footer-note">
+  <div class="footer-note new-only">
     <b>ข้อมูลจากไฟล์โปรโมชั่น Yanmar อัปเดต / Solis ณ 15 ต.ค. 68</b> — YF,SW = ลูกค้าที่มีรถแทรกเตอร์ Yanmar อยู่แล้ว, RT = ลูกค้าชั้นดี Yanmar (เกณฑ์นี้ใช้เหมือนกันทุกโปรของ Yanmar) ส่วนเงื่อนไข "พื้นที่ทำกิน" และ "ลูกค้าชั้นดีธกส/ผู้นำชุมชน" เป็นคำถามเพิ่มที่ปลดล็อกโปรพิเศษ — แท่งสีคือสัดส่วนของเงินดาวน์รวมในแต่ละโปร
   </div>
   <button id="eqScrollBtn" class="eq-scroll-btn" onclick="scrollToEq()" style="display:none">🔧 อุปกรณ์ ▼</button>
@@ -2748,6 +2803,7 @@ function goToResults(){
   const brand = currentBrand === 'yanmar' ? 'Yanmar' : (currentBrand === 'solis' ? 'Solis' : (currentBrand === 'combine' ? 'รถเกี่ยว' : 'รถขุด'));
   const sum = document.getElementById('backSummary');
   if(sum) sum.textContent = brand + ' · ' + model + ' · ' + seg;
+  if(saleMode === 'used' && sum) sum.textContent = 'รถมือสอง · ' + (usedCarSel ? ucCarTitle(usedCarSel) : 'ยังไม่เลือกรถ');
   refreshExportSummary();
   window.scrollTo(0,0);
 }
@@ -3014,6 +3070,7 @@ function setEqPayment(p){
 
 // ===== Export System =====
 function goToExport(){
+  if(saleMode === 'used'){ const uErr = usedValidate(); if(uErr){ alert(uErr); return; } } // (2026-10-22)
   const app = document.querySelector('.app');
   app.classList.remove('step2');
   app.classList.add('step3');
@@ -3223,7 +3280,7 @@ function collectExportData(){
     editSummaryNote = parts.length ? ('แก้ไขรุ่นรถ/โปรใหม่ทั้งใบ: ' + parts.join(' | ')) : 'แก้ไขรุ่นรถ/โปรใหม่ทั้งใบ (คีย์ซ้ำด้วยข้อมูลเดิม)';
   }
 
-  return {
+  const _rec = {
     custName, custAddr, custPhone, branch, model, brand, seg, progName,
     custCurrentAddr, gtorName, gtorAddr, gtorPhone, refs,
     finInfo,
@@ -3250,6 +3307,7 @@ function collectExportData(){
     totalDown: down, date: new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}),
     crmCustRelType, leadSource,
   };
+  return (saleMode === 'used') ? Object.assign(_rec, usedRecordFields()) : _rec; // (2026-10-22) หน้ารถมือสอง
 }
 
 
@@ -3326,7 +3384,8 @@ function refreshExportSummary(){
     <div class="es-row"><span class="es-label">ราคารถ</span><span class="es-val">${fmt(d.price)} บาท</span></div>
     <div class="es-row"><span class="es-label">เงินดาวน์รวม</span><span class="es-val">${fmt(d.down)} บาท</span></div>
     <div class="es-row"><span class="es-label">ยอดจัด (รถ)</span><span class="es-val">${fmt(d.finTotal)} บาท</span></div>
-    <div class="es-row"><span class="es-label">งวดใหญ่ (รถ)</span><span class="es-val">${fmt(d.bigPay)} บาท/${d.finYears} ปี</span></div>
+    ${(d.saleType==='used' && d.usedCalc && d.usedCalc.discount) ? `<div class="es-row"><span class="es-label">ส่วนลด</span><span class="es-val">${fmt(d.usedCalc.discount)} บาท (ราคาตั้ง ${fmt(d.usedCalc.listPrice)})</span></div>` : ''}
+    ${(d.saleType==='used' && d.tractorPayment==='cash') ? `<div class="es-row"><span class="es-label">การชำระ</span><span class="es-val">💵 เงินสด ${fmt(d.price + (d.eqTotalPrice||0))} บาท</span></div>` : (d.saleType==='used' && d.tractorPayment==='monthly') ? `<div class="es-row"><span class="es-label">ค่างวดรายเดือน</span><span class="es-val">${fmt(d.perMonth)} บาท × ${d.finYears*12} งวด</span></div>` : `<div class="es-row"><span class="es-label">งวดใหญ่ (รถ)</span><span class="es-val">${fmt(d.bigPay)} บาท/${d.finYears} ปี</span></div>`}
     ${d.eqItems.length>0?`<div class="es-row"><span class="es-label">ยอดจัด (อุปกรณ์)</span><span class="es-val">${fmt(d.eqFinTotal)} บาท</span></div>`:''}
     ${d.eqAnnual>0?`<div class="es-row"><span class="es-label">งวดอุปกรณ์</span><span class="es-val">${fmt(d.eqAnnual)} บาท/${d.eqFinYears} ปี</span></div>`:''}
   </div>`;
@@ -3351,6 +3410,7 @@ function saveAndPrint(){
   if(_isSavingRecord){
     return; // มีการบันทึกค้างอยู่แล้ว ไม่ต้องทำซ้ำ
   }
+  if(saleMode === 'used'){ const uErr = usedValidate(); if(uErr){ alert(uErr); return; } } // (2026-10-22)
   const d = collectExportData();
   const phoneDigits = (d.custPhone||'').replace(/\D/g,'');
   if(phoneDigits.length !== 10){
@@ -3569,7 +3629,7 @@ function buildPrintHtml(d){
         </tr></thead>
         <tbody>
           <tr>
-            <td style="padding:1px 4px;border:0.5px solid #bbb">รถแทรกเตอร์</td>
+            <td style="padding:1px 4px;border:0.5px solid #bbb">${d.saleType==='used' ? ((d.usedCar&&d.usedCar.type)||'รถ') + ' (มือสอง)' : 'รถแทรกเตอร์'}</td>
             <td style="padding:1px 4px;border:0.5px solid #bbb">${d.model}</td>
             <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(d.price)}</td>
           </tr>
@@ -3588,7 +3648,7 @@ function buildPrintHtml(d){
       <table style="width:100%;border-collapse:collapse;margin-bottom:3px;font-size:7.5pt">
         <tr>
           <td style="width:50%;vertical-align:top;padding-right:6px;border-right:1.5px solid #e8d8c0">
-            <div style="font-weight:bold;color:#c9813a;background:#fff8f0;padding:2px 4px;border-radius:4px;margin-bottom:3px;font-size:8.5pt">🚜 รถแทรกเตอร์</div>
+            <div style="font-weight:bold;color:#c9813a;background:#fff8f0;padding:2px 4px;border-radius:4px;margin-bottom:3px;font-size:8.5pt">🚜 ${d.saleType==='used' ? ((d.usedCar&&d.usedCar.type)||'รถ') + ' มือสอง' : 'รถแทรกเตอร์'}</div>
             <table style="width:100%;font-size:8pt">
               <tr><td style="padding:1px 0;font-weight:bold">${d.model}</td><td style="text-align:right;font-weight:bold">${fmt(d.price)}</td></tr>
               <tr><td style="padding:1px 0;font-weight:bold">ดาวน์รวม</td><td style="text-align:right;font-weight:bold">${fmt(d.down)}</td></tr>
@@ -3651,14 +3711,14 @@ function buildPrintHtml(d){
 
       ${renderUsedCarPrintBlock(d)}
 
-      <div style="font-size:7.5pt;font-weight:bold;margin-bottom:1px">ตารางงวดชำระ — ${d.finYears} ปี (${d.finYears*12} งวด)${(d.eqAnnual>0 && !d.eqSeparateSpecial)?(()=>{
+      ${d.tractorPayment==='cash' ? `<div style="font-size:8.5pt;font-weight:bold;margin:4px 0;padding:4px 6px;background:#e9f7ee;border-radius:4px">💵 ชำระเงินสดเต็มจำนวน ${fmt(d.price + (d.eqTotalPrice||0))} บาท — ไม่มีตารางผ่อน</div>` : ''}<div style="font-size:7.5pt;font-weight:bold;margin-bottom:1px;${d.tractorPayment==='cash'?'display:none':''}">ตารางงวดชำระ — ${d.finYears} ปี (${d.finYears*12} งวด)${(d.eqAnnual>0 && !d.eqSeparateSpecial)?(()=>{
         const pt=d.tractorPayment;
         const times = pt==='monthly'?12:pt==='quarterly'?4:isTwoBigPerYear(pt)?2:1;
         const perTime = Math.round(d.eqAnnual/times);
         const suffix = pt==='monthly'?'/เดือน':pt==='quarterly'?'/3เดือน':isTwoBigPerYear(pt)?'/ครั้ง × 2':'/ปี';
         return ` + อุปกรณ์ <span style='color:#1e7e34'>${fmt(perTime)}${suffix}</span>`;
       })():''}</div>
-      ${scheduleTableHtml(schedule, d.eqSeparateSpecial ? 0 : (d.eqAnnualF||0), d.eqSeparateSpecial ? 0 : (d.eqAnnualR||0))}
+      ${d.tractorPayment==='cash' ? '' : scheduleTableHtml(schedule, d.eqSeparateSpecial ? 0 : (d.eqAnnualF||0), d.eqSeparateSpecial ? 0 : (d.eqAnnualR||0))}
       ${d.eqSeparateSpecial ? `<div style="margin-top:4px;padding:4px 6px;background:#f0fff4;border-radius:4px;border:0.5px solid #cde8d0;font-size:7.5pt">
         <b>🔧 เครื่องคีบ (ซื้อแยกชิ้น — ตารางผ่อนแยกต่างหากจากรถ):</b> งวดใหญ่ ${fmt(d.eqAnnual)} บาท/ปี × ${d.eqFinYears} ปี + งวดย่อย ${fmt(d.eqMinorBase)} บาท/เดือน (${d.eqPeriodsMinor} งวด/ปี) @ ${(d.eqFinRate*100).toFixed(2)}%
       </div>` : ''}
@@ -5057,7 +5117,7 @@ function exportCrmTemplateXLSX(){
 // ถ้า token หมดอายุ (12 ชม.) จะมีช่องให้ใส่รหัสผ่านอีกครั้งในหน้าต่างนี้
 const UC_TOK_KEY = 'rst_usedcar_tok';
 const UC_STOCK_TTL = 5 * 60 * 1000;
-let usedCarSel = null;          // รถมือสองที่เลือกไว้สำหรับเคสนี้ (snapshot ตอนเลือก)
+var usedCarSel = null;          // รถมือสองที่เลือกไว้สำหรับเคสนี้ (snapshot ตอนเลือก)
 let _ucStock = null, _ucStockAt = 0, _ucView = null, _ucViewOnly = false, _ucBusy = false;
 
 function ucUrl(){ return ((window.RST_USED_CAR_CONFIG && window.RST_USED_CAR_CONFIG.apiUrl) || '').trim(); }
@@ -5332,6 +5392,7 @@ function ucSelect(){
   if(!_ucView) return;
   if(_ucView.status && _ucView.status !== 'stock' && !confirm('รถคันนี้ออกจากสต็อกแล้ว ยืนยันจะเลือกคันนี้ใช่ไหม?')) return;
   usedCarSel = ucSnapshot(_ucView);
+  usedOnCarSelected(); // (2026-10-22) เติมราคา/ช่วยดาวน์ในหน้ารถมือสอง
   updateUsedCarStatus();
   ucShowCar(Object.assign({}, _ucView), false);
   const b = document.getElementById('ucBrowse'); if(b) b.open = false;
@@ -5341,8 +5402,9 @@ function ucClearSel(){
   usedCarSel = null; _ucView = null; updateUsedCarStatus(); ucRender();
 }
 function updateUsedCarStatus(){
-  const txt = usedCarSel ? ('✓ ' + ucCarTitle(usedCarSel) + ' · ' + (usedCarSel.chassis || usedCarSel.key)) : '';
+  const txt = usedCarSel ? ('✓ เลือกแล้ว') : '';
   ['usedCarStatus','usedCarStatusM'].forEach(id=>{ const el = document.getElementById(id); if(el) el.textContent = txt; });
+  if(typeof usedRender === 'function') usedRender();
 }
 
 // ---------- แสดงในหน้าประวัติ ----------
@@ -5382,7 +5444,7 @@ function renderUsedCarPrintBlock(d){
           <td style="padding:1px 4px"><b>ปีรถ:</b> ${ucEsc(c.year||'-')} · <b>ชม.:</b> ${c.hours?fmt(Number(c.hours)):'-'}</td>
           <td style="padding:1px 4px"><b>สาขา:</b> ${ucEsc(c.branch||'-')}${c.reg?' · <b>เล่มทะเบียน:</b> '+ucEsc(c.reg):''}</td>
         </tr>
-        ${Number(c.price) > 0 ? `<tr style="background:#f8f4ec;font-weight:bold"><td style="padding:2px 4px">ราคาขายรถมือสอง</td><td style="padding:2px 4px;text-align:right">${fmt(Number(c.price))}</td></tr>` : ''}
+        ${(d.usedCalc && d.usedCalc.discount) ? `<tr><td style="padding:1px 4px">ราคาตั้ง ${fmt(d.usedCalc.listPrice)} · ส่วนลด ${fmt(d.usedCalc.discount)}</td><td style="padding:1px 4px;text-align:right">สุทธิ ${fmt(d.usedCalc.netPrice)}</td></tr>` : (Number(c.price) > 0 ? `<tr style="background:#f8f4ec;font-weight:bold"><td style="padding:2px 4px">ราคาขายรถมือสอง</td><td style="padding:2px 4px;text-align:right">${fmt(Number(c.price))}</td></tr>` : '')}
       </table>`;
 }
 
@@ -5398,6 +5460,585 @@ window.addEventListener('load', function(){
     window.RSTAuth.logout = function(){ ucClearTok(); usedCarSel = null; return orig.apply(this, arguments); };
     window.RSTAuth._ucWrapped = true;
   }
+});
+
+// ===== (2026-10-22) หน้าขายรถมือสอง — ไม่มีโปร ไม่มีกลุ่มลูกค้า =====
+// เซลล์เลือกรถจากสต็อก → ใส่เงินดาวน์ที่ลูกค้าจ่าย → เลือกจำนวนปี (1–7) และรูปแบบผ่อน (รายเดือน / ราย 6 เดือน / รายปี)
+// ช่วยดาวน์: เฉพาะบางรุ่น ค่าคงที่ต่อรุ่น (USED_DOWN_SUPPORT) "บวกเพิ่ม" จากเงินที่ลูกค้าจ่าย → ดาวน์รวม = ลูกค้าจ่าย + ช่วยดาวน์
+// ดอกเบี้ย: ยึดเรทโปรทั่วไปของรถใหม่ (flat rate) แยกตามประเภทรถ — ประเภทที่ยังไม่ได้ตั้งเรท จะคำนวณไม่ได้และบันทึกไม่ได้
+// สูตรเดียวกับรถใหม่: ค่างวดต่อปี = ยอดจัด × (1/ปี + ดอกเบี้ย), งวดย่อย/งวดใหญ่/ตารางผ่อนใช้ buildPrintHtml ตัวเดิม
+
+const USED_YEARS = [1, 2, 3, 4, 5, 6, 7];
+const USED_PAYMENTS = ['monthly', 'semi', 'annual', 'cash']; // cash = ซื้อเงินสด ไม่ผ่อน
+// ดอกเบี้ยต่อปี (flat) ตามประเภทรถจากแอปรถมือสอง (type) × รูปแบบการผ่อน
+// ประเภทที่ยังไม่มีในตารางนี้ (รถเกี่ยวข้าว / รถขุด / เครื่องอัดฟาง / รถตู้ / อื่นๆ) = ยังไม่ได้กำหนด → หน้าเว็บจะแจ้งเตือนและไม่ให้บันทึก
+const USED_RATES = {
+  'รถแทรกเตอร์': { monthly: 0.062, semi: 0.077, annual: 0.0895 },
+  // 'รถเกี่ยวข้าว': { monthly: 0.08, semi: 0.08, annual: 0.08 },   // รอยืนยัน
+  // 'รถขุด':       { monthly: 0.0795, semi: 0.0795, annual: 0.0795 }, // รอยืนยัน
+};
+// ช่วยดาวน์รถมือสอง (บาท) เฉพาะรุ่นที่มี — key = รุ่นตามแอปรถมือสอง (ช่อง "รุ่น" เช่น YM351R, EF393T, ViO35-6B)
+// ไม่สนช่องว่าง/ขีด/ตัวพิมพ์เล็กใหญ่ รุ่นที่ไม่อยู่ในรายการนี้ = ไม่มีช่วยดาวน์
+const USED_DOWN_SUPPORT = {
+  // 'YM351R': 30000,
+};
+const USED_MINOR_DEFAULT = { semi: 1000, annual: 2000 };
+const USED_PAY_LABELS = { monthly: 'รายเดือน', semi: 'ราย 6 เดือน', annual: 'รายปี', cash: '💵 เงินสด' };
+// อุปกรณ์มือสองของรุ่นเก่า (ไม่มีในหน้ารถใหม่) ใช้เฉพาะหน้ารถมือสอง — ราคา "มือสองปรับสภาพ (ซ่อม+ทำสี)"
+// ตามใบ "อุปกรณ์ต่อพ่วงมือสอง" แก้ไขข้อมูล ณ 2 เม.ย. 2568 (ไม่ใส่ราคาไม่ปรับสภาพ / MOTTO เพราะไม่ได้ขาย)
+const USED_PAGE_EQUIPMENT = { yanmar: {
+  'EF45': [
+    { name: 'ชุดใบมีด 1.80 ม. รุ่น EF45,EF49,EF51 (มือสอง ปรับสภาพ)', price: 36500 },
+    { name: 'ผานพรวน 5×22" รุ่น EF45,EF49,EF51 (มือสอง ปรับสภาพ)', price: 25000 },
+    { name: 'ผานพรวน 6×22" รุ่น EF45,EF49,EF51 (มือสอง ปรับสภาพ)', price: 26000 },
+  ],
+  'EF49': [
+    { name: 'ชุดใบมีด 1.80 ม. รุ่น EF45,EF49,EF51 (มือสอง ปรับสภาพ)', price: 36500 },
+    { name: 'ผานพรวน 5×22" รุ่น EF45,EF49,EF51 (มือสอง ปรับสภาพ)', price: 25000 },
+    { name: 'ผานพรวน 6×22" รุ่น EF45,EF49,EF51 (มือสอง ปรับสภาพ)', price: 26000 },
+  ],
+  'EF51': [
+    { name: 'ชุดใบมีด 1.80 ม. รุ่น EF45,EF49,EF51 (มือสอง ปรับสภาพ)', price: 36500 },
+    { name: 'ผานบุกเบิก 4×22" รุ่น EF51 (มือสอง ปรับสภาพ)', price: 29500 },
+    { name: 'ผานพรวน 5×22" รุ่น EF45,EF49,EF51 (มือสอง ปรับสภาพ)', price: 25000 },
+    { name: 'ผานพรวน 6×22" รุ่น EF45,EF49,EF51 (มือสอง ปรับสภาพ)', price: 26000 },
+  ],
+} };
+const USED_MODE_KEY = 'rst_sale_mode';
+
+var saleMode = 'new'; // var (ไม่ใช่ let) เพราะ collectExportData อาจถูกเรียกก่อนบรรทัดนี้ทำงานตอนโหลดหน้า
+var usedCalc = { price: '', priceStock: 0, discount: '', custDown: '', years: 5, payment: 'annual', minorOpt: 'normal', minor: 2000, carKey: '' };
+
+function usedNum(v){ const n = Number(String(v == null ? '' : v).replace(/[^0-9.]/g, '')); return isFinite(n) ? n : 0; }
+function usedSupportFor(car){
+  if(!car) return 0;
+  const want = ucNorm(car.series || '');
+  if(!want) return 0;
+  for(const k in USED_DOWN_SUPPORT){ if(ucNorm(k) === want) return Number(USED_DOWN_SUPPORT[k]) || 0; }
+  return 0;
+}
+function usedRateFor(car, payment){
+  if(payment === 'cash') return 0;
+  const t = car && car.type;
+  const tbl = t && USED_RATES[t];
+  return (tbl && tbl[payment] != null) ? tbl[payment] : null;
+}
+
+// คำนวณทั้งหมดจากสถานะปัจจุบัน (ใช้ทั้งหน้าจอ ใบสรุป และตอนบันทึก)
+function usedCompute(){
+  const car = usedCarSel;
+  const listPrice = usedNum(usedCalc.price);
+  const discount = Math.min(usedNum(usedCalc.discount), listPrice);   // ส่วนลดที่เซลล์ใส่เอง (เงินสด/ต่อรอง)
+  const price = listPrice - discount;                                  // ราคาขายสุทธิ
+  const payment = usedCalc.payment, isCash = payment === 'cash';
+  const supportModel = usedSupportFor(car);
+  const support = isCash ? 0 : supportModel;                           // ช่วยดาวน์ใช้เฉพาะกรณีผ่อน
+  const custDown = isCash ? price : usedNum(usedCalc.custDown);
+  const downTotal = isCash ? price : custDown + support;
+  const finTotal = Math.max(0, price - downTotal);
+  const years = isCash ? 0 : usedCalc.years;
+  const rate = usedRateFor(car, payment);
+  const periodsMinor = isCash ? 0 : getPeriodsMinor(payment);        // รายปี 11, ราย 6 เดือน 10, รายเดือน 0
+  const hasMinor = !isCash && payment !== 'monthly' && usedCalc.minorOpt !== 'none';
+  const minorBase = hasMinor ? Math.max(0, usedNum(usedCalc.minor)) : 0;
+  const minorMode = (hasMinor && usedCalc.minorOpt === 'with_down') ? 'with_down' : 'normal';
+  const minorTotal = minorBase * periodsMinor;
+  const annualFull = (rate == null || isCash) ? 0 : finTotal * (1 / years + rate);
+  const bigPayFull = Math.max(0, annualFull - minorTotal);
+  const bigPay = isCash ? 0 : firstBigAmount(bigPayFull, payment, 'F');
+  const perMonth = payment === 'monthly' ? roundInstallment(annualFull / 12, 'F') : 0;
+  const minorWithDown = minorMode === 'with_down' ? minorTotal : 0;
+  const custOut = custDown + minorWithDown;
+  let error = '';
+  if(!car) error = 'ยังไม่ได้เลือกรถมือสอง';
+  else if(rate == null) error = 'ยังไม่ได้กำหนดดอกเบี้ยรถมือสองประเภท "' + (car.type || '-') + '" — แจ้งแอดมินก่อนทำสัญญา (หรือเลือก "เงินสด")';
+  else if(!listPrice) error = 'ยังไม่ได้ใส่ราคาขาย';
+  else if(!price) error = 'ส่วนลดเท่ากับราคารถ';
+  else if(!isCash && downTotal > price) error = 'เงินดาวน์รวมมากกว่าราคาขายสุทธิ';
+  else if(!isCash && !finTotal) error = 'ยอดจัดเป็น 0 — ถ้าลูกค้าจ่ายเต็มจำนวน ให้เลือกรูปแบบ "เงินสด"';
+  return { car, listPrice, discount, price, isCash, support, supportModel, custDown, downTotal, finTotal, years, payment, rate,
+           periodsMinor, minorBase, minorMode, minorTotal, annualFull, bigPayFull, bigPay, perMonth, minorWithDown, custOut, error };
+}
+function usedValidate(){
+  const c = usedCompute();
+  if(c.error) return '❌ ' + c.error;
+  return '';
+}
+
+// ฟิลด์ที่ใช้แทนของรถใหม่ใน record (collectExportData) — ให้ใบสรุป/ประวัติ/บันทึกใช้โค้ดเดิมได้
+function usedRecordFields(){
+  const c = usedCompute(), car = c.car || {};
+  const _u = {
+    saleType: 'used',
+    model: ucCarTitle(car) + ' (มือสอง)',
+    brand: car.type || 'รถมือสอง',
+    seg: 'รถมือสอง', progName: 'ขายรถมือสอง (ไม่มีโปร)',
+    price: c.price, down: c.downTotal, totalDown: c.downTotal,
+    support: c.support, supportTotal: c.support, rst: 0, regFee: 0, custOut: c.custOut,
+    yct: 0, ysp: 0, fire: 0, yctAmt: 0, yspAmt: 0, fireAmt: 0, yspTopupAmt: 0, subForSupport: 0,
+    finYears: c.years, finRate: c.rate || 0, finTotal: Math.round(c.finTotal), annualFull: Math.round(c.annualFull),
+    minorMode: c.minorMode, minorAdvanceTotal: c.minorTotal, minor: c.minorBase,
+    bigPay: c.bigPay, bigPayFull: c.bigPay, perMonth: c.perMonth,
+    tractorPayment: c.payment, tractorFinType: 'F',
+    eqItems: [], eqTotalPrice: 0, eqTotalF: 0, eqTotalR: 0, eqAnnualF: 0, eqAnnualR: 0, eqDown: 0, eqDownF: 0, eqDownR: 0,
+    eqFinTotal: 0, eqAnnual: 0, eqAnnualFull: 0, eqFAnnual: 0, eqRAnnual: 0, eqFFinTotal: 0, eqRFinTotal: 0,
+    eqSeparateSpecial: false, eqPeriodsMinor: 0, eqMinorBase: 0,
+    gifts: [],
+    usedCar: usedCarSel || undefined,
+    usedCalc: { custDown: c.custDown, support: c.support, years: c.years, payment: c.payment, minorOpt: usedCalc.minorOpt,
+                minor: c.minorBase, price: c.listPrice, listPrice: c.listPrice, discount: c.discount, netPrice: c.price,
+                priceStock: usedCalc.priceStock, rate: c.rate, yearsChosen: usedCalc.years },
+    crmCustRelType: 'General'
+  };
+  return Object.assign(_u, usedEqRecordFields()); // อุปกรณ์ต่อพ่วง (ผ่อนพร้อมรถ)
+}
+// แก้รุ่น/โปรทั้งใบ ของเคสรถมือสอง → คืนค่าที่เคยใส่ไว้
+function usedRestoreFromRecord(d){
+  const u = d.usedCalc || {};
+  usedCalc = {
+    price: u.listPrice || u.price || d.price || '', priceStock: u.priceStock || 0, discount: u.discount || '',
+    custDown: (u.payment === 'cash') ? '' : (u.custDown != null ? u.custDown : ''),
+    years: USED_YEARS.includes(u.yearsChosen) ? u.yearsChosen : (USED_YEARS.includes(u.years) ? u.years : 5), payment: USED_PAYMENTS.includes(u.payment) ? u.payment : 'annual',
+    minorOpt: u.minorOpt || 'normal', minor: u.minor || USED_MINOR_DEFAULT[u.payment] || 2000, carKey: (d.usedCar && d.usedCar.key) || ''
+  };
+  usedEqRestore(d);
+}
+
+// เรียกตอนเลือกรถคันใหม่จากหน้าต่างค้นหา
+function usedOnCarSelected(){
+  if(!usedCarSel) return;
+  if(usedCalc.carKey !== usedCarSel.key){
+    usedCalc.carKey = usedCarSel.key;
+    usedEqOnCarChanged();
+    usedCalc.price = Number(usedCarSel.price) > 0 ? Number(usedCarSel.price) : '';
+    usedCalc.priceStock = Number(usedCarSel.price) || 0;
+    usedCalc.discount = '';
+  }
+  if(saleMode === 'used') setTimeout(closeUsedCarModal, 350);
+}
+
+function setSaleMode(mode){
+  saleMode = mode === 'used' ? 'used' : 'new';
+  try{ localStorage.setItem(USED_MODE_KEY, saleMode); }catch(e){}
+  const app = document.querySelector('.app');
+  if(app) app.classList.toggle('used-mode', saleMode === 'used');
+  document.querySelectorAll('#saleModeToggle button').forEach(b => b.classList.toggle('active', b.dataset.mode === saleMode));
+  const sub = document.getElementById('topbarSub');
+  if(sub){
+    if(!sub.dataset.newText) sub.dataset.newText = sub.textContent;
+    sub.textContent = saleMode === 'used' ? 'เลือกรถจากสต็อก → ใส่เงินดาวน์ → เลือกรูปแบบผ่อน' : sub.dataset.newText;
+  }
+  const vb = document.getElementById('viewPromoBtn');
+  if(vb){
+    if(!vb.dataset.newText) vb.dataset.newText = vb.textContent;
+    vb.textContent = saleMode === 'used' ? 'ดูสรุปการผ่อน ▶' : vb.dataset.newText;
+  }
+  usedRender();
+  try{ refreshExportSummary(); }catch(e){}
+}
+
+function usedSet(field, value){
+  usedCalc[field] = value;
+  if(field === 'payment'){
+    usedCalc.minor = USED_MINOR_DEFAULT[value] || usedCalc.minor;
+    usedRenderForm();
+  } else if(field === 'years' || field === 'minorOpt'){
+    usedRenderForm();
+  }
+  usedRenderResult();
+  if(field === 'payment') usedRenderEq(); else usedRenderEqResult();
+  try{ refreshExportSummary(); }catch(e){}
+}
+function usedInput(field, el){
+  const raw = String(el.value).replace(/[^0-9]/g, '');
+  usedCalc[field] = raw === '' ? '' : Number(raw);
+  // ใส่ลูกน้ำให้อ่านง่าย โดยไม่ให้เคอร์เซอร์กระโดดไปท้ายเมื่อพิมพ์กลางตัวเลข
+  const fromEnd = el.value.length - (el.selectionStart || 0);
+  el.value = raw === '' ? '' : Number(raw).toLocaleString('th-TH');
+  try{ const pos = Math.max(0, el.value.length - fromEnd); el.setSelectionRange(pos, pos); }catch(e){}
+  usedRenderSupportLine();
+  usedRenderResult();
+  try{ refreshExportSummary(); }catch(e){}
+}
+
+function usedRender(){
+  usedRenderMini();
+  usedRenderForm();
+  usedRenderResult();
+  usedRenderEq();
+}
+function usedRenderMini(){
+  const el = document.getElementById('usedCarMini'); if(!el) return;
+  const c = usedCarSel;
+  if(!c){ el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="us-mini">
+      <img id="usedMiniImg" alt="">
+      <div style="flex:1;min-width:0">
+        <div class="t">${ucEsc(ucCarTitle(c))}${c.kind==='รถสาธิต' ? ' <span class="uc-tag">รถสาธิต</span>' : ''}</div>
+        <div class="s">${ucEsc(c.type||'')} · ตัวรถ ${ucEsc(c.chassis||c.key)}${c.engine ? ' · เครื่อง ' + ucEsc(c.engine) : ''}<br>
+        ${ucEsc(c.branch||'-')}${c.year ? ' · ปี ' + ucEsc(c.year) : ''}${c.hours ? ' · ' + fmt(Number(c.hours)) + ' ชม.' : ''}</div>
+      </div>
+    </div>`;
+  if(ucGetTok()){
+    ucCall('getCovers', [[c.key]]).then(m => { const img = document.getElementById('usedMiniImg'); if(img && m && m[c.key]) img.src = m[c.key]; }).catch(()=>{});
+  }
+}
+function usedRenderSupportLine(){
+  const c = usedCompute();
+  const np0 = document.getElementById('usNetPrice'); if(np0) np0.textContent = fmt(c.price) + ' บาท';
+  const el = document.getElementById('usSupportLine'); if(!el) return;
+  el.innerHTML = c.support > 0
+    ? `<span>🎁 ช่วยดาวน์รุ่นนี้ (บวกเพิ่มจากที่ลูกค้าจ่าย)</span><b>${fmt(c.support)} ฿</b>`
+    : `<span>รุ่นนี้ไม่มีช่วยดาวน์</span><b>0 ฿</b>`;
+  const t = document.getElementById('usDownTotal');
+  if(t) t.textContent = fmt(c.downTotal) + ' บาท';
+  const np = document.getElementById('usNetPrice');
+  if(np) np.textContent = fmt(c.price) + ' บาท';
+}
+function usedRenderForm(){
+  const el = document.getElementById('usedForm'); if(!el) return;
+  if(!usedCarSel){
+    el.innerHTML = `<div class="us-empty">กด <b>🔎 เลือกรถมือสองจากสต็อก</b> ด้านบน<br>พิมพ์เลขตัวรถ/เลขเครื่อง หรือค้นจากสาขา–รุ่น</div>`;
+    return;
+  }
+  const rateOk = usedRateFor(usedCarSel, usedCalc.payment) != null;
+  const priceNote = (usedCalc.priceStock && usedNum(usedCalc.price) !== usedCalc.priceStock)
+    ? `<div style="font-size:11px;color:#b3261e;margin-top:3px">ราคาในสต็อก ${fmt(usedCalc.priceStock)} บาท (แก้ราคาแล้ว)</div>`
+    : (usedCalc.priceStock ? '' : `<div style="font-size:11px;color:#b3261e;margin-top:3px">รถคันนี้ยังไม่มีราคาในแอปรถมือสอง ใส่ราคาเอง</div>`);
+  const payHint = p => { const r = usedRateFor(usedCarSel, p); return r == null ? '' : ` <small>${fmtPct(r)}</small>`; };
+  const hasMinor = usedCalc.payment !== 'monthly' && usedCalc.payment !== 'cash';
+  const periods = getPeriodsMinor(usedCalc.payment);
+  el.innerHTML = `
+    <label class="us-label">ราคาขาย (บาท)</label>
+    <input class="us-input" type="text" inputmode="numeric" id="usPrice" value="${usedCalc.price === '' ? '' : Number(usedCalc.price).toLocaleString('th-TH')}" oninput="usedInput('price', this)">
+    ${priceNote}
+    <label class="us-label">ส่วนลด (บาท) <span style="font-weight:400">— เงินสด / ลูกค้าต่อรอง</span></label>
+    <input class="us-input" type="text" inputmode="numeric" id="usDiscount" placeholder="0" value="${usedNum(usedCalc.discount) ? Number(usedCalc.discount).toLocaleString('th-TH') : ''}" oninput="usedInput('discount', this)">
+    <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-top:6px;padding:0 2px"><span>ราคาขายสุทธิ</span><b id="usNetPrice" style="font-family:'Kanit',sans-serif"></b></div>
+    <label class="us-label">รูปแบบการชำระ</label>
+    <div class="us-chips">${USED_PAYMENTS.map(p => `<button type="button" class="us-chip ${usedCalc.payment===p?'active':''}" onclick="usedSet('payment', '${p}')">${USED_PAY_LABELS[p]}${p==='cash' ? '' : payHint(p)}</button>`).join('')}</div>
+    ${usedCalc.payment === 'cash' ? `<div class="us-support" style="background:#e3f7ea;color:#1e7e34"><span>💵 ซื้อเงินสด — ชำระเต็มราคาขายสุทธิ (ไม่ใช้ช่วยดาวน์)</span></div>` : `
+    <label class="us-label">เงินดาวน์ที่ลูกค้าจ่าย (บาท)</label>
+    <input class="us-input" type="text" inputmode="numeric" id="usDown" placeholder="0" value="${usedCalc.custDown === '' ? '' : Number(usedCalc.custDown).toLocaleString('th-TH')}" oninput="usedInput('custDown', this)">
+    <div class="us-support" id="usSupportLine"></div>
+    <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-top:6px;padding:0 2px"><span>ดาวน์รวม</span><b id="usDownTotal" style="font-family:'Kanit',sans-serif"></b></div>
+    <label class="us-label">ผ่อนกี่ปี</label>
+    <div class="us-chips">${USED_YEARS.map(y => `<button type="button" class="us-chip ${usedCalc.years===y?'active':''}" onclick="usedSet('years', ${y})">${y} ปี</button>`).join('')}</div>`}
+    ${rateOk ? '' : `<div class="us-warn" style="margin-top:8px">ยังไม่ได้กำหนดดอกเบี้ยรถมือสองประเภท "${ucEsc(usedCarSel.type||'-')}" — แจ้งแอดมิน</div>`}
+    ${hasMinor ? `
+      <label class="us-label">งวดย่อยรายเดือน (${periods} เดือน ก่อนงวดใหญ่)</label>
+      <label class="us-radio"><input type="radio" name="usMinorOpt" ${usedCalc.minorOpt==='none'?'checked':''} onchange="usedSet('minorOpt','none')"><span><b>ไม่มีงวดย่อย</b> — จ่ายเฉพาะงวดใหญ่</span></label>
+      <label class="us-radio"><input type="radio" name="usMinorOpt" ${usedCalc.minorOpt==='normal'?'checked':''} onchange="usedSet('minorOpt','normal')"><span><b>จ่ายงวดย่อยทุกเดือน</b> — งวดใหญ่ลดลงตาม</span></label>
+      <label class="us-radio"><input type="radio" name="usMinorOpt" ${usedCalc.minorOpt==='with_down'?'checked':''} onchange="usedSet('minorOpt','with_down')"><span><b>รวบงวดย่อยมาพร้อมดาวน์</b> — จ่ายวันรับรถ</span></label>
+      ${usedCalc.minorOpt !== 'none' ? `<div style="display:flex;align-items:center;gap:8px;margin-top:4px"><span style="font-size:12px;color:var(--ink-soft)">งวดย่อยเดือนละ</span>
+        <input class="us-input" style="width:120px;font-size:14px;padding:6px 8px" type="text" inputmode="numeric" value="${Number(usedCalc.minor||0).toLocaleString('th-TH')}" oninput="usedInput('minor', this)"><span style="font-size:12px;color:var(--ink-soft)">บาท</span></div>` : ''}
+    ` : ''}
+  `;
+  usedRenderSupportLine();
+}
+function usedRenderResult(){
+  const el = document.getElementById('usedResult'); if(!el) return;
+  const c = usedCompute();
+  if(!c.car){ el.innerHTML = `<div class="us-empty">🚜 ขายรถมือสอง — เลือกรถจากสต็อกก่อน แล้วสรุปการผ่อนจะขึ้นที่นี่</div>`; return; }
+  const head = `<h3>${ucEsc(ucCarTitle(c.car))} <span style="font-size:12px;color:var(--ink-soft);font-weight:400">(${ucEsc(c.car.type||'')} มือสอง)</span></h3>
+    <div style="font-size:11.5px;color:var(--ink-soft);margin-bottom:6px">ตัวรถ ${ucEsc(c.car.chassis||c.car.key)} · ${ucEsc(c.car.branch||'-')} · ไม่มีโปร / ไม่แยกกลุ่มลูกค้า</div>`;
+  const priceRows = c.discount
+    ? `<div class="row"><span>ราคาขาย</span><b>${fmt(c.listPrice)}</b></div>
+       <div class="row"><span>ส่วนลด</span><b style="color:#b3261e">−${fmt(c.discount)}</b></div>
+       <div class="row"><span>ราคาขายสุทธิ</span><b>${fmt(c.price)}</b></div>`
+    : `<div class="row"><span>ราคาขาย</span><b>${fmt(c.price)}</b></div>`;
+  if(c.isCash){
+    if(c.error){ el.innerHTML = `<div class="us-res">${head}${priceRows}</div><div class="us-warn">⚠️ ${ucEsc(c.error)}</div>`; return; }
+    const q0 = usedEqCompute();
+    el.innerHTML = `<div class="us-res">${head}${priceRows}
+        <div class="big"><div class="k">💵 ซื้อเงินสด — ชำระวันรับรถ</div><div class="v">${fmt(c.price + q0.total)} บาท</div>
+        ${q0.items.length ? `<div class="note">รถ ${fmt(c.price)} + อุปกรณ์ ${q0.items.length} รายการ ${fmt(q0.total)}</div>` : ''}</div>
+      </div>`;
+    return;
+  }
+  const rows = `
+    ${priceRows}
+    <div class="row"><span>ลูกค้าจ่ายดาวน์</span><b>${fmt(c.custDown)}</b></div>
+    ${c.support ? `<div class="row"><span>ช่วยดาวน์ (บวกเพิ่ม)</span><b style="color:var(--support)">+${fmt(c.support)}</b></div>` : ''}
+    <div class="row"><span>ดาวน์รวม</span><b>${fmt(c.downTotal)}</b></div>
+    <div class="row"><span>ยอดจัด</span><b>${fmt(Math.round(c.finTotal))}</b></div>
+    <div class="row"><span>ผ่อน</span><b>${c.years} ปี · ${USED_PAY_LABELS[c.payment]}${c.rate != null ? ' @ ' + fmtPct(c.rate) : ''}</b></div>`;
+  if(c.error){ el.innerHTML = `<div class="us-res">${head}${rows}</div><div class="us-warn">⚠️ ${ucEsc(c.error)}</div>`; return; }
+  let big = '', note = '';
+  if(c.payment === 'monthly'){
+    big = `<div class="k">ค่างวดรายเดือน</div><div class="v">${fmt(c.perMonth)} บาท</div><div class="k">× ${c.years*12} งวด</div>`;
+  } else {
+    const bigLabel = formatBigLabel(c.minorMode === 'normal' ? c.bigPayFull : c.annualFull, c.payment, 'F');
+    const per = c.payment === 'semi' ? 'งวดใหญ่ (ทุก 6 เดือน)' : 'งวดใหญ่ (ปีละครั้ง)';
+    big = `<div class="k">${per}</div><div class="v">${bigLabel} บาท</div>`;
+    if(c.minorBase && c.minorMode === 'normal') note = `+ งวดย่อย ${fmt(c.minorBase)} บาท × ${c.periodsMinor} เดือน ทุกปี`;
+    else if(c.minorBase && c.minorMode === 'with_down') note = `งวดย่อย ${fmt(c.minorBase)} × ${c.periodsMinor} = ${fmt(c.minorTotal)} บาท รวบจ่ายพร้อมดาวน์ · ปีสุดท้ายงวดใหญ่ลดเหลือ ${formatBigLabel(c.bigPayFull, c.payment, 'F')} บาท`;
+    else note = 'ไม่มีงวดย่อย';
+  }
+  el.innerHTML = `<div class="us-res">${head}${rows}
+      <div class="big">${big}${note ? `<div class="note">${note}</div>` : ''}</div>
+      ${(() => {
+        const q = usedEqCompute();
+        if(!q.items.length) return `<div class="row" style="border:none;margin-top:8px"><span><b>จ่ายจริงวันรับรถ</b></span><b style="color:var(--accent);font-size:16px">${fmt(c.custOut)} บาท</b></div>`;
+        const times = c.payment === 'monthly' ? 12 : isTwoBigPerYear(c.payment) ? 2 : 1;
+        const unit = c.payment === 'monthly' ? 'เดือน' : c.payment === 'semi' ? '6 เดือน' : 'ปี';
+        return `<div class="row" style="margin-top:8px"><span>🔧 อุปกรณ์ ${q.items.length} รายการ (ยอดจัด ${fmt(Math.round(q.fin))})</span><b>+${fmt(Math.round(q.annual / times))} /${unit}</b></div>
+          <div class="row"><span>จ่ายจริงวันรับรถ — รถ</span><b>${fmt(c.custOut)}</b></div>
+          <div class="row"><span>จ่ายจริงวันรับรถ — ดาวน์อุปกรณ์</span><b>${fmt(q.down)}</b></div>
+          <div class="row" style="border:none"><span><b>รวมจ่ายวันรับรถ</b></span><b style="color:var(--accent);font-size:16px">${fmt(c.custOut + q.down)} บาท</b></div>`;
+      })()}
+    </div>`;
+}
+
+// ===== (2026-10-22) อุปกรณ์ต่อพ่วง ในหน้ารถมือสอง =====
+// ใช้รายการ/ราคาเดียวกับหน้ารถใหม่ (EQUIPMENT = มือหนึ่ง, USED_EQUIPMENT = มือสอง) ผูกกับรุ่นของรถมือสองที่เลือก
+// ผ่อนพร้อมรถ: ปี / รูปแบบผ่อน / ดอกเบี้ย เดียวกับตัวรถ, ดาวน์อุปกรณ์แยก (ตัดจาก R ก่อน), F/R แยกปัดเศษเหมือนรถใหม่
+// อุปกรณ์มือสองล็อก R เหมือนหน้ารถใหม่
+var usedEq = { modelKey: '', auto: true, sel: {}, down: 0, custom: [] }; // custom: [{name, price, fin}] อุปกรณ์ที่เซลล์เพิ่มเอง // sel: { 'new|3': {special:false, fin:'R'} }
+
+function usedEqNorm(x){ return String(x||'').toLowerCase().replace(/[\s_\-]/g, ''); }
+function usedEqBrandsFor(car){
+  const t = (car && car.type) || '', nm = ((car && car.name) || '') + ' ' + ((car && car.series) || '');
+  if(t === 'รถเกี่ยวข้าว') return ['combine'];
+  if(t === 'รถขุด') return ['excavator'];
+  if(/solis/i.test(nm)) return ['solis', 'yanmar'];
+  return ['yanmar', 'solis'];
+}
+// ทุกรุ่นที่มีรายการอุปกรณ์ (มือหนึ่งหรือมือสอง) → [{id:'yanmar|EF393A / EF393T-45th', brand, key, label}]
+function usedEqAllModels(){
+  const out = [], seen = {};
+  ['yanmar', 'solis', 'combine', 'excavator'].forEach(br => {
+    [EQUIPMENT[br] || {}, USED_EQUIPMENT[br] || {}, USED_PAGE_EQUIPMENT[br] || {}].forEach(map => {
+      Object.keys(map).forEach(k => {
+        const id = br + '|' + k;
+        if(seen[id] || !(map[k] || []).length) return;
+        seen[id] = 1;
+        const bl = br === 'yanmar' ? 'Yanmar' : br === 'solis' ? 'Solis' : br === 'combine' ? 'รถเกี่ยว' : 'รถขุด';
+        out.push({ id, brand: br, key: k, label: bl + ' · ' + k });
+      });
+    });
+  });
+  return out;
+}
+// หารุ่นอุปกรณ์ที่ตรงกับรุ่นรถมือสอง: ตรงพอดี > ชื่อรุ่นรถเป็นต้นของชื่อในรายการ (EF393T → EF393T-45th) > ชื่อในรายการเป็นต้นของรุ่นรถ
+function usedEqAutoKey(car){
+  const s = usedEqNorm(car && car.series);
+  if(!s) return '';
+  const all = usedEqAllModels(), brands = usedEqBrandsFor(car);
+  const ranked = [];
+  all.forEach(m => {
+    const bi = brands.indexOf(m.brand);
+    if(bi < 0) return;
+    m.key.split('/').map(usedEqNorm).forEach(part => {
+      let score = 0;
+      if(part === s) score = 300;
+      else if(part.startsWith(s)) score = 200 - (part.length - s.length);
+      else if(s.startsWith(part) && part.length >= 4) score = 100 + part.length;
+      if(score) ranked.push({ id: m.id, score: score - bi * 1000 });
+    });
+  });
+  ranked.sort((a, b) => b.score - a.score);
+  return ranked.length ? ranked[0].id : '';
+}
+function usedEqLists(){
+  const id = usedEq.modelKey;
+  if(!id) return { brand: '', key: '', newItems: [], usedItems: [] };
+  const i = id.indexOf('|'), br = id.slice(0, i), k = id.slice(i + 1);
+  return { brand: br, key: k, newItems: (EQUIPMENT[br] || {})[k] || [],
+           usedItems: (USED_EQUIPMENT[br] || {})[k] || (USED_PAGE_EQUIPMENT[br] || {})[k] || [] };
+}
+function usedEqSelected(){
+  const L = usedEqLists(), out = [];
+  Object.keys(usedEq.sel).forEach(sk => {
+    const [mode, idx] = sk.split('|');
+    const item = (mode === 'used' ? L.usedItems : L.newItems)[Number(idx)];
+    if(!item) return;
+    const st = usedEq.sel[sk];
+    const price = (st.special && item.special) ? item.special : item.price;
+    out.push({ name: item.name, price, finType: mode === 'used' ? 'R' : (st.fin || 'R'), mode, specialFin: null });
+  });
+  (usedEq.custom || []).forEach(cu => {
+    const price = usedNum(cu.price), name = String(cu.name || '').trim();
+    if(name && price > 0) out.push({ name: name, price, finType: cu.fin || 'R', mode: 'custom', specialFin: null });
+  });
+  return out;
+}
+// คำนวณงวดอุปกรณ์ (ผ่อนพร้อมรถ ใช้ปี/รูปแบบ/ดอกเบี้ยเดียวกับรถ)
+function usedEqCompute(){
+  const items = usedEqSelected();
+  const payment = usedCalc.payment, isCash = payment === 'cash';
+  const years = isCash ? 0 : usedCalc.years;
+  const rate = usedRateFor(usedCarSel, payment);
+  const total = items.reduce((s, i) => s + i.price, 0);
+  const fPrice = items.filter(i => i.finType === 'F').reduce((s, i) => s + i.price, 0);
+  const rPrice = total - fPrice;
+  const down = isCash ? total : Math.min(Math.max(0, usedNum(usedEq.down)), total);
+  const downR = Math.min(down, rPrice), downF = Math.max(0, down - downR);
+  const fFin = Math.max(0, fPrice - downF), rFin = Math.max(0, rPrice - downR), fin = fFin + rFin;
+  const k = (rate == null || isCash) ? 0 : (1 / years + rate);
+  const fAnnual = fFin > 0 ? roundInstallment(fFin * k, 'F') : 0;
+  const rAnnual = rFin > 0 ? roundInstallment(rFin * k, 'R') : 0;
+  return { items, total, fPrice, rPrice, down, downF, downR, fFin, rFin, fin, rate, years, payment,
+           fAnnual, rAnnual, annual: fAnnual + rAnnual, annualFull: fin * k };
+}
+function usedEqRecordFields(){
+  const q = usedEqCompute();
+  return {
+    eqItems: q.items, eqTotalPrice: q.total, eqTotalF: q.fPrice, eqTotalR: q.rPrice,
+    eqAnnualF: q.fAnnual, eqAnnualR: q.rAnnual, eqFAnnual: q.fAnnual, eqRAnnual: q.rAnnual,
+    eqDown: q.down, eqDownF: q.downF, eqDownR: q.downR,
+    eqFinTotal: Math.round(q.fin), eqFFinTotal: Math.round(q.fFin), eqRFinTotal: Math.round(q.rFin),
+    eqAnnual: q.annual, eqAnnualFull: Math.round(q.annualFull),
+    eqFinYears: q.years, eqFinRate: q.rate || 0, eqPayment: q.payment,
+    eqMinorMode: 'normal', eqMinorBase: 0, eqPurchaseMode: 'bundled', eqSeparateSpecial: false,
+    eqPeriodsMinor: getPeriodsMinor(q.payment),
+    usedEq: { modelKey: usedEq.modelKey, down: usedNum(usedEq.down), items: q.items.map(i => ({ name: i.name, mode: i.mode, finType: i.finType, price: i.price })) }
+  };
+}
+// เคสเดิม → เลือกรายการเดิมกลับ (จับคู่ด้วยชื่อ)
+function usedEqRestore(d){
+  const u = d.usedEq;
+  usedEq = { modelKey: '', auto: true, sel: {}, down: 0, custom: [] };
+  if(!u) return;
+  usedEq.modelKey = u.modelKey || ''; usedEq.auto = false; usedEq.down = u.down || 0;
+  const L = usedEqLists();
+  (u.items || []).forEach(it => {
+    if(it.mode === 'custom'){ usedEq.custom.push({ name: it.name, price: it.price, fin: it.finType || 'R' }); return; }
+    const list = it.mode === 'used' ? L.usedItems : L.newItems;
+    const idx = list.findIndex(x => x.name === it.name);
+    if(idx >= 0) usedEq.sel[it.mode + '|' + idx] = { special: !!(list[idx].special && list[idx].special === it.price), fin: it.finType || 'R' };
+  });
+}
+function usedEqOnCarChanged(){
+  usedEq.sel = {}; usedEq.down = 0; usedEq.custom = [];
+  usedEq.modelKey = usedCarSel ? usedEqAutoKey(usedCarSel) : '';
+  usedEq.auto = true;
+}
+
+function usedEqToggle(sk){
+  if(usedEq.sel[sk]) delete usedEq.sel[sk];
+  else usedEq.sel[sk] = { special: false, fin: 'R' };
+  usedEqChanged();
+}
+function usedEqSetFin(sk, v, ev){ if(ev) ev.stopPropagation(); if(usedEq.sel[sk]) usedEq.sel[sk].fin = v; usedEqChanged(); }
+function usedEqSetSpecial(sk, v){ if(usedEq.sel[sk]) usedEq.sel[sk].special = v; usedEqChanged(); }
+function usedEqSetModel(id){ usedEq.modelKey = id; usedEq.auto = false; usedEq.sel = {}; usedEq.down = 0; usedEqChanged(); }
+function usedEqClear(){ usedEq.sel = {}; usedEq.down = 0; usedEq.custom = []; usedEqChanged(); }
+// อุปกรณ์ที่เซลล์เพิ่มเอง (เช่น ของที่วางอยู่ริมมูล) — ใส่ชื่อ + ราคาเอง
+function usedEqAddCustom(){ usedEq.custom.push({ name: '', price: '', fin: 'R' }); usedRenderEq();
+  setTimeout(() => { const els = document.querySelectorAll('.us-cu-name'); if(els.length) els[els.length - 1].focus(); }, 30); }
+function usedEqDelCustom(i){ usedEq.custom.splice(i, 1); usedEqChanged(); }
+function usedEqCustomName(i, el){ if(usedEq.custom[i]) usedEq.custom[i].name = el.value; usedEqSoftRefresh(); }
+function usedEqCustomPrice(i, el){
+  const raw = String(el.value).replace(/[^0-9]/g, '');
+  if(usedEq.custom[i]) usedEq.custom[i].price = raw === '' ? '' : Number(raw);
+  el.value = raw === '' ? '' : Number(raw).toLocaleString('th-TH');
+  usedEqSoftRefresh();
+}
+function usedEqCustomFin(i, v){ if(usedEq.custom[i]) usedEq.custom[i].fin = v; usedRenderEq(); usedRenderResult(); try{ refreshExportSummary(); }catch(e){} }
+// อัปเดตยอดโดยไม่วาดช่องกรอกใหม่ (เคอร์เซอร์ไม่หลุดระหว่างพิมพ์)
+function usedEqSoftRefresh(){
+  usedRenderEqResult(); usedRenderResult();
+  try{ refreshExportSummary(); }catch(e){}
+}
+function usedEqDownInput(el){
+  const raw = String(el.value).replace(/[^0-9]/g, '');
+  usedEq.down = raw === '' ? 0 : Number(raw);
+  el.value = raw === '' ? '' : Number(raw).toLocaleString('th-TH');
+  usedRenderEqResult(); usedRenderResult();
+  try{ refreshExportSummary(); }catch(e){}
+}
+function usedEqChanged(){
+  usedRenderEq(); usedRenderResult();
+  try{ refreshExportSummary(); }catch(e){}
+}
+
+function usedRenderEq(){
+  const el = document.getElementById('usedEqSection'); if(!el) return;
+  if(!usedCarSel){ el.innerHTML = ''; return; }
+  const L = usedEqLists();
+  const models = usedEqAllModels();
+  const opts = `<option value="">— ไม่มี / เลือกรุ่น —</option>` + models.map(m => `<option value="${ucEsc(m.id)}" ${m.id === usedEq.modelKey ? 'selected' : ''}>${ucEsc(m.label)}</option>`).join('');
+  const nSel = Object.keys(usedEq.sel).length + (usedEq.custom || []).length;
+  const isCash = usedCalc.payment === 'cash';
+  const customHtml = `<div class="us-eq-sub">✏️ เพิ่มอุปกรณ์เอง <span>เช่น ของที่วางอยู่ริมมูล</span></div>
+    ${(usedEq.custom || []).map((cu, i) => `<div class="us-cu-row">
+        <input class="us-cu-name" type="text" placeholder="ชื่ออุปกรณ์ / สภาพ" value="${ucEsc(cu.name)}" oninput="usedEqCustomName(${i}, this)">
+        <input class="us-cu-price" type="text" inputmode="numeric" placeholder="ราคา" value="${cu.price === '' ? '' : Number(cu.price).toLocaleString('th-TH')}" oninput="usedEqCustomPrice(${i}, this)">
+        ${isCash ? '' : `<span style="display:inline-flex;gap:2px">
+          <button type="button" onclick="usedEqCustomFin(${i},'F')" class="us-fr ${cu.fin==='F'?'f':''}">F</button>
+          <button type="button" onclick="usedEqCustomFin(${i},'R')" class="us-fr ${cu.fin!=='F'?'r':''}">R</button></span>`}
+        <button type="button" class="us-cu-del" onclick="usedEqDelCustom(${i})" title="ลบ">✕</button>
+      </div>`).join('')}
+    <button type="button" class="us-cu-add" onclick="usedEqAddCustom()">＋ เพิ่มอุปกรณ์เอง</button>`;
+  const rowHtml = (mode, item, idx) => {
+    const sk = mode + '|' + idx, st = usedEq.sel[sk], on = !!st;
+    const useSpec = on && st.special && item.special;
+    const fin = mode === 'used' ? 'R' : ((st && st.fin) || 'R');
+    const check = on
+      ? `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect width="18" height="18" rx="4" fill="var(--accent)"/><path d="M4 9l4 4 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+      : `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x=".5" y=".5" width="17" height="17" rx="3.5" stroke="var(--line)"/></svg>`;
+    const fr = on ? `<span onclick="event.stopPropagation()" style="display:inline-flex;gap:2px;margin-left:4px;vertical-align:middle">
+        ${mode === 'new' ? `<button onclick="usedEqSetFin('${sk}','F',event)" class="us-fr ${fin==='F'?'f':''}">F</button>` : ''}
+        <button onclick="${mode === 'new' ? `usedEqSetFin('${sk}','R',event)` : ''}" class="us-fr ${fin==='R'?'r':''}">R</button></span>` : '';
+    const spec = (on && item.special) ? `<label class="eq-special-toggle" onclick="event.stopPropagation()">
+        <input type="checkbox" ${useSpec ? 'checked' : ''} onchange="usedEqSetSpecial('${sk}', this.checked)"> ราคาพิเศษ ${fmt(item.special)} บาท</label>` : '';
+    return `<div class="eq-item${on ? ' selected' : ''}" onclick="usedEqToggle('${sk}')" style="cursor:pointer">
+        <span style="flex:0 0 18px">${check}</span>
+        <div class="eq-name">${ucEsc(item.name)}${fr}${spec}</div>
+        <div class="eq-price">${fmt(useSpec ? item.special : item.price)}</div>
+      </div>`;
+  };
+  const group = (title, mode, list) => list.length
+    ? `<div class="us-eq-sub">${title} <span>${list.length} รายการ</span></div><div class="eq-list">${list.map((it, i) => rowHtml(mode, it, i)).join('')}</div>`
+    : '';
+  const body = (L.newItems.length || L.usedItems.length)
+    ? group('✨ มือหนึ่ง', 'new', L.newItems) + group('🔧 มือสอง (R เท่านั้น)', 'used', L.usedItems)
+    : `<div style="padding:14px;text-align:center;color:var(--ink-soft);font-size:12.5px;border:1.5px dashed var(--line);border-radius:10px;margin-top:8px">${usedEq.modelKey ? 'รุ่นนี้ไม่มีรายการอุปกรณ์' : 'ไม่พบรายการอุปกรณ์ของรุ่น "' + ucEsc(usedCarSel.series || '-') + '" — เลือกรุ่นจากช่องด้านบน หรือเพิ่มอุปกรณ์เองด้านล่าง'}</div>`;
+  el.innerHTML = `<div class="eq-section">
+      <h4>🔧 อุปกรณ์ต่อพ่วง <span style="font-weight:400;font-size:12px;color:var(--ink-soft)">เลือกได้หลายรายการ ทั้งมือหนึ่งและมือสอง</span>
+        ${nSel ? `<span style="font-size:11px;color:var(--accent);margin-left:auto;cursor:pointer" onclick="usedEqClear()">ล้าง ✕</span>` : ''}</h4>
+      <div class="us-eq-note">💡 รถมือสองแถม<b>ใบมีด + ผาน</b>มาให้แล้ว 2 ชิ้น ไม่ต้องเลือกซ้ำ<br>ถ้าลูกค้าอยากได้อุปกรณ์อื่นเพิ่ม เลือกจากรายการด้านล่างได้เลย</div>
+      <div style="display:flex;align-items:center;gap:6px;margin:4px 0 6px;flex-wrap:wrap">
+        <span style="font-size:11.5px;color:var(--ink-soft)">รายการอุปกรณ์ของรุ่น</span>
+        <select class="us-eq-model" onchange="usedEqSetModel(this.value)">${opts}</select>
+        ${usedEq.auto && usedEq.modelKey ? `<span style="font-size:10.5px;color:#1e7e34">✓ จับคู่จากรุ่นรถให้แล้ว</span>` : ''}
+      </div>
+      ${body}
+      ${customHtml}
+      ${(nSel && !isCash) ? `<div class="eq-down-row"><label>ดาวน์อุปกรณ์รวม (บาท):</label>
+        <input type="text" inputmode="numeric" placeholder="0" value="${usedEq.down ? Number(usedEq.down).toLocaleString('th-TH') : ''}" oninput="usedEqDownInput(this)"></div>` : ''}
+      <div id="usedEqResult"></div>
+    </div>`;
+  usedRenderEqResult();
+}
+function usedRenderEqResult(){
+  const el = document.getElementById('usedEqResult'); if(!el) return;
+  const q = usedEqCompute();
+  if(!q.items.length){ el.innerHTML = ''; return; }
+  if(q.payment === 'cash'){
+    el.innerHTML = `<div class="eq-result"><div class="eq-r-label">🔧 อุปกรณ์ ${q.items.length} รายการ — ซื้อเงินสด</div>
+      <div class="eq-r-value">รวม <b>${fmt(q.total)}</b> บาท</div>
+      <div class="eq-r-detail" style="margin-top:3px;color:#6a8a6a">${q.items.map(i => ucEsc(i.name) + ' (' + fmt(i.price) + ')').join(', ')}</div></div>`;
+    return;
+  }
+  if(q.rate == null){ el.innerHTML = `<div class="us-warn" style="margin-top:8px">ยังไม่ได้กำหนดดอกเบี้ย คำนวณงวดอุปกรณ์ไม่ได้</div>`; return; }
+  const times = q.payment === 'monthly' ? 12 : isTwoBigPerYear(q.payment) ? 2 : 1;
+  const unit = q.payment === 'monthly' ? 'เดือน' : q.payment === 'semi' ? '6 เดือน' : 'ปี';
+  const fr = [q.fAnnual ? `F ${fmt(q.fAnnual)}` : '', q.rAnnual ? `R ${fmt(q.rAnnual)}` : ''].filter(Boolean).join(' + ');
+  el.innerHTML = `<div class="eq-result">
+      <div class="eq-r-label">🔧 งวดอุปกรณ์รวม (${q.items.length} รายการ — ผ่อนพร้อมรถ)</div>
+      <div class="eq-r-value">ผ่อน <b>${fmt(Math.round(q.annual / times))}</b> บาท/${unit} · ${q.years} ปี @ ${fmtPct(q.rate)}</div>
+      <div class="eq-r-detail">รวมราคาอุปกรณ์ ${fmt(q.total)} · ดาวน์ ${fmt(q.down)} · ยอดจัด ${fmt(Math.round(q.fin))} · ต่อปี ${fr}</div>
+      <div class="eq-r-detail" style="margin-top:3px;color:#6a8a6a">${q.items.map(i => ucEsc(i.name) + (i.mode === 'used' && !/มือสอง/.test(i.name) ? ' (มือสอง)' : '') + (i.mode === 'custom' ? ' (เพิ่มเอง)' : '') + ' (' + fmt(i.price) + ')').join(', ')}</div>
+    </div>`;
+}
+
+// เปิดหน้ารถมือสองค้างไว้ ถ้าครั้งก่อนเซลล์ใช้โหมดนี้อยู่
+window.addEventListener('load', function(){
+  let m = 'new';
+  try{ m = localStorage.getItem(USED_MODE_KEY) || 'new'; }catch(e){}
+  setSaleMode(m);
 });
 
 // ===== History System =====
@@ -6781,6 +7422,8 @@ function editProductAndPromo(){
   custTypeToggle.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.custtype===custType));
   setBrand((d.brand||'').toLowerCase().indexOf('solis') > -1 ? 'solis' : 'yanmar');
   usedCarSel = (d.usedCar && d.usedCar.key) ? d.usedCar : null; // (2026-10-22) คงรถมือสองที่ผูกไว้เดิม
+  if(d.saleType === 'used') usedRestoreFromRecord(d);
+  setSaleMode(d.saleType === 'used' ? 'used' : 'new');
   updateUsedCarStatus();
   window.scrollTo(0,0);
   alert('กำลังแก้ไขข้อมูลของ "' + (d.custName||'-') + '" — เลือกรุ่นรถ/โปรใหม่ได้เลยตามปกติ พอกด "บันทึก & พิมพ์ PDF" ท้ายสุด ระบบจะอัปเดตทับเคสเดิมให้อัตโนมัติ ไม่สร้างเคสใหม่ซ้ำ');
@@ -9075,7 +9718,7 @@ loadHistory();
      (รหัสผ่านไม่ถูกเก็บไว้ที่ไหน ใช้ส่งต่อครั้งเดียวแล้วเก็บแค่ token อายุ 12 ชม.) ต้องวางก่อน auth.js เสมอ -->
 <script>
   window.RST_USED_CAR_CONFIG = {
-    apiUrl: 'https://script.google.com/macros/s/AKfycbyAQ8R1vdY6-OmmHpIeC3IRH4ZV6x-Wp9jIKyBjk5N5gTz9p__rpoZvuYSepwNpaLTq1Q/exec'
+    apiUrl: 'PASTE_USED_CAR_EXEC_URL_HERE'
   };
   (function(){
     var origFetch = window.fetch;
