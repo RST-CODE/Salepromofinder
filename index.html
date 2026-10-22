@@ -1000,6 +1000,116 @@ body.printing #printArea{
 .ghu-btn.sec{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
 .ghu-btn:disabled{opacity:.45;cursor:not-allowed}
 .ghu-sec details summary::before{content:''}
+
+/* ===== (21/10/2569) หน้าประวัติ — ช่องค้นหาด่วน/ตัวกรอง (ทุกขนาดจอ) ===== */
+.hf-quick-row{ display:flex; gap:6px; align-items:stretch; }
+.hf-quick-row .hist-quicksearch-input-wrap{ flex:1; min-width:0; }
+.hf-mfilter-btn, .hf-apply-btn{ display:none; }
+.hf-badge:empty{ display:none; }
+@media (min-width:760px){
+  /* จอใหญ่: ให้ตัวกรองขึ้นบรรทัดใหม่ได้ สถานะเคสเรียงแนวนอนเต็มแถว (เดิมอัดอยู่คอลัมน์แคบ เรียงลงยาว) */
+  .hist-filter-scroll{ flex-wrap:wrap; overflow:visible; row-gap:10px; }
+  .hist-filter-group.hf-full{ flex:1 1 100%; }
+  .hist-filter-group.hf-check{ flex:0 0 auto; }
+  .hist-filter-group.hf-check label{ padding:6px 10px; border:1.5px solid var(--line); border-radius:8px; background:#fff; font-size:12px; }
+  #exportCrmDateRangeBox input[type=date]{ width:auto; }
+}
+
+@media (max-width:759px){
+  /* แถบบน: ปุ่มไอคอนเล็กลง ไม่ล้นจอ (เดิมล้นจนทั้งหน้ากว้างเกินจอ หน้ารายละเอียดเคสโดนตัดขอบขวา) */
+  .history-topbar{ padding:8px 10px; gap:6px; }
+  .history-topbar .back-btn{ padding:7px 10px; font-size:12.5px; white-space:nowrap; flex-shrink:0; }
+  .history-topbar h2{ font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .history-tab-btn{ width:38px; height:38px; padding:0; font-size:16px; flex:0 0 38px;
+    display:inline-flex; align-items:center; justify-content:center; border-radius:10px; }
+  #histFilterToggleBtn{ display:none !important; }
+
+  /* ช่องค้นหาด่วน: โชว์ตลอด อยู่แถวเดียวกับ "เรียง" + ปุ่ม "ตัวกรอง" */
+  .hist-filter{ padding:8px 10px; }
+  .hist-filter-scroll{ display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:12px 8px;
+    overflow:visible; padding-bottom:0; }
+  .hist-filter-group, .hist-filter-group.wide, .hist-filter-group.narrow, .hist-filter-group.med{
+    grid-column:span 3; flex:none; min-width:0; max-width:none; }
+  .hist-filter-group.hist-quicksearch, .hist-filter-group.hf-full{ grid-column:1 / -1; }
+  .hist-filter-group.hf-span2{ grid-column:span 2; }
+  .hist-filter input, .hist-filter select{ font-size:16px; padding:9px 10px; min-height:44px; border-radius:10px; }
+  .hist-filter select:disabled{ background:#f1ede6; color:#aaa; }
+  .hist-filter label{ font-size:12.5px; font-weight:600; margin-bottom:4px; white-space:normal; }
+  .hist-quicksearch-input-wrap input{ padding-left:32px; }
+  .hist-quicksearch-input-wrap::before{ left:11px; font-size:14px; }
+  .hf-sort-slot-m{ flex:0 0 auto; display:flex; }
+  .hf-sort-slot-m .hist-sort-header label{ display:none; }
+  .hf-sort-slot-m .hist-sort-header select{ max-width:104px; height:44px; font-size:13px; font-weight:600; }
+  .hf-mfilter-btn{ display:inline-flex; align-items:center; gap:4px; flex:0 0 auto; position:relative;
+    font-family:'Kanit',sans-serif; font-size:13.5px; font-weight:700; padding:0 12px; min-height:44px;
+    border-radius:10px; border:1.5px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; }
+  .hf-mfilter-btn::before{ content:'☰'; font-size:14px; }
+  .hf-mfilter-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .hf-badge{ min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--accent); color:#fff;
+    font-size:11px; line-height:18px; text-align:center; box-sizing:border-box; }
+  .hf-mfilter-btn.active .hf-badge{ background:#fff; color:var(--accent); }
+
+  /* ตอนหุบ: เหลือแค่แถวค้นหา + บรรทัดจำนวนรายการ */
+  .hist-filter:not(.open) .hist-filter-group:not(.hist-quicksearch){ display:none !important; }
+  .hist-filter:not(.open) .hist-quicksearch > label{ display:none; }
+  .hist-filter:not(.open) #exportCrmDateRangeBox{ display:none !important; }
+  .hist-filter:not(.open) .hist-filter-footer button{ display:none !important; }
+  .hist-filter:not(.open) .hist-filter-footer{ margin-top:6px; }
+
+  /* ตอนกาง: เป็นแผงเลื่อนได้ในตัว ปุ่มด้านล่างติดขอบล่างเสมอ */
+  .hist-filter.open{ max-height:calc(100vh - 64px); max-height:calc(100dvh - 64px); overflow-y:auto;
+    -webkit-overflow-scrolling:touch; padding-bottom:0; box-shadow:0 8px 18px -10px rgba(0,0,0,.25); }
+  .hist-filter.open .hist-quicksearch > label{ display:none; }
+  .hf-status-chips{ gap:7px; }
+  .hf-status-chip{ font-size:13px; padding:8px 13px; }
+  .hist-filter-group.hf-check{ grid-column:span 3; }
+  .hist-filter-group.hf-check label{ width:100%; box-sizing:border-box; min-height:46px; padding:8px 10px;
+    border:1.5px solid var(--line); border-radius:10px; background:#fff; font-size:13px; line-height:1.3; }
+  .hist-filter-group.hf-check input[type=checkbox]{ min-height:0; width:18px !important; height:18px !important; flex-shrink:0; accent-color:var(--accent); }
+  #exportCrmDateRangeBox{ margin-top:12px !important; padding:10px !important; gap:8px !important; }
+  #exportCrmDateRangeBox > span:first-child{ flex:1 1 100%; font-size:12.5px !important; }
+  #exportCrmDateRangeBox input[type=date]{ flex:1 1 0; min-width:0; font-size:15px !important; padding:8px !important;
+    min-height:42px; border-radius:9px !important; }
+  #exportCrmDateRangeBox > a{ flex:1 1 100%; font-size:12.5px !important; }
+  .hist-filter.open .hist-filter-footer{ position:sticky; bottom:0; z-index:2; background:#f7f3ee;
+    flex-wrap:wrap; gap:8px; margin:12px -10px 0; padding:10px; border-top:1.5px solid var(--line); }
+  .hist-filter.open #histFilterCount{ flex:1 1 100%; }
+  .hist-filter.open .hist-filter-footer .hist-filter-clear{ min-height:44px; font-size:13px; padding:0 14px; border-radius:10px; }
+  .hist-filter.open .hf-apply-btn{ display:block; flex:1 1 100%; min-height:44px; border:none; border-radius:10px;
+    background:var(--accent); color:#fff; font-family:'Kanit',sans-serif; font-size:14.5px; font-weight:700; cursor:pointer; }
+  .hist-count{ font-size:12.5px; line-height:1.5; }
+
+  /* รายการเคส */
+  .history-list{ padding:10px; }
+  .history-card{ padding:12px; }
+  .history-card .hc-actions .btn-reprint{ min-height:38px; }
+  /* หน้ารายละเอียดเคส: หัวข้อ (ชื่อลูกค้า + ปุ่ม ✕) ติดด้านบนตลอด เลื่อนลงไปไกลแค่ไหนก็กดปิดได้ */
+  #historyDetailContent .hd-content-fade > div:first-child{ position:sticky; top:-16px; z-index:5; background:#fff;
+    margin:-16px -16px 12px !important; padding:12px 16px; border-bottom:1.5px solid var(--line); }
+  #historyDetailContent .hd-content-fade > div:first-child .hd-title{ margin:0; font-size:17px; }
+  #historyDetailContent .hd-content-fade > div:first-child button{ width:40px; height:40px; }
+  /* ดรอปดาวน์สถานะเคส: แยกเป็นแถวเต็มความกว้าง กดง่ายขึ้น */
+  .sales-summary-card .ssc-head{ flex-wrap:wrap; }
+  .sales-summary-card .ssc-head .case-status-select{ flex:1 1 100%; min-height:44px; border-radius:10px; }
+  .hd-status-note-bar .btn-reprint, .ssc-item .btn-reprint{ min-height:42px; }
+}
+/* (21/10/2569) iPhone จะซูมหน้าจออัตโนมัติทุกครั้งที่แตะช่องกรอกที่ตัวอักษรเล็กกว่า 16px (ต้องซูมออกเองทุกครั้ง)
+   → มือถือบังคับช่องกรอก/ตัวเลือกทั้งแอปเป็น 16px (ไม่ปิดการซูมด้วยนิ้ว เพื่อให้ยังขยายดูเอกสารได้) */
+@media (max-width:759px){
+  input[type=text], input[type=tel], input[type=number], input[type=search], input[type=date],
+  input[type=email], input[type=password], input:not([type]), select, textarea{ font-size:16px !important; }
+}
+
+/* ===== (22/10/2569) รายงานเคสรายวัน ===== */
+.rpt-controls{ display:flex; flex-wrap:wrap; gap:8px; padding:10px 14px; background:var(--card); border-bottom:1.5px solid var(--line); flex-shrink:0; }
+.rpt-quick{ display:flex; gap:6px; flex-wrap:wrap; flex:1 1 100%; }
+.rpt-quick button{ font-family:'Kanit',sans-serif; font-size:13px; font-weight:600; padding:7px 12px; border-radius:18px; border:1.5px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; }
+.rpt-quick button:hover{ border-color:var(--accent); color:var(--accent); }
+.rpt-dates{ display:flex; gap:6px; align-items:center; flex:1 1 300px; }
+.rpt-dates input, .rpt-dates select{ flex:1 1 0; min-width:0; font-family:'Kanit',sans-serif; font-size:14px; padding:8px; border-radius:9px; border:1.5px solid var(--line); background:#fff; }
+.rpt-dates span{ font-size:12px; color:var(--ink-soft); }
+.rpt-print-btn{ flex:0 0 auto; font-family:'Kanit',sans-serif; font-size:14px; font-weight:700; padding:9px 16px; border-radius:9px; border:none; background:var(--accent); color:#fff; cursor:pointer; }
+.modal-form-inner.rpt-wrap{ max-width:1100px; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1211,7 +1321,7 @@ body.printing #printArea{
   <div class="history-topbar">
     <button class="back-btn" onclick="closeHistory()" style="display:block">← กลับ</button>
     <h2>📋 ประวัติใบสรุป</h2>
-    <div class="hist-sort-header">
+    <div class="hist-sort-header" id="histSortHeader">
       <label for="hf_sort">เรียง</label>
       <select id="hf_sort" onchange="filterHistory()">
         <option value="date_desc">ล่าสุดก่อน</option>
@@ -1223,8 +1333,10 @@ body.printing #printArea{
         <option value="amount_asc">ยอดจัดน้อย-มาก</option>
       </select>
     </div>
+    <span id="histSortHomeAnchor" style="display:none"></span>
     <button class="history-tab-btn" id="histFilterToggleBtn" onclick="toggleHistFilterPanel()" title="ค้นหา/กรองรายการ">🔍</button>
     <button class="history-tab-btn" onclick="openDashboardModal()" title="ภาพรวมไปป์ไลน์">📊</button>
+    <button class="history-tab-btn" onclick="openDailyReportModal()" title="รายงานเคสรายวัน (พิมพ์ได้)">🗓️</button>
     <button class="history-tab-btn" onclick="openIdentityModal()" title="ชื่อ/บทบาทของฉัน">👤</button>
     <button class="history-tab-btn" onclick="openGasConfig()" title="ตั้งค่า GAS">⚙️</button>
     <button class="history-tab-btn" id="promoUploadBtn" style="display:none" onclick="openPromoUploadModal()" title="อัปโหลดไฟล์โปรโมชั่น (data.js) ขึ้น GitHub">☁️</button>
@@ -1239,8 +1351,13 @@ body.printing #printArea{
     <div class="hist-filter-scroll">
       <div class="hist-filter-group hist-quicksearch">
         <label>ค้นหาด่วน</label>
-        <div class="hist-quicksearch-input-wrap">
-          <input type="text" id="hf_quick" placeholder="ชื่อ, เบอร์, เลขแอพ, ที่อยู่, รุ่น, โปร, สาขา..." oninput="filterHistory()">
+        <div class="hf-quick-row">
+          <div class="hist-quicksearch-input-wrap">
+            <input type="search" id="hf_quick" placeholder="ชื่อ, เบอร์, เลขแอพ, ที่อยู่, รุ่น, โปร, สาขา..." oninput="filterHistory()" enterkeyhint="search">
+          </div>
+          <!-- (21/10/2569) มือถือ: ย้ายช่อง "เรียง" มาไว้ตรงนี้ + ปุ่มเปิดตัวกรองละเอียด -->
+          <div id="hfSortSlotMobile" class="hf-sort-slot-m"></div>
+          <button type="button" id="hfMobileFilterBtn" class="hf-mfilter-btn" onclick="toggleHistFilterPanel()">ตัวกรอง<span id="hfMobileFilterBadge" class="hf-badge"></span></button>
         </div>
       </div>
       <div class="hist-filter-group wide">
@@ -1251,19 +1368,19 @@ body.printing #printArea{
         <label>เบอร์โทร</label>
         <input type="text" id="hf_phone" placeholder="0xx-xxx" inputmode="tel" oninput="filterHistory()">
       </div>
-      <div class="hist-filter-group narrow">
+      <div class="hist-filter-group narrow hf-span2">
         <label>จังหวัด</label>
         <select id="hf_province" onchange="hfProvinceChange()">
           <option value="">— ทุกจังหวัด —</option>
         </select>
       </div>
-      <div class="hist-filter-group narrow">
+      <div class="hist-filter-group narrow hf-span2">
         <label>อำเภอ</label>
         <select id="hf_amphure" onchange="hfAmphureChange()" disabled>
           <option value="">— อำเภอ —</option>
         </select>
       </div>
-      <div class="hist-filter-group narrow">
+      <div class="hist-filter-group narrow hf-span2">
         <label>ตำบล</label>
         <select id="hf_tambon" onchange="filterHistory()" disabled>
           <option value="">— ตำบล —</option>
@@ -1281,17 +1398,17 @@ body.printing #printArea{
           <option value="">— ทุกโปร —</option>
         </select>
       </div>
-      <div class="hist-filter-group wide">
+      <div class="hist-filter-group wide hf-full">
         <label>สถานะเคส (แตะเลือกได้หลายข้อ)</label>
         <div id="hf_statusChips" class="hf-status-chips"></div>
       </div>
-      <div class="hist-filter-group narrow" style="display:flex;align-items:flex-end">
+      <div class="hist-filter-group narrow hf-check" style="display:flex;align-items:flex-end">
         <label style="display:flex;align-items:center;gap:5px;font-weight:600;cursor:pointer">
           <input type="checkbox" id="hf_staleOnly" onchange="filterHistory()" style="width:15px;height:15px;margin:0">
           ⏰ เฉพาะเคสค้างนาน
         </label>
       </div>
-      <div class="hist-filter-group narrow" style="display:flex;align-items:flex-end">
+      <div class="hist-filter-group narrow hf-check" style="display:flex;align-items:flex-end">
         <label style="display:flex;align-items:center;gap:5px;font-weight:600;cursor:pointer">
           <input type="checkbox" id="hf_followupDueOnly" onchange="filterHistory()" style="width:15px;height:15px;margin:0">
           🔔 ถึงกำหนดนัดติดตาม
@@ -1309,6 +1426,7 @@ body.printing #printArea{
       <span id="histFilterCount" class="hist-count"></span>
       <button id="exportCrmTemplateBtn" class="hist-filter-clear" onclick="exportCrmTemplateXLSX()" title="Export ข้อมูลลูกค้า/ลีดใส่แบบฟอร์ม CRM Import (Yanmar) เพื่อนำไป import เข้า kintone — เฉพาะผู้จัดการ (เลือกช่วงวันที่ด้านบนได้ ถ้าไม่เลือกจะ export ทั้งหมด)" style="background:var(--support);color:#fff;border-color:var(--support);display:none">📤 Export → CRM Template</button>
       <button class="hist-filter-clear" onclick="clearHistoryFilter()">✕ ล้าง</button>
+      <button type="button" id="hfApplyBtn" class="hf-apply-btn" onclick="closeHistFilterPanel()">✓ ดูผลลัพธ์</button>
     </div>
   </div>
   <div class="history-body">
@@ -2839,7 +2957,7 @@ function goToResults(){
   initAddrDropdowns();
   const model = document.getElementById('modelSelect').value;
   const seg = currentSegment;
-  const brand = currentBrand === 'yanmar' ? 'Yanmar' : (currentBrand === 'solis' ? 'Solis' : (currentBrand === 'combine' ? 'รถเกี่ยว' : 'รถขุด'));
+  const brand = currentBrand === 'yanmar' ? 'Yanmar' : (currentBrand === 'solis' ? 'Solis' : (currentBrand === 'combine' ? 'รถเกี่ยว' : (currentBrand === 'drone' ? 'โดรน' : 'รถขุด'))); // (22/10/2569) เดิมโดรนถูกบันทึกเป็น "รถขุด"
   const sum = document.getElementById('backSummary');
   if(sum) sum.textContent = brand + ' · ' + model + ' · ' + seg;
   refreshExportSummary();
@@ -3193,7 +3311,7 @@ function collectExportData(){
   const refs = (typeof refList !== 'undefined' ? refList : []).filter(r => r.name || r.phone || r.relation);
 
   const model = modelSelect.value;
-  const brand = currentBrand === 'yanmar' ? 'Yanmar' : (currentBrand === 'solis' ? 'Solis' : (currentBrand === 'combine' ? 'รถเกี่ยว' : 'รถขุด'));
+  const brand = currentBrand === 'yanmar' ? 'Yanmar' : (currentBrand === 'solis' ? 'Solis' : (currentBrand === 'combine' ? 'รถเกี่ยว' : (currentBrand === 'drone' ? 'โดรน' : 'รถขุด'))); // (22/10/2569) เดิมโดรนถูกบันทึกเป็น "รถขุด"
   const seg   = currentSegment;
 
   // Get best card entry
@@ -5823,6 +5941,15 @@ function toggleHistFilterPanel(){
   const box = document.getElementById('histFilterPanel');
   const btn = document.getElementById('histFilterToggleBtn');
   if(!box) return;
+  // (21/10/2569) มือถือ: ช่องค้นหาด่วนโชว์ตลอด — ปุ่ม "ตัวกรอง" แค่กาง/หุบตัวกรองละเอียด (class .open)
+  if(isMobileHist()){
+    box.style.display = 'block';
+    const willOpen = !box.classList.contains('open');
+    box.classList.toggle('open', willOpen);
+    document.getElementById('hfMobileFilterBtn')?.classList.toggle('active', willOpen);
+    if(willOpen) box.scrollTop = 0;
+    return;
+  }
   const willOpen = box.style.display === 'none';
   box.style.display = willOpen ? 'block' : 'none';
   if(btn) btn.classList.toggle('active', willOpen);
@@ -5831,8 +5958,241 @@ function toggleHistFilterPanel(){
 function closeHistFilterPanel(){
   const box = document.getElementById('histFilterPanel');
   const btn = document.getElementById('histFilterToggleBtn');
-  if(box) box.style.display = 'none';
+  if(box){
+    box.classList.remove('open');
+    box.style.display = isMobileHist() ? 'block' : 'none';
+  }
   if(btn) btn.classList.remove('active');
+  document.getElementById('hfMobileFilterBtn')?.classList.remove('active');
+}
+// ===== (21/10/2569) จัดหน้าประวัติให้เหมาะกับมือถือ =====
+const _histMobileMQ = window.matchMedia('(max-width:759px)');
+function isMobileHist(){ return _histMobileMQ.matches; }
+// มือถือ: ย้ายช่อง "เรียง" จากแถบบนลงมาข้างช่องค้นหาด่วน (แถบบนจะได้ไม่ล้นจอ) / จอใหญ่: ย้ายกลับที่เดิม
+function applyHistMobileLayout(){
+  const sortEl = document.getElementById('histSortHeader');
+  const slot = document.getElementById('hfSortSlotMobile');
+  const anchor = document.getElementById('histSortHomeAnchor');
+  if(sortEl && slot && anchor){
+    if(isMobileHist()){ if(sortEl.parentNode !== slot) slot.appendChild(sortEl); }
+    else if(sortEl.nextSibling !== anchor){ anchor.parentNode.insertBefore(sortEl, anchor); }
+  }
+  closeHistFilterPanel();
+}
+// จำนวนตัวกรองละเอียดที่เลือกอยู่ (ไม่นับค้นหาด่วน) — โชว์เป็นตัวเลขบนปุ่ม "ตัวกรอง" ในมือถือ
+function updateHistMobileFilterBadge(shownCount){
+  const ids = ['hf_name','hf_phone','hf_province','hf_model','hf_prog'];
+  let n = ids.filter(id => (document.getElementById(id)?.value||'').trim()).length;
+  n += _selectedStatuses.size;
+  if(document.getElementById('hf_staleOnly')?.checked) n++;
+  if(document.getElementById('hf_followupDueOnly')?.checked) n++;
+  const badge = document.getElementById('hfMobileFilterBadge');
+  if(badge) badge.textContent = n > 0 ? String(n) : '';
+  const apply = document.getElementById('hfApplyBtn');
+  if(apply) apply.textContent = (typeof shownCount === 'number') ? ('✓ ดูผลลัพธ์ (' + shownCount + ')') : '✓ ดูผลลัพธ์';
+}
+if(_histMobileMQ.addEventListener) _histMobileMQ.addEventListener('change', applyHistMobileLayout);
+else if(_histMobileMQ.addListener) _histMobileMQ.addListener(applyHistMobileLayout);
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyHistMobileLayout);
+else applyHistMobileLayout();
+// ===== (22/10/2569) รายงานเคสรายวัน — ดูว่าแต่ละวันเปิดเคสอะไร กี่เคส ที่ไหน แล้วพิมพ์/บันทึก PDF ได้ =====
+// นับตาม "วันที่บันทึกเคส" (savedAt) — เคสที่เปิดใหม่ในช่วงวันที่เลือก
+function _rptYmd(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function _rptThaiDate(ymd){
+  const p = String(ymd||'').split('-'); if(p.length !== 3) return ymd || '';
+  const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][Number(p[1])-1] || p[1];
+  return Number(p[2]) + ' ' + m + ' ' + (Number(p[0]) + 543);
+}
+// (22/10/2569) ประเภทรถของเคส — Yanmar / Solis / รถเกี่ยว / รถขุด / โดรน / รถมือสอง
+// เคสโดรนเก่าที่เคยถูกบันทึกยี่ห้อเป็น "รถขุด" (บั๊กเดิม) ดูจากชื่อรุ่น P60/P100 แทน
+const RPT_VEHICLE_TYPES = ['Yanmar','Solis','รถเกี่ยว','รถขุด','โดรน'];
+function _rptVehicleType(r){
+  const brand = String(r.brand||'').trim(), model = String(r.model||'');
+  if(/มือสอง/.test(brand + ' ' + model + ' ' + (r.progName||''))) return 'รถมือสอง';
+  if(/^P(60|100)\b/i.test(model) || /โดรน|drone/i.test(brand)) return 'โดรน';
+  if(/yanmar/i.test(brand)) return 'Yanmar';
+  if(/solis/i.test(brand)) return 'Solis';
+  if(/รถเกี่ยว|combine/i.test(brand)) return 'รถเกี่ยว';
+  if(/รถขุด|excavator/i.test(brand)) return 'รถขุด';
+  return brand || '(ไม่ระบุ)';
+}
+function _rptAddrPart(addr, prefix){
+  const m = String(addr||'').match(new RegExp(prefix.replace('.','\\.') + '\\s*([^\\s,]+)'));
+  return m ? m[1] : '';
+}
+function openDailyReportModal(){
+  const today = _rptYmd(new Date());
+  const f = document.getElementById('rptFrom'), t = document.getElementById('rptTo');
+  if(f && !f.value) f.value = today;
+  if(t && !t.value) t.value = today;
+  document.getElementById('dailyReportModalBg').style.display = 'flex';
+  const out = document.getElementById('rptContent');
+  if(!gasUrl){ out.innerHTML = '<div class="history-empty">⚠️ ยังไม่ได้ตั้งค่า GAS URL</div>'; return; }
+  // ต้องใช้ข้อมูลครบทุกเคส ไม่งั้นรายงานย้อนหลังจะนับขาด
+  if(!_historyLoadedFull){
+    out.innerHTML = '<div class="history-loading">⏳ กำลังโหลดข้อมูลทุกเคส...</div>';
+    loadFullHistory(function(){ populateReportBranches(); renderDailyReport(); });
+    return;
+  }
+  populateReportBranches();
+  renderDailyReport();
+}
+function closeDailyReportModal(){ document.getElementById('dailyReportModalBg').style.display = 'none'; }
+function setReportRange(kind){
+  const d = new Date(); let from = new Date(d), to = new Date(d);
+  if(kind === 'yesterday'){ from.setDate(d.getDate()-1); to = new Date(from); }
+  else if(kind === '7d'){ from.setDate(d.getDate()-6); }
+  else if(kind === 'month'){ from = new Date(d.getFullYear(), d.getMonth(), 1); }
+  document.getElementById('rptFrom').value = _rptYmd(from);
+  document.getElementById('rptTo').value = _rptYmd(to);
+  renderDailyReport();
+}
+function populateReportBranches(){
+  const sel = document.getElementById('rptBranch'); if(!sel) return;
+  const cur = sel.value;
+  const branches = [...new Set(_allHistoryRecords.map(r => (r.branch||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'th'));
+  sel.innerHTML = '<option value="">ทุกสาขา/ผู้ขาย</option>' + branches.map(b => `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`).join('');
+  sel.value = branches.includes(cur) ? cur : '';
+}
+function getDailyReportRecords(){
+  let from = document.getElementById('rptFrom').value || '';
+  let to = document.getElementById('rptTo').value || from;
+  if(from && to && from > to){ const x = from; from = to; to = x; }
+  const branch = document.getElementById('rptBranch')?.value || '';
+  const recs = _allHistoryRecords.filter(r => {
+    const d = String(r.savedAt || r.date || '').slice(0,10);
+    if(!d) return false;
+    if(from && d < from) return false;
+    if(to && d > to) return false;
+    if(branch && (r.branch||'').trim() !== branch) return false;
+    return true;
+  }).sort((a,b) => String(a.savedAt||'').localeCompare(String(b.savedAt||'')));
+  return { recs, from, to, branch };
+}
+// นับจำนวน + รวมยอดจัด แยกตาม key — คืนค่าเรียงจากมากไปน้อย
+function _rptGroup(recs, keyFn){
+  const m = new Map();
+  recs.forEach(r => {
+    const k = keyFn(r) || '(ไม่ระบุ)';
+    const g = m.get(k) || { key:k, count:0, fin:0 };
+    g.count++; g.fin += Number(r.finTotal)||0; m.set(k, g);
+  });
+  return [...m.values()].sort((a,b) => b.count - a.count || a.key.localeCompare(b.key,'th'));
+}
+function _rptGroupTable(title, rows, opts){
+  opts = opts || {};
+  if(!rows.length) return '';
+  const total = rows.reduce((s,g)=>s+g.count,0);
+  return `<div class="rpt-block"><div class="rpt-h">${title}</div>
+    <table class="rpt-table"><thead><tr><th>${opts.label||'รายการ'}</th><th class="n">เคส</th><th class="n">%</th>${opts.noFin?'':'<th class="n">ยอดจัดรวม</th>'}</tr></thead><tbody>
+    ${rows.map(g=>`<tr><td>${escapeHtml(g.key)}</td><td class="n"><b>${g.count}</b></td><td class="n">${Math.round(g.count*100/total)}%</td>${opts.noFin?'':`<td class="n">${fmt(g.fin)}</td>`}</tr>`).join('')}
+    </tbody></table></div>`;
+}
+function buildDailyReportHtml(){
+  const { recs, from, to, branch } = getDailyReportRecords();
+  const rangeText = (from === to) ? _rptThaiDate(from) : (_rptThaiDate(from) + ' – ' + _rptThaiDate(to));
+  const nowStr = new Date().toLocaleString('th-TH', { hour12:false, dateStyle:'medium', timeStyle:'short' });
+  const head = `<div class="rpt-title">📋 รายงานเคสประจำวัน — ${escapeHtml(rangeText)}</div>
+    <div class="rpt-sub">${branch ? 'สาขา/ผู้ขาย: <b>' + escapeHtml(branch) + '</b> · ' : ''}นับจากวันที่บันทึกเคส · พิมพ์โดย ${escapeHtml(userName||'-')} เมื่อ ${escapeHtml(nowStr)}</div>`;
+  if(!recs.length) return head + '<div class="rpt-empty">ไม่มีเคสที่บันทึกในช่วงวันที่นี้</div>';
+
+  const finSum = recs.reduce((s,r)=>s+(Number(r.finTotal)||0),0);
+  const days = _rptGroup(recs, r => String(r.savedAt||r.date||'').slice(0,10)).sort((a,b)=>a.key.localeCompare(b.key));
+  // ประเภทรถ: โชว์ครบทุกประเภทหลักเสมอ (แม้ 0 เคส) ให้รายงานแต่ละวันหน้าตาเหมือนกัน เทียบกันง่าย
+  const vtGroups = _rptGroup(recs, _rptVehicleType);
+  const vtMap = new Map(vtGroups.map(g => [g.key, g]));
+  const vtKeys = RPT_VEHICLE_TYPES.concat(vtGroups.map(g => g.key).filter(k => !RPT_VEHICLE_TYPES.includes(k)));
+  const vtRows = vtKeys.map(k => vtMap.get(k) || { key:k, count:0, fin:0 });
+  const kpi = `<div class="rpt-kpis">
+    <div class="rpt-kpi main"><div class="v">${recs.length}</div><div class="k">เคสทั้งหมด</div></div>
+    <div class="rpt-kpi main"><div class="v">${fmt(finSum)}</div><div class="k">ยอดจัดรวม (บาท)</div></div>
+  </div>
+  <div class="rpt-kpis">
+    ${vtRows.map(g=>`<div class="rpt-kpi vt${g.count?'':' zero'}"><div class="v">${g.count}</div><div class="k">${escapeHtml(g.key)}</div></div>`).join('')}
+  </div>`;
+
+  const groups = `<div class="rpt-grid">
+    ${days.length > 1 ? _rptGroupTable('📅 แยกตามวัน', days.map(g=>Object.assign({}, g, {key:_rptThaiDate(g.key)})), {label:'วันที่'}) : ''}
+    ${_rptGroupTable('🚜 แยกตามประเภทรถ', vtRows.filter(g => g.count > 0), {label:'ประเภทรถ'})}
+    ${_rptGroupTable('🏢 แยกตามสาขา / ผู้ปิดการขาย', _rptGroup(recs, r => (r.branch||'').trim()), {label:'สาขา/ผู้ขาย'})}
+    ${_rptGroupTable('📍 แยกตามจังหวัด', _rptGroup(recs, r => _rptAddrPart(r.custAddr,'จ.')), {label:'จังหวัด'})}
+    ${_rptGroupTable('📍 แยกตามอำเภอ', _rptGroup(recs, r => { const a=_rptAddrPart(r.custAddr,'อ.'), p=_rptAddrPart(r.custAddr,'จ.'); return a ? (a + (p ? ' (จ.'+p+')' : '')) : ''; }), {label:'อำเภอ', noFin:true})}
+    ${_rptGroupTable('🔧 แยกตามรุ่นรถ', _rptGroup(recs, r => [r.brand, r.model].filter(Boolean).join(' ')), {label:'รุ่น'})}
+    ${_rptGroupTable('📌 แยกตามสถานะเคสตอนนี้', _rptGroup(recs, r => r.caseStatus || 'รอดำเนินการ'), {label:'สถานะ', noFin:true})}
+  </div>`;
+
+  const multiDay = days.length > 1;
+  const list = `<div class="rpt-block"><div class="rpt-h">🧾 รายชื่อเคส (${recs.length})</div>
+    <div class="rpt-scroll"><table class="rpt-table rpt-list"><thead><tr>
+      <th class="n">#</th><th>${multiDay?'วัน-เวลา':'เวลา'}</th><th>ลูกค้า</th><th>เบอร์โทร</th><th>อำเภอ / จังหวัด</th>
+      <th>รุ่น</th><th>โปร</th><th class="n">ยอดจัด</th><th>สาขา/ผู้ขาย</th><th>สถานะ</th><th>เลขแอพ</th>
+    </tr></thead><tbody>
+    ${recs.map((r,i)=>{
+      const s = String(r.savedAt||'');
+      const when = multiDay ? (_rptThaiDate(s.slice(0,10)) + ' ' + s.slice(11,16)) : s.slice(11,16);
+      const a = _rptAddrPart(r.custAddr,'อ.'), p = _rptAddrPart(r.custAddr,'จ.');
+      return `<tr><td class="n">${i+1}</td><td class="nw">${escapeHtml(when)}</td><td>${escapeHtml(r.custName||'-')}</td>
+        <td class="nw">${escapeHtml(r.custPhone||'')}</td><td>${escapeHtml([a&&('อ.'+a), p&&('จ.'+p)].filter(Boolean).join(' ') || (r.custAddr||''))}</td>
+        <td>${escapeHtml([r.brand,r.model].filter(Boolean).join(' '))}</td><td>${escapeHtml(r.progName||'')}</td>
+        <td class="n">${fmt(Number(r.finTotal)||0)}</td><td>${escapeHtml(r.branch||'')}</td>
+        <td>${escapeHtml(r.caseStatus||'รอดำเนินการ')}</td><td>${escapeHtml(r.appNo||'')}</td></tr>`;
+    }).join('')}
+    </tbody><tfoot><tr><td colspan="7" style="text-align:right"><b>รวม</b></td><td class="n"><b>${fmt(finSum)}</b></td><td colspan="3"></td></tr></tfoot></table></div></div>`;
+  return head + kpi + groups + list;
+}
+// CSS ของรายงาน — ใช้ทั้งตอนแสดงบนจอ (ในหน้าต่าง) และตอนพิมพ์ (ใน iframe)
+const DAILY_REPORT_CSS = `
+.rpt-title{font-family:'Kanit',sans-serif;font-size:17px;font-weight:700;margin-bottom:2px}
+.rpt-sub{font-size:11.5px;color:#777;margin-bottom:10px}
+.rpt-empty{padding:30px 10px;text-align:center;color:#888}
+.rpt-kpis{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.rpt-kpi{flex:1 1 90px;border:1.5px solid #e4ddd2;border-radius:10px;padding:8px 10px;background:#fff}
+.rpt-kpi .v{font-family:'Kanit',sans-serif;font-size:19px;font-weight:700;color:#b5322a}
+.rpt-kpi .k{font-size:11px;color:#777}
+.rpt-kpi.vt{flex:1 1 50px;min-width:0;padding:6px 7px}
+.rpt-kpi.vt .k{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rpt-kpi.vt .v{font-size:17px;color:#333}
+.rpt-kpi.zero .v,.rpt-kpi.zero .k{color:#bbb}
+.rpt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-bottom:12px}
+.rpt-block{margin-bottom:10px;break-inside:avoid}
+.rpt-h{font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;margin-bottom:4px}
+.rpt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.rpt-table{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
+.rpt-table th,.rpt-table td{border:1px solid #ddd;padding:4px 6px;text-align:left;vertical-align:top}
+.rpt-table th{background:#f3eee6;font-weight:700;white-space:nowrap}
+.rpt-table .n{text-align:right;white-space:nowrap}
+.rpt-table .nw{white-space:nowrap}
+.rpt-list{min-width:860px}
+.rpt-table tfoot td{background:#faf7f2}
+`;
+function renderDailyReport(){
+  if(!document.getElementById('rptScreenCss')){
+    const st = document.createElement('style'); st.id = 'rptScreenCss'; st.textContent = DAILY_REPORT_CSS; document.head.appendChild(st);
+  }
+  const out = document.getElementById('rptContent');
+  if(out) out.innerHTML = buildDailyReportHtml();
+}
+// พิมพ์ผ่าน iframe ซ่อน — ไม่ไปยุ่งกับ #printArea ของใบสรุปการขาย, หน้ากระดาษ A4 แนวนอนให้ตารางรายชื่อไม่ล้น
+function printDailyReport(){
+  const html = buildDailyReportHtml();
+  const old = document.getElementById('rptPrintFrame'); if(old) old.remove();
+  const ifr = document.createElement('iframe');
+  ifr.id = 'rptPrintFrame';
+  ifr.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(ifr);
+  const doc = ifr.contentWindow.document;
+  doc.open();
+  doc.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>รายงานเคสประจำวัน</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <style>@page{size:A4 landscape;margin:10mm}body{font-family:'Sarabun','Kanit',sans-serif;color:#000;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    ${DAILY_REPORT_CSS}.rpt-list{min-width:0}.rpt-scroll{overflow:visible}.rpt-table{font-size:10.5px}.rpt-grid{grid-template-columns:repeat(3,1fr)}
+    thead{display:table-header-group}tr{break-inside:avoid}</style></head><body>${html}</body></html>`);
+  doc.close();
+  const go = () => { try { ifr.contentWindow.focus(); ifr.contentWindow.print(); } catch(e){ alert('พิมพ์ไม่ได้: ' + e.message); } };
+  // รอฟอนต์โหลดก่อน (ถ้าโหลดไม่ได้ภายใน 1.5 วิ ก็พิมพ์เลย)
+  let done = false; const once = () => { if(!done){ done = true; go(); } };
+  try { ifr.contentWindow.document.fonts.ready.then(() => setTimeout(once, 150)); } catch(e){}
+  setTimeout(once, 1500);
 }
 function openGasConfig(){
   const box = document.getElementById('gasConfigBox');
@@ -6094,6 +6454,7 @@ function filterHistory(){
 
   const toggleBtn = document.getElementById('histFilterToggleBtn');
   if(toggleBtn) toggleBtn.classList.toggle('has-filter', hasActiveFilter);
+  updateHistMobileFilterBadge(filtered.length);
 
   renderHistoryCards(filtered);
 }
@@ -6250,7 +6611,7 @@ function historyCardHtml(r){
     <div class="history-card${stale ? ' stale' : ''}" id="hc_${r.id}" data-record-id="${r.id}">
       <div class="hc-top">
         <div class="hc-name">${r.custName || '(ไม่ระบุชื่อ)'}</div>
-        <div class="hc-date">${r.savedAt?.slice(0,16) || ''}</div>
+        <div class="hc-date">${(r.savedAt||'').slice(0,16).replace('T',' ')}</div>
       </div>
       <div class="hc-model">${r.brand} · ${r.model} · ${r.seg}</div>
       <div class="hc-nums">
@@ -6266,7 +6627,7 @@ function historyCardHtml(r){
         ${stale ? `<span class="case-status-badge status-stale">⏰ ค้าง ${staleDays} วัน</span>` : ''}
         ${followupDue ? `<span class="case-status-badge status-stale" style="background:#FCF1D9;color:#8a6a1f">🔔 ถึงกำหนดนัด ${escapeHtml(r.nextFollowUp)}</span>` : ''}
         ${(!followupDue && followupDaysLeft!==null && followupDaysLeft>=0) ? `<span class="case-status-badge" style="background:#EEF3FA;color:#3F6FA8">📅 นัด ${escapeHtml(r.nextFollowUp)}</span>` : ''}
-        ${r.lastNoteAt ? `<span class="hc-lastnote-at">🕒 ${r.lastNoteAt.slice(0,16)}</span>` : ''}
+        ${r.lastNoteAt ? `<span class="hc-lastnote-at">🕒 ${r.lastNoteAt.slice(0,16).replace('T',' ')}</span>` : ''}
       </div>
       ${r.lastNote ? `<div class="hc-lastnote">💬 ${escapeHtml(r.lastNote)}</div>` : ''}
       <div class="hc-actions">
@@ -8924,6 +9285,34 @@ loadHistory();
       <button type="button" id="promoUploadIdBtn" class="finance-launch-btn" style="width:100%;margin-top:10px;display:none" onclick="closeIdentityModal();openPromoUploadModal()">☁️ อัปโหลดไฟล์โปรโมชั่น (data.js)</button>
       <button type="button" class="btn-save" style="width:100%;margin-top:10px;background:#c0392b" onclick="window.RSTAuth && window.RSTAuth.logout()">🚪 ออกจากระบบ</button>
     </div>
+  </div>
+</div>
+
+<!-- (22/10/2569) รายงานเคสรายวัน -->
+<div class="preview-modal-bg" id="dailyReportModalBg" style="display:none">
+  <div class="preview-modal-header">
+    <span>🗓️ รายงานเคสรายวัน</span>
+    <button onclick="closeDailyReportModal()">✕ ปิด</button>
+  </div>
+  <div class="rpt-controls">
+    <div class="rpt-quick">
+      <button type="button" onclick="setReportRange('today')">วันนี้</button>
+      <button type="button" onclick="setReportRange('yesterday')">เมื่อวาน</button>
+      <button type="button" onclick="setReportRange('7d')">7 วันล่าสุด</button>
+      <button type="button" onclick="setReportRange('month')">เดือนนี้</button>
+    </div>
+    <div class="rpt-dates">
+      <input type="date" id="rptFrom" onchange="renderDailyReport()" title="ตั้งแต่วันที่">
+      <span>ถึง</span>
+      <input type="date" id="rptTo" onchange="renderDailyReport()" title="ถึงวันที่">
+    </div>
+    <div class="rpt-dates">
+      <select id="rptBranch" onchange="renderDailyReport()"><option value="">ทุกสาขา/ผู้ขาย</option></select>
+      <button type="button" class="rpt-print-btn" onclick="printDailyReport()">🖨 พิมพ์ / PDF</button>
+    </div>
+  </div>
+  <div class="modal-form-scroll">
+    <div class="modal-form-inner rpt-wrap" id="rptContent"></div>
   </div>
 </div>
 
