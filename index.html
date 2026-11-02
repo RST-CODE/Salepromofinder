@@ -1070,6 +1070,106 @@ body.printing #printArea{
 .us-cu-add{ width:100%; padding:8px; border-radius:9px; border:1.5px dashed #cbb98f; background:#fdf8f0; color:#8a6500; font-family:'Kanit',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer; margin-top:2px; }
 .us-empty{ padding:18px 12px; border-radius:12px; border:1.5px dashed #cbb98f; background:#fdf8f0; color:#8a6500; text-align:center; font-size:13.5px; margin-bottom:10px; }
 
+
+/* ===== (2/11/2569) History Search Panel v2 — กะทัดรัด ไม่ต้องเลื่อน ===== */
+.hist-filter.hf2{
+  background:var(--card); border-bottom:1.5px solid var(--line);
+  padding:10px 16px 8px; flex-shrink:0;
+  max-height:55vh; overflow-y:auto;
+  display:flex; flex-direction:column; gap:8px;
+}
+.history-body{ min-height:0; }
+.hf2-searchrow{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.hf2-search{ position:relative; flex:1 1 260px; min-width:0; }
+.hist-filter.hf2 .hf2-search input{
+  font-size:15px; font-weight:500; padding:10px 36px 10px 14px;
+  border-radius:12px; border:2px solid var(--line); background:#fff;
+}
+.hist-filter.hf2 .hf2-search input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+.hf2-search input::-webkit-search-cancel-button{ display:none; }
+.hf2-search-x{
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  width:24px; height:24px; border-radius:50%; border:none;
+  background:#eee; color:#666; font-size:12px; cursor:pointer; line-height:24px; padding:0;
+}
+.hf2-adv-btn, .hf2-clear{
+  font-family:'Kanit',sans-serif; font-size:12.5px; font-weight:600; white-space:nowrap;
+  padding:9px 12px; border-radius:10px; border:1.5px solid var(--line);
+  background:#fff; color:var(--ink); cursor:pointer; display:inline-flex; align-items:center; gap:5px;
+}
+.hf2-adv-btn.open{ border-color:var(--accent); color:var(--accent); }
+.hf2-caret{ font-size:10px; }
+.hf2-caret::after{ content:'▼'; }
+.hf2-adv-btn.open .hf2-caret::after{ content:'▲'; }
+.hf2-badge{
+  background:var(--accent); color:#fff; border-radius:10px; min-width:18px; height:18px;
+  font-size:11px; line-height:18px; text-align:center; padding:0 5px;
+}
+.hf2-clear{ color:#888; }
+.hf2-clear:hover{ border-color:var(--accent); color:var(--accent); }
+
+.hf2-chiprow{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+.hf2-rowlabel{ font-size:11.5px; font-weight:700; color:var(--ink-soft); white-space:nowrap; }
+.hf2-chiprow .hf-status-chips{ display:contents; }
+.hist-filter.hf2 .hf-status-chip{ font-size:12px; padding:5px 11px; white-space:nowrap; }
+.hist-filter.hf2 .hf-status-chip:hover{ border-color:var(--accent); color:var(--accent); }
+.hist-filter.hf2 .hf-status-chip.active:hover{ color:#fff; }
+.hf2-sep{ width:1px; height:20px; background:var(--line); margin:0 2px; }
+.hf2-toggle-chip{
+  display:inline-flex !important; align-items:center; gap:4px; margin:0 !important;
+  font-family:'Kanit',sans-serif; font-size:12px !important; font-weight:600; white-space:nowrap;
+  padding:5px 11px; border-radius:20px; border:1.5px solid var(--line);
+  background:#fff; color:var(--ink-soft) !important; cursor:pointer; user-select:none;
+}
+.hist-filter.hf2 .hf2-toggle-chip input{ position:absolute; opacity:0; width:0; height:0; pointer-events:none; }
+.hf2-toggle-chip.stale.active{ background:#c0392b; border-color:#c0392b; color:#fff !important; }
+.hf2-toggle-chip.due.active{ background:#B8860B; border-color:#B8860B; color:#fff !important; }
+
+.hf2-adv{ background:#f7f3ee; border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; gap:10px; }
+.hf2-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px 10px; }
+.hist-filter.hf2 .hf2-grid .hist-filter-group{ flex:none; min-width:0; width:auto; }
+.hist-filter.hf2 label{ font-size:11px; font-weight:600; }
+.hist-filter.hf2 select:disabled{ background:#f2f2f2; color:#aaa; }
+.hf2-export{
+  display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+  border-top:1px dashed var(--line); padding-top:8px;
+}
+.hist-filter.hf2 .hf2-export input[type=date]{ width:auto; padding:5px 8px; font-size:12px; }
+.hf2-to{ font-size:11.5px; color:var(--ink-soft); }
+.hf2-link{ font-size:11.5px; color:var(--accent); }
+.hf2-export-btn{
+  margin-left:auto; font-family:'Kanit',sans-serif; font-size:12px; font-weight:600;
+  padding:6px 12px; border-radius:8px; border:1.5px solid var(--support);
+  background:var(--support); color:#fff; cursor:pointer; white-space:nowrap;
+}
+.hist-filter.hf2 .hist-filter-footer{ margin-top:0; }
+.hist-filter.hf2 .hist-count{ font-size:12px; }
+
+@media (max-width:759px){
+  .hist-filter.hf2{ padding:8px 10px 6px; max-height:60vh; gap:6px; }
+  .hf2-searchrow{ flex-wrap:nowrap; }
+  .hf2-search{ flex:1 1 auto; }
+  .hist-filter.hf2 .hf2-search input{ font-size:16px; padding:9px 34px 9px 12px; } /* 16px กัน iOS ซูมอัตโนมัติ */
+  .hf2-adv-btn{ padding:9px 10px; font-size:0; gap:3px; }      /* มือถือ: เหลือไอคอน + badge */
+  .hf2-adv-btn::before{ content:'⚙️'; font-size:15px; }
+  .hf2-adv-btn .hf2-badge{ font-size:11px; }
+  .hf2-adv-btn .hf2-caret{ font-size:10px; }
+  .hf2-clear{ padding:9px 10px; font-size:0; }
+  .hf2-clear::before{ content:'✕'; font-size:14px; }
+  /* สถานะ: เลื่อนแนวนอนแถวเดียว แทนการเรียงลงหลายบรรทัด */
+  .hf2-chiprow{ flex-wrap:nowrap; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+  .hf2-chiprow::-webkit-scrollbar{ display:none; }
+  .hf2-chiprow > *{ flex-shrink:0; }
+  .hf2-grid{ grid-template-columns:1fr 1fr; }
+  /* แถบหัวหน้าประวัติ: ให้ปุ่มทั้งหมดพอดีจอมือถือ ไม่ล้นขวา */
+  .history-topbar{ padding:8px 10px; gap:5px; }
+  .history-topbar .back-btn{ padding:6px 9px; font-size:12px; white-space:nowrap; flex-shrink:0; }
+  .history-topbar h2{ font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .history-tab-btn{ padding:7px 8px; font-size:13px; flex-shrink:0; }
+  .hist-sort-header label{ display:none; }
+  .hist-sort-header select{ max-width:92px; font-size:11px; padding:6px 4px; }
+  .hf2-export-btn{ margin-left:0; width:100%; }
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1304,80 +1404,78 @@ body.printing #printArea{
     <br>
     <button class="btn-save-gas" onclick="saveGasUrl()">บันทึก URL</button>
   </div>
-  <div class="hist-filter" id="histFilterPanel" style="display:none">
-    <div class="hist-filter-scroll">
-      <div class="hist-filter-group hist-quicksearch">
-        <label>ค้นหาด่วน</label>
-        <div class="hist-quicksearch-input-wrap">
-          <input type="text" id="hf_quick" placeholder="ชื่อ, เบอร์, ที่อยู่, รุ่น, โปร, สาขา..." oninput="filterHistory()">
+  <div class="hist-filter hf2" id="histFilterPanel" style="display:none">
+    <!-- (2/11/2569) จัดหน้าค้นหาใหม่: แถวค้นหาด่วน + สถานะแบบแถวเดียว + ตัวกรองละเอียดพับเก็บได้ ไม่ต้องเลื่อนเยอะ -->
+    <div class="hf2-searchrow">
+      <div class="hf2-search">
+        <input type="search" id="hf_quick" placeholder="🔍 พิมพ์ค้นหา: ชื่อ, เบอร์, ที่อยู่, รุ่น, โปร, สาขา..." oninput="filterHistory()" autocomplete="off">
+        <button type="button" class="hf2-search-x" id="hf_quickClear" onclick="document.getElementById('hf_quick').value='';filterHistory();document.getElementById('hf_quick').focus()" title="ล้างคำค้น" style="display:none">✕</button>
+      </div>
+      <button type="button" class="hf2-adv-btn" id="hf_advBtn" onclick="toggleHistAdvanced()">⚙️ ตัวกรองละเอียด <span id="hf_advBadge" class="hf2-badge" style="display:none"></span><span class="hf2-caret"></span></button>
+      <button type="button" class="hf2-clear" onclick="clearHistoryFilter()" title="ล้างตัวกรองทั้งหมด">✕ ล้างทั้งหมด</button>
+    </div>
+
+    <div class="hf2-chiprow">
+      <label class="hf2-toggle-chip stale" id="hf_staleChip"><input type="checkbox" id="hf_staleOnly" onchange="filterHistory()">⏰ ค้างนาน</label>
+      <label class="hf2-toggle-chip due" id="hf_dueChip"><input type="checkbox" id="hf_followupDueOnly" onchange="filterHistory()">🔔 ถึงกำหนดนัด</label>
+      <span class="hf2-sep"></span>
+      <span class="hf2-rowlabel">สถานะ:</span>
+      <div id="hf_statusChips" class="hf-status-chips"></div>
+    </div>
+
+    <div class="hf2-adv" id="hf_advPanel" style="display:none">
+      <div class="hf2-grid">
+        <div class="hist-filter-group">
+          <label for="hf_name">ชื่อลูกค้า</label>
+          <input type="text" id="hf_name" placeholder="ชื่อ-นามสกุล" oninput="filterHistory()">
+        </div>
+        <div class="hist-filter-group">
+          <label for="hf_phone">เบอร์โทร</label>
+          <input type="text" id="hf_phone" placeholder="0xx-xxx" inputmode="tel" oninput="filterHistory()">
+        </div>
+        <div class="hist-filter-group">
+          <label for="hf_model">รุ่นรถ</label>
+          <select id="hf_model" onchange="filterHistory()">
+            <option value="">— ทุกรุ่น —</option>
+          </select>
+        </div>
+        <div class="hist-filter-group">
+          <label for="hf_prog">โปร</label>
+          <select id="hf_prog" onchange="filterHistory()">
+            <option value="">— ทุกโปร —</option>
+          </select>
+        </div>
+        <div class="hist-filter-group">
+          <label for="hf_province">จังหวัด</label>
+          <select id="hf_province" onchange="hfProvinceChange()">
+            <option value="">— ทุกจังหวัด —</option>
+          </select>
+        </div>
+        <div class="hist-filter-group">
+          <label for="hf_amphure">อำเภอ</label>
+          <select id="hf_amphure" onchange="hfAmphureChange()" disabled>
+            <option value="">— อำเภอ —</option>
+          </select>
+        </div>
+        <div class="hist-filter-group">
+          <label for="hf_tambon">ตำบล</label>
+          <select id="hf_tambon" onchange="filterHistory()" disabled>
+            <option value="">— ตำบล —</option>
+          </select>
         </div>
       </div>
-      <div class="hist-filter-group wide">
-        <label>ชื่อลูกค้า</label>
-        <input type="text" id="hf_name" placeholder="ชื่อ-นามสกุล" oninput="filterHistory()">
-      </div>
-      <div class="hist-filter-group narrow">
-        <label>เบอร์โทร</label>
-        <input type="text" id="hf_phone" placeholder="0xx-xxx" inputmode="tel" oninput="filterHistory()">
-      </div>
-      <div class="hist-filter-group narrow">
-        <label>จังหวัด</label>
-        <select id="hf_province" onchange="hfProvinceChange()">
-          <option value="">— ทุกจังหวัด —</option>
-        </select>
-      </div>
-      <div class="hist-filter-group narrow">
-        <label>อำเภอ</label>
-        <select id="hf_amphure" onchange="hfAmphureChange()" disabled>
-          <option value="">— อำเภอ —</option>
-        </select>
-      </div>
-      <div class="hist-filter-group narrow">
-        <label>ตำบล</label>
-        <select id="hf_tambon" onchange="filterHistory()" disabled>
-          <option value="">— ตำบล —</option>
-        </select>
-      </div>
-      <div class="hist-filter-group med">
-        <label>รุ่นรถ</label>
-        <select id="hf_model" onchange="filterHistory()">
-          <option value="">— ทุกรุ่น —</option>
-        </select>
-      </div>
-      <div class="hist-filter-group med">
-        <label>โปร</label>
-        <select id="hf_prog" onchange="filterHistory()">
-          <option value="">— ทุกโปร —</option>
-        </select>
-      </div>
-      <div class="hist-filter-group wide">
-        <label>สถานะเคส (แตะเลือกได้หลายข้อ)</label>
-        <div id="hf_statusChips" class="hf-status-chips"></div>
-      </div>
-      <div class="hist-filter-group narrow" style="display:flex;align-items:flex-end">
-        <label style="display:flex;align-items:center;gap:5px;font-weight:600;cursor:pointer">
-          <input type="checkbox" id="hf_staleOnly" onchange="filterHistory()" style="width:15px;height:15px;margin:0">
-          ⏰ เฉพาะเคสค้างนาน
-        </label>
-      </div>
-      <div class="hist-filter-group narrow" style="display:flex;align-items:flex-end">
-        <label style="display:flex;align-items:center;gap:5px;font-weight:600;cursor:pointer">
-          <input type="checkbox" id="hf_followupDueOnly" onchange="filterHistory()" style="width:15px;height:15px;margin:0">
-          🔔 ถึงกำหนดนัดติดตาม
-        </label>
+      <div id="exportCrmDateRangeBox" class="hf2-export" style="display:none">
+        <span class="hf2-rowlabel">📤 Export CRM — ช่วงวันที่บันทึก:</span>
+        <input type="date" id="crmExportFromDate" title="จากวันที่ (บันทึกเมื่อ)">
+        <span class="hf2-to">ถึง</span>
+        <input type="date" id="crmExportToDate" title="ถึงวันที่ (บันทึกเมื่อ)">
+        <a href="#" class="hf2-link" onclick="document.getElementById('crmExportFromDate').value='';document.getElementById('crmExportToDate').value='';return false" title="ไม่เลือกช่วงวันที่ = export ทั้งหมด">ล้างวันที่</a>
+        <button id="exportCrmTemplateBtn" class="hf2-export-btn" onclick="exportCrmTemplateXLSX()" title="Export ข้อมูลลูกค้า/ลีดใส่แบบฟอร์ม CRM Import (Yanmar) เพื่อนำไป import เข้า kintone — เฉพาะผู้จัดการ (เลือกช่วงวันที่ได้ ถ้าไม่เลือกจะ export ทั้งหมด)" style="display:none">📤 Export → CRM Template</button>
       </div>
     </div>
-    <div id="exportCrmDateRangeBox" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;padding:6px 8px;background:#F8F4ED;border-radius:8px">
-      <span style="font-size:11px;color:var(--ink-soft);font-weight:700">📤 ช่วงวันที่บันทึก (สำหรับ Export):</span>
-      <input type="date" id="crmExportFromDate" title="จากวันที่ (บันทึกเมื่อ)" style="font-size:11.5px;padding:4px 6px;border-radius:6px;border:1px solid var(--line)">
-      <span style="font-size:11px;color:var(--ink-soft)">ถึง</span>
-      <input type="date" id="crmExportToDate" title="ถึงวันที่ (บันทึกเมื่อ)" style="font-size:11.5px;padding:4px 6px;border-radius:6px;border:1px solid var(--line)">
-      <a href="#" onclick="document.getElementById('crmExportFromDate').value='';document.getElementById('crmExportToDate').value='';return false" style="font-size:11px;color:var(--accent)">✕ ล้างช่วงวันที่ (=export ทั้งหมด)</a>
-    </div>
+
     <div class="hist-filter-footer">
       <span id="histFilterCount" class="hist-count"></span>
-      <button id="exportCrmTemplateBtn" class="hist-filter-clear" onclick="exportCrmTemplateXLSX()" title="Export ข้อมูลลูกค้า/ลีดใส่แบบฟอร์ม CRM Import (Yanmar) เพื่อนำไป import เข้า kintone — เฉพาะผู้จัดการ (เลือกช่วงวันที่ด้านบนได้ ถ้าไม่เลือกจะ export ทั้งหมด)" style="background:var(--support);color:#fff;border-color:var(--support);display:none">📤 Export → CRM Template</button>
-      <button class="hist-filter-clear" onclick="clearHistoryFilter()">✕ ล้าง</button>
     </div>
   </div>
   <div class="history-body">
@@ -6986,6 +7084,7 @@ function filterHistory(){
 
   const toggleBtn = document.getElementById('histFilterToggleBtn');
   if(toggleBtn) toggleBtn.classList.toggle('has-filter', hasActiveFilter);
+  updateHistFilterUI();
 
   renderHistoryCards(filtered);
 }
@@ -7023,6 +7122,28 @@ function sortHistoryRecords(records, sortKey){
       break;
   }
   return arr;
+}
+
+// (2/11/2569) หน้าค้นหาแบบใหม่: เปิด/ปิดตัวกรองละเอียด + อัปเดต badge/สถานะปุ่มให้เห็นว่ากรองอะไรอยู่
+function toggleHistAdvanced(force){
+  const p = document.getElementById('hf_advPanel');
+  const b = document.getElementById('hf_advBtn');
+  if(!p) return;
+  const willOpen = (typeof force === 'boolean') ? force : (p.style.display === 'none');
+  p.style.display = willOpen ? 'flex' : 'none';
+  if(b) b.classList.toggle('open', willOpen);
+}
+function updateHistFilterUI(){
+  const v = id => (document.getElementById(id)?.value || '').trim();
+  const advCount = ['hf_name','hf_phone','hf_model','hf_prog','hf_province','hf_amphure','hf_tambon'].filter(id => v(id)).length;
+  const badge = document.getElementById('hf_advBadge');
+  if(badge){ badge.textContent = advCount; badge.style.display = advCount ? '' : 'none'; }
+  const qx = document.getElementById('hf_quickClear');
+  if(qx) qx.style.display = v('hf_quick') ? '' : 'none';
+  const st = document.getElementById('hf_staleChip');
+  if(st) st.classList.toggle('active', !!document.getElementById('hf_staleOnly')?.checked);
+  const du = document.getElementById('hf_dueChip');
+  if(du) du.classList.toggle('active', !!document.getElementById('hf_followupDueOnly')?.checked);
 }
 
 function clearHistoryFilter(){
