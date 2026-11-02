@@ -1188,7 +1188,20 @@ body.printing #printArea{
 .dr-pipe:hover{ border-color:var(--accent); }
 .dr-pipe:disabled{ opacity:.45; cursor:default; }
 .dr-pipe .case-status-badge{ padding:2px 9px; font-size:11px; }
-.dr-tablewrap{ overflow-x:auto; border:1.5px solid var(--line); border-radius:10px; max-height:300px; overflow-y:auto; }
+.dr-tablewrap{ overflow-x:auto; border:1.5px solid var(--line); border-radius:10px; }
+/* (2/11/2569) กดแถวแล้วกางรายละเอียดเบื้องต้นใต้แถว แทนการเด้งไปหน้าอื่น */
+.dr-table tbody tr.dr-row.open{ background:color-mix(in srgb, var(--accent) 7%, white); }
+.dr-table tbody tr.dr-row td:first-child b::before{ content:'▸ '; color:var(--ink-soft); font-size:10px; }
+.dr-table tbody tr.dr-row.open td:first-child b::before{ content:'▾ '; color:var(--accent); }
+.dr-table tbody tr.dr-detail{ cursor:default; }
+.dr-table tbody tr.dr-detail:hover{ background:transparent; }
+.dr-table tr.dr-detail > td{ background:#faf7f2; border-top:none; padding:8px 12px 12px; }
+.dr-dgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:4px 16px; font-size:12px; }
+.dr-dgrid div{ color:var(--ink); } .dr-dgrid span{ color:var(--ink-soft); }
+.dr-dnote{ margin-top:6px; font-size:12px; background:#fff; border:1px solid var(--line); border-radius:8px; padding:6px 9px; white-space:pre-wrap; }
+.dr-dact{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.dr-dact a, .dr-dact button{ font-family:'Kanit',sans-serif; font-size:12px; font-weight:600; padding:6px 12px; border-radius:8px; border:1.5px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; text-decoration:none; }
+.dr-dact .primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
 .dr-table{ width:100%; border-collapse:collapse; font-size:12px; }
 .dr-table th{ position:sticky; top:0; background:#f7f3ee; text-align:left; font-weight:700; color:var(--ink-soft); font-size:11px; padding:6px 8px; white-space:nowrap; }
 .dr-table td{ padding:6px 8px; border-top:1px solid var(--line); vertical-align:top; }
@@ -1209,6 +1222,8 @@ body.printing #printArea{
   .dr-grid{ grid-template-columns:repeat(2,1fr); }
   .dr-print{ margin-left:0; width:100%; }
   .dr-note{ display:none; } .dr-table th:last-child{ display:none; }
+  .dr-dwrap{ position:sticky; left:12px; width:calc(100vw - 90px); }
+  .dr-dact a, .dr-dact button{ flex:1 1 auto; text-align:center; }
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -6771,7 +6786,7 @@ function renderDashboard(){
     const tag = mode==='urgent'
       ? (isFollowupDue(r) ? `<span class="dr-tag due">🔔 ถึงนัด</span>` : '') + (isStaleCase(r) ? `<span class="dr-tag stale">⏰ ${d} วัน</span>` : '')
       : (drDayKey(r.savedAt)===_drState.date ? `<span class="dr-tag new">ใหม่</span>` : `<span class="dr-tag upd">อัปเดต</span>`);
-    return `<tr onclick="closeDashboardModal();openHistoryDetailFromReport('${esc(String(r.id))}')">
+    return `<tr class="dr-row" onclick="drToggleRow(this,'${esc(String(r.id))}')" title="กดเพื่อดูรายละเอียด">
       <td><b>${esc(r.custName||'-')}</b>${r.custPhone?`<div class="dr-sub">📞 ${esc(r.custPhone)}</div>`:''}${!_drState.person && r.branch?`<div class="dr-sub">👤 ${esc(r.branch)}</div>`:''}</td>
       <td>${esc(r.model||'-')}</td>
       <td><span class="case-status-badge status-${drSlug(r)}">${esc(r.caseStatus||'รอดำเนินการ')}</span></td>
@@ -6839,6 +6854,45 @@ function renderDashboard(){
   `;
 }
 
+// กดแถวในตารางรายงาน → กาง/พับรายละเอียดเบื้องต้นใต้แถวนั้น (ยังไม่ออกจากหน้ารายงาน)
+// ถ้าต้องการทำอะไรต่อ (อัปเดตสถานะ/บันทึกโน้ต) ค่อยกด "เปิดเคสเต็ม"
+function drToggleRow(tr, id){
+  const next = tr.nextElementSibling;
+  if(next && next.classList.contains('dr-detail')){ next.remove(); tr.classList.remove('open'); return; }
+  const r = _allHistoryRecords.find(x => String(x.id) === String(id));
+  if(!r) return;
+  const esc = escapeHtml;
+  const cols = tr.children.length;
+  const d = daysSince(r.lastNoteAt || r.savedAt);
+  const dt = v => v ? new Date(v).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}) : '-';
+  const item = (k,v) => v ? `<div><span>${k}:</span> ${v}</div>` : '';
+  const phone = (r.custPhone||'').replace(/[^0-9+]/g,'');
+  const row = document.createElement('tr');
+  row.className = 'dr-detail';
+  row.innerHTML = `<td colspan="${cols}"><div class="dr-dwrap">
+    <div class="dr-dgrid">
+      ${item('ลูกค้า', '<b>'+esc(r.custName||'-')+'</b>')}
+      ${item('เบอร์โทร', esc(r.custPhone||''))}
+      ${item('ที่อยู่', esc(r.custAddr||''))}
+      ${item('รุ่นรถ', esc([r.brand, r.model].filter(Boolean).join(' ')))}
+      ${item('โปร', esc(r.progName||''))}
+      ${item('แหล่งที่มา', esc(r.leadSource||''))}
+      ${item('พนักงาน', esc(r.branch||''))}
+      ${item('สถานะ', `<span class="case-status-badge status-${drSlug(r)}">${esc(r.caseStatus||'รอดำเนินการ')}</span>`)}
+      ${item('เปิดเคสเมื่อ', dt(r.savedAt))}
+      ${item('อัปเดตล่าสุด', dt(r.lastNoteAt||r.savedAt) + (d!==null ? ` (${d} วันที่แล้ว)` : ''))}
+      ${item('นัดติดตามครั้งถัดไป', r.nextFollowUp ? drThaiDate(r.nextFollowUp) + (isFollowupDue(r) ? ' <b style="color:#B8860B">— ถึงกำหนดแล้ว</b>' : '') : '<span>ยังไม่ได้นัด</span>')}
+    </div>
+    ${r.lastNote ? `<div class="dr-dnote">💬 ${esc(r.lastNote)}</div>` : ''}
+    <div class="dr-dact">
+      ${phone ? `<a href="tel:${esc(phone)}" onclick="event.stopPropagation()">📞 โทรหาลูกค้า</a>` : ''}
+      <button type="button" class="primary" onclick="event.stopPropagation();closeDashboardModal();openHistoryDetailFromReport('${esc(String(r.id))}')">📂 เปิดเคสเต็ม (อัปเดต/บันทึกโน้ต)</button>
+      <button type="button" onclick="event.stopPropagation();drToggleRow(this.closest('tr').previousElementSibling,'${esc(String(r.id))}')">✕ ซ่อน</button>
+    </div>
+  </div></td>`;
+  tr.after(row);
+  tr.classList.add('open');
+}
 // เปิดรายละเอียดเคสจากรายงาน (ใช้ฟังก์ชันเปิดรายละเอียดเดิมของหน้าประวัติ ถ้ามี)
 function openHistoryDetailFromReport(id){
   if(typeof viewHistoryDetail === 'function'){ viewHistoryDetail(id); document.getElementById('hc_'+id)?.scrollIntoView({block:'nearest'}); return; }
@@ -9982,7 +10036,7 @@ loadHistory();
      (รหัสผ่านไม่ถูกเก็บไว้ที่ไหน ใช้ส่งต่อครั้งเดียวแล้วเก็บแค่ token อายุ 12 ชม.) ต้องวางก่อน auth.js เสมอ -->
 <script>
   window.RST_USED_CAR_CONFIG = {
-    apiUrl: 'https://script.google.com/macros/s/AKfycbyAQ8R1vdY6-OmmHpIeC3IRH4ZV6x-Wp9jIKyBjk5N5gTz9p__rpoZvuYSepwNpaLTq1Q/exec'
+    apiUrl: 'PASTE_USED_CAR_EXEC_URL_HERE'
   };
   (function(){
     var origFetch = window.fetch;
