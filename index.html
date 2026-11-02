@@ -1170,6 +1170,46 @@ body.printing #printArea{
   .hist-sort-header select{ max-width:92px; font-size:11px; padding:6px 4px; }
   .hf2-export-btn{ margin-left:0; width:100%; }
 }
+
+/* ===== (2/11/2569) รายงานประจำวัน ===== */
+.dr-controls{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:6px; }
+.dr-controls label{ font-size:12px; font-weight:600; color:var(--ink-soft); display:flex; align-items:center; gap:5px; }
+.dr-controls input, .dr-controls select{ font-family:'Kanit',sans-serif; font-size:13px; padding:6px 8px; border-radius:8px; border:1.5px solid var(--line); background:#fff; }
+.dr-print{ margin-left:auto; font-family:'Kanit',sans-serif; font-size:13px; font-weight:700; padding:8px 14px; border-radius:9px; border:none; background:var(--accent); color:#fff; cursor:pointer; }
+.dr-warn{ font-size:11px; color:#B8860B; margin-bottom:4px; }
+.dr-h{ font-size:13px; font-weight:700; margin:14px 0 6px; }
+.dr-hint{ font-size:11px; font-weight:500; color:var(--ink-soft); }
+.dr-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.dr-tile{ background:var(--card); border:1.5px solid var(--line); border-radius:12px; padding:10px 12px; }
+.dr-num{ font-size:24px; font-weight:800; line-height:1.15; color:var(--ink); }
+.dr-label{ font-size:11px; color:var(--ink-soft); }
+.dr-pipes{ display:flex; flex-wrap:wrap; gap:6px; }
+.dr-pipe{ display:inline-flex; align-items:center; gap:6px; font-family:'Kanit',sans-serif; font-size:13px; padding:4px 10px 4px 4px; border-radius:20px; border:1.5px solid var(--line); background:#fff; cursor:pointer; }
+.dr-pipe:hover{ border-color:var(--accent); }
+.dr-pipe:disabled{ opacity:.45; cursor:default; }
+.dr-pipe .case-status-badge{ padding:2px 9px; font-size:11px; }
+.dr-tablewrap{ overflow-x:auto; border:1.5px solid var(--line); border-radius:10px; max-height:300px; overflow-y:auto; }
+.dr-table{ width:100%; border-collapse:collapse; font-size:12px; }
+.dr-table th{ position:sticky; top:0; background:#f7f3ee; text-align:left; font-weight:700; color:var(--ink-soft); font-size:11px; padding:6px 8px; white-space:nowrap; }
+.dr-table td{ padding:6px 8px; border-top:1px solid var(--line); vertical-align:top; }
+.dr-table tbody tr{ cursor:pointer; }
+.dr-table tbody tr:hover{ background:color-mix(in srgb, var(--accent) 5%, white); }
+.dr-table .case-status-badge{ padding:2px 8px; font-size:10.5px; white-space:nowrap; }
+.dr-staff td{ text-align:center; } .dr-staff td:first-child, .dr-staff th:first-child{ text-align:left; }
+.dr-sub{ font-size:10.5px; color:var(--ink-soft); white-space:nowrap; }
+#dashboardModalBg .modal-form-inner{ max-width:980px; width:100%; box-sizing:border-box; }
+.dr-table td:first-child{ min-width:120px; }
+.dr-note{ max-width:220px; font-size:11px; color:var(--ink-soft); }
+.dr-empty{ text-align:center; color:var(--ink-soft); cursor:default; }
+.dr-tag{ display:inline-block; font-size:10.5px; font-weight:700; padding:1px 7px; border-radius:10px; margin:0 3px 2px 0; white-space:nowrap; }
+.dr-tag.due{ background:#fdf3d8; color:#8a6500; } .dr-tag.stale{ background:#fbe3e0; color:#c0392b; }
+.dr-tag.new{ background:#e3f3e6; color:#1e7e34; } .dr-tag.upd{ background:#eef0f4; color:#555; }
+.dr-notebox{ width:100%; box-sizing:border-box; font-family:'Kanit',sans-serif; font-size:13px; padding:8px 10px; border-radius:10px; border:1.5px solid var(--line); resize:vertical; }
+@media (max-width:600px){
+  .dr-grid{ grid-template-columns:repeat(2,1fr); }
+  .dr-print{ margin-left:0; width:100%; }
+  .dr-note{ display:none; } .dr-table th:last-child{ display:none; }
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1393,7 +1433,7 @@ body.printing #printArea{
       </select>
     </div>
     <button class="history-tab-btn" id="histFilterToggleBtn" onclick="toggleHistFilterPanel()" title="ค้นหา/กรองรายการ">🔍</button>
-    <button class="history-tab-btn" onclick="openDashboardModal()" title="ภาพรวมไปป์ไลน์">📊</button>
+    <button class="history-tab-btn" onclick="openDashboardModal()" title="รายงานประจำวัน">📊</button>
     <button class="history-tab-btn" onclick="openIdentityModal()" title="ชื่อ/บทบาทของฉัน">👤</button>
     <button class="history-tab-btn" onclick="openGasConfig()" title="ตั้งค่า GAS">⚙️</button>
     <button class="history-tab-btn" id="promoUploadBtn" style="display:none" onclick="openPromoUploadModal()" title="อัปโหลดไฟล์โปรโมชั่น (data.js) ขึ้น GitHub">☁️</button>
@@ -6650,7 +6690,213 @@ async function ghuDownloadCurrent(){
   }
 }
 
-// ===== แดชบอร์ดภาพรวมไปป์ไลน์ (จำนวนเคส/มูลค่า/อัตราปิดการขาย/เคสค้างนาน) =====
+// ===== (2/11/2569) รายงานประจำวัน — แทนแดชบอร์ดเดิม =====
+// ตัดยอดเงินทุกจุดออก (ไม่โชว์มูลค่าในไปป์ไลน์), ตัดตารางแยกตามแหล่งที่มา/โปรแกรมที่ซ้ำซ้อนออก
+// เหลือ: ผลงานวันนี้ · ยอดสะสมเดือนนี้ · ไปป์ไลน์ (จำนวนเคส) · เคสต้องตามด่วน · นัดพรุ่งนี้ · รายการที่ทำวันนี้ · สรุปรายพนักงาน (ผู้จัดการ)
+// คำนวณจาก _allHistoryRecords ในเครื่องล้วนๆ ไม่ยิง request เพิ่ม
+// หมายเหตุ: ระบบไม่ได้เก็บ "วันที่เปลี่ยนสถานะ" แยกไว้ — "ปิดได้/เสีย วันนี้" จึงนับจากเคสที่สถานะปัจจุบันเป็นปิดแล้ว และอัปเดตล่าสุด (lastNoteAt) ตรงกับวันที่รายงาน
+let _drState = { date:'', person:null, note:'' };
+function drDayKey(v){
+  if(!v) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  const d = new Date(v); if(isNaN(d.getTime())) return '';
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function drAddDays(key, n){
+  const d = new Date(key+'T12:00:00'); d.setDate(d.getDate()+n); return drDayKey(d);
+}
+function drThaiDate(key){
+  if(!key) return '-';
+  const d = new Date(key+'T12:00:00');
+  return d.toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'2-digit'});
+}
+function drSlug(r){ return statusSlug(r.caseStatus||'รอดำเนินการ'); }
+function drUpdKey(r){ return drDayKey(r.lastNoteAt || r.savedAt); }
+
+function drCompute(records, dateKey){
+  const monthKey = dateKey.slice(0,7);
+  const tomorrow = drAddDays(dateKey, 1);
+  const newToday   = records.filter(r => drDayKey(r.savedAt) === dateKey);
+  const touchedToday = records.filter(r => drDayKey(r.savedAt) === dateKey || drDayKey(r.lastNoteAt) === dateKey);
+  const updatedToday = records.filter(r => drDayKey(r.lastNoteAt) === dateKey && drDayKey(r.savedAt) !== dateKey);
+  const wonToday  = records.filter(r => drSlug(r)==='good' && drUpdKey(r) === dateKey);
+  const lostToday = records.filter(r => drSlug(r)==='bad'  && drUpdKey(r) === dateKey);
+  const inMonth = k => k && k.slice(0,7) === monthKey && k <= dateKey;
+  const newMonth  = records.filter(r => inMonth(drDayKey(r.savedAt)));
+  const wonMonth  = records.filter(r => drSlug(r)==='good' && inMonth(drUpdKey(r)));
+  const lostMonth = records.filter(r => drSlug(r)==='bad'  && inMonth(drUpdKey(r)));
+  const closedM = wonMonth.length + lostMonth.length;
+  const winRateMonth = closedM ? Math.round(wonMonth.length*100/closedM) : null;
+  const open = records.filter(r => drSlug(r)==='wait');
+  const urgent = open.filter(r => isFollowupDue(r) || isStaleCase(r))
+    .sort((a,b) => (daysSince(b.lastNoteAt||b.savedAt)||0) - (daysSince(a.lastNoteAt||a.savedAt)||0));
+  const tomorrowList = open.filter(r => r.nextFollowUp === tomorrow);
+  return {newToday, touchedToday, updatedToday, wonToday, lostToday, newMonth, wonMonth, lostMonth, winRateMonth, open, urgent, tomorrowList, tomorrow};
+}
+
+function drPeopleList(){
+  return [...new Set(_allHistoryRecords.map(r => (r.branch||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'th'));
+}
+function drFilteredRecords(){
+  const p = _drState.person;
+  return p ? _allHistoryRecords.filter(r => (r.branch||'').trim() === p) : _allHistoryRecords;
+}
+
+function renderDashboard(){
+  const box = document.getElementById('dashboardContent');
+  if(!box) return;
+  const today = drDayKey(new Date());
+  if(!_drState.date) _drState.date = today;
+  const people = drPeopleList();
+  if(_drState.person === null){
+    // พนักงานขาย: เปิดมาเห็นของตัวเองก่อน · ผู้จัดการ/แอดมิน: เห็นทั้งหมด
+    _drState.person = (userRole==='sales' && userName && people.includes(userName)) ? userName : '';
+  }
+  const records = drFilteredRecords();
+  const c = drCompute(records, _drState.date);
+  const isMgr = isManagerUser();
+  const esc = escapeHtml;
+
+  const tile = (num, label, color, onclick) => `<div class="dr-tile"${onclick?` onclick="${onclick}" style="cursor:pointer"`:''}>
+      <div class="dr-num"${color?` style="color:${color}"`:''}>${num}</div><div class="dr-label">${label}</div></div>`;
+
+  const pipeChips = CASE_STATUSES.filter(s => statusSlug(s)==='wait').map(s => {
+    const n = records.filter(r => (CASE_STATUSES.includes(r.caseStatus)?r.caseStatus:'รอดำเนินการ') === s).length;
+    return `<button type="button" class="dr-pipe" ${n?`onclick="jumpToStatusFilter('${s}')"`:'disabled'}><span class="case-status-badge status-wait">${esc(s)}</span><b>${n}</b></button>`;
+  }).join('');
+
+  const caseRows = (list, mode) => list.length ? list.map(r => {
+    const d = daysSince(r.lastNoteAt||r.savedAt);
+    const due = r.nextFollowUp ? drThaiDate(r.nextFollowUp) : '-';
+    const tag = mode==='urgent'
+      ? (isFollowupDue(r) ? `<span class="dr-tag due">🔔 ถึงนัด</span>` : '') + (isStaleCase(r) ? `<span class="dr-tag stale">⏰ ${d} วัน</span>` : '')
+      : (drDayKey(r.savedAt)===_drState.date ? `<span class="dr-tag new">ใหม่</span>` : `<span class="dr-tag upd">อัปเดต</span>`);
+    return `<tr onclick="closeDashboardModal();openHistoryDetailFromReport('${esc(String(r.id))}')">
+      <td><b>${esc(r.custName||'-')}</b>${r.custPhone?`<div class="dr-sub">📞 ${esc(r.custPhone)}</div>`:''}${!_drState.person && r.branch?`<div class="dr-sub">👤 ${esc(r.branch)}</div>`:''}</td>
+      <td>${esc(r.model||'-')}</td>
+      <td><span class="case-status-badge status-${drSlug(r)}">${esc(r.caseStatus||'รอดำเนินการ')}</span></td>
+      <td>${tag}</td>
+      <td>${due}</td>
+      <td class="dr-note">${esc(r.lastNote||'')}</td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="6" class="dr-empty">— ไม่มี —</td></tr>`;
+  const caseTable = (list, mode, h4) => `<div class="dr-tablewrap"><table class="dr-table">
+      <thead><tr><th>ลูกค้า</th><th>รุ่น</th><th>สถานะ</th><th>${h4}</th><th>นัดถัดไป</th><th>โน้ตล่าสุด</th></tr></thead>
+      <tbody>${caseRows(list, mode)}</tbody></table></div>`;
+
+  let staffHtml = '';
+  if(isMgr && !_drState.person && people.length){
+    staffHtml = `<div class="dr-h">👥 สรุปรายพนักงาน</div><div class="dr-tablewrap"><table class="dr-table dr-staff">
+      <thead><tr><th>พนักงาน</th><th>ใหม่วันนี้</th><th>อัปเดตวันนี้</th><th>ปิดได้เดือนนี้</th><th>เคสเปิด</th><th>ต้องตามด่วน</th></tr></thead><tbody>` +
+      people.map(p => {
+        const pc = drCompute(_allHistoryRecords.filter(r => (r.branch||'').trim()===p), _drState.date);
+        return `<tr onclick="_drState.person='${esc(p)}';renderDashboard()"><td><b>${esc(p)}</b></td><td>${pc.newToday.length}</td><td>${pc.updatedToday.length}</td><td>${pc.wonMonth.length}</td><td>${pc.open.length}</td><td${pc.urgent.length?' style="color:#c0392b;font-weight:700"':''}>${pc.urgent.length}</td></tr>`;
+      }).join('') + `</tbody></table></div>`;
+  }
+
+  box.innerHTML = `
+    <div class="dr-controls">
+      <label>วันที่ <input type="date" id="drDate" value="${_drState.date}" max="${today}" onchange="_drState.date=this.value||'${today}';renderDashboard()"></label>
+      <label>พนักงาน <select id="drPerson" onchange="_drState.person=this.value;renderDashboard()">
+        <option value="">ทั้งหมด</option>${people.map(p=>`<option ${p===_drState.person?'selected':''}>${esc(p)}</option>`).join('')}
+      </select></label>
+      <button type="button" class="dr-print" onclick="printDailyReport()">🖨️ พิมพ์รายงาน</button>
+    </div>
+    ${_historyLoadedFull ? '' : `<div class="dr-warn">ข้อมูลยังโหลดไม่ครบ ตัวเลขอาจไม่ครบทุกเคส</div>`}
+
+    <div class="dr-h">📅 ผลงานวันที่ ${drThaiDate(_drState.date)}</div>
+    <div class="dr-grid">
+      ${tile(c.newToday.length, 'เคสใหม่')}
+      ${tile(c.updatedToday.length, 'ติดตาม/อัปเดตเคสเดิม')}
+      ${tile(c.wonToday.length, '✅ ปิดได้ (อนุมัติ/ส่งมอบ)', '#1e7e34')}
+      ${tile(c.lostToday.length, '❌ เสีย (ไม่อนุมัติ/ยกเลิก)', c.lostToday.length?'#c0392b':'')}
+    </div>
+
+    <div class="dr-h">📈 ยอดสะสมเดือนนี้ (ถึง ${drThaiDate(_drState.date)})</div>
+    <div class="dr-grid">
+      ${tile(c.newMonth.length, 'เคสใหม่')}
+      ${tile(c.wonMonth.length, '✅ ปิดได้ (คัน)', '#1e7e34')}
+      ${tile(c.lostMonth.length, '❌ เสีย')}
+      ${tile(c.winRateMonth===null?'—':c.winRateMonth+'%', 'อัตราปิดได้')}
+    </div>
+
+    <div class="dr-h">🔄 เคสที่ยังเปิดอยู่ ${c.open.length} เคส <span class="dr-hint">(กดเพื่อดูรายการ)</span></div>
+    <div class="dr-pipes">${pipeChips}</div>
+
+    <div class="dr-h" style="color:#c0392b">⚠️ เคสต้องตามด่วน ${c.urgent.length} เคส <span class="dr-hint">(ถึงกำหนดนัด หรือไม่มีอัปเดตเกิน ${STALE_DAYS} วัน)</span></div>
+    ${caseTable(c.urgent, 'urgent', 'เหตุผล')}
+
+    <div class="dr-h">🗓️ นัดติดตามพรุ่งนี้ (${drThaiDate(c.tomorrow)}) ${c.tomorrowList.length} เคส</div>
+    ${caseTable(c.tomorrowList, 'tomorrow', 'ประเภท')}
+
+    <div class="dr-h">📝 เคสที่ทำในวันที่ ${drThaiDate(_drState.date)} ${c.touchedToday.length} เคส</div>
+    ${caseTable(c.touchedToday, 'touched', 'ประเภท')}
+
+    ${staffHtml}
+
+    <div class="dr-h">✍️ สรุป / ปัญหา / แผนพรุ่งนี้ <span class="dr-hint">(พิมพ์ออกไปพร้อมรายงาน)</span></div>
+    <textarea id="drNote" class="dr-notebox" rows="3" placeholder="เช่น ลูกค้านัดดูรถพรุ่งนี้ 2 ราย, รอเอกสารจากไฟแนนซ์..." oninput="_drState.note=this.value">${esc(_drState.note)}</textarea>
+  `;
+}
+
+// เปิดรายละเอียดเคสจากรายงาน (ใช้ฟังก์ชันเปิดรายละเอียดเดิมของหน้าประวัติ ถ้ามี)
+function openHistoryDetailFromReport(id){
+  if(typeof viewHistoryDetail === 'function'){ viewHistoryDetail(id); document.getElementById('hc_'+id)?.scrollIntoView({block:'nearest'}); return; }
+  const q = document.getElementById('hf_quick');
+  const rec = _allHistoryRecords.find(r => String(r.id)===String(id));
+  if(q && rec){ document.getElementById('histFilterPanel').style.display='block'; q.value = rec.custName||''; filterHistory(); }
+}
+
+function printDailyReport(){
+  const records = drFilteredRecords();
+  const c = drCompute(records, _drState.date);
+  const esc = escapeHtml;
+  const who = _drState.person || 'ทุกคน';
+  const rows = (list, mode) => list.length ? list.map((r,i) => {
+    const d = daysSince(r.lastNoteAt||r.savedAt);
+    const why = mode==='urgent'
+      ? [isFollowupDue(r)?'ถึงนัด':'', isStaleCase(r)?('ค้าง '+d+' วัน'):''].filter(Boolean).join(', ')
+      : (drDayKey(r.savedAt)===_drState.date ? 'ใหม่' : 'อัปเดต');
+    return `<tr><td style="text-align:center">${i+1}</td><td>${esc(r.custName||'-')}${r.custPhone?'<br><span style="font-size:7.5pt">'+esc(r.custPhone)+'</span>':''}</td>
+      ${_drState.person?'':`<td>${esc(r.branch||'-')}</td>`}
+      <td>${esc(r.model||'-')}</td><td>${esc(r.caseStatus||'รอดำเนินการ')}</td><td>${why}</td>
+      <td>${r.nextFollowUp?drThaiDate(r.nextFollowUp):'-'}</td><td>${esc(r.lastNote||'')}</td></tr>`;
+  }).join('') : `<tr><td colspan="${_drState.person?7:8}" style="text-align:center;color:#666">— ไม่มี —</td></tr>`;
+  const table = (title, list, mode, h) => `<div style="font-weight:bold;margin:8px 0 3px">${title}</div>
+    <table style="width:100%;border-collapse:collapse;font-size:8pt" border="1" cellpadding="3">
+      <thead style="background:#eee"><tr><th style="width:18px">#</th><th>ลูกค้า</th>${_drState.person?'':'<th>พนักงาน</th>'}<th>รุ่น</th><th>สถานะ</th><th>${h}</th><th>นัดถัดไป</th><th>โน้ตล่าสุด</th></tr></thead>
+      <tbody>${rows(list, mode)}</tbody></table>`;
+  const box = (n,l) => `<td style="border:1px solid #000;text-align:center;padding:4px;width:21%"><div style="font-size:14pt;font-weight:bold">${n}</div><div style="font-size:7.5pt">${l}</div></td>`;
+  const pipe = CASE_STATUSES.filter(s=>statusSlug(s)==='wait').map(s => {
+    const n = records.filter(r => (CASE_STATUSES.includes(r.caseStatus)?r.caseStatus:'รอดำเนินการ')===s).length;
+    return `${esc(s)} <b>${n}</b>`;
+  }).join(' &nbsp;|&nbsp; ');
+  const note = (document.getElementById('drNote')?.value || _drState.note || '').trim();
+  const html = `
+    <div style="text-align:center;margin-bottom:6px">
+      <div style="font-size:13pt;font-weight:bold">รายงานประจำวัน — รวมสินไทยแทรกเตอร์</div>
+      <div style="font-size:9.5pt">วันที่ ${drThaiDate(_drState.date)} &nbsp;·&nbsp; พนักงาน: <b>${esc(who)}</b> &nbsp;·&nbsp; พิมพ์เมื่อ ${new Date().toLocaleString('th-TH')}</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:4px"><tr>
+      <td style="font-weight:bold;width:70px;font-size:8.5pt">วันนี้</td>${box(c.newToday.length,'เคสใหม่')}${box(c.updatedToday.length,'ติดตาม/อัปเดต')}${box(c.wonToday.length,'ปิดได้')}${box(c.lostToday.length,'เสีย')}
+    </tr><tr>
+      <td style="font-weight:bold;font-size:8.5pt">เดือนนี้</td>${box(c.newMonth.length,'เคสใหม่')}${box(c.wonMonth.length,'ปิดได้ (คัน)')}${box(c.lostMonth.length,'เสีย')}${box(c.winRateMonth===null?'—':c.winRateMonth+'%','อัตราปิดได้')}
+    </tr></table>
+    <div style="font-size:8.5pt;margin:4px 0"><b>เคสที่ยังเปิดอยู่ ${c.open.length} เคส:</b> ${pipe}</div>
+    ${table('⚠ เคสต้องตามด่วน ('+c.urgent.length+')', c.urgent, 'urgent', 'เหตุผล')}
+    ${table('นัดติดตามพรุ่งนี้ '+drThaiDate(c.tomorrow)+' ('+c.tomorrowList.length+')', c.tomorrowList, 'x', 'ประเภท')}
+    ${table('เคสที่ทำวันนี้ ('+c.touchedToday.length+')', c.touchedToday, 'x', 'ประเภท')}
+    <div style="font-weight:bold;margin:8px 0 3px">สรุป / ปัญหา / แผนพรุ่งนี้</div>
+    <div style="border:1px solid #000;min-height:22mm;padding:4px;font-size:8.5pt;white-space:pre-wrap">${esc(note)}</div>
+    <table style="width:100%;margin-top:14px;font-size:9pt"><tr>
+      <td style="text-align:center">ลงชื่อ ................................<br>ผู้รายงาน</td>
+      <td style="text-align:center">ลงชื่อ ................................<br>ผู้จัดการ / หัวหน้า</td>
+    </tr></table>`;
+  document.getElementById('printArea').innerHTML = html;
+  document.body.classList.add('printing');
+  window.print();
+  document.body.classList.remove('printing');
+}
 // คำนวณจาก _allHistoryRecords ที่โหลดไว้ในเครื่องล้วนๆ ไม่ยิง request เพิ่มเติมจากที่ระบบยิงอยู่แล้วตอนเปิดหน้าประวัติ
 function openDashboardModal(){
   document.getElementById('dashboardModalBg').style.display = 'flex';
@@ -6663,109 +6909,6 @@ function openDashboardModal(){
 }
 function closeDashboardModal(){
   document.getElementById('dashboardModalBg').style.display = 'none';
-}
-function renderDashboard(){
-  const box = document.getElementById('dashboardContent');
-  if(!box) return;
-  const showMineOnly = !!document.getElementById('dashMineOnly')?.checked;
-  let records = _allHistoryRecords;
-  if(showMineOnly && userName) records = records.filter(r => (r.branch||'') === userName);
-
-  const byStatus = {};
-  CASE_STATUSES.forEach(s => byStatus[s] = []);
-  records.forEach(r => {
-    const s = CASE_STATUSES.includes(r.caseStatus) ? r.caseStatus : 'รอดำเนินการ';
-    byStatus[s].push(r);
-  });
-
-  const openRecords = records.filter(r => statusSlug(r.caseStatus||'รอดำเนินการ') === 'wait');
-  const goodRecords = records.filter(r => statusSlug(r.caseStatus||'รอดำเนินการ') === 'good');
-  const badRecords  = records.filter(r => statusSlug(r.caseStatus||'รอดำเนินการ') === 'bad');
-  const closedCount = goodRecords.length + badRecords.length;
-  const winRate = closedCount > 0 ? Math.round((goodRecords.length / closedCount) * 100) : null;
-  const pipelineValue = openRecords.reduce((sum, r) => sum + (Number(r.finTotal)||0) + (Number(r.eqTotal)||0), 0);
-  const staleList = openRecords.filter(isStaleCase);
-  const dueList = openRecords.filter(isFollowupDue);
-
-  // ===== แยกตามแหล่งที่มา (Lead Source) — อัตราปิดการขาย + มูลค่าที่ยังค้างในไปป์ไลน์ต่อแหล่งที่มา =====
-  // (คำนวณจาก field เดียวกับที่ใช้ export → CRM อยู่แล้ว ไม่ต้องเรียก backend เพิ่ม)
-  function buildBreakdown(keyFn, labelForEmpty){
-    const groups = {};
-    records.forEach(r => {
-      const key = (keyFn(r) || '').trim() || labelForEmpty;
-      if(!groups[key]) groups[key] = [];
-      groups[key].push(r);
-    });
-    return Object.keys(groups).map(key => {
-      const list = groups[key];
-      const good = list.filter(r => statusSlug(r.caseStatus||'รอดำเนินการ') === 'good').length;
-      const bad  = list.filter(r => statusSlug(r.caseStatus||'รอดำเนินการ') === 'bad').length;
-      const closed = good + bad;
-      const rate = closed > 0 ? Math.round((good/closed)*100) : null;
-      const value = list.reduce((sum,r)=> sum + (Number(r.finTotal)||0) + (Number(r.eqTotal)||0), 0);
-      return {key, count: list.length, closed, rate, value};
-    }).sort((a,b)=> b.count - a.count);
-  }
-  const leadSourceBreakdown = buildBreakdown(r=>r.leadSource, '⚠ ไม่ระบุ');
-  const progBreakdown = buildBreakdown(r=>r.progName, '(ไม่ระบุโปร)');
-
-  function breakdownRowsHtml(rows){
-    return rows.map(row => `
-      <div class="dash-status-row">
-        <span style="max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(row.key)}">${escapeHtml(row.key)}</span>
-        <span class="dash-status-count">${row.count} เคส${row.rate!==null ? ' · ปิด '+row.rate+'% ('+row.closed+')' : ' · ยังไม่ปิดเคสไหนเลย'}${row.value>0?' · '+fmt(row.value)+' บาท':''}</span>
-      </div>`).join('');
-  }
-
-  const statusRowsHtml = CASE_STATUSES.map(s => {
-    const list = byStatus[s];
-    if(!list.length) return `<div class="dash-status-row" style="opacity:.45">
-      <span class="case-status-badge status-${statusSlug(s)}">${escapeHtml(s)}</span>
-      <span class="dash-status-count">0</span>
-    </div>`;
-    const value = list.reduce((sum,r)=> sum + (Number(r.finTotal)||0) + (Number(r.eqTotal)||0), 0);
-    return `<div class="dash-status-row" onclick="jumpToStatusFilter('${s}')" style="cursor:pointer">
-      <span class="case-status-badge status-${statusSlug(s)}">${escapeHtml(s)}</span>
-      <span class="dash-status-count">${list.length} เคส${value>0?' · '+fmt(value)+' บาท':''}</span>
-    </div>`;
-  }).join('');
-
-  box.innerHTML = `
-    <div style="font-size:11px;color:var(--ink-soft);margin-bottom:10px">
-      สรุปจาก ${records.length} เคสที่โหลดไว้ในเครื่อง (${_historyLoadedFull ? 'โหลดครบทั้งหมดแล้ว' : 'ล่าสุด ' + HISTORY_FAST_LIMIT + ' รายการ — กด 🔍 แล้ว "โหลดประวัติทั้งหมด" เพื่อให้ตัวเลขแม่นยำขึ้น'})
-      ${userRole==='sales' ? `<label style="margin-left:8px;cursor:pointer;font-weight:600"><input type="checkbox" id="dashMineOnly" onchange="renderDashboard()" ${showMineOnly?'checked':''}> เฉพาะเคสของฉัน</label>` : ''}
-    </div>
-    <div class="dash-stat-grid">
-      <div class="dash-stat-tile">
-        <div class="dash-stat-num">${openRecords.length}</div>
-        <div class="dash-stat-label">เคสที่ยังเปิดอยู่</div>
-      </div>
-      <div class="dash-stat-tile">
-        <div class="dash-stat-num">${fmt(pipelineValue)}</div>
-        <div class="dash-stat-label">มูลค่ารวมที่ยังค้างในไปป์ไลน์ (บาท)</div>
-      </div>
-      <div class="dash-stat-tile">
-        <div class="dash-stat-num">${winRate===null?'—':winRate+'%'}</div>
-        <div class="dash-stat-label">อัตราปิดการขาย (จาก ${closedCount} เคสที่ปิดแล้ว)</div>
-      </div>
-      <div class="dash-stat-tile"${staleList.length>0?' style="border-color:#c0392b"':''}>
-        <div class="dash-stat-num"${staleList.length>0?' style="color:#c0392b"':''}>${staleList.length}</div>
-        <div class="dash-stat-label">เคสค้างนาน (ไม่มีอัปเดตเกิน ${STALE_DAYS} วัน)</div>
-      </div>
-      <div class="dash-stat-tile"${dueList.length>0?' style="border-color:#B8860B;cursor:pointer" onclick="jumpToQuickFilter(\'hf_followupDueOnly\')"':''}>
-        <div class="dash-stat-num"${dueList.length>0?' style="color:#B8860B"':''}>${dueList.length}</div>
-        <div class="dash-stat-label">🔔 ถึงกำหนดนัดติดตามแล้ว</div>
-      </div>
-    </div>
-    <div style="font-size:12px;font-weight:700;margin:14px 0 6px">แยกตามสถานะ (กดเพื่อดูรายการ)</div>
-    <div class="dash-status-list">${statusRowsHtml}</div>
-
-    <div style="font-size:12px;font-weight:700;margin:14px 0 6px">แยกตามแหล่งที่มา (Lead Source)</div>
-    <div class="dash-status-list">${breakdownRowsHtml(leadSourceBreakdown)}</div>
-
-    <div style="font-size:12px;font-weight:700;margin:14px 0 6px">แยกตามโปรแกรม (โปรไหนปิดง่าย/ยาก)</div>
-    <div class="dash-status-list">${breakdownRowsHtml(progBreakdown)}</div>
-  `;
 }
 // ปิดแดชบอร์ด แล้วพากลับไปหน้าประวัติ พร้อมติ๊กช่องกรองด่วนที่ระบุให้ทันที (เช่น "ถึงกำหนดนัด")
 function jumpToQuickFilter(checkboxId){
@@ -9819,7 +9962,7 @@ loadHistory();
 
 <div class="preview-modal-bg" id="dashboardModalBg" style="display:none">
   <div class="preview-modal-header">
-    <span>📊 ภาพรวมไปป์ไลน์</span>
+    <span>📊 รายงานประจำวัน</span>
     <button onclick="closeDashboardModal()">✕ ปิด</button>
   </div>
   <div class="modal-form-scroll">
