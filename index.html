@@ -6902,50 +6902,111 @@ function openHistoryDetailFromReport(id){
 }
 
 function printDailyReport(){
+  // (3/11/2569) จัดใบพิมพ์ใหม่ให้พอดี A4 แนวตั้ง อ่านง่าย: ตัวอักษรใหญ่ขึ้น, ความกว้างคอลัมน์คงที่,
+  // หัวตารางซ้ำทุกหน้า, แถวไม่ถูกตัดครึ่งข้ามหน้า, ไม่มียอดเงิน
   const records = drFilteredRecords();
   const c = drCompute(records, _drState.date);
   const esc = escapeHtml;
   const who = _drState.person || 'ทุกคน';
+  const showStaff = !_drState.person;
+  const stLabel = r => esc(r.caseStatus||'รอดำเนินการ');
   const rows = (list, mode) => list.length ? list.map((r,i) => {
     const d = daysSince(r.lastNoteAt||r.savedAt);
     const why = mode==='urgent'
-      ? [isFollowupDue(r)?'ถึงนัด':'', isStaleCase(r)?('ค้าง '+d+' วัน'):''].filter(Boolean).join(', ')
+      ? [isFollowupDue(r)?'ถึงนัด':'', isStaleCase(r)?('ค้าง '+d+' วัน'):''].filter(Boolean).join('<br>')
       : (drDayKey(r.savedAt)===_drState.date ? 'ใหม่' : 'อัปเดต');
-    return `<tr><td style="text-align:center">${i+1}</td><td>${esc(r.custName||'-')}${r.custPhone?'<br><span style="font-size:7.5pt">'+esc(r.custPhone)+'</span>':''}</td>
-      ${_drState.person?'':`<td>${esc(r.branch||'-')}</td>`}
-      <td>${esc(r.model||'-')}</td><td>${esc(r.caseStatus||'รอดำเนินการ')}</td><td>${why}</td>
-      <td>${r.nextFollowUp?drThaiDate(r.nextFollowUp):'-'}</td><td>${esc(r.lastNote||'')}</td></tr>`;
-  }).join('') : `<tr><td colspan="${_drState.person?7:8}" style="text-align:center;color:#666">— ไม่มี —</td></tr>`;
-  const table = (title, list, mode, h) => `<div style="font-weight:bold;margin:8px 0 3px">${title}</div>
-    <table style="width:100%;border-collapse:collapse;font-size:8pt" border="1" cellpadding="3">
-      <thead style="background:#eee"><tr><th style="width:18px">#</th><th>ลูกค้า</th>${_drState.person?'':'<th>พนักงาน</th>'}<th>รุ่น</th><th>สถานะ</th><th>${h}</th><th>นัดถัดไป</th><th>โน้ตล่าสุด</th></tr></thead>
-      <tbody>${rows(list, mode)}</tbody></table>`;
-  const box = (n,l) => `<td style="border:1px solid #000;text-align:center;padding:4px;width:21%"><div style="font-size:14pt;font-weight:bold">${n}</div><div style="font-size:7.5pt">${l}</div></td>`;
+    return `<tr>
+      <td class="c">${i+1}</td>
+      <td><b>${esc(r.custName||'-')}</b>${r.custPhone?'<div class="sub">'+esc(r.custPhone)+'</div>':''}</td>
+      ${showStaff?`<td>${esc(r.branch||'-')}</td>`:''}
+      <td>${esc(r.model||'-')}</td>
+      <td>${stLabel(r)}</td>
+      <td class="c">${why}</td>
+      <td class="c">${r.nextFollowUp?drThaiDate(r.nextFollowUp):'-'}</td>
+      <td>${esc(r.lastNote||'')}</td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="${showStaff?8:7}" class="c none">— ไม่มี —</td></tr>`;
+  // ความกว้างคอลัมน์ (รวม 100%) — มีคอลัมน์พนักงานเมื่อพิมพ์รวมทุกคน
+  const cols = showStaff ? [4,19,11,13,13,9,9,22] : [4,22,0,14,14,10,10,26];
+  const colgroup = '<colgroup>' + cols.filter(w=>w>0).map(w=>`<col style="width:${w}%">`).join('') + '</colgroup>';
+  // หัวข้อตารางอยู่ใน thead → ซ้ำทุกหน้าที่ตารางล้นไป และไม่หลุดค้างท้ายหน้าเดี่ยวๆ
+  const ncol = showStaff ? 8 : 7;
+  const table = (title, list, mode, h, cls) => `<div class="sec">
+    <table class="t">${colgroup}
+      <thead><tr><td colspan="${ncol}" class="cap"><div class="h ${cls||''}">${title}</div></td></tr><tr><th>#</th><th>ลูกค้า</th>${showStaff?'<th>พนักงาน</th>':''}<th>รุ่น</th><th>สถานะ</th><th>${h}</th><th>นัดถัดไป</th><th>โน้ตล่าสุด</th></tr></thead>
+      <tbody>${rows(list, mode)}</tbody></table></div>`;
+  const box = (n,l) => `<td class="box"><div class="n">${n}</div><div class="l">${l}</div></td>`;
   const pipe = CASE_STATUSES.filter(s=>statusSlug(s)==='wait').map(s => {
     const n = records.filter(r => (CASE_STATUSES.includes(r.caseStatus)?r.caseStatus:'รอดำเนินการ')===s).length;
-    return `${esc(s)} <b>${n}</b>`;
-  }).join(' &nbsp;|&nbsp; ');
+    return `<span class="pp">${esc(s)} <b>${n}</b></span>`;
+  }).join('');
+
+  let staffHtml = '';
+  const people = drPeopleList();
+  if(showStaff && people.length > 1){
+    staffHtml = `<div class="sec">
+      <table class="t staff"><thead><tr><td colspan="6" class="cap"><div class="h">สรุปรายพนักงาน</div></td></tr><tr><th style="width:28%">พนักงาน</th><th>ใหม่วันนี้</th><th>อัปเดตวันนี้</th><th>ปิดได้เดือนนี้</th><th>เคสเปิดอยู่</th><th>ต้องตามด่วน</th></tr></thead><tbody>` +
+      people.map(p => {
+        const pc = drCompute(_allHistoryRecords.filter(r => (r.branch||'').trim()===p), _drState.date);
+        return `<tr><td>${esc(p)}</td><td class="c">${pc.newToday.length}</td><td class="c">${pc.updatedToday.length}</td><td class="c">${pc.wonMonth.length}</td><td class="c">${pc.open.length}</td><td class="c">${pc.urgent.length?'<b>'+pc.urgent.length+'</b>':'0'}</td></tr>`;
+      }).join('') + `</tbody></table></div>`;
+  }
+
   const note = (document.getElementById('drNote')?.value || _drState.note || '').trim();
-  const html = `
-    <div style="text-align:center;margin-bottom:6px">
-      <div style="font-size:13pt;font-weight:bold">รายงานประจำวัน — รวมสินไทยแทรกเตอร์</div>
-      <div style="font-size:9.5pt">วันที่ ${drThaiDate(_drState.date)} &nbsp;·&nbsp; พนักงาน: <b>${esc(who)}</b> &nbsp;·&nbsp; พิมพ์เมื่อ ${new Date().toLocaleString('th-TH')}</div>
+  const html = `<style>
+    .drp{ font-family:'Sarabun','Kanit',sans-serif; font-size:10pt; color:#000; line-height:1.35; }
+    .drp .top{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:8px; }
+    .drp .ttl{ font-size:15pt; font-weight:bold; }
+    .drp .meta{ font-size:10pt; text-align:right; }
+    .drp .sum{ width:100%; border-collapse:collapse; table-layout:fixed; margin-bottom:6px; }
+    .drp .sum th{ width:13%; text-align:left; font-size:10pt; padding:2px 4px; }
+    .drp .box{ border:1px solid #000; text-align:center; padding:4px 2px; }
+    .drp .box .n{ font-size:16pt; font-weight:bold; line-height:1.1; }
+    .drp .box .l{ font-size:9pt; }
+    .drp .pipe{ font-size:9.5pt; margin:4px 0 2px; }
+    .drp .pp{ display:inline-block; border:1px solid #888; border-radius:10px; padding:0 7px; margin:2px 3px 2px 0; }
+    .drp .sec{ padding-top:8px; }
+    .drp .h{ font-size:11pt; font-weight:bold; margin-bottom:3px; break-after:avoid; page-break-after:avoid; }
+    .drp .h.warn{ border-left:4px solid #000; padding-left:6px; }
+    .drp .t{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:9pt; }
+    .drp .t td.cap{ border:none; padding:3px 0 3px; background:none !important; line-height:1.6; }
+    .drp .t th{ background:#e6e6e6; border:1px solid #000; padding:3px 4px; font-weight:bold; text-align:center; }
+    .drp .t td{ border:1px solid #000; padding:3px 4px; vertical-align:top; word-wrap:break-word; overflow-wrap:anywhere; }
+    .drp .t thead{ display:table-header-group; }
+    .drp .t tr{ break-inside:avoid; page-break-inside:avoid; }
+    .drp .t tbody tr:nth-child(even) td{ background:#f6f6f6; }
+    .drp .c{ text-align:center; }
+    .drp .sub{ font-size:8.5pt; color:#333; }
+    .drp .none{ color:#666; }
+    .drp .notebox{ border:1px solid #000; min-height:31.2mm; padding:0 6px; white-space:pre-wrap; font-size:10pt; line-height:7.8mm;
+      background-image:repeating-linear-gradient(to bottom, transparent 0, transparent 7.5mm, #bbb 7.5mm, #bbb 7.8mm); }
+    .drp .sign{ width:100%; margin-top:16mm; font-size:10pt; break-inside:avoid; page-break-inside:avoid; }
+    .drp .sign td{ text-align:center; width:50%; }
+    .drp .tail{ break-inside:avoid; page-break-inside:avoid; }
+  </style>
+  <div class="drp">
+    <div class="top">
+      <div><div class="ttl">รายงานประจำวัน</div><div>รวมสินไทยแทรกเตอร์</div></div>
+      <div class="meta">วันที่ <b>${drThaiDate(_drState.date)}</b><br>พนักงาน: <b>${esc(who)}</b><br><span style="font-size:8.5pt">พิมพ์เมื่อ ${new Date().toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'})}</span></div>
     </div>
-    <table style="width:100%;border-collapse:collapse;margin-bottom:4px"><tr>
-      <td style="font-weight:bold;width:70px;font-size:8.5pt">วันนี้</td>${box(c.newToday.length,'เคสใหม่')}${box(c.updatedToday.length,'ติดตาม/อัปเดต')}${box(c.wonToday.length,'ปิดได้')}${box(c.lostToday.length,'เสีย')}
-    </tr><tr>
-      <td style="font-weight:bold;font-size:8.5pt">เดือนนี้</td>${box(c.newMonth.length,'เคสใหม่')}${box(c.wonMonth.length,'ปิดได้ (คัน)')}${box(c.lostMonth.length,'เสีย')}${box(c.winRateMonth===null?'—':c.winRateMonth+'%','อัตราปิดได้')}
-    </tr></table>
-    <div style="font-size:8.5pt;margin:4px 0"><b>เคสที่ยังเปิดอยู่ ${c.open.length} เคส:</b> ${pipe}</div>
-    ${table('⚠ เคสต้องตามด่วน ('+c.urgent.length+')', c.urgent, 'urgent', 'เหตุผล')}
-    ${table('นัดติดตามพรุ่งนี้ '+drThaiDate(c.tomorrow)+' ('+c.tomorrowList.length+')', c.tomorrowList, 'x', 'ประเภท')}
-    ${table('เคสที่ทำวันนี้ ('+c.touchedToday.length+')', c.touchedToday, 'x', 'ประเภท')}
-    <div style="font-weight:bold;margin:8px 0 3px">สรุป / ปัญหา / แผนพรุ่งนี้</div>
-    <div style="border:1px solid #000;min-height:22mm;padding:4px;font-size:8.5pt;white-space:pre-wrap">${esc(note)}</div>
-    <table style="width:100%;margin-top:14px;font-size:9pt"><tr>
-      <td style="text-align:center">ลงชื่อ ................................<br>ผู้รายงาน</td>
-      <td style="text-align:center">ลงชื่อ ................................<br>ผู้จัดการ / หัวหน้า</td>
-    </tr></table>`;
+    <table class="sum">
+      <tr><th>วันนี้</th>${box(c.newToday.length,'เคสใหม่')}${box(c.updatedToday.length,'ติดตาม/อัปเดต')}${box(c.wonToday.length,'ปิดได้')}${box(c.lostToday.length,'เสีย')}</tr>
+      <tr><th>เดือนนี้</th>${box(c.newMonth.length,'เคสใหม่')}${box(c.wonMonth.length,'ปิดได้ (คัน)')}${box(c.lostMonth.length,'เสีย')}${box(c.winRateMonth===null?'—':c.winRateMonth+'%','อัตราปิดได้')}</tr>
+    </table>
+    <div class="pipe"><b>เคสที่ยังเปิดอยู่ ${c.open.length} เคส:</b> ${pipe}</div>
+    ${table('⚠ เคสต้องตามด่วน '+c.urgent.length+' เคส (ถึงกำหนดนัด / ไม่มีอัปเดตเกิน '+STALE_DAYS+' วัน)', c.urgent, 'urgent', 'เหตุผล', 'warn')}
+    ${table('นัดติดตามพรุ่งนี้ ('+drThaiDate(c.tomorrow)+') '+c.tomorrowList.length+' เคส', c.tomorrowList, 'x', 'ประเภท')}
+    ${table('เคสที่ทำวันนี้ '+c.touchedToday.length+' เคส', c.touchedToday, 'x', 'ประเภท')}
+    ${staffHtml}
+    <div class="sec tail">
+      <div class="h">สรุป / ปัญหา / แผนพรุ่งนี้</div>
+      <div class="notebox">${esc(note)}</div>
+      <table class="sign"><tr>
+        <td>ลงชื่อ ......................................<br>ผู้รายงาน</td>
+        <td>ลงชื่อ ......................................<br>ผู้ตรวจ (ไฟแนนซ์ / ผู้จัดการ)</td>
+      </tr></table>
+    </div>
+  </div>`;
   document.getElementById('printArea').innerHTML = html;
   document.body.classList.add('printing');
   window.print();
@@ -10017,7 +10078,10 @@ loadHistory();
 <div class="preview-modal-bg" id="dashboardModalBg" style="display:none">
   <div class="preview-modal-header">
     <span>📊 รายงานประจำวัน</span>
-    <button onclick="closeDashboardModal()">✕ ปิด</button>
+    <span style="display:flex;gap:6px">
+      <button onclick="printDailyReport()" style="background:var(--accent);color:#fff;border-color:var(--accent)">🖨️ พิมพ์</button>
+      <button onclick="closeDashboardModal()">✕ ปิด</button>
+    </span>
   </div>
   <div class="modal-form-scroll">
     <div class="modal-form-inner" id="dashboardContent">
