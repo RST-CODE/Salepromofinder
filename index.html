@@ -2246,7 +2246,7 @@ const PROGRAM_IDS = {
 //   program: {id, name, requires_toggle, toggle_label, conditions[], gifts[], gift_types{}, terms{ปี:{annual,semi,quarterly,monthly}}, entries{}}
 //   entry:   {model, group ("ทุกกลุ่ม" = ขึ้นทุกปุ่มกลุ่ม), variant?, price, down, yct, ysp, ysp_topup, fire, customer_out, rst, total, interest, years, terms?, note?}
 const DD_ALL_GROUPS = 'ทุกกลุ่ม';
-const DD_PAY_ORDER = ['monthly','quarterly','semi','annual'];
+const DD_PAY_ORDER = ['monthly','quarterly','semi','annual','split_70_30','split_50_50']; // (4/11/2569) เพิ่มแบบ 2 ครั้ง/ปี สำหรับรถเกี่ยว
 function isDD(brand){ return !!(typeof DATA !== 'undefined' && DATA[brand] && DATA[brand].data_driven); }
 function ddGroupMatch(e, segment){ return e.group === segment || e.group === DD_ALL_GROUPS; }
 function ddProgramHasSegment(p, segment){ return Object.values(p.entries || {}).some(e => ddGroupMatch(e, segment)); }
@@ -6398,7 +6398,7 @@ function ghuCheckText(text, label, prefixHtml){
 // ตำแหน่งเซลล์ตายตัวตาม Promotion_Template.xlsx (ดู claude/promo-upload-template-spec.md)
 const GHU_SKIP_SHEETS = ['วิธีใช้', 'สรุปทุกโปร', 'รายการ'];
 const GHU_COLS = ['C','D','E','F','G','H','I','J','K','L','M','N'];
-const GHU_PAY_COLS = [['K','annual'],['L','semi'],['M','quarterly'],['N','monthly']];
+const GHU_PAY_COLS = [['K','annual'],['L','semi'],['M','quarterly'],['N','monthly'],['R','split_70_30'],['S','split_50_50']]; // R/S = ผ่อน 2 ครั้ง/ปี 70/30 และ 50/50 (ไม่บังคับ — ไฟล์เก่าเว้นว่างได้)
 const GHU_KNOWN_BRANDS = ['yanmar','solis','combine','excavator','drone'];
 
 function ghuXlsxToBrands(wb, fileName){
