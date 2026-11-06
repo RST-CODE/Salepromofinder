@@ -1198,6 +1198,12 @@ body.printing #printArea{
 .dr-table tr.dr-detail > td{ background:#faf7f2; border-top:none; padding:8px 12px 12px; }
 .dr-dgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:4px 16px; font-size:12px; }
 .dr-dgrid div{ color:var(--ink); } .dr-dgrid span{ color:var(--ink-soft); }
+.dr-dsec{ font-size:11.5px; font-weight:700; color:var(--accent); margin:10px 0 4px; }
+.dr-dsec:first-child{ margin-top:0; }
+.dr-dloading, .dr-dempty{ font-size:11.5px; color:var(--ink-soft); padding:4px 0; }
+.dr-dfin .hd-section{ color:var(--accent); font-size:11.5px; text-transform:none; letter-spacing:0; margin:10px 0 4px; }
+.dr-dfin .hd-row{ font-size:12px; padding:3px 0; }
+.dr-dtl{ background:#fff; border:1px solid var(--line); border-radius:8px; padding:6px 10px; max-height:260px; overflow-y:auto; font-size:12px; }
 .dr-dnote{ margin-top:6px; font-size:12px; background:#fff; border:1px solid var(--line); border-radius:8px; padding:6px 9px; white-space:pre-wrap; }
 .dr-dact{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
 .dr-dact a, .dr-dact button{ font-family:'Kanit',sans-serif; font-size:12px; font-weight:600; padding:6px 12px; border-radius:8px; border:1.5px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; text-decoration:none; }
@@ -1218,7 +1224,20 @@ body.printing #printArea{
 .dr-tag.due{ background:#fdf3d8; color:#8a6500; } .dr-tag.stale{ background:#fbe3e0; color:#c0392b; }
 .dr-tag.new{ background:#e3f3e6; color:#1e7e34; } .dr-tag.upd{ background:#eef0f4; color:#555; }
 .dr-notebox{ width:100%; box-sizing:border-box; font-family:'Kanit',sans-serif; font-size:13px; padding:8px 10px; border-radius:10px; border:1.5px solid var(--line); resize:vertical; }
+.dr-tsub{ font-size:10.5px; color:var(--ink-soft); margin-top:3px; line-height:1.35; }
+.dr-break{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+.dr-bgrp{ border:1.5px solid var(--line); border-radius:12px; padding:8px 10px; background:#fff; }
+.dr-bgrp.good{ border-left:4px solid #1e7e34; } .dr-bgrp.bad{ border-left:4px solid #c0392b; }
+.dr-bh{ font-size:12.5px; font-weight:700; margin-bottom:4px; }
+.dr-brow{ display:flex; align-items:center; gap:8px; width:100%; font-family:'Kanit',sans-serif; font-size:13px; padding:5px 4px; border:none; border-top:1px solid var(--line); background:none; cursor:pointer; text-align:left; }
+.dr-brow:disabled{ cursor:default; opacity:.55; }
+.dr-brow:hover:not(:disabled), .dr-brow.on{ background:color-mix(in srgb, var(--accent) 6%, white); }
+.dr-brow .case-status-badge{ padding:2px 9px; font-size:11px; }
+.dr-brow b{ margin-left:auto; font-size:16px; } .dr-bunit{ font-size:11px; color:var(--ink-soft); }
+.dr-bmore{ font-size:11px; color:var(--accent); font-weight:600; min-width:62px; text-align:right; }
+.dr-blist{ margin-top:6px; }
 @media (max-width:600px){
+  .dr-break{ grid-template-columns:1fr; }
   .dr-grid{ grid-template-columns:repeat(2,1fr); }
   .dr-print{ margin-left:0; width:100%; }
   .dr-note{ display:none; } .dr-table th:last-child{ display:none; }
@@ -6710,7 +6729,12 @@ async function ghuDownloadCurrent(){
 // เหลือ: ผลงานวันนี้ · ยอดสะสมเดือนนี้ · ไปป์ไลน์ (จำนวนเคส) · เคสต้องตามด่วน · นัดพรุ่งนี้ · รายการที่ทำวันนี้ · สรุปรายพนักงาน (ผู้จัดการ)
 // คำนวณจาก _allHistoryRecords ในเครื่องล้วนๆ ไม่ยิง request เพิ่ม
 // หมายเหตุ: ระบบไม่ได้เก็บ "วันที่เปลี่ยนสถานะ" แยกไว้ — "ปิดได้/เสีย วันนี้" จึงนับจากเคสที่สถานะปัจจุบันเป็นปิดแล้ว และอัปเดตล่าสุด (lastNoteAt) ตรงกับวันที่รายงาน
-let _drState = { date:'', person:null, note:'' };
+let _drState = { date:'', person:null, note:'', monthStatus:'' };
+// (6/11/2569) สถานะที่นับเป็น ปิดได้ / เสีย — ใช้แตกตัวเลขรายเงื่อนไขให้เห็นชัดว่าแต่ละก้อนมาจากสถานะอะไร
+const DR_WON_STATUSES  = ['อนุมัติแล้ว','ส่งมอบแล้ว/ปิดเคส'];
+const DR_LOST_STATUSES = ['ไม่อนุมัติ','ยกเลิกเคส'];
+function drCountBy(list, status){ return list.filter(r => (r.caseStatus||'รอดำเนินการ') === status).length; }
+function drBreakText(list, statuses){ return statuses.map(s => s.replace('/ปิดเคส','') + ' ' + drCountBy(list, s)).join(' · '); }
 function drDayKey(v){
   if(!v) return '';
   if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
@@ -6772,8 +6796,8 @@ function renderDashboard(){
   const isMgr = isManagerUser();
   const esc = escapeHtml;
 
-  const tile = (num, label, color, onclick) => `<div class="dr-tile"${onclick?` onclick="${onclick}" style="cursor:pointer"`:''}>
-      <div class="dr-num"${color?` style="color:${color}"`:''}>${num}</div><div class="dr-label">${label}</div></div>`;
+  const tile = (num, label, color, onclick, sub) => `<div class="dr-tile"${onclick?` onclick="${onclick}" style="cursor:pointer"`:''}>
+      <div class="dr-num"${color?` style="color:${color}"`:''}>${num}</div><div class="dr-label">${label}</div>${sub?`<div class="dr-tsub">${sub}</div>`:''}</div>`;
 
   const pipeChips = CASE_STATUSES.filter(s => statusSlug(s)==='wait').map(s => {
     const n = records.filter(r => (CASE_STATUSES.includes(r.caseStatus)?r.caseStatus:'รอดำเนินการ') === s).length;
@@ -6785,6 +6809,7 @@ function renderDashboard(){
     const due = r.nextFollowUp ? drThaiDate(r.nextFollowUp) : '-';
     const tag = mode==='urgent'
       ? (isFollowupDue(r) ? `<span class="dr-tag due">🔔 ถึงนัด</span>` : '') + (isStaleCase(r) ? `<span class="dr-tag stale">⏰ ${d} วัน</span>` : '')
+      : mode==='month' ? drThaiDate(drUpdKey(r))
       : (drDayKey(r.savedAt)===_drState.date ? `<span class="dr-tag new">ใหม่</span>` : `<span class="dr-tag upd">อัปเดต</span>`);
     return `<tr class="dr-row" onclick="drToggleRow(this,'${esc(String(r.id))}')" title="กดเพื่อดูรายละเอียด">
       <td><b>${esc(r.custName||'-')}</b>${r.custPhone?`<div class="dr-sub">📞 ${esc(r.custPhone)}</div>`:''}${!_drState.person && r.branch?`<div class="dr-sub">👤 ${esc(r.branch)}</div>`:''}</td>
@@ -6809,6 +6834,26 @@ function renderDashboard(){
       }).join('') + `</tbody></table></div>`;
   }
 
+  // (6/11/2569) แตกยอดปิดได้/เสียของเดือนเป็นรายสถานะ (คัน) — กดแต่ละแถวเพื่อดูรายชื่อเคสในเงื่อนไขนั้น
+  const mRow = (st, list, cls) => {
+    const n = drCountBy(list, st);
+    const on = _drState.monthStatus === st;
+    return `<button type="button" class="dr-brow${on?' on':''}" ${n?`onclick="_drState.monthStatus=_drState.monthStatus==='${st}'?'':'${st}';renderDashboard()"`:'disabled'}>
+      <span class="case-status-badge status-${cls}">${esc(st)}</span><b>${n}</b><span class="dr-bunit">คัน</span>${n?`<span class="dr-bmore">${on?'▾ ซ่อน':'▸ ดูรายชื่อ'}</span>`:''}</button>`;
+  };
+  const mList = st => {
+    if(!st) return '';
+    const src = DR_WON_STATUSES.includes(st) ? c.wonMonth : c.lostMonth;
+    const list = src.filter(r => (r.caseStatus||'รอดำเนินการ') === st);
+    return `<div class="dr-blist"><div class="dr-hint" style="margin:6px 0 4px">เคสสถานะ "${esc(st)}" ในเดือนนี้ ${list.length} คัน</div>${caseTable(list, 'month', 'วันที่ปิด')}</div>`;
+  };
+  const monthBreakHtml = `<div class="dr-break">
+      <div class="dr-bgrp good"><div class="dr-bh">✅ ปิดได้ ${c.wonMonth.length} คัน</div>${DR_WON_STATUSES.map(s=>mRow(s, c.wonMonth, 'good')).join('')}</div>
+      <div class="dr-bgrp bad"><div class="dr-bh">❌ เสีย ${c.lostMonth.length} คัน</div>${DR_LOST_STATUSES.map(s=>mRow(s, c.lostMonth, 'bad')).join('')}</div>
+    </div>
+    ${[...DR_WON_STATUSES, ...DR_LOST_STATUSES].includes(_drState.monthStatus) ? mList(_drState.monthStatus) : ''}
+    <div class="dr-hint" style="margin-top:4px">นับจากเคสที่สถานะปัจจุบันเป็นเงื่อนไขนั้น และอัปเดตล่าสุดอยู่ในเดือนนี้</div>`;
+
   box.innerHTML = `
     <div class="dr-controls">
       <label>วันที่ <input type="date" id="drDate" value="${_drState.date}" max="${today}" onchange="_drState.date=this.value||'${today}';renderDashboard()"></label>
@@ -6823,17 +6868,18 @@ function renderDashboard(){
     <div class="dr-grid">
       ${tile(c.newToday.length, 'เคสใหม่')}
       ${tile(c.updatedToday.length, 'ติดตาม/อัปเดตเคสเดิม')}
-      ${tile(c.wonToday.length, '✅ ปิดได้ (อนุมัติ/ส่งมอบ)', '#1e7e34')}
-      ${tile(c.lostToday.length, '❌ เสีย (ไม่อนุมัติ/ยกเลิก)', c.lostToday.length?'#c0392b':'')}
+      ${tile(c.wonToday.length, '✅ ปิดได้ (คัน)', '#1e7e34', '', drBreakText(c.wonToday, DR_WON_STATUSES))}
+      ${tile(c.lostToday.length, '❌ เสีย (คัน)', c.lostToday.length?'#c0392b':'', '', drBreakText(c.lostToday, DR_LOST_STATUSES))}
     </div>
 
     <div class="dr-h">📈 ยอดสะสมเดือนนี้ (ถึง ${drThaiDate(_drState.date)})</div>
     <div class="dr-grid">
       ${tile(c.newMonth.length, 'เคสใหม่')}
-      ${tile(c.wonMonth.length, '✅ ปิดได้ (คัน)', '#1e7e34')}
-      ${tile(c.lostMonth.length, '❌ เสีย')}
-      ${tile(c.winRateMonth===null?'—':c.winRateMonth+'%', 'อัตราปิดได้')}
+      ${tile(c.wonMonth.length, '✅ ปิดได้ (คัน)', '#1e7e34', '', drBreakText(c.wonMonth, DR_WON_STATUSES))}
+      ${tile(c.lostMonth.length, '❌ เสีย (คัน)', c.lostMonth.length?'#c0392b':'', '', drBreakText(c.lostMonth, DR_LOST_STATUSES))}
+      ${tile(c.winRateMonth===null?'—':c.winRateMonth+'%', 'อัตราปิดได้', '', '', 'ปิดได้ ÷ (ปิดได้ + เสีย)')}
     </div>
+    ${monthBreakHtml}
 
     <div class="dr-h">🔄 เคสที่ยังเปิดอยู่ ${c.open.length} เคส <span class="dr-hint">(กดเพื่อดูรายการ)</span></div>
     <div class="dr-pipes">${pipeChips}</div>
@@ -6854,8 +6900,11 @@ function renderDashboard(){
   `;
 }
 
-// กดแถวในตารางรายงาน → กาง/พับรายละเอียดเบื้องต้นใต้แถวนั้น (ยังไม่ออกจากหน้ารายงาน)
+// กดแถวในตารางรายงาน → กาง/พับรายละเอียดใต้แถวนั้น (ยังไม่ออกจากหน้ารายงาน)
+// (6/11/2569) ขยายให้ดูข้อมูลเคสได้ครบ: ข้อมูลลูกค้า/ผู้ค้ำ · ดีล (ราคา/ดาวน์/ยอดจัด/งวด/อุปกรณ์/ของแถม)
+// · ข้อมูลรายได้ · ประวัติการติดตาม (Timeline) — ส่วนที่ไม่มีในข้อมูลสรุปจะโหลดฉบับเต็ม (action=get) มาเติมให้เอง
 // ถ้าต้องการทำอะไรต่อ (อัปเดตสถานะ/บันทึกโน้ต) ค่อยกด "เปิดเคสเต็ม"
+const _drFullCache = {};
 function drToggleRow(tr, id){
   const next = tr.nextElementSibling;
   if(next && next.classList.contains('dr-detail')){ next.remove(); tr.classList.remove('open'); return; }
@@ -6867,35 +6916,135 @@ function drToggleRow(tr, id){
   const dt = v => v ? new Date(v).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}) : '-';
   const item = (k,v) => v ? `<div><span>${k}:</span> ${v}</div>` : '';
   const phone = (r.custPhone||'').replace(/[^0-9+]/g,'');
+  const uid = 'dr' + String(id).replace(/[^A-Za-z0-9_]/g,'_');
   const row = document.createElement('tr');
   row.className = 'dr-detail';
   row.innerHTML = `<td colspan="${cols}"><div class="dr-dwrap">
+    <div class="dr-dsec">👤 ข้อมูลเคส</div>
     <div class="dr-dgrid">
       ${item('ลูกค้า', '<b>'+esc(r.custName||'-')+'</b>')}
       ${item('เบอร์โทร', esc(r.custPhone||''))}
+      ${item('ประเภทลูกค้า', esc(r.custType||''))}
       ${item('ที่อยู่', esc(r.custAddr||''))}
-      ${item('รุ่นรถ', esc([r.brand, r.model].filter(Boolean).join(' ')))}
-      ${item('โปร', esc(r.progName||''))}
-      ${item('แหล่งที่มา', esc(r.leadSource||''))}
       ${item('พนักงาน', esc(r.branch||''))}
+      ${item('แหล่งที่มา', esc(r.leadSource||''))}
       ${item('สถานะ', `<span class="case-status-badge status-${drSlug(r)}">${esc(r.caseStatus||'รอดำเนินการ')}</span>`)}
+      ${item('เลขแอพ', esc(r.appNo||''))}
       ${item('เปิดเคสเมื่อ', dt(r.savedAt))}
       ${item('อัปเดตล่าสุด', dt(r.lastNoteAt||r.savedAt) + (d!==null ? ` (${d} วันที่แล้ว)` : ''))}
       ${item('นัดติดตามครั้งถัดไป', r.nextFollowUp ? drThaiDate(r.nextFollowUp) + (isFollowupDue(r) ? ' <b style="color:#B8860B">— ถึงกำหนดแล้ว</b>' : '') : '<span>ยังไม่ได้นัด</span>')}
     </div>
-    ${r.lastNote ? `<div class="dr-dnote">💬 ${esc(r.lastNote)}</div>` : ''}
+    <div id="${uid}_extra"></div>
+    <div class="dr-dsec">🚜 ดีล</div>
+    <div class="dr-dgrid" id="${uid}_deal">${drDealHtml(r)}</div>
+    ${r.lastNote ? `<div class="dr-dnote">💬 ${esc(r.lastNote)}${r.lastNoteBy?` <span style="color:var(--ink-soft);font-size:11px">— ${esc(r.lastNoteBy)}</span>`:''}</div>` : ''}
+    <div id="${uid}_full"><div class="dr-dloading">⏳ กำลังโหลดข้อมูลรายได้ / ผู้ค้ำ / ประวัติการติดตาม...</div></div>
     <div class="dr-dact">
       ${phone ? `<a href="tel:${esc(phone)}" onclick="event.stopPropagation()">📞 โทรหาลูกค้า</a>` : ''}
-      <button type="button" class="primary" onclick="event.stopPropagation();closeDashboardModal();openHistoryDetailFromReport('${esc(String(r.id))}')">📂 เปิดเคสเต็ม (อัปเดต/บันทึกโน้ต)</button>
+      <button type="button" class="primary" onclick="event.stopPropagation();openHistoryDetailFromReport('${esc(String(r.id))}')">📂 เปิดเคสเต็ม (อัปเดต/บันทึกโน้ต)</button>
       <button type="button" onclick="event.stopPropagation();drToggleRow(this.closest('tr').previousElementSibling,'${esc(String(r.id))}')">✕ ซ่อน</button>
     </div>
   </div></td>`;
   tr.after(row);
   tr.classList.add('open');
+  drLoadFullDetail(id, uid);
 }
-// เปิดรายละเอียดเคสจากรายงาน (ใช้ฟังก์ชันเปิดรายละเอียดเดิมของหน้าประวัติ ถ้ามี)
+
+// สรุปตัวเลขดีลจากข้อมูลที่มี (ใช้ได้ทั้งข้อมูลสรุปในลิสต์ และข้อมูลฉบับเต็ม)
+function drDealHtml(r){
+  const esc = escapeHtml;
+  const money = v => (Number(v)||0) ? fmt(Number(v)) + ' บาท' : '';
+  const item = (k,v) => v ? `<div><span>${k}:</span> ${v}</div>` : '';
+  const rate = v => { if(v===''||v==null) return ''; const s=String(v); if(s.includes('%')) return s; const n=Number(v); return n ? (n<1 ? fmtPct(n) : n+'%') : ''; };
+  const pay = r.tractorPayment ? (PAYMENT_LABELS[r.tractorPayment] || r.tractorPayment) : '';
+  const eqNames = Array.isArray(r.eqItems) && r.eqItems.length
+    ? r.eqItems.map(e => esc(e.name||'') + (e.price ? ' ('+fmt(Number(e.price)||0)+')' : '')).join(', ')
+    : esc(r.eqNames||'');
+  const gifts = Array.isArray(r.gifts) ? r.gifts.filter(Boolean).join(', ') : (r.gifts||'');
+  const out = [
+    item('รุ่นรถ', esc([r.brand, r.model].filter(Boolean).join(' '))),
+    item('โปร', esc(r.progName||'')),
+    item('กลุ่ม', esc(r.seg||'')),
+    item('ราคารถ', money(r.price)),
+    item('ดาวน์รวม', money(r.down)),
+    item('ช่วยดาวน์', money(r.support)),
+    item('ลูกค้าจ่ายจริง', money(r.custOut)),
+    item('ยอดจัด (รถ)', money(r.finTotal)),
+    item('ดอกเบี้ย', esc(rate(r.finRate))),
+    item('งวดใหญ่', (Number(r.bigPay)||0) ? fmt(Number(r.bigPay)) + ' บาท' + (r.finYears ? ' × ' + esc(String(r.finYears)) + ' ปี' : '') : ''),
+    item('รูปแบบงวด', esc(pay)),
+    item('อุปกรณ์', eqNames),
+    item('ยอดจัด (อุปกรณ์)', money(r.eqFinTotal)),
+    item('ค่าจดทะเบียน+พรบ', money(r.regFee) + (r.regFeePayer ? ' ('+esc(r.regFeePayer)+')' : '')),
+    item('ของแถม', esc(gifts))
+  ].join('');
+  return out || '<div><span>ยังไม่มีข้อมูลดีล</span></div>';
+}
+
+// โหลดข้อมูลฉบับเต็มของเคส (finInfo / ผู้ค้ำ / Timeline ไม่มีในข้อมูลสรุป) แล้วเติมลงใต้แถวที่กางอยู่
+function drLoadFullDetail(id, uid){
+  const fill = full => {
+    const box = document.getElementById(uid+'_full');
+    if(!box) return; // ผู้ใช้พับแถวไปแล้ว
+    const esc = escapeHtml;
+    const item = (k,v) => v ? `<div><span>${k}:</span> ${v}</div>` : '';
+    // ข้อมูลเพิ่มเติมที่มีแค่ในฉบับเต็ม
+    const extra = document.getElementById(uid+'_extra');
+    if(extra){
+      const ex = [
+        item('ที่อยู่ปัจจุบัน', esc(full.custCurrentAddr||'')),
+        item('ผู้ค้ำประกัน', esc(full.gtorName||'')),
+        item('เบอร์ผู้ค้ำ', esc(full.gtorPhone||'')),
+        item('ที่อยู่ผู้ค้ำ', esc(full.gtorAddr||''))
+      ].join('');
+      extra.innerHTML = ex ? `<div class="dr-dgrid" style="margin-top:4px">${ex}</div>` : '';
+    }
+    const deal = document.getElementById(uid+'_deal');
+    if(deal) deal.innerHTML = drDealHtml(full);
+
+    const fiHtml = (typeof renderFinInfoSectionWrap === 'function') ? renderFinInfoSectionWrap(uid, full) : '';
+    const updates = Array.isArray(full.updates) ? full.updates : [];
+    const tl = updates.length && typeof renderTimelineEntries === 'function' ? renderTimelineEntries(updates) : '';
+    const pdf = full.docsPdfUrl ? `<a href="${esc(full.docsPdfUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">📎 เปิดเอกสารประกอบ (PDF)</a>` : '';
+    box.innerHTML = `
+      ${fiHtml ? `<div class="dr-dfin">${fiHtml}</div>` : '<div class="dr-dsec">💰 ข้อมูลรายได้ลูกค้า</div><div class="dr-dempty">ยังไม่ได้กรอก</div>'}
+      <div class="dr-dsec">🕓 ประวัติการติดตาม ${updates.length ? '('+updates.length+' รายการ)' : ''}</div>
+      ${tl ? `<div class="dr-dtl">${tl}</div>` : '<div class="dr-dempty">ยังไม่มีบันทึก</div>'}
+      ${pdf ? `<div class="dr-dact" style="margin-top:6px">${pdf}</div>` : ''}`;
+    // กางข้อมูลรายได้ไว้เลย (ในหน้ารายละเอียดปกติจะพับไว้)
+    const fiBox = document.getElementById('finInfoDetail_'+uid);
+    const fiIcon = document.getElementById('finInfoToggleIcon_'+uid);
+    if(fiBox){ fiBox.style.display = 'block'; if(fiIcon) fiIcon.textContent = '▼ ซ่อน'; }
+  };
+  if(_drFullCache[id]){ fill(_drFullCache[id]); return; }
+  const base = _allHistoryRecords.find(x => String(x.id) === String(id)) || {};
+  jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(id), function(err, data){
+    if(err || !data || data.status !== 'ok'){
+      const box = document.getElementById(uid+'_full');
+      if(box) box.innerHTML = `<div class="dr-dempty">โหลดข้อมูลเพิ่มเติมไม่สำเร็จ (${escapeHtml((err&&err.message)||(data&&data.message)||'')}) — กด "เปิดเคสเต็ม" เพื่อดูแทน</div>`;
+      return;
+    }
+    const full = Object.assign({}, base, data.record || {});
+    if(typeof mergePendingTimeline === 'function') full.updates = mergePendingTimeline(id, full.updates);
+    _drFullCache[id] = full;
+    fill(full);
+  });
+}
+
+// เปิดรายละเอียดเคสเต็มจากรายงาน — ปิดรายงาน สลับไปหน้าประวัติ (ถ้ายังไม่ได้อยู่) แล้วเปิดเคสนั้น
 function openHistoryDetailFromReport(id){
-  if(typeof viewHistoryDetail === 'function'){ viewHistoryDetail(id); document.getElementById('hc_'+id)?.scrollIntoView({block:'nearest'}); return; }
+  closeDashboardModal();
+  const app = document.querySelector('.app');
+  if(app && !app.classList.contains('history')){
+    app.classList.add('history');
+    app.classList.remove('step2','step3');
+    window.scrollTo(0,0);
+  }
+  if(typeof viewHistoryDetail === 'function'){
+    viewHistoryDetail(id);
+    document.getElementById('hc_'+id)?.scrollIntoView({block:'nearest'});
+    return;
+  }
   const q = document.getElementById('hf_quick');
   const rec = _allHistoryRecords.find(r => String(r.id)===String(id));
   if(q && rec){ document.getElementById('histFilterPanel').style.display='block'; q.value = rec.custName||''; filterHistory(); }
@@ -6990,8 +7139,8 @@ function printDailyReport(){
       <div class="meta">วันที่ <b>${drThaiDate(_drState.date)}</b><br>พนักงาน: <b>${esc(who)}</b><br><span style="font-size:8.5pt">พิมพ์เมื่อ ${new Date().toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'})}</span></div>
     </div>
     <table class="sum">
-      <tr><th>วันนี้</th>${box(c.newToday.length,'เคสใหม่')}${box(c.updatedToday.length,'ติดตาม/อัปเดต')}${box(c.wonToday.length,'ปิดได้')}${box(c.lostToday.length,'เสีย')}</tr>
-      <tr><th>เดือนนี้</th>${box(c.newMonth.length,'เคสใหม่')}${box(c.wonMonth.length,'ปิดได้ (คัน)')}${box(c.lostMonth.length,'เสีย')}${box(c.winRateMonth===null?'—':c.winRateMonth+'%','อัตราปิดได้')}</tr>
+      <tr><th>วันนี้</th>${box(c.newToday.length,'เคสใหม่')}${box(c.updatedToday.length,'ติดตาม/อัปเดต')}${box(c.wonToday.length,'ปิดได้ (คัน)<br>'+drBreakText(c.wonToday, DR_WON_STATUSES))}${box(c.lostToday.length,'เสีย (คัน)<br>'+drBreakText(c.lostToday, DR_LOST_STATUSES))}</tr>
+      <tr><th>เดือนนี้</th>${box(c.newMonth.length,'เคสใหม่')}${box(c.wonMonth.length,'ปิดได้ (คัน)<br>'+drBreakText(c.wonMonth, DR_WON_STATUSES))}${box(c.lostMonth.length,'เสีย (คัน)<br>'+drBreakText(c.lostMonth, DR_LOST_STATUSES))}${box(c.winRateMonth===null?'—':c.winRateMonth+'%','อัตราปิดได้')}</tr>
     </table>
     <div class="pipe"><b>เคสที่ยังเปิดอยู่ ${c.open.length} เคส:</b> ${pipe}</div>
     ${table('⚠ เคสต้องตามด่วน '+c.urgent.length+' เคส (ถึงกำหนดนัด / ไม่มีอัปเดตเกิน '+STALE_DAYS+' วัน)', c.urgent, 'urgent', 'เหตุผล', 'warn')}
