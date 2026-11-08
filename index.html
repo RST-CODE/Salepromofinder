@@ -239,6 +239,11 @@ main{ padding:8px 14px 4px; }
   color:var(--ink-soft);
 }
 .chip b{ color:var(--ink); font-weight:700;}
+/* (8/11/2569) แถบ "แบบผ่อนที่เลือกได้" ใต้ชิปค่างวดบนการ์ด — โชว์ทุกแบบผ่อน+ดอกเบี้ยของโปรนั้น ตามจำนวนปีที่การ์ดใช้อยู่ */
+.rate-strip{ display:flex; flex-wrap:wrap; gap:4px; align-items:center; width:100%; margin-top:2px; font-size:11px; color:var(--ink-soft); }
+.rate-strip .rs-lbl{ font-weight:700; color:var(--ink); margin-right:2px; }
+.rate-strip .rs-item{ background:#fff; border:1px solid var(--line); border-radius:6px; padding:1px 7px; white-space:nowrap; }
+.rate-strip .rs-item.sel{ background:var(--gold-bg); border-color:var(--gold); color:var(--ink); font-weight:600; }
 
 details{ font-size:11px; color:var(--ink-soft); }
 details summary{
@@ -2566,6 +2571,14 @@ function cardHtml(r, badge, compareTo, editable){
     paymentDesc = ' · <b>' + noMinorLabel + '</b> ' + perUnitLabel;
   }
   const paymentChip = `<span class="chip">ผ่อน <b>${finYears} ปี</b> · ${payFreqLabel} @ <b>${fmtPct(finInterest)}</b>${paymentDesc} ${tractorFRHtml}</span>`;
+  // (8/11/2569) แถบ "แบบผ่อนที่เลือกได้" — ทุกแบบผ่อนของโปรนี้ (ตามปีที่การ์ดใช้อยู่ finYears) พร้อมดอกเบี้ย
+  // ดึงจากตารางดอกเบี้ยของโปรนี้เอง (terms ใน data.js / INTEREST_TABLE / MODEL_TERM_OVERRIDE) ผ่าน getAvailablePayments/lookupInterest
+  // ส่ง ownProgramId ของการ์ดนี้เข้าไปเสมอ (ไม่พึ่ง activeProgramId) — ใช้แพทเทิร์นเดียวกันทุกยี่ห้อ ไม่ต้องแก้แยก
+  const ownPayList = getAvailablePayments(currentBrand, currentSegment, finYears, ownProgramId, modelSelect.value) || [];
+  const rateStrip = ownPayList.length ? `<div class="rate-strip"><span class="rs-lbl">แบบผ่อน (${finYears} ปี):</span>${ownPayList.map(p => {
+    const rate = lookupInterest(currentBrand, currentSegment, finYears, p, ownProgramId, modelSelect.value);
+    return `<span class="rs-item${p===tractorPayment?' sel':''}">${PAYMENT_LABELS[p] || p} ${fmtPct(rate)}</span>`;
+  }).join('')}</div>` : '';
 
   let savingsChip = '';
   if(extra>0){
@@ -2604,6 +2617,7 @@ function cardHtml(r, badge, compareTo, editable){
             ${e.fire ? `<span class="chip">Pro ไฟไหม้ <b>${fmt(e.fire)}</b></span>`:''}
             ${totalChip}
             ${paymentChip}
+            ${rateStrip}
             ${savingsChip}
           </div>
         </div>
@@ -10249,7 +10263,7 @@ loadHistory();
      (รหัสผ่านไม่ถูกเก็บไว้ที่ไหน ใช้ส่งต่อครั้งเดียวแล้วเก็บแค่ token อายุ 12 ชม.) ต้องวางก่อน auth.js เสมอ -->
 <script>
   window.RST_USED_CAR_CONFIG = {
-    apiUrl: 'PASTE_USED_CAR_EXEC_URL_HERE'
+    apiUrl: 'https://script.google.com/macros/s/AKfycbyAQ8R1vdY6-OmmHpIeC3IRH4ZV6x-Wp9jIKyBjk5N5gTz9p__rpoZvuYSepwNpaLTq1Q/exec'
   };
   (function(){
     var origFetch = window.fetch;
