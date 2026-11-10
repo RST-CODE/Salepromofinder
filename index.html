@@ -242,7 +242,8 @@ main{ padding:8px 14px 4px; }
 /* (8/11/2569) แถบ "แบบผ่อนที่เลือกได้" ใต้ชิปค่างวดบนการ์ด — โชว์ทุกแบบผ่อน+ดอกเบี้ยของโปรนั้น ตามจำนวนปีที่การ์ดใช้อยู่ */
 .rate-strip{ display:flex; flex-wrap:wrap; gap:4px; align-items:center; width:100%; margin-top:2px; font-size:11px; color:var(--ink-soft); }
 .rate-strip .rs-lbl{ font-weight:700; color:var(--ink); margin-right:2px; }
-.rate-strip .rs-item{ background:#fff; border:1px solid var(--line); border-radius:6px; padding:1px 7px; white-space:nowrap; }
+.rate-strip .rs-item{ background:#fff; border:1px solid var(--line); border-radius:6px; padding:2px 8px; white-space:nowrap; font:inherit; color:inherit; cursor:pointer; }
+.rate-strip .rs-item:hover{ border-color:var(--gold); }
 .rate-strip .rs-item.sel{ background:var(--gold-bg); border-color:var(--gold); color:var(--ink); font-weight:600; }
 
 details{ font-size:11px; color:var(--ink-soft); }
@@ -1928,12 +1929,28 @@ function cashListPrice(brand, model, rows){
   }
   return 0;
 }
+// (10/11/2569 ต่อ 3) ดอกเบี้ย/ปีตั้งต้นของโหมดเงินสด = "โปรทั่วไป" ของแต่ละยี่ห้อเสมอ (ไม่ตามกลุ่ม RT/YF,SW ที่เลือกอยู่)
+// แทรกเตอร์ = โปร 20% ลูกค้าทั่วไป, รถเกี่ยว = โปรลูกค้าทั่วไป ดาวน์30%, รถขุด = ลูกค้าทั่วไป ดาวน์ 7% (มีรายปีด้วย), โดรน = ตามกลุ่มที่เลือก
+const CASH_BASE_PREF = {
+  yanmar: { seg: 'ทั่วไป', pid: 'y_pro20' },
+  solis: { seg: 'ทั่วไป', pid: 's_pro20' },
+  combine: { seg: 'ทั่วไป', pid: 'c_general' },
+  excavator: { seg: 'general7', pid: 'e_general7' },
+};
+function cashPickBase(brand, model, segment, toggles){
+  const pref = CASH_BASE_PREF[brand];
+  const prog = id => (DATA[brand].programs || []).find(p => p.id === id);
+  if(pref && prog(pref.pid)) return { pid: pref.pid, seg: pref.seg, name: prog(pref.pid).name };
+  const seg = (brand === 'drone' || !pref) ? segment : pref.seg;
+  const rows = findPromoEntries(brand, model, seg, brand === 'drone' ? toggles : {}).filter(r => !r.entry.pending);
+  const best = rows.length ? pickBestAndRest(dedupeWithinSameCustomerOut(rows.slice(), model)).best : null;
+  return best ? { pid: best.program.id, seg, name: best.program.name } : { pid: null, seg, name: '' };
+}
 function cashFindEntries(brand, model, segment, toggles){
   const promoRows = findPromoEntries(brand, model, segment, toggles);
-  const usable = promoRows.filter(r => !r.entry.pending);
-  const best = usable.length ? pickBestAndRest(dedupeWithinSameCustomerOut(usable.slice(), model)).best : null;
   const listPrice = cashListPrice(brand, model, promoRows);
-  cashBase = { pid: best ? best.program.id : null, listPrice };
+  const base = cashPickBase(brand, model, segment, toggles);
+  cashBase = { pid: base.pid, seg: base.seg, name: base.name, listPrice };
   if(!listPrice) return [];
   const disc = Math.max(0, Math.min(Number(cashDiscount) || 0, listPrice));
   const price = listPrice - disc;
@@ -1943,38 +1960,44 @@ function cashFindEntries(brand, model, segment, toggles){
     down: 0, yct: 0, ysp: 0, ysp_topup: 0, fire: 0, customer_out: 0, rst: 0, total: price,
     interest: (T.rows[yMax] || {}).annual ?? Object.values(T.rows[yMax] || {})[0] ?? 0.0895, years: yMax };
   const conditions = ['ราคาขายปกติ ' + fmt(listPrice) + ' บาท' + (disc ? ' · ส่วนลด ' + fmt(disc) + ' บาท → ราคาสุทธิ ' + fmt(price) + ' บาท' : ''),
-    'ไม่มี YCT/YSP/RST · ดอกเบี้ยและจำนวนปีตั้งต้นตาม' + (best ? 'โปร "' + best.program.name + '"' : 'ค่ามาตรฐาน') + ' แก้ได้ตามเคส'];
+    'ไม่มี YCT/YSP/RST · ดอกเบี้ยและจำนวนปีตั้งต้นตาม' + (base.name ? 'โปร "' + base.name + '"' : 'ค่ามาตรฐาน') + ' แก้ได้ตามเคส'];
   return [{ program: { id: CASH_PID, name: CASH_PROG_NAME, conditions }, group: null, entry, variant: null }];
 }
-// ตารางปี × แบบผ่อน → ดอกเบี้ย ของโหมดราคาปกติ: ตั้งต้นจากโปรแนะนำ (cashBase.pid) แล้วทับด้วยค่าที่เซลล์กรอก
-function cashTerms(brand, segment, model){
-  const pid = cashBase.pid;
-  let years = pid ? (getAvailableYears(brand, segment, pid, model) || []).slice() : [];
+// ตารางปี × แบบผ่อน → ดอกเบี้ย ของโหมดเงินสด: ตั้งต้นจากโปรทั่วไป (cashBase) แล้วทับด้วยค่าที่เซลล์กรอก (noCustom = ไม่เอาค่าที่กรอก)
+function cashTerms(brand, segment, model, noCustom){
+  const pid = cashBase.pid, bseg = cashBase.seg || segment;
+  // ใช้ตารางระดับโปร (ไม่ส่งรุ่น) ให้ทุกรุ่นได้เรทชุดเดียวกับโปรทั่วไป
+  let years = pid ? (getAvailableYears(brand, bseg, pid) || []).slice() : [];
   const rows = {};
   years.forEach(y => {
     rows[y] = {};
-    (getAvailablePayments(brand, segment, y, pid, model) || ['annual']).forEach(p => { rows[y][p] = lookupInterest(brand, segment, y, p, pid, model); });
+    (getAvailablePayments(brand, bseg, y, pid) || ['annual']).forEach(p => { rows[y][p] = lookupInterest(brand, bseg, y, p, pid); });
   });
   if(!years.length){
     const y0 = brand === 'yanmar' ? 10 : brand === 'combine' ? 6 : brand === 'drone' ? 3 : 7;
     years = [y0];
     rows[y0] = (brand === 'excavator' || brand === 'drone') ? { quarterly: 0.0895, monthly: 0.0895 } : { semi: 0.0895, annual: 0.0895 };
   }
-  const cy = Number(cashYearsCustom);
+  const baseYears = years.slice();
+  const cy = noCustom ? 0 : Number(cashYearsCustom);
   if(cy > 0 && !rows[cy]){
     const ref = years.filter(y => y <= cy).pop() || years[0];
     rows[cy] = Object.assign({}, rows[ref]);
     years.push(cy); years.sort((a,b) => a-b);
   }
-  // (10/11/2569 ต่อ) โหมดเงินสด: แทรกเตอร์/รถเกี่ยว/รถขุด ให้เลือกได้ครบ รายเดือน/ราย 3 เดือน/ราย 6 เดือน/รายปี ทุกปี
-  // แบบที่โปรตั้งต้นไม่มี → ใช้ดอกเบี้ยรายปีของปีนั้นเป็นค่าตั้งต้น (เซลล์กรอกดอกเบี้ยทับเองได้) — โดรนคงตามโปรเดิม
+  // แทรกเตอร์/รถเกี่ยว/รถขุด เลือกได้ครบ รายเดือน/ราย 3 เดือน/ราย 6 เดือน/รายปี ทุกปี — แบบที่ปีนั้นไม่มีในโปร
+  // ใช้เรทของแบบเดียวกันจากปีที่ใกล้ที่สุดในโปรทั่วไป (เช่น Yanmar รายเดือน 6.20% ใช้ได้ถึง 10 ปี) ถ้าโปรไม่มีแบบนั้นเลยใช้เรทรายปี — โดรนคงตามโปรเดิม
   if(brand !== 'drone'){
-    Object.values(rows).forEach(r => {
-      const fallback = r.annual ?? Object.values(r)[0] ?? 0.0895;
-      ['monthly','quarterly','semi','annual'].forEach(k => { if(r[k] == null) r[k] = fallback; });
+    Object.keys(rows).map(Number).forEach(y => {
+      const r = rows[y];
+      ['monthly','quarterly','semi','annual'].forEach(k => {
+        if(r[k] != null) return;
+        const src = baseYears.filter(by => rows[by][k] != null).sort((a,b) => Math.abs(a-y) - Math.abs(b-y))[0];
+        r[k] = (src != null) ? rows[src][k] : (r.annual ?? Object.values(r)[0] ?? 0.0895);
+      });
     });
   }
-  const rv = cashRateValue();
+  const rv = noCustom ? null : cashRateValue();
   if(rv != null) Object.values(rows).forEach(r => Object.keys(r).forEach(k => { r[k] = rv; }));
   return { years, rows };
 }
@@ -2663,7 +2686,7 @@ function cardHtml(r, badge, compareTo, editable){
   const ownPayList = getAvailablePayments(currentBrand, currentSegment, finYears, ownProgramId, modelSelect.value) || [];
   const rateStrip = ownPayList.length ? `<div class="rate-strip"><span class="rs-lbl">แบบผ่อน (${finYears} ปี):</span>${ownPayList.map(p => {
     const rate = lookupInterest(currentBrand, currentSegment, finYears, p, ownProgramId, modelSelect.value);
-    return `<span class="rs-item${p===tractorPayment?' sel':''}">${PAYMENT_LABELS[p] || p} ${fmtPct(rate)}</span>`;
+    return `<button type="button" class="rs-item${p===tractorPayment?' sel':''}" onclick="event.stopPropagation();setTractorPayment('${p}')">${PAYMENT_LABELS[p] || p} ${fmtPct(rate)}</button>`;
   }).join('')}</div>` : '';
 
   let savingsChip = '';
@@ -2680,8 +2703,10 @@ function cardHtml(r, badge, compareTo, editable){
   const isCashCard = r.program && r.program.id === CASH_PID;
   let cashNumbersHtml = '';
   if(isCashCard){
-    const baseRate = cashBase.pid ? lookupInterest(currentBrand, currentSegment, finYears, tractorPayment, cashBase.pid, modelSelect.value) : null;
-    const baseYears = (cashBase.pid ? getAvailableYears(currentBrand, currentSegment, cashBase.pid, modelSelect.value) : []) || [];
+    const _bt = cashTerms(currentBrand, currentSegment, modelSelect.value, true);
+    const _br = _bt.rows[finYears] || _bt.rows[_bt.years[_bt.years.length-1]] || {};
+    const baseRate = cashBase.pid ? (_br[tractorPayment] ?? _br.annual ?? null) : null;
+    const baseYears = cashBase.pid ? _bt.years : [];
     const baseYearsTxt = baseYears.length ? baseYears.join(', ') + ' ปี' : '';
     cashNumbersHtml = `
             <div class="num-box cust full"><div class="k">ราคาขายปกติ${e.discount ? ' − ส่วนลด' : ''}</div><div class="v">${fmt(e.list_price)}${e.discount ? ` − ${fmt(e.discount)} = ${fmt(e.price)}` : ''} บาท</div></div>
@@ -2690,8 +2715,8 @@ function cardHtml(r, badge, compareTo, editable){
             ${editable ? `
             <div class="num-box full extra-down-box"><div class="k">ส่วนลด (บาท)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="cashDiscountInput" value="${cashDiscount||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">หักจากราคาขายปกติ</div></div>
             <div class="num-box full extra-down-box"><div class="k">เงินดาวน์ที่ลูกค้าจ่าย (บาท)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="extraDownInput" value="${extra||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">ยอดจัด = ราคาสุทธิ − เงินดาวน์</div></div>
-            <div class="num-box extra-down-box"><div class="k">ดอกเบี้ย (% ต่อปี)</div><div class="v"><input type="text" inputmode="decimal" class="cust-input" id="cashRateInput" value="${cashRateRaw}" placeholder="${baseRate!=null ? (baseRate*100).toFixed(2) : '8.95'}"></div><div class="vv" style="margin-top:2px">${baseRate!=null ? 'ตั้งต้น ' + fmtPct(baseRate) + ' (ตามโปร)' : 'ไม่มีโปรให้อ้างอิง'} · เว้นว่าง = ใช้ตั้งต้น</div></div>
-            <div class="num-box extra-down-box"><div class="k">จำนวนปี</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="cashYearsInput" value="${cashYearsCustom||''}" placeholder="${finYears}"></div><div class="vv" style="margin-top:2px">${baseYearsTxt ? 'ตามโปร: ' + baseYearsTxt : ''} · เว้นว่าง = เลือกจากปุ่มด้านบน</div></div>` : ''}`;
+            <div class="num-box extra-down-box"><div class="k">ดอกเบี้ย (% ต่อปี)</div><div class="v"><input type="text" inputmode="decimal" class="cust-input" id="cashRateInput" value="${cashRateRaw}" placeholder="${baseRate!=null ? (baseRate*100).toFixed(2) : '8.95'}"></div><div class="vv" style="margin-top:2px">${baseRate!=null ? 'ตั้งต้น ' + fmtPct(baseRate) + ' (' + (PAYMENT_LABELS[tractorPayment]||'') + ' ตามโปรทั่วไป)' : 'ไม่มีโปรให้อ้างอิง'} · เว้นว่าง = ใช้ตั้งต้น</div></div>
+            <div class="num-box extra-down-box"><div class="k">จำนวนปี</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="cashYearsInput" value="${cashYearsCustom||''}" placeholder="${finYears}"></div><div class="vv" style="margin-top:2px">${baseYearsTxt ? 'ตามโปรทั่วไป: ' + baseYearsTxt : ''} · เว้นว่าง = เลือกจากปุ่มด้านบน</div></div>` : ''}`;
   }
 
   return `
@@ -2929,12 +2954,12 @@ function renderSegmentButtons(){
   segmentToggle.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.seg===currentSegment));
 }
 
-// (10/11/2569) แสดง checkbox "ราคาเงินสด (ไม่ใช้โปร)" ไว้บนสุดของทุกยี่ห้อ/ทุกกลุ่ม — เปิดอยู่จะซ่อน checkbox ปลดล็อกโปร (ไม่เกี่ยวแล้ว)
+// (10/11/2569) แสดง checkbox "ราคาเงินสด (ไม่ใช้โปร)" ไว้ล่างสุดของรายการโปร (ใช้ไม่บ่อย) ทุกยี่ห้อ/ทุกกลุ่ม — เปิดอยู่จะซ่อน checkbox ปลดล็อกโปร (ไม่เกี่ยวแล้ว)
 // แต่ยังเก็บตัวเลือก Yanmar Fan/Switching ไว้ (ใช้ส่ง CRM)
 function renderToggles(){
   renderPromoToggles();
   if(cashMode) togglesContainer.querySelectorAll('.toggle-row, .toggle-auto-note').forEach(el => { el.style.display = 'none'; });
-  togglesContainer.insertAdjacentHTML('afterbegin', `
+  togglesContainer.insertAdjacentHTML('beforeend', `
     <label class="toggle-row cash-toggle-row" style="border-color:${cashMode ? 'var(--gold)' : 'var(--line)'};background:${cashMode ? 'var(--gold-bg)' : ''}">
       <input type="checkbox" id="cashModeToggle" ${cashMode ? 'checked' : ''}>
       <span class="tx"><b>💵 ขายราคาเงินสด (ไม่ใช้โปร)</b><span class="unlock">กรอกส่วนลด / เงินดาวน์ / ดอกเบี้ย / จำนวนปี เองตามเคส</span></span>
