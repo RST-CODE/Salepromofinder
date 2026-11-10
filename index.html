@@ -1901,8 +1901,79 @@ function getModelOverride(brand, programId, model){
   return list.find(g => g.models.includes(model)) || null;
 }
 
+// ===== (10/11/2569) โหมด "ราคาเงินสด (ไม่ใช้โปร)" =====
+// เคสที่ไม่ใช้โปร: ยึดราคาขายปกติของรุ่น เซลล์กรอก ส่วนลด / เงินดาวน์ / ดอกเบี้ย / จำนวนปี เองได้ ตามเคส
+// - ส่วนลดหักจากราคา (เหมือนหน้ารถมือสอง) → price = ราคาปกติ − ส่วนลด, ไม่มี YCT/YSP/RST
+// - เงินดาวน์ที่ลูกค้าจ่าย ใช้ช่องเดิม extraDown (การ์ดเปลี่ยนชื่อช่องให้เอง) → export/บันทึก/พิมพ์ใช้ logic เดิมทั้งหมด
+// - ดอกเบี้ย/ปี/แบบผ่อน "ตั้งต้น" = ของโปรแนะนำของรุ่น+กลุ่มนี้ (เหมือนตอนใช้โปร) แล้วเซลล์พิมพ์ทับเองได้
+//   ผ่าน hook ใน lookupInterest/getAvailableYears/getAvailablePayments (programId === CASH_PID) — อุปกรณ์ที่ผ่อนพร้อมรถใช้เรทเดียวกัน
+const CASH_PID = '__cash__';
+const CASH_PROG_NAME = 'ราคาเงินสด (ไม่ใช้โปร)';
+let cashMode = false;
+let cashDiscount = 0;       // บาท
+let cashRateRaw = '';       // ข้อความที่พิมพ์ (%) — '' = ใช้ดอกเบี้ยตั้งต้น
+let cashYearsCustom = null; // null = ใช้ปีตั้งต้น
+let cashBase = { pid: null, listPrice: 0 };
+function cashRateValue(){ const n = parseFloat(String(cashRateRaw).replace(/[^0-9.]/g,'')); return (isFinite(n) && n > 0 && n < 100) ? n/100 : null; }
+function cashResetInputs(){ cashDiscount = 0; cashRateRaw = ''; cashYearsCustom = null; }
+function cashListPrice(brand, model, rows){
+  const r = (rows || []).find(x => x.entry && typeof x.entry.price === 'number' && x.entry.price > 0);
+  if(r) return r.entry.price;
+  const keys = getKeys(brand, model) || [model];
+  for(const p of (DATA[brand].programs || [])){
+    for(const [k, e] of Object.entries(p.entries || {})){
+      const m = e.model || k.split(' | ')[0];
+      if((m === model || keys.includes(m)) && e.price > 0) return e.price;
+    }
+  }
+  return 0;
+}
+function cashFindEntries(brand, model, segment, toggles){
+  const promoRows = findPromoEntries(brand, model, segment, toggles);
+  const usable = promoRows.filter(r => !r.entry.pending);
+  const best = usable.length ? pickBestAndRest(dedupeWithinSameCustomerOut(usable.slice(), model)).best : null;
+  const listPrice = cashListPrice(brand, model, promoRows);
+  cashBase = { pid: best ? best.program.id : null, listPrice };
+  if(!listPrice) return [];
+  const disc = Math.max(0, Math.min(Number(cashDiscount) || 0, listPrice));
+  const price = listPrice - disc;
+  const T = cashTerms(brand, segment, model);
+  const yMax = T.years[T.years.length - 1];
+  const entry = { model, group: segment, price, list_price: listPrice, discount: disc,
+    down: 0, yct: 0, ysp: 0, ysp_topup: 0, fire: 0, customer_out: 0, rst: 0, total: price,
+    interest: (T.rows[yMax] || {}).annual ?? Object.values(T.rows[yMax] || {})[0] ?? 0.0895, years: yMax };
+  const conditions = ['ราคาขายปกติ ' + fmt(listPrice) + ' บาท' + (disc ? ' · ส่วนลด ' + fmt(disc) + ' บาท → ราคาสุทธิ ' + fmt(price) + ' บาท' : ''),
+    'ไม่มี YCT/YSP/RST · ดอกเบี้ยและจำนวนปีตั้งต้นตาม' + (best ? 'โปร "' + best.program.name + '"' : 'ค่ามาตรฐาน') + ' แก้ได้ตามเคส'];
+  return [{ program: { id: CASH_PID, name: CASH_PROG_NAME, conditions }, group: null, entry, variant: null }];
+}
+// ตารางปี × แบบผ่อน → ดอกเบี้ย ของโหมดราคาปกติ: ตั้งต้นจากโปรแนะนำ (cashBase.pid) แล้วทับด้วยค่าที่เซลล์กรอก
+function cashTerms(brand, segment, model){
+  const pid = cashBase.pid;
+  let years = pid ? (getAvailableYears(brand, segment, pid, model) || []).slice() : [];
+  const rows = {};
+  years.forEach(y => {
+    rows[y] = {};
+    (getAvailablePayments(brand, segment, y, pid, model) || ['annual']).forEach(p => { rows[y][p] = lookupInterest(brand, segment, y, p, pid, model); });
+  });
+  if(!years.length){
+    const y0 = brand === 'yanmar' ? 10 : brand === 'combine' ? 6 : brand === 'drone' ? 3 : 7;
+    years = [y0];
+    rows[y0] = (brand === 'excavator' || brand === 'drone') ? { quarterly: 0.0895, monthly: 0.0895 } : { semi: 0.0895, annual: 0.0895 };
+  }
+  const cy = Number(cashYearsCustom);
+  if(cy > 0 && !rows[cy]){
+    const ref = years.filter(y => y <= cy).pop() || years[0];
+    rows[cy] = Object.assign({}, rows[ref]);
+    years.push(cy); years.sort((a,b) => a-b);
+  }
+  const rv = cashRateValue();
+  if(rv != null) Object.values(rows).forEach(r => Object.keys(r).forEach(k => { r[k] = rv; }));
+  return { years, rows };
+}
+
 function lookupInterest(brand, segment, years, paymentType, programId, model){
   const pid = (typeof programId !== 'undefined') ? programId : activeProgramId;
+  if(pid === CASH_PID){ const T = cashTerms(brand, segment, model); const row = T.rows[years] || T.rows[T.years[T.years.length-1]] || {}; return row[paymentType] ?? row.annual ?? Object.values(row)[0] ?? 0.0895; }
   const ddT = ddTerms(brand, segment, pid, model);
   if(ddT){ const row = ddT[years] || ddT[ddYears(ddT).slice(-1)[0]] || {}; return row[paymentType] ?? row.annual ?? Object.values(row)[0] ?? 0.0895; }
   const override = getModelOverride(brand, pid, model);
@@ -1915,6 +1986,7 @@ function lookupInterest(brand, segment, years, paymentType, programId, model){
 
 function getAvailableYears(brand, segment, programId, model){
   const pid = (typeof programId !== 'undefined') ? programId : activeProgramId;
+  if(pid === CASH_PID) return cashTerms(brand, segment, model).years;
   const ddT = ddTerms(brand, segment, pid, model);
   if(ddT) return ddYears(ddT);
   const override = getModelOverride(brand, pid, model);
@@ -1924,6 +1996,7 @@ function getAvailableYears(brand, segment, programId, model){
 }
 function getAvailablePayments(brand, segment, years, programId, model){
   const pid = (typeof programId !== 'undefined') ? programId : activeProgramId;
+  if(pid === CASH_PID){ const T = cashTerms(brand, segment, model); const row = T.rows[years] || T.rows[T.years[T.years.length-1]] || {}; const list = DD_PAY_ORDER.filter(k => row[k] != null); return list.length ? list : ['annual']; }
   const ddT = ddTerms(brand, segment, pid, model);
   if(ddT){ const row = ddT[years] || {}; const list = DD_PAY_ORDER.filter(k => row[k] != null); return list.length ? list : ['annual']; }
   const override = getModelOverride(brand, pid, model);
@@ -1936,7 +2009,7 @@ const USED_EQUIPMENT = {"yanmar": {"EF393A / EF393T-45th": [{"name": "ชุด�
 USED_EQUIPMENT.combine = {};
 USED_EQUIPMENT.excavator = {};
 
-const EQUIPMENT = {"yanmar": {"EF393A / EF393T-45th": [{"name": "ใบมีดดันดินหน้า 1.60 ม.", "price": 55000}, {"name": "ผานบุกเบิก 22\"×4 ใบ", "price": 50000, "special": 42000}, {"name": "ผานพรวน 22\"×5 ใบ", "price": 47500, "special": 38000}, {"name": "ผานพรวน 22\"×6 ใบ", "price": 47500, "special": 39000}, {"name": "โรตารี่ 1.60 ม.", "price": 68900}, {"name": "เครื่องตัดหญ้า 1.20 ม.", "price": 31400}, {"name": "บุ้งกี๋ 3.4 ม.", "price": 177300}, {"name": "เครื่องอัดฟาง 1.35 ม.", "price": 500000}], "YM241A": [{"name": "ผานบุกเบิก 22\"×4 ใบ", "price": 50000, "special": 42000}, {"name": "ผานพรวน 22\"×5 ใบ", "price": 47500, "special": 38000}, {"name": "ผานพรวน 22\"×6 ใบ", "price": 47500, "special": 39000}], "YM351R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM351R)", "price": 66100}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000, "special": 53000, "special_models": ["YM351R"]}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500, "special": 61000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000, "special": 58000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000, "special": 54000, "special_models": ["YM351R"]}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 182100}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 187300}], "YM358R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM358R)", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}, {"name": "เครื่องคีบอ้อย (YM358)", "price": 250000, "specialFin": {"years":2,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM358R-L1": [{"name": "ใบมีดดันดินหน้า 1.80 ม.", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "ผานพรวน 24\"×6 ใบ (กระบอกยันจานยาว 11\")", "price": 60000}, {"name": "โรตารี่ 2.00 ม.", "price": 78000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}, {"name": "เครื่องคีบอ้อย", "price": 250000, "specialFin": {"years":2,"rate":0.08,"minor":1000,"bundleMinDown":40000}}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}], "EF725T": [{"name": "ใบมีดดันดินหน้า 2.10 ม.", "price": 69000}, {"name": "ผานบุกเบิก 26\"×3 ใบ รุ่น EF725T", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ รุ่น EF725T", "price": 73600}, {"name": "โรตารี่ 2.20 ม. รุ่น EF725T", "price": 91400}]}, "solis": {"Solis 26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis22": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis30": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis30-45th": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis50": [{"name": "ใบมีดดันดินหน้า 1.90 ม.", "price": 75000}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 64100}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "คีบอ้อย", "price": 250000, "specialFin": {"years":2,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis50-45th": [{"name": "ใบมีดดันดินหน้า 1.90 ม.", "price": 75000}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 64100}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "คีบอ้อย", "price": 250000, "specialFin": {"years":2,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis75": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000, "specialFin": {"years":3,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis75-45th": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000, "specialFin": {"years":3,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis 65": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000, "specialFin": {"years":3,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis90": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000, "specialFin": {"years":3,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis105-45th": [{"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (105 แรง)", "price": 95300}, {"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (110 แรง)", "price": 100200}, {"name": "ผานพรวน 26\"×8 ใบ", "price": 85520}, {"name": "ผานพรวนสับใบ", "price": 126400}, {"name": "วิปเปอร์ 3 ขา", "price": 122300}, {"name": "เครื่องปลูกอ้อย 2 แถว", "price": 109900}, {"name": "เครื่องตัดอ้อย", "price": 330000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}]}};
+const EQUIPMENT = {"yanmar": {"EF393A / EF393T-45th": [{"name": "ใบมีดดันดินหน้า 1.60 ม.", "price": 55000}, {"name": "ผานบุกเบิก 22\"×4 ใบ", "price": 50000, "special": 42000}, {"name": "ผานพรวน 22\"×5 ใบ", "price": 47500, "special": 38000}, {"name": "ผานพรวน 22\"×6 ใบ", "price": 47500, "special": 39000}, {"name": "โรตารี่ 1.60 ม.", "price": 68900}, {"name": "เครื่องตัดหญ้า 1.20 ม.", "price": 31400}, {"name": "บุ้งกี๋ 3.4 ม.", "price": 177300}, {"name": "เครื่องอัดฟาง 1.35 ม.", "price": 500000}], "YM241A": [{"name": "ใบมีดดันดินหน้า 1.60 ม.", "price": 54700}, {"name": "ผานบุกเบิก 22\"×4 ใบ", "price": 50000, "special": 42000}, {"name": "ผานพรวน 22\"×5 ใบ", "price": 47500, "special": 38000}, {"name": "ผานพรวน 22\"×6 ใบ", "price": 47500, "special": 39000}], "YM351R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM351R)", "price": 66100}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000, "special": 53000, "special_models": ["YM351R"]}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500, "special": 61000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000, "special": 58000, "special_models": ["YM351R"]}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000, "special": 54000, "special_models": ["YM351R"]}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 182100}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 187300}], "YM358R": [{"name": "ใบมีดดันดินหน้า 1.80 ม. (YM358R)", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×5 ใบ", "price": 61000}, {"name": "ผานพรวน 24\"×6 ใบ", "price": 59000}, {"name": "โรตารี่ 1.80 ม.", "price": 75900}, {"name": "ผานยกร่อง 24\"×2 ใบ", "price": 23000}, {"name": "ผานยกร่อง 22\"×2 ใบ", "price": 23900}, {"name": "ผานขุดมัน 22\"", "price": 23000}, {"name": "เครื่องตัดหญ้า 1.40 ม.", "price": 38700}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}, {"name": "เครื่องคีบอ้อย (YM358)", "price": 250000, "specialFin": {"years":2,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM358R-L1": [{"name": "ใบมีดดันดินหน้า 1.80 ม.", "price": 67200}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 61000}, {"name": "ผานบุกเบิก 24\"×4 ใบ", "price": 63500}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "ผานพรวน 24\"×6 ใบ (กระบอกยันจานยาว 11\")", "price": 60000}, {"name": "โรตารี่ 2.00 ม.", "price": 78000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}, {"name": "เครื่องคีบอ้อย", "price": 250000, "specialFin": {"years":2,"rate":0.08,"minor":1000,"bundleMinDown":40000}}, {"name": "บุ้งกี๋ 3.6 ม.", "price": 184600}, {"name": "บุ้งกี๋ 3.9 ม.", "price": 189900}], "EF725T": [{"name": "ใบมีดดันดินหน้า 2.10 ม.", "price": 69000}, {"name": "ผานบุกเบิก 26\"×3 ใบ รุ่น EF725T", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ รุ่น EF725T", "price": 73600}, {"name": "โรตารี่ 2.20 ม. รุ่น EF725T", "price": 91400}]}, "solis": {"Solis 26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis22": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis26": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}], "YM-Solis30": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis30-45th": [{"name": "โครงกันอ้อยสำหรับรถ SOLIS-26+หลังคา", "price": 22500}, {"name": "ผานพรวนฝังปุ๋ย 6 ใบ", "price": 52000}, {"name": "ผานพรวน 20\"×5 ใบ", "price": 40000}, {"name": "ใบมีดดันดินหน้า 1.20 ม.", "price": 50200}, {"name": "โรตารี่ขนาด 0.80 ม.", "price": 43500}, {"name": "ชุดหลังคาสำหรับ SOLIS-26,22,30", "price": 10000}, {"name": "เครื่องสางใบอ้อย 4 โรเตอร์", "price": 55000}, {"name": "เครื่องตัดหญ้า 0.80 ม.", "price": 27500}, {"name": "เครื่องพ่นยา 200 ลิตร ปีก 5 ม. 9 หัวฉีด", "price": 29000}], "YM-Solis50": [{"name": "ใบมีดดันดินหน้า 1.90 ม.", "price": 75000}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 64100}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "คีบอ้อย", "price": 250000, "specialFin": {"years":2,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis50-45th": [{"name": "ใบมีดดันดินหน้า 1.90 ม.", "price": 75000}, {"name": "ผานบุกเบิก 24\"×3 ใบ", "price": 64100}, {"name": "ผานพรวน 24\"×6 ใบ (โครงผาน 7)", "price": 62000}, {"name": "คีบอ้อย", "price": 250000, "specialFin": {"years":2,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis75": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000, "specialFin": {"years":3,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis75-45th": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000, "specialFin": {"years":3,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis 65": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000, "specialFin": {"years":3,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis90": [{"name": "ใบมีดดันดินหน้า 2.20 ม.", "price": 86000}, {"name": "ผานบุกเบิก 26\"×3 ใบ", "price": 69200}, {"name": "ผานพรวน 26\"×7 ใบ", "price": 74000}, {"name": "เครื่องปลูกอ้อย", "price": 109900}, {"name": "เครื่องตัดอ้อยท่วงข้าง", "price": 335000}, {"name": "ผานพรวนสับใบ", "price": 102700}, {"name": "โรตารี่ 2.20 ม.", "price": 91400}, {"name": "คีบอ้อย", "price": 340000, "specialFin": {"years":3,"rate":0.08,"minor":1000,"bundleMinDown":40000}}], "YM-Solis105-45th": [{"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (105 แรง)", "price": 95300}, {"name": "ใบมีดดันดิน 2.40 ม. พร้อมติดตั้ง (110 แรง)", "price": 100200}, {"name": "ผานพรวน 26\"×8 ใบ", "price": 85520}, {"name": "ผานพรวนสับใบ", "price": 126400}, {"name": "วิปเปอร์ 3 ขา", "price": 122300}, {"name": "เครื่องปลูกอ้อย 2 แถว", "price": 109900}, {"name": "เครื่องตัดอ้อย", "price": 330000}, {"name": "เครื่องอัดฟางขนาด 1.35 ม.", "price": 500000}, {"name": "เครื่องอัดฟางขนาด 1.65 ม.", "price": 542500}]}};
 EQUIPMENT.combine = {
   "AW82V": [{"name":"ถังอุ้ม","price":140000,"specialFin":{"years":6,"rate":0.08,"minor":0,"bundleMinDown":40000}}]
 };
@@ -2335,7 +2408,12 @@ function getKeys(brand, model){
 //   ตัวที่ชนะ = "แนะนำสำหรับกลุ่มนี้" (best) โชว์เป็นการ์ดหลัก ตัวที่เหลือ = "rest" อยู่ใต้ปุ่ม "ดูโปรอื่นสำหรับกลุ่มนี้"
 //   เซลล์กดปุ่ม "เลือกโปรนี้" ที่การ์ดใดก็ได้เพื่อสลับไปใช้โปรนั้นแทนโปรแนะนำ (selectPromo(idx))
 // ============================================================
+// (10/11/2569) โหมดราคาเงินสด (ไม่ใช้โปร) — เปิดอยู่ = คืนการ์ด "ราคาปกติ" ใบเดียวแทนโปรทั้งหมด (ดู cashFindEntries)
 function findEntries(brand, model, segment, toggles){
+  if(cashMode) return cashFindEntries(brand, model, segment, toggles);
+  return findPromoEntries(brand, model, segment, toggles);
+}
+function findPromoEntries(brand, model, segment, toggles){
   if(isDD(brand)) return ddFindEntries(brand, model, segment, toggles);
   const programs = DATA[brand].programs;
   const ids = PROGRAM_IDS[brand];
@@ -2498,7 +2576,7 @@ function cardHtml(r, badge, compareTo, editable){
   // (15/9/2569) บางรุ่นมี override ดอกเบี้ยเฉพาะรุ่นในโปรเดียวกัน (ดู MODEL_TERM_OVERRIDE) — เช็คก่อนตาราง INTEREST_TABLE ทั่วไป
   const ownOverride = getModelOverride(currentBrand, ownProgramId, modelSelect.value);
   const ownDdTerms = ddTerms(currentBrand, currentSegment, ownProgramId, modelSelect.value);
-  const tableInterest = ownDdTerms ? (ownDdTerms[finYears]?.[tractorPayment] ?? ownDdTerms[finYears]?.annual) : (ownOverride ? ownOverride.interest : INTEREST_TABLE[currentBrand]?.[getInterestGroup(currentBrand, currentSegment, ownProgramId)]?.[finYears + '_' + tractorPayment]);
+  const tableInterest = (ownProgramId === CASH_PID) ? lookupInterest(currentBrand, currentSegment, finYears, tractorPayment, CASH_PID, modelSelect.value) : ownDdTerms ? (ownDdTerms[finYears]?.[tractorPayment] ?? ownDdTerms[finYears]?.annual) : (ownOverride ? ownOverride.interest : INTEREST_TABLE[currentBrand]?.[getInterestGroup(currentBrand, currentSegment, ownProgramId)]?.[finYears + '_' + tractorPayment]);
   const finInterest = tableInterest ?? entryInterest;
   const finAnnual = finTotal * (1/finYears + finInterest);
 
@@ -2581,13 +2659,31 @@ function cardHtml(r, badge, compareTo, editable){
   }).join('')}</div>` : '';
 
   let savingsChip = '';
-  if(extra>0){
+  if(extra>0 && !(r.program && r.program.id === CASH_PID)){ // (10/11/2569) โหมดราคาปกติ: เงินดาวน์คือดาวน์หลัก ไม่ใช่ "วางเพิ่ม"
     const finAnnualBase = finTotalBase * (1/finYears + finInterest);
     const bigPaymentBase = minorMode==='normal'
       ? Math.max(0, finAnnualBase - minorBase*11)
       : finAnnualBase;
     const saved = bigPaymentBase - bigPayment;
     savingsChip = `<span class="chip">วางเพิ่ม <b>${fmt(extra)}</b> บาท → งวดใหญ่ลดลง <b>${fmt(roundInstallment(saved, tractorFinType))}</b> บาท/ปี (จากเดิม ${fmt(roundInstallment(bigPaymentBase, tractorFinType))} บาท/ปี)</span>`;
+  }
+
+  // (10/11/2569) การ์ดโหมดราคาเงินสด (ไม่ใช้โปร): แทนกล่องสนับสนุน/RST ด้วย ราคาปกติ−ส่วนลด และช่องกรอก ส่วนลด/ดาวน์/ดอกเบี้ย/ปี
+  const isCashCard = r.program && r.program.id === CASH_PID;
+  let cashNumbersHtml = '';
+  if(isCashCard){
+    const baseRate = cashBase.pid ? lookupInterest(currentBrand, currentSegment, finYears, tractorPayment, cashBase.pid, modelSelect.value) : null;
+    const baseYears = (cashBase.pid ? getAvailableYears(currentBrand, currentSegment, cashBase.pid, modelSelect.value) : []) || [];
+    const baseYearsTxt = baseYears.length ? baseYears.join(', ') + ' ปี' : '';
+    cashNumbersHtml = `
+            <div class="num-box cust full"><div class="k">ราคาขายปกติ${e.discount ? ' − ส่วนลด' : ''}</div><div class="v">${fmt(e.list_price)}${e.discount ? ` − ${fmt(e.discount)} = ${fmt(e.price)}` : ''} บาท</div></div>
+            <div class="num-box"><div class="k">เงินดาวน์ (ลูกค้าจ่าย)</div><div class="v">${fmt(downDisp)}</div></div>
+            <div class="num-box"><div class="k">ลูกค้าออก(รวมจดทะเบียน+พรบ)</div><div class="v">${fmt(cust)}${regFee>0 ? `<div class="vv">(ดาวน์รถ ${fmt(custDown)} + จดทะเบียน+พรบ ${fmt(regFee)})</div>` : ''}</div></div>
+            ${editable ? `
+            <div class="num-box full extra-down-box"><div class="k">ส่วนลด (บาท)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="cashDiscountInput" value="${cashDiscount||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">หักจากราคาขายปกติ</div></div>
+            <div class="num-box full extra-down-box"><div class="k">เงินดาวน์ที่ลูกค้าจ่าย (บาท)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="extraDownInput" value="${extra||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">ยอดจัด = ราคาสุทธิ − เงินดาวน์</div></div>
+            <div class="num-box extra-down-box"><div class="k">ดอกเบี้ย (% ต่อปี)</div><div class="v"><input type="text" inputmode="decimal" class="cust-input" id="cashRateInput" value="${cashRateRaw}" placeholder="${baseRate!=null ? (baseRate*100).toFixed(2) : '8.95'}"></div><div class="vv" style="margin-top:2px">${baseRate!=null ? 'ตั้งต้น ' + fmtPct(baseRate) + ' (ตามโปร)' : 'ไม่มีโปรให้อ้างอิง'} · เว้นว่าง = ใช้ตั้งต้น</div></div>
+            <div class="num-box extra-down-box"><div class="k">จำนวนปี</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="cashYearsInput" value="${cashYearsCustom||''}" placeholder="${finYears}"></div><div class="vv" style="margin-top:2px">${baseYearsTxt ? 'ตามโปร: ' + baseYearsTxt : ''} · เว้นว่าง = เลือกจากปุ่มด้านบน</div></div>` : ''}`;
   }
 
   return `
@@ -2603,12 +2699,14 @@ function cardHtml(r, badge, compareTo, editable){
             <div class="seg-rst" style="width:${rstPct}%" title="RST ออก: ${fmt(rst)}"></div>
           </div>
           <div class="numbers">
+            ${isCashCard ? cashNumbersHtml : `
             <div class="num-box cust full"><div class="k">ส่วนสนับสนุนรวม (ลูกค้าได้รับ)</div><div class="v">${fmt(totalSupport)} บาท${supportDelta}</div></div>
             <div class="num-box"><div class="k">เงินดาวน์รวม</div><div class="v">${fmt(downDisp)}${extra>0 ? `<div class="vv">(เดิม ${fmt(down)} + วางเพิ่ม ${fmt(extra)})</div>` : ''}</div></div>
             <div class="num-box"><div class="k">ลูกค้าออก(รวมจดทะเบียน+พรบ)</div><div class="v">${fmt(cust)}${custDelta}${regFee>0 ? `<div class="vv">(ดาวน์รถ ${fmt(custDown)} + จดทะเบียน+พรบ ${fmt(regFee)})</div>` : ''}</div></div>
             <div class="num-box"><div class="k">RST ออก</div><div class="v">${fmt(rst)}${rstDelta}</div></div>
             ${editable ? `<div class="num-box full extra-down-box"><div class="k">แบบที่ 1: ลูกค้าวางดาวน์เพิ่ม (ถ้ามี)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="extraDownInput" value="${extra||''}" placeholder="0"></div><div class="vv" style="margin-top:2px">กรอกเพิ่มเพื่อ เพิ่มดาวน์ ลดค่างวด</div></div>
             <div class="num-box full extra-down-box"><div class="k">แบบที่ 2: ลูกค้าจ่ายแทนสนับสนุนบางส่วน (ยอดดาวน์รวมเท่าเดิม)</div><div class="v"><input type="text" inputmode="numeric" pattern="[0-9]*" class="cust-input" id="subForSupportInput" value="${subForSupport||''}" placeholder="0" max="${totalSupportBase}"></div><div class="vv" style="margin-top:2px">กรอกเพิ่มเพื่อ ออกแทนช่วยดาวน์</div></div>` : ''}
+            `}
           </div>
           <div class="breakdown">
             ${e.yct ? `<span class="chip">YCT <b>${fmt(e.yct)}</b></span>`:''}
@@ -2713,7 +2811,7 @@ function renderResultsCommon(rawRows, model){
     ${selIdx===0?'✓ กำลังใช้โปรนี้':'↩ ใช้โปรแนะนำแทน'}
   </button>`;
   const notRecommended = selIdx > 0 ? `<div style="font-size:10px;color:#c97a00;margin-bottom:2px">⚠️ โปรนี้ไม่ใช่โปรแนะนำ — กดปุ่มด้านบนเพื่อกลับไปใช้โปรแนะนำ</div>` : '';
-  html += notRecommended + cardHtml(chosen, selIdx===0?'แนะนำสำหรับกลุ่มนี้':'⭐ โปรที่เลือก', null, true);
+  html += notRecommended + cardHtml(chosen, cashMode ? '💵 ราคาเงินสด (ไม่ใช้โปร)' : (selIdx===0?'แนะนำสำหรับกลุ่มนี้':'⭐ โปรที่เลือก'), null, true);
 
   // ดูโปรอื่น: แสดงทุกโปรยกเว้นโปรที่เลือกอยู่
   const otherCards = allCards.filter((_,i)=>i!==selIdx);
@@ -2751,6 +2849,21 @@ function renderResultsCommon(rawRows, model){
       }
     });
   }
+  // (10/11/2569) ช่องกรอกของการ์ดราคาเงินสด (ไม่ใช้โปร) — พิมพ์แล้วคำนวณใหม่ทันที แล้วโฟกัสกลับช่องเดิม
+  [['cashDiscountInput', v => { cashDiscount = Math.max(0, Number(v.replace(/[^0-9]/g,'')) || 0); }],
+   ['cashRateInput', v => { cashRateRaw = v.replace(/[^0-9.]/g,''); }],
+   ['cashYearsInput', v => { const n = Number(v.replace(/[^0-9]/g,'')) || 0; cashYearsCustom = (n >= 1 && n <= 15) ? n : null; tractorYears = cashYearsCustom; if(!eqPaymentUserSet) eqYears = cashYearsCustom; }]
+  ].forEach(([id, apply]) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('input', () => {
+      const pos = el.selectionStart;
+      apply(el.value);
+      renderResults();
+      const ne = document.getElementById(id);
+      if(ne){ ne.focus(); try{ ne.setSelectionRange(pos, pos); }catch(_){} }
+    });
+  });
   const subInput = document.getElementById('subForSupportInput');
   if(subInput){
     subInput.addEventListener('input', ()=>{
@@ -2770,6 +2883,7 @@ function renderResultsCommon(rawRows, model){
 // ===== UI wiring =====
 function setBrand(brand){
   currentBrand = brand;
+  cashResetInputs(); // (10/11/2569) ส่วนลด/ดอกเบี้ย/ปีที่กรอกในโหมดราคาปกติ ผูกกับรุ่น — ล้างเมื่อเปลี่ยนยี่ห้อ
   // รถขุด: ลูกค้าส่วนใหญ่เป็นผู้รับเหมา จ่ายรายเดือนเป็นหลัก จึง default เป็นรายเดือน (เลือกรายปีเองได้ถ้าเข้าเงื่อนไขสวนทุเรียน)
   const defaultPayment = (brand==='excavator' || brand==='drone') ? 'monthly' : 'annual';
   tractorYears = null; tractorPayment = defaultPayment;
@@ -2807,7 +2921,29 @@ function renderSegmentButtons(){
   segmentToggle.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.seg===currentSegment));
 }
 
+// (10/11/2569) แสดง checkbox "ราคาเงินสด (ไม่ใช้โปร)" ไว้บนสุดของทุกยี่ห้อ/ทุกกลุ่ม — เปิดอยู่จะซ่อน checkbox ปลดล็อกโปร (ไม่เกี่ยวแล้ว)
+// แต่ยังเก็บตัวเลือก Yanmar Fan/Switching ไว้ (ใช้ส่ง CRM)
 function renderToggles(){
+  renderPromoToggles();
+  if(cashMode) togglesContainer.querySelectorAll('.toggle-row, .toggle-auto-note').forEach(el => { el.style.display = 'none'; });
+  togglesContainer.insertAdjacentHTML('afterbegin', `
+    <label class="toggle-row cash-toggle-row" style="border-color:${cashMode ? 'var(--gold)' : 'var(--line)'};background:${cashMode ? 'var(--gold-bg)' : ''}">
+      <input type="checkbox" id="cashModeToggle" ${cashMode ? 'checked' : ''}>
+      <span class="tx"><b>💵 ขายราคาเงินสด (ไม่ใช้โปร)</b><span class="unlock">กรอกส่วนลด / เงินดาวน์ / ดอกเบี้ย / จำนวนปี เองตามเคส</span></span>
+    </label>`);
+  document.getElementById('cashModeToggle').addEventListener('change', e => setCashMode(e.target.checked));
+}
+function setCashMode(on){
+  cashMode = !!on;
+  cashResetInputs();
+  extraDown = 0; custSubForSupport = 0;
+  selectedPromoIdx = 0;
+  tractorYears = null;
+  renderToggles();
+  renderResults();
+  maybeAutoStep2();
+}
+function renderPromoToggles(){
   renderLandRef();
   const defs = isDD(currentBrand) ? ddToggleDefs(currentBrand, currentSegment) : ((TOGGLE_DEFS[currentBrand] && TOGGLE_DEFS[currentBrand][currentSegment]) || []);
   const note = (isDD(currentBrand) || currentBrand === 'combine' || currentBrand === 'excavator' || currentBrand === 'drone') ? null : TOGGLE_NOTE[currentSegment];
@@ -2871,6 +3007,7 @@ document.querySelectorAll('.brand-btn').forEach(b=>{
 });
 function selectSegment(seg){
     currentSegment = seg;
+    cashYearsCustom = null; // (10/11/2569) tractorYears ถูกรีเซ็ตด้านล่าง ปีที่กรอกเองในโหมดราคาปกติก็ต้องรีเซ็ตตาม
     yfSwSubType = null;
     const defaultPayment = (currentBrand==='excavator' || currentBrand==='drone') ? 'monthly' : 'annual';
     tractorYears = null; tractorPayment = defaultPayment;
@@ -2912,6 +3049,7 @@ custTypeToggle.addEventListener('click', (evt)=>{
 });
 modelSelect.addEventListener('change', ()=>{
   toggleState = {land30:false, baac:false, noYct20:false, leader25:false};
+  cashResetInputs(); // (10/11/2569) ล้างส่วนลด/ดอกเบี้ย/ปีของโหมดราคาปกติเมื่อเปลี่ยนรุ่น
   yfSwSubType = null;
   eqSelByMode = { new:{}, used:{} }; eqFinByMode = { new:{}, used:{} };
   eqDown = 0; selectedPromoIdx = 0;
@@ -3492,6 +3630,9 @@ function collectExportData(){
     yct: e.yct||0, ysp: e.ysp||0, fire: e.fire||0,
     totalDown: down, date: new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}),
     crmCustRelType, leadSource,
+    // (10/11/2569) เคสราคาเงินสด (ไม่ใช้โปร) — เก็บราคาปกติ/ส่วนลด/ดอกเบี้ย/ปีที่ใช้ ไว้แสดงในใบสรุป/ประวัติ
+    cashCalc: (chosen?.program?.id === CASH_PID) ? { listPrice: e.list_price||price, discount: e.discount||0, netPrice: price,
+      rate: finRate, years: finYears, payment: tractorPayment, rateCustom: cashRateValue(), yearsCustom: cashYearsCustom, basePromo: cashBase.pid || '' } : undefined,
   };
   return (saleMode === 'used') ? Object.assign(_rec, usedRecordFields()) : _rec; // (2026-10-22) หน้ารถมือสอง
 }
@@ -3570,6 +3711,7 @@ function refreshExportSummary(){
     <div class="es-row"><span class="es-label">ราคารถ</span><span class="es-val">${fmt(d.price)} บาท</span></div>
     <div class="es-row"><span class="es-label">เงินดาวน์รวม</span><span class="es-val">${fmt(d.down)} บาท</span></div>
     <div class="es-row"><span class="es-label">ยอดจัด (รถ)</span><span class="es-val">${fmt(d.finTotal)} บาท</span></div>
+    ${(d.cashCalc && d.cashCalc.discount) ? `<div class="es-row"><span class="es-label">ส่วนลด</span><span class="es-val">${fmt(d.cashCalc.discount)} บาท (ราคาปกติ ${fmt(d.cashCalc.listPrice)})</span></div>` : ''}
     ${(d.saleType==='used' && d.usedCalc && d.usedCalc.discount) ? `<div class="es-row"><span class="es-label">ส่วนลด</span><span class="es-val">${fmt(d.usedCalc.discount)} บาท (ราคาตั้ง ${fmt(d.usedCalc.listPrice)})</span></div>` : ''}
     ${(d.saleType==='used' && d.tractorPayment==='cash') ? `<div class="es-row"><span class="es-label">การชำระ</span><span class="es-val">💵 เงินสด ${fmt(d.price + (d.eqTotalPrice||0))} บาท</span></div>` : (d.saleType==='used' && d.tractorPayment==='monthly') ? `<div class="es-row"><span class="es-label">ค่างวดรายเดือน</span><span class="es-val">${fmt(d.perMonth)} บาท × ${d.finYears*12} งวด</span></div>` : `<div class="es-row"><span class="es-label">งวดใหญ่ (รถ)</span><span class="es-val">${fmt(d.bigPay)} บาท/${d.finYears} ปี</span></div>`}
     ${d.eqItems.length>0?`<div class="es-row"><span class="es-label">ยอดจัด (อุปกรณ์)</span><span class="es-val">${fmt(d.eqFinTotal)} บาท</span></div>`:''}
@@ -3819,6 +3961,7 @@ function buildPrintHtml(d){
             <td style="padding:1px 4px;border:0.5px solid #bbb">${d.model}</td>
             <td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb">${fmt(d.price)}</td>
           </tr>
+          ${(d.cashCalc && d.cashCalc.discount) ? `<tr><td colspan="2" style="padding:1px 4px;border:0.5px solid #bbb;font-size:8.5pt;color:#555">ราคาปกติ ${fmt(d.cashCalc.listPrice)} · ส่วนลด ${fmt(d.cashCalc.discount)}</td><td style="padding:2px 5px;text-align:right;border:0.5px solid #bbb;font-size:8.5pt;color:#555">สุทธิ ${fmt(d.cashCalc.netPrice)}</td></tr>` : ''}
           ${d.eqItems.length>0 ? d.eqItems.map(eq=>`<tr>
             <td style="padding:1px 4px;border:0.5px solid #bbb;font-weight:bold;color:${eq.finType==='F'?'#c9813a':'#1e7e34'}">${eq.finType||'R'}</td>
             <td style="padding:1px 4px;border:0.5px solid #bbb">${eq.name}</td>
