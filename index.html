@@ -1966,6 +1966,14 @@ function cashTerms(brand, segment, model){
     rows[cy] = Object.assign({}, rows[ref]);
     years.push(cy); years.sort((a,b) => a-b);
   }
+  // (10/11/2569 ต่อ) โหมดเงินสด: แทรกเตอร์/รถเกี่ยว/รถขุด ให้เลือกได้ครบ รายเดือน/ราย 3 เดือน/ราย 6 เดือน/รายปี ทุกปี
+  // แบบที่โปรตั้งต้นไม่มี → ใช้ดอกเบี้ยรายปีของปีนั้นเป็นค่าตั้งต้น (เซลล์กรอกดอกเบี้ยทับเองได้) — โดรนคงตามโปรเดิม
+  if(brand !== 'drone'){
+    Object.values(rows).forEach(r => {
+      const fallback = r.annual ?? Object.values(r)[0] ?? 0.0895;
+      ['monthly','quarterly','semi','annual'].forEach(k => { if(r[k] == null) r[k] = fallback; });
+    });
+  }
   const rv = cashRateValue();
   if(rv != null) Object.values(rows).forEach(r => Object.keys(r).forEach(k => { r[k] = rv; }));
   return { years, rows };
