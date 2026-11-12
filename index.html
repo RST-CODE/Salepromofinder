@@ -1225,6 +1225,8 @@ body.printing #printArea{
 #dashboardModalBg .modal-form-inner{ max-width:980px; width:100%; box-sizing:border-box; }
 .dr-table td:first-child{ min-width:120px; }
 .dr-note{ max-width:220px; font-size:11px; color:var(--ink-soft); }
+/* (12/11/2569) จอมือถือซ่อนคอลัมน์โน้ต → โชว์โน้ตล่าสุดเป็นบรรทัดใต้ชื่อลูกค้าแทน */
+.dr-mnote{ display:none; font-size:11px; color:var(--ink); background:#faf7f2; border-radius:6px; padding:2px 6px; margin-top:3px; white-space:normal; max-width:60vw; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 .dr-empty{ text-align:center; color:var(--ink-soft); cursor:default; }
 .dr-tag{ display:inline-block; font-size:10.5px; font-weight:700; padding:1px 7px; border-radius:10px; margin:0 3px 2px 0; white-space:nowrap; }
 .dr-tag.due{ background:#fdf3d8; color:#8a6500; } .dr-tag.stale{ background:#fbe3e0; color:#c0392b; }
@@ -1247,6 +1249,8 @@ body.printing #printArea{
   .dr-grid{ grid-template-columns:repeat(2,1fr); }
   .dr-print{ margin-left:0; width:100%; }
   .dr-note{ display:none; } .dr-table th:last-child{ display:none; }
+  .dr-mnote{ display:-webkit-box !important; }
+  .dr-mnote[hidden]{ display:none !important; }
   .dr-dwrap{ position:sticky; left:12px; width:calc(100vw - 90px); }
   .dr-dact a, .dr-dact button{ flex:1 1 auto; text-align:center; }
 }
@@ -4262,7 +4266,7 @@ function previewGuarantorForm(){
 // พิมพ์ฟอร์ม (ที่อยู่ปัจจุบัน/ผู้ค้ำ/รายได้/ผู้อ้างอิง) — ย่อให้พอดี 1 หน้า A4 อัตโนมัติถ้าเนื้อหายาวเกิน
 // (มีของแถม/หนี้สิน/ผู้อ้างอิงหลายคนก็ยังพยายามอัดลงหน้าเดียว แต่จะไม่ย่อจนอ่านไม่ออก — ต่ำสุด 60%)
 const PRINT_FIT_MIN_SCALE = 0.6;
-function _fitPrintAreaToOnePage(){
+function _fitPrintAreaToOnePage(minScale){
   const area = document.getElementById('printArea');
   const inner = area.firstElementChild;
   if(!inner) return;
@@ -4270,14 +4274,28 @@ function _fitPrintAreaToOnePage(){
   inner.style.width = '';
   const pxPerMm = 96/25.4;
   const pageHeightPx = (297 - 16) * pxPerMm; // A4 สูง 297mm หัก margin บน-ล่าง 8mm x2
-  const contentHeightPx = inner.scrollHeight;
-  if(contentHeightPx > pageHeightPx){
-    let scale = pageHeightPx / contentHeightPx;
-    if(scale < PRINT_FIT_MIN_SCALE) scale = PRINT_FIT_MIN_SCALE;
-    inner.style.transformOrigin = 'top left';
+  const lo = minScale || PRINT_FIT_MIN_SCALE;
+  if(inner.scrollHeight <= pageHeightPx) return;
+  // (12/11/2569) ย่อแล้วกล่องกว้างขึ้น (width = 100/scale %) ข้อความตัดบรรทัดน้อยลง ความสูงจริงลดลงอีก
+  // → วัดซ้ำแล้วปรับ scale ให้ใหญ่ที่สุดที่ยังพอดี 1 หน้า (เดิมคำนวณครั้งเดียว ย่อเล็กเกินจำเป็น)
+  let scale = Math.max(lo, pageHeightPx / inner.scrollHeight);
+  inner.style.transformOrigin = 'top left';
+  for(let k = 0; k < 8; k++){
     inner.style.transform = `scale(${scale})`;
     inner.style.width = (100/scale) + '%';
+    const h = inner.scrollHeight * scale;
+    const next = Math.max(lo, Math.min(1, scale * pageHeightPx / h));
+    if(Math.abs(next - scale) < 0.005){ if(h > pageHeightPx && scale > lo) scale = Math.max(lo, scale - 0.01); else break; }
+    else scale = next;
   }
+  // กันเกินหน้า: ถ้ายังสูงเกิน ค่อยๆ ลดลงจนพอดี
+  for(let k = 0; k < 30 && scale > lo; k++){
+    inner.style.transform = `scale(${scale})`; inner.style.width = (100/scale) + '%';
+    if(inner.scrollHeight * scale <= pageHeightPx) break;
+    scale = Math.max(lo, scale - 0.01);
+  }
+  inner.style.transform = `scale(${scale})`;
+  inner.style.width = (100/scale) + '%';
 }
 
 // ===== บันทึกสำเนา PDF ของฟอร์มที่พิมพ์ เก็บเข้าโฟลเดอร์เอกสารของลูกค้าอัตโนมัติ =====
@@ -7002,12 +7020,12 @@ function renderDashboard(){
       : mode==='month' ? drThaiDate(drUpdKey(r))
       : (drDayKey(r.savedAt)===_drState.date ? `<span class="dr-tag new">ใหม่</span>` : `<span class="dr-tag upd">อัปเดต</span>`);
     return `<tr class="dr-row" onclick="drToggleRow(this,'${esc(String(r.id))}')" title="กดเพื่อดูรายละเอียด">
-      <td><b>${esc(r.custName||'-')}</b>${r.custPhone?`<div class="dr-sub">📞 ${esc(r.custPhone)}</div>`:''}${!_drState.person && r.branch?`<div class="dr-sub">👤 ${esc(r.branch)}</div>`:''}</td>
+      <td><b>${esc(r.custName||'-')}</b>${r.custPhone?`<div class="dr-sub">📞 ${esc(r.custPhone)}</div>`:''}${!_drState.person && r.branch?`<div class="dr-sub">👤 ${esc(r.branch)}</div>`:''}<div class="dr-mnote" data-noteid="${esc(String(r.id))}"${r.lastNote?'':' hidden'}>💬 ${esc(r.lastNote||'')}</div></td>
       <td>${esc(r.model||'-')}</td>
       <td><span class="case-status-badge status-${drSlug(r)}">${esc(r.caseStatus||'รอดำเนินการ')}</span></td>
       <td>${tag}</td>
       <td>${due}</td>
-      <td class="dr-note">${esc(r.lastNote||'')}</td>
+      <td class="dr-note" data-noteid="${esc(String(r.id))}">${esc(r.lastNote||'')}</td>
     </tr>`;
   }).join('') : `<tr><td colspan="6" class="dr-empty">— ไม่มี —</td></tr>`;
   const caseTable = (list, mode, h4) => `<div class="dr-tablewrap"><table class="dr-table">
@@ -7088,6 +7106,7 @@ function renderDashboard(){
     <div class="dr-h">✍️ สรุป / ปัญหา / แผนพรุ่งนี้ <span class="dr-hint">(พิมพ์ออกไปพร้อมรายงาน)</span></div>
     <textarea id="drNote" class="dr-notebox" rows="3" placeholder="เช่น ลูกค้านัดดูรถพรุ่งนี้ 2 ราย, รอเอกสารจากไฟแนนซ์..." oninput="_drState.note=this.value">${esc(_drState.note)}</textarea>
   `;
+  drSyncNotes([...c.urgent, ...c.tomorrowList, ...c.touchedToday]);
 }
 
 // กดแถวในตารางรายงาน → กาง/พับรายละเอียดใต้แถวนั้น (ยังไม่ออกจากหน้ารายงาน)
@@ -7095,6 +7114,45 @@ function renderDashboard(){
 // · ข้อมูลรายได้ · ประวัติการติดตาม (Timeline) — ส่วนที่ไม่มีในข้อมูลสรุปจะโหลดฉบับเต็ม (action=get) มาเติมให้เอง
 // ถ้าต้องการทำอะไรต่อ (อัปเดตสถานะ/บันทึกโน้ต) ค่อยกด "เปิดเคสเต็ม"
 const _drFullCache = {};
+// (12/11/2569) อัปเดตหมายเหตุล่าสุดของเคสจาก Timeline (updates) แล้วแก้ช่องโน้ตในตารางรายงานที่เปิดอยู่ทันที
+function drApplyFreshNote(id, updates){
+  const rec = _allHistoryRecords.find(x => String(x.id) === String(id));
+  if(!rec) return;
+  const pin = _pinnedCardFields[id];
+  const derived = (pin && pin.lastNote) ? {note: pin.lastNote} : deriveLastNoteFromUpdates(updates);
+  if(!derived || !derived.note || derived.note === rec.lastNote) return;
+  rec.lastNote = derived.note;
+  document.querySelectorAll('[data-noteid]').forEach(el => {
+    if(el.getAttribute('data-noteid') !== String(id)) return;
+    el.textContent = (el.classList.contains('dr-mnote') ? '💬 ' : '') + derived.note;
+    el.hidden = false;
+  });
+}
+// เคสในตาราง "ต้องตามด่วน" (ที่ใช้พิมพ์) — โหลดฉบับเต็มเบื้องหลังเพื่อดึงหมายเหตุล่าสุดจริงจาก Timeline
+// ทำครั้งเดียวต่อเคสต่อการเปิดหน้าเว็บ, ยิงพร้อมกันทีละ 4, สูงสุด 60 เคส
+const _drNoteSynced = {};
+function drSyncNotes(list){
+  if(!gasUrl) return;
+  const queue = list.filter(r => !_drNoteSynced[r.id]).slice(0, 60);
+  queue.forEach(r => _drNoteSynced[r.id] = true);
+  let running = 0;
+  const next = () => {
+    while(running < 4 && queue.length){
+      const r = queue.shift(); running++;
+      jsonpRequest(gasUrl + '?action=get&id=' + encodeURIComponent(r.id), function(err, data){
+        running--;
+        if(!err && data && data.status === 'ok' && data.record){
+          const full = Object.assign({}, r, data.record);
+          full.updates = mergePendingTimeline(r.id, full.updates);
+          _drFullCache[r.id] = full;
+          drApplyFreshNote(r.id, full.updates);
+        }
+        next();
+      });
+    }
+  };
+  next();
+}
 function drToggleRow(tr, id){
   const next = tr.nextElementSibling;
   if(next && next.classList.contains('dr-detail')){ next.remove(); tr.classList.remove('open'); return; }
@@ -7127,7 +7185,7 @@ function drToggleRow(tr, id){
     <div id="${uid}_extra"></div>
     <div class="dr-dsec">🚜 ดีล</div>
     <div class="dr-dgrid" id="${uid}_deal">${drDealHtml(r)}</div>
-    ${r.lastNote ? `<div class="dr-dnote">💬 ${esc(r.lastNote)}${r.lastNoteBy?` <span style="color:var(--ink-soft);font-size:11px">— ${esc(r.lastNoteBy)}</span>`:''}</div>` : ''}
+    <div class="dr-dnote" id="${uid}_note"${r.lastNote?'':' style="display:none"'}>💬 ${esc(r.lastNote||'')}${r.lastNoteBy?` <span style="color:var(--ink-soft);font-size:11px">— ${esc(r.lastNoteBy)}</span>`:''}</div>
     <div id="${uid}_full"><div class="dr-dloading">⏳ กำลังโหลดข้อมูลรายได้ / ผู้ค้ำ / ประวัติการติดตาม...</div></div>
     <div class="dr-dact">
       ${phone ? `<a href="tel:${esc(phone)}" onclick="event.stopPropagation()">📞 โทรหาลูกค้า</a>` : ''}
@@ -7191,6 +7249,11 @@ function drLoadFullDetail(id, uid){
     }
     const deal = document.getElementById(uid+'_deal');
     if(deal) deal.innerHTML = drDealHtml(full);
+    // (12/11/2569) หมายเหตุล่าสุดเอาจาก Timeline ฉบับเต็ม — ข้อมูลสรุปจาก backend อาจยังเป็นโน้ตเก่า
+    drApplyFreshNote(id, full.updates);
+    const noteBox = document.getElementById(uid+'_note');
+    const recNow = _allHistoryRecords.find(x => String(x.id) === String(id));
+    if(noteBox && recNow && recNow.lastNote){ noteBox.style.display = ''; noteBox.textContent = '💬 ' + recNow.lastNote; }
 
     const fiHtml = (typeof renderFinInfoSectionWrap === 'function') ? renderFinInfoSectionWrap(uid, full) : '';
     const updates = Array.isArray(full.updates) ? full.updates : [];
@@ -7249,6 +7312,7 @@ function printDailyReport(){
   const who = _drState.person || 'ทุกคน';
   const showStaff = !_drState.person;
   const stLabel = r => esc(r.caseStatus||'รอดำเนินการ');
+  const clip = t => { t = String(t||'').replace(/\s+/g,' ').trim(); return t.length > 120 ? t.slice(0,118) + '…' : t; };
   const rows = (list, mode) => list.length ? list.map((r,i) => {
     const d = daysSince(r.lastNoteAt||r.savedAt);
     const why = mode==='urgent'
@@ -7256,43 +7320,35 @@ function printDailyReport(){
       : (drDayKey(r.savedAt)===_drState.date ? 'ใหม่' : 'อัปเดต');
     return `<tr>
       <td class="c">${i+1}</td>
-      <td><b>${esc(r.custName||'-')}</b>${r.custPhone?'<div class="sub">'+esc(r.custPhone)+'</div>':''}</td>
+      <td><b>${esc(r.custName||'-')}</b>${r.custPhone?' <span class="sub">'+esc(r.custPhone)+'</span>':''}</td>
       ${showStaff?`<td>${esc(r.branch||'-')}</td>`:''}
       <td>${esc(r.model||'-')}</td>
       <td>${stLabel(r)}</td>
-      <td class="c">${why}</td>
-      <td class="c">${r.nextFollowUp?drThaiDate(r.nextFollowUp):'-'}</td>
-      <td>${esc(r.lastNote||'')}</td>
+      <td class="c">${why}${r.nextFollowUp?'<div class="sub">นัด '+drThaiDate(r.nextFollowUp)+'</div>':''}</td>
+      <td>${esc(clip(r.lastNote))}</td>
     </tr>`;
-  }).join('') : `<tr><td colspan="${showStaff?8:7}" class="c none">— ไม่มี —</td></tr>`;
+  }).join('') : `<tr><td colspan="${showStaff?7:6}" class="c none">— ไม่มี —</td></tr>`;
   // ความกว้างคอลัมน์ (รวม 100%) — มีคอลัมน์พนักงานเมื่อพิมพ์รวมทุกคน
-  const cols = showStaff ? [4,19,11,13,13,9,9,22] : [4,22,0,14,14,10,10,26];
+  // (12/11/2569) รวม "นัดถัดไป" เข้าช่องเหตุผล, ชื่อ+เบอร์บรรทัดเดียว, โน้ตยาวตัดที่ 120 ตัวอักษร → ให้พอดี 1 หน้า
+  const cols = showStaff ? [4,24,11,12,13,10,26] : [4,27,0,13,14,11,31];
   const colgroup = '<colgroup>' + cols.filter(w=>w>0).map(w=>`<col style="width:${w}%">`).join('') + '</colgroup>';
   // หัวข้อตารางอยู่ใน thead → ซ้ำทุกหน้าที่ตารางล้นไป และไม่หลุดค้างท้ายหน้าเดี่ยวๆ
-  const ncol = showStaff ? 8 : 7;
+  const ncol = showStaff ? 7 : 6;
   const table = (title, list, mode, h, cls) => `<div class="sec">
     <table class="t">${colgroup}
-      <thead><tr><td colspan="${ncol}" class="cap"><div class="h ${cls||''}">${title}</div></td></tr><tr><th>#</th><th>ลูกค้า</th>${showStaff?'<th>พนักงาน</th>':''}<th>รุ่น</th><th>สถานะ</th><th>${h}</th><th>นัดถัดไป</th><th>โน้ตล่าสุด</th></tr></thead>
+      <thead><tr><td colspan="${ncol}" class="cap"><div class="h ${cls||''}">${title}</div></td></tr><tr><th>#</th><th>ลูกค้า</th>${showStaff?'<th>พนักงาน</th>':''}<th>รุ่น</th><th>สถานะ</th><th>${h} / นัด</th><th>โน้ตล่าสุด</th></tr></thead>
       <tbody>${rows(list, mode)}</tbody></table></div>`;
   const box = (n,l) => `<td class="box"><div class="n">${n}</div><div class="l">${l}</div></td>`;
   const pipe = CASE_STATUSES.filter(s=>statusSlug(s)==='wait').map(s => {
     const n = records.filter(r => (CASE_STATUSES.includes(r.caseStatus)?r.caseStatus:'รอดำเนินการ')===s).length;
-    return `<span class="pp">${esc(s)} <b>${n}</b></span>`;
+    return n ? `<span class="pp">${esc(s)} <b>${n}</b></span>` : ''; // ไม่โชว์สถานะที่เป็น 0
   }).join('');
 
-  let staffHtml = '';
-  const people = drPeopleList();
-  if(showStaff && people.length > 1){
-    staffHtml = `<div class="sec">
-      <table class="t staff"><thead><tr><td colspan="6" class="cap"><div class="h">สรุปรายพนักงาน</div></td></tr><tr><th style="width:28%">พนักงาน</th><th>ใหม่วันนี้</th><th>อัปเดตวันนี้</th><th>ปิดได้เดือนนี้</th><th>เคสเปิดอยู่</th><th>ต้องตามด่วน</th></tr></thead><tbody>` +
-      people.map(p => {
-        const pc = drCompute(_allHistoryRecords.filter(r => (r.branch||'').trim()===p), _drState.date);
-        return `<tr><td>${esc(p)}</td><td class="c">${pc.newToday.length}</td><td class="c">${pc.updatedToday.length}</td><td class="c">${pc.wonMonth.length}</td><td class="c">${pc.open.length}</td><td class="c">${pc.urgent.length?'<b>'+pc.urgent.length+'</b>':'0'}</td></tr>`;
-      }).join('') + `</tbody></table></div>`;
-  }
-
+  // (12/11/2569) ใบพิมพ์เอาแค่ถึงตาราง "เคสต้องตามด่วน" — ตัดสรุปรายพนักงาน / นัดพรุ่งนี้ / เคสที่ทำวันนี้ ออก (บนจอยังดูได้เหมือนเดิม)
   const note = (document.getElementById('drNote')?.value || _drState.note || '').trim();
-  const html = `<style>
+  const brk = (list, sts) => sts.map(st => [st.replace('/ปิดเคส',''), drCountBy(list, st)]).filter(x => x[1]).map(x => x[0]+' '+x[1]).join(' · '); // ตัดเงื่อนไขที่เป็น 0
+  const bl = (label, list, sts) => { const t = brk(list, sts); return label + (t ? '<br>' + t : ''); };
+  const html = `<div><style>
     .drp{ font-family:'Sarabun','Kanit',sans-serif; font-size:10pt; color:#000; line-height:1.35; }
     .drp .top{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:8px; }
     .drp .ttl{ font-size:15pt; font-weight:bold; }
@@ -7304,7 +7360,7 @@ function printDailyReport(){
     .drp .box .l{ font-size:9pt; }
     .drp .pipe{ font-size:9.5pt; margin:4px 0 2px; }
     .drp .pp{ display:inline-block; border:1px solid #888; border-radius:10px; padding:0 7px; margin:2px 3px 2px 0; }
-    .drp .sec{ padding-top:8px; }
+    .drp .sec{ padding-top:5px; }
     .drp .h{ font-size:11pt; font-weight:bold; margin-bottom:3px; break-after:avoid; page-break-after:avoid; }
     .drp .h.warn{ border-left:4px solid #000; padding-left:6px; }
     .drp .t{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:9pt; }
@@ -7317,9 +7373,9 @@ function printDailyReport(){
     .drp .c{ text-align:center; }
     .drp .sub{ font-size:8.5pt; color:#333; }
     .drp .none{ color:#666; }
-    .drp .notebox{ border:1px solid #000; min-height:31.2mm; padding:0 6px; white-space:pre-wrap; font-size:10pt; line-height:7.8mm;
+    .drp .notebox{ border:1px solid #000; min-height:15.6mm; padding:0 6px; white-space:pre-wrap; font-size:10pt; line-height:7.8mm;
       background-image:repeating-linear-gradient(to bottom, transparent 0, transparent 7.5mm, #bbb 7.5mm, #bbb 7.8mm); }
-    .drp .sign{ width:100%; margin-top:16mm; font-size:10pt; break-inside:avoid; page-break-inside:avoid; }
+    .drp .sign{ width:100%; margin-top:9mm; font-size:10pt; break-inside:avoid; page-break-inside:avoid; }
     .drp .sign td{ text-align:center; width:50%; }
     .drp .tail{ break-inside:avoid; page-break-inside:avoid; }
   </style>
@@ -7329,14 +7385,11 @@ function printDailyReport(){
       <div class="meta">วันที่ <b>${drThaiDate(_drState.date)}</b><br>พนักงาน: <b>${esc(who)}</b><br><span style="font-size:8.5pt">พิมพ์เมื่อ ${new Date().toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'})}</span></div>
     </div>
     <table class="sum">
-      <tr><th>วันนี้</th>${box(c.newToday.length,'เคสใหม่')}${box(c.updatedToday.length,'ติดตาม/อัปเดต')}${box(c.wonToday.length,'ปิดได้ (คัน)<br>'+drBreakText(c.wonToday, DR_WON_STATUSES))}${box(c.lostToday.length,'เสีย (คัน)<br>'+drBreakText(c.lostToday, DR_LOST_STATUSES))}</tr>
-      <tr><th>เดือนนี้</th>${box(c.newMonth.length,'เคสใหม่')}${box(c.wonMonth.length,'ปิดได้ (คัน)<br>'+drBreakText(c.wonMonth, DR_WON_STATUSES))}${box(c.lostMonth.length,'เสีย (คัน)<br>'+drBreakText(c.lostMonth, DR_LOST_STATUSES))}${box(c.winRateMonth===null?'—':c.winRateMonth+'%','อัตราปิดได้')}</tr>
+      <tr><th>วันนี้</th>${box(c.newToday.length,'เคสใหม่')}${box(c.updatedToday.length,'ติดตาม/อัปเดต')}${box(c.wonToday.length,bl('ปิดได้ (คัน)', c.wonToday, DR_WON_STATUSES))}${box(c.lostToday.length,bl('เสีย (คัน)', c.lostToday, DR_LOST_STATUSES))}</tr>
+      <tr><th>เดือนนี้</th>${box(c.newMonth.length,'เคสใหม่')}${box(c.wonMonth.length,bl('ปิดได้ (คัน)', c.wonMonth, DR_WON_STATUSES))}${box(c.lostMonth.length,bl('เสีย (คัน)', c.lostMonth, DR_LOST_STATUSES))}${box(c.winRateMonth===null?'—':c.winRateMonth+'%','อัตราปิดได้')}</tr>
     </table>
     <div class="pipe"><b>เคสที่ยังเปิดอยู่ ${c.open.length} เคส:</b> ${pipe}</div>
     ${table('⚠ เคสต้องตามด่วน '+c.urgent.length+' เคส (ถึงกำหนดนัด / ไม่มีอัปเดตเกิน '+STALE_DAYS+' วัน)', c.urgent, 'urgent', 'เหตุผล', 'warn')}
-    ${table('นัดติดตามพรุ่งนี้ ('+drThaiDate(c.tomorrow)+') '+c.tomorrowList.length+' เคส', c.tomorrowList, 'x', 'ประเภท')}
-    ${table('เคสที่ทำวันนี้ '+c.touchedToday.length+' เคส', c.touchedToday, 'x', 'ประเภท')}
-    ${staffHtml}
     <div class="sec tail">
       <div class="h">สรุป / ปัญหา / แผนพรุ่งนี้</div>
       <div class="notebox">${esc(note)}</div>
@@ -7345,11 +7398,18 @@ function printDailyReport(){
         <td>ลงชื่อ ......................................<br>ผู้ตรวจ (ไฟแนนซ์ / ผู้จัดการ)</td>
       </tr></table>
     </div>
-  </div>`;
+  </div></div>`;
   document.getElementById('printArea').innerHTML = html;
   document.body.classList.add('printing');
+  // (12/11/2569) ย่อให้พอดี A4 1 หน้า (ย่อได้ถึง 50% — ถ้าเคสเยอะเกินนั้นจะล้นไปหน้า 2 แทนการย่อจนอ่านไม่ออก)
+  _fitPrintAreaToOnePage(0.5);
+  // transform:scale ไม่ลดความสูงจริงของกล่อง → ตั้งความสูงตามขนาดที่ย่อแล้ว กันหน้าว่างงอกเป็นหน้า 2
+  const pa = document.getElementById('printArea'), pin = pa.firstElementChild;
+  const m = /scale\(([\d.]+)\)/.exec(pin.style.transform||'');
+  if(m){ pa.style.height = Math.ceil(pin.scrollHeight * Number(m[1])) + 'px'; pa.style.overflow = 'hidden'; }
   window.print();
   document.body.classList.remove('printing');
+  pa.style.height = ''; pa.style.overflow = '';
 }
 // คำนวณจาก _allHistoryRecords ที่โหลดไว้ในเครื่องล้วนๆ ไม่ยิง request เพิ่มเติมจากที่ระบบยิงอยู่แล้วตอนเปิดหน้าประวัติ
 function openDashboardModal(){
@@ -7441,7 +7501,8 @@ function gasGet(url, params, callback){
   const fullUrl = url + sep + qs;
 
   // Try JSONP first (works from file:// too)
-  const cbName = '_gasCallback_' + Date.now();
+  // (12/11/2569) ต่อท้ายเลขลำดับ — ยิงหลาย request ในมิลลิวินาทีเดียวกันแล้วชื่อ callback ซ้ำ ผลลัพธ์จะสลับ/หาย
+  const cbName = '_gasCallback_' + Date.now() + '_' + (gasGet._seq = (gasGet._seq||0) + 1);
   const script = document.createElement('script');
   let done = false;
 
@@ -7834,6 +7895,16 @@ function hfAmphureChange(){
 
 function renderHistoryList(records){
   _allHistoryRecords = records || [];
+  // (12/11/2569) โหลดลิสต์ใหม่ (เช่น ตอนเปิดรายงาน 📊 ซึ่งโหลดข้อมูลทั้งหมดใหม่) ทับค่าที่เพิ่งอัปเดตในเครื่อง
+  // ถ้า backend ยังบันทึกไม่เสร็จ/ยังคืนค่าเก่าจาก cache → สถานะอาจเปลี่ยนแล้วแต่หมายเหตุที่พิมพ์หายไป
+  // จึงเอาค่าที่เพิ่งบันทึกในเครื่องนี้ (_pinnedCardFields) กลับมาทับ ถ้าใหม่กว่าของ backend
+  _allHistoryRecords.forEach(r => {
+    const pin = _pinnedCardFields[r.id];
+    if(!pin) return;
+    const tPin = Date.parse(pin.lastNoteAt||'') || 0;
+    const tRec = Date.parse(r.lastNoteAt||'') || 0;
+    if(!tRec || tPin > tRec + 1000) Object.assign(r, pin);
+  });
   populateFilterDropdowns();
   const countEl = document.getElementById('histFilterCount');
   if(countEl){
@@ -8070,6 +8141,7 @@ function changeCaseStatus(id, status, note){
     refreshHistoryCardInList(id);
   }
   addPendingTimelineEntry(id, statusEntry);
+  delete _drFullCache[id]; // (12/11/2569) ให้แถวในรายงานโหลดประวัติใหม่ ไม่ใช้ของเก่าที่จำไว้ก่อนอัปเดต
   updateDetailLastNote(id, cardNote, new Date().toISOString());
 
   // ส่ง cardNote (มี fallback ข้อความสถานะติดไปด้วยถ้าไม่ได้พิมพ์อะไร) ไม่ใช่ rawNote เฉยๆ
@@ -8318,6 +8390,7 @@ function submitUpdateNote(id){
     tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([noteEntry]));
   }
   addPendingTimelineEntry(id, noteEntry);
+  delete _drFullCache[id];
   updateDetailLastNote(id, note, new Date().toISOString());
 
   // อัปเดตบันทึกล่าสุด/เวลาในการ์ดฝั่งซ้ายด้วย ให้เห็นบันทึกใหม่ทันทีโดยไม่ต้องโหลดลิสต์ใหม่
