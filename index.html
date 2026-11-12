@@ -8176,9 +8176,40 @@ function confirmCaseStatusChange(id){
   const status = sel ? sel.value : 'รอดำเนินการ';
   const noteEl = document.getElementById('hdStatusNoteInput_'+id);
   const note = (noteEl?.value || '').trim();
+  // (12/11/2569) พนักงานขายเปลี่ยนสถานะไม่ได้ (backend updateStatus รับแค่ admin/manager) — เดิมยิงไปแล้วโดนปฏิเสธเงียบๆ
+  // (no-cors) บนจอเห็นสถานะ/หมายเหตุเปลี่ยน แต่ไม่ได้บันทึกจริง พอโหลดใหม่หายทั้งคู่ → เซลล์บันทึกเป็น "บันทึกการคุย" แทน
+  if(!isFinanceUser()){
+    const prev = sel ? (sel.getAttribute('data-prev') || '') : '';
+    if(sel && prev && status !== prev){ sel.value = prev; }
+    if(!note){ alert('กรุณาพิมพ์หมายเหตุก่อนกดบันทึก\n(การเปลี่ยนสถานะเคสทำได้เฉพาะแอดมิน/ผู้จัดการ)'); return; }
+    saveSalesNote(id, note);
+    if(noteEl) noteEl.value = '';
+    return;
+  }
   changeCaseStatus(id, status, note);
   if(noteEl) noteEl.value = ''; // เคลียร์ช่องพิมพ์ให้พร้อมจดรอบถัดไป แต่แถบยังอยู่เหมือนเดิม ไม่หายไปไหน
   if(sel) sel.setAttribute('data-prev', status);
+}
+// บันทึกหมายเหตุอย่างเดียว (type 'note' ผ่าน action addUpdate ที่ทุกบทบาทใช้ได้) — ใช้กับพนักงานขาย
+function saveSalesNote(id, note){
+  const nowIso = new Date().toISOString();
+  const entry = { byName:userName, byRole:userRole, note, newDown:null, newYears:null, nextFollowUp:'' };
+  const noteEntry = Object.assign({ts:new Date().toLocaleString('th-TH',{hour12:false}), type:'note'}, entry);
+  const tlEl = document.getElementById('hdTimelineDynamic_'+id);
+  if(tlEl) tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([noteEntry]));
+  addPendingTimelineEntry(id, noteEntry);
+  delete _drFullCache[id];
+  updateDetailLastNote(id, note, nowIso);
+  const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
+  if(rec){
+    if(Array.isArray(rec.updates)) rec.updates.push(noteEntry);
+    rec.lastNote = note; rec.lastNoteAt = nowIso;
+    _pinnedCardFields[id] = Object.assign({}, _pinnedCardFields[id], { lastNote: note, lastNoteAt: nowIso });
+    refreshHistoryCardInList(id);
+  }
+  gasPost('addUpdate', {action:'addUpdate', id, entry}, (err)=>{
+    if(err) alert('บันทึกหมายเหตุไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
+  });
 }
 function changeCaseStatus(id, status, note){
   const nowStr = new Date().toLocaleString('th-TH',{hour12:false});
@@ -8745,10 +8776,10 @@ function renderHistoryDetailHtml(id, d, rowNote){
       <div class="sales-summary-card">
         <div class="ssc-head" style="justify-content:space-between">
           <span>🧾 สรุปการขาย</span>
-          <select class="case-status-select" id="hdStatusSelect_${id}" data-prev="${escapeHtml(d.caseStatus||'รอดำเนินการ')}">${CASE_STATUSES.map(s=>`<option value="${escapeHtml(s)}" ${((d.caseStatus||'รอดำเนินการ')===s)?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select>
+          <select class="case-status-select" id="hdStatusSelect_${id}" data-prev="${escapeHtml(d.caseStatus||'รอดำเนินการ')}"${isFinanceUser()?'':' disabled title="เฉพาะแอดมิน/ผู้จัดการเปลี่ยนสถานะได้ — พนักงานขายบันทึกหมายเหตุได้อย่างเดียว"'}>${CASE_STATUSES.map(s=>`<option value="${escapeHtml(s)}" ${((d.caseStatus||'รอดำเนินการ')===s)?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select>
         </div>
         <div class="hd-status-note-bar" style="margin-top:8px;padding:10px;background:#fff;border:1.5px solid var(--line);border-radius:10px">
-          <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:4px">บันทึกว่าคุยอะไรกับลูกค้า (จะเปลี่ยนสถานะด้านบนไปด้วยหรือไม่ก็ได้)</label>
+          <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:4px">บันทึกว่าคุยอะไรกับลูกค้า ${isFinanceUser() ? '(จะเปลี่ยนสถานะด้านบนไปด้วยหรือไม่ก็ได้)' : '(สถานะเคสเปลี่ยนได้เฉพาะแอดมิน/ผู้จัดการ)'}</label>
           <textarea id="hdStatusNoteInput_${id}" rows="2" placeholder="เช่น ลูกค้าขอเลื่อนนัดโอนเงิน..." style="width:100%;box-sizing:border-box;font-family:'Kanit',sans-serif;font-size:12.5px;padding:6px 8px;border-radius:8px;border:1.5px solid var(--line)"></textarea>
           <button class="btn-reprint" style="width:100%;margin-top:6px" onclick="confirmCaseStatusChange('${id}')">บันทึก</button>
         </div>
