@@ -7962,7 +7962,9 @@ function renderHistoryList(records){
     if(!pin) return;
     const tPin = Date.parse(pin.lastNoteAt||'') || 0;
     const tRec = Date.parse(r.lastNoteAt||'') || 0;
-    if(!tRec || tPin > tRec + 1000) Object.assign(r, pin);
+    // (13/11/2569) เวลาที่ backend บันทึกมักช้ากว่าเวลาในเครื่องไม่กี่วินาที เดิมเงื่อนไข tPin > tRec ทำให้ค่าจาก backend
+    // (ที่ยังเป็น 'เปลี่ยนสถานะเป็น ...') ทับหมายเหตุที่เพิ่งพิมพ์ — ตอนนี้ให้ค่าในเครื่องชนะ เว้นแต่ backend ใหม่กว่าเกิน 5 นาที
+    if(!tRec || tRec < tPin + 5*60*1000) Object.assign(r, pin);
   });
   populateFilterDropdowns();
   const countEl = document.getElementById('histFilterCount');
@@ -8186,6 +8188,16 @@ function confirmCaseStatusChange(id){
     if(noteEl) noteEl.value = '';
     return;
   }
+  // (13/11/2569) แก้บั๊ก: แอดมิน/ผู้จัดการพิมพ์หมายเหตุแล้วกดบันทึกโดยไม่ได้เปลี่ยนสถานะ เดิมยิง updateStatus เสมอ
+  // ซึ่ง backend ไม่เก็บข้อความที่พิมพ์ (เก็บแค่ 'เปลี่ยนสถานะเป็น "..."' + เวลาใหม่) → หมายเหตุล่าสุดไม่เปลี่ยน แต่เวลาเปลี่ยน
+  // ตอนนี้: สถานะไม่เปลี่ยน → บันทึกเป็นหมายเหตุ (addUpdate) อย่างเดียว / สถานะเปลี่ยน → updateStatus แล้วตามด้วย addUpdate
+  const prevStatus = sel ? (sel.getAttribute('data-prev') || 'รอดำเนินการ') : status;
+  if(status === prevStatus){
+    if(!note){ alert('กรุณาพิมพ์หมายเหตุ หรือเลือกสถานะใหม่ก่อนกดบันทึก'); return; }
+    saveSalesNote(id, note);
+    if(noteEl) noteEl.value = '';
+    return;
+  }
   changeCaseStatus(id, status, note);
   if(noteEl) noteEl.value = ''; // เคลียร์ช่องพิมพ์ให้พร้อมจดรอบถัดไป แต่แถบยังอยู่เหมือนเดิม ไม่หายไปไหน
   if(sel) sel.setAttribute('data-prev', status);
@@ -8217,12 +8229,15 @@ function changeCaseStatus(id, status, note){
   const rawNote = (note||'').trim();
   const cardNote = rawNote || ('เปลี่ยนสถานะเป็น "'+status+'"');
 
-  const statusEntry = {ts:nowStr, byName:userName, byRole:userRole, type:'status', status, note:rawNote};
+  // (13/11/2569) แยกหมายเหตุที่พิมพ์ออกเป็นรายการ 'note' ต่างหาก (ส่งผ่าน addUpdate ที่ backend เก็บข้อความจริง)
+  // เพราะ updateStatus ฝั่ง backend ไม่เก็บข้อความที่พิมพ์ไว้ — รายการสถานะจึงไม่ใส่ note เพื่อไม่ให้ Timeline ซ้ำ
+  const statusEntry = {ts:nowStr, byName:userName, byRole:userRole, type:'status', status, note:''};
+  const noteEntry = rawNote ? {ts:nowStr, byName:userName, byRole:userRole, type:'note', note:rawNote, newDown:null, newYears:null, nextFollowUp:''} : null;
   const rec = _allHistoryRecords.find(r => String(r.id) === String(id));
   if(rec){
     rec.caseStatus = status;
     // เก็บ entry นี้ลง rec.updates ด้วย — เดิมแทรกแค่ใน DOM ของ Timeline พอกดเปิดเคสซ้ำ Timeline ถูกวาดใหม่จาก rec.updates แล้วหมายเหตุหาย
-    if(Array.isArray(rec.updates)) rec.updates.push(statusEntry);
+    if(Array.isArray(rec.updates)){ rec.updates.push(statusEntry); if(noteEntry) rec.updates.push(noteEntry); }
     // อัปเดตบันทึกล่าสุด/เวลา ให้การ์ดฝั่งซ้ายแสดงตรงกับสถานะ+หมายเหตุใหม่ทันที ไม่ต้องรอโหลดลิสต์ใหม่
     rec.lastNote = cardNote;
     rec.lastNoteAt = new Date().toISOString();
@@ -8231,6 +8246,7 @@ function changeCaseStatus(id, status, note){
     refreshHistoryCardInList(id);
   }
   addPendingTimelineEntry(id, statusEntry);
+  if(noteEntry) addPendingTimelineEntry(id, noteEntry);
   delete _drFullCache[id]; // (12/11/2569) ให้แถวในรายงานโหลดประวัติใหม่ ไม่ใช้ของเก่าที่จำไว้ก่อนอัปเดต
   updateDetailLastNote(id, cardNote, new Date().toISOString());
 
@@ -8242,11 +8258,18 @@ function changeCaseStatus(id, status, note){
     entry: {byName:userName, byRole:userRole, type:'status', status, note: cardNote},
     lastNote: cardNote, lastNoteAt: new Date().toISOString(),
     byName:userName, byRole:userRole}, (err)=>{
-    if(err) alert('บันทึกสถานะไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message);
+    if(err){ alert('บันทึกสถานะไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err.message); return; }
+    // ส่งหมายเหตุ "หลัง" updateStatus เสร็จ เพื่อให้หมายเหตุเป็นรายการล่าสุดใน Timeline เสมอ
+    if(noteEntry){
+      const {ts, type, ...entry} = noteEntry;
+      gasPost('addUpdate', {action:'addUpdate', id, entry}, (err2)=>{
+        if(err2) alert('บันทึกหมายเหตุไม่สำเร็จ (เช็คเน็ต/URL GAS): ' + err2.message);
+      });
+    }
   });
   const tlEl = document.getElementById('hdTimelineDynamic_'+id);
   if(tlEl){
-    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries([statusEntry]));
+    tlEl.insertAdjacentHTML('afterbegin', renderTimelineEntries(noteEntry ? [noteEntry, statusEntry] : [statusEntry]));
   }
 }
 
