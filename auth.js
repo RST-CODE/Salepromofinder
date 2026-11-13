@@ -26,9 +26,15 @@
  *   ⚠️ เมนู "จัดการสมาชิก" (ดูรายชื่อ/เปลี่ยน role/ระงับ/ลบ) ยังใช้งานไม่ได้ในรอบนี้ — backend ยังไม่มี
  *   action listUsers/updateUser/deleteUser เลย ถูกซ่อนไว้ก่อน (ดู openAddMemberModal()) รอเฟสถัดไป
  *
+ * ความปลอดภัย (2026-11-13):
+ *   - session หมดอายุใน 12 ชม. (ปรับได้ด้วย RST_AUTH_CONFIG.sessionTtlHours) session รุ่นเก่าที่ไม่มีวันหมดอายุ
+ *     จะถูกบังคับ login ใหม่ทันทีหลังอัปเดตไฟล์นี้
+ *   - login นับว่าผ่านเฉพาะเมื่อ backend ตอบ success:true พร้อม username + token เท่านั้น
+ *
  * โหมด Offline / Mock Fallback:
- *   ถ้าเรียก RST_AUTH_CONFIG.apiUrl ไม่ได้ (เน็ตหลุด/ยังไม่ตั้งค่า/เซิร์ฟเวอร์ตอบผิดปกติ) ระบบจะ fallback
- *   ไปใช้บัญชีทดสอบที่เก็บใน localStorage แทนโดยอัตโนมัติ เพื่อให้เปิดทดสอบ UI ได้ทันทีแม้ backend ยังไม่พร้อม
+ *   (2026-11-13) ใช้ได้เฉพาะตอน "ยังไม่ได้ตั้งค่า" RST_AUTH_CONFIG.apiUrl (หรือ allowMock:true) เท่านั้น
+ *   ถ้าตั้ง apiUrl แล้วเรียก backend ไม่ได้ จะแจ้ง error ไม่ fallback ไปบัญชีในเครื่องอีกต่อไป
+ *   และบัญชีทดสอบที่ค้างใน localStorage จะถูกล้างทิ้งตอนโหลดหน้า
  *   บัญชีทดสอบเริ่มต้น (เห็น hint ในกล่องข้อความตอน login ถ้ายังไม่ได้ตั้งค่า apiUrl):
  *     admin   / admin1234
  *     manager / manager1234
@@ -42,6 +48,13 @@
   const config = window.RST_AUTH_CONFIG || { enabled: false, apiUrl: '', sessionKey: 'rst_auth_session' };
   const SESSION_KEY = config.sessionKey || 'rst_auth_session';
   const MOCK_DB_KEY = 'rst_auth_mock_users_v1';
+  // (2026-11-13 แก้ช่องโหว่) โหมดทดสอบ/บัญชีในเครื่อง ใช้ได้เฉพาะตอน "ยังไม่ได้ตั้ง apiUrl" เท่านั้น
+  // เดิม fallback ไป mock ทุกครั้งที่เรียก backend ไม่ได้ ทำให้ (1) เซิร์ฟเวอร์ล่มแล้วใครก็เข้า admin/admin1234 ได้
+  // (2) "เพิ่มสมาชิก" ตอนเน็ตหลุด บันทึกบัญชีไว้แค่ในเครื่องแต่ขึ้นว่าสำเร็จ → ได้บัญชีที่ไม่มีใน CRM-TRACKER
+  // เปิดกลับเพื่อทดสอบได้ด้วย RST_AUTH_CONFIG.allowMock = true
+  const ALLOW_MOCK = !config.apiUrl || config.allowMock === true;
+  // (2026-11-13) session หมดอายุใน 12 ชม. (เดิมไม่มีวันหมดอายุ — ถูกลบบัญชีใน CRM-TRACKER แล้วก็ยังใช้ต่อได้)
+  const SESSION_TTL_MS = (Number(config.sessionTtlHours) > 0 ? Number(config.sessionTtlHours) : 12) * 3600 * 1000;
 
   // ===================================================================
   // เชื่อมกับ backend จริง (2026-09-20): Apps Script "crm_sheet_bigquery" ตัวเดียวกับที่
@@ -84,7 +97,12 @@
     try {
       const raw = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
       if (!raw) return null;
-      if (raw.expiresAt && Date.now() > raw.expiresAt) return null;
+      // ต้องมี expiresAt เสมอ — session รุ่นเก่าที่ไม่มีค่านี้ (ไม่มีวันหมดอายุ) ถือว่าใช้ไม่ได้ ต้อง login ใหม่
+      if (!raw.expiresAt || Date.now() > raw.expiresAt) return null;
+      // session ที่ได้จากบัญชีทดสอบในเครื่อง (token 'mock.') ใช้ไม่ได้เมื่อเชื่อม backend จริงแล้ว
+      if (!ALLOW_MOCK && (raw.mock || String(raw.token || '').indexOf('mock.') === 0)) return null;
+      // เชื่อม backend จริงแล้วต้องมี token จาก backend เสมอ
+      if (!ALLOW_MOCK && !raw.token) return null;
       // กันข้อมูลเก่า/ผิดรูปแบบใน localStorage (เช่น session ค้างจากเวอร์ชันก่อนหน้า หรือค่าที่เพี้ยนไปโดยไม่ตั้งใจ)
       // ทำให้เข้าใช้งานได้โดยไม่ต้อง login จริง — ต้องมี role และ (id หรือ username) ครบก่อนถึงจะถือว่าเป็น session ที่ใช้ได้
       if (!raw.role) return null;
@@ -180,7 +198,15 @@
             }
             if (!response.ok) {
               const err = new Error('Auth API ตอบกลับผิดปกติ (HTTP ' + response.status + ')');
-              err.networkError = true; // ปัญหาระดับ infra เช่น URL ผิด/deploy ไม่ถูกต้อง → ให้ fallback ได้
+              err.networkError = true; // ปัญหาระดับ infra เช่น URL ผิด/deploy ไม่ถูกต้อง
+              throw err;
+            }
+            // (2026-11-13) นับว่าสำเร็จเฉพาะ success === true เท่านั้น — เดิมอะไรที่ไม่ใช่ success:false
+            // (เช่น {error:...}, หน้า error HTML ที่ parse ไม่ได้ → {}) ถูกนับว่า login ผ่าน
+            if (!data || data.success !== true) {
+              const msg = (data && (data.message || data.error)) || 'เซิร์ฟเวอร์ตอบกลับในรูปแบบที่ไม่รู้จัก';
+              const err = new Error('ระบบสมาชิกตอบกลับผิดปกติ: ' + msg);
+              err.networkError = true;
               throw err;
             }
             return data;
@@ -310,7 +336,10 @@
       console.warn('[RSTAuth] backend ไม่ได้ส่งค่า role กลับมาตอน login/register เลย — ใช้สิทธิ์ "sales" (ต่ำสุด) ไปก่อนชั่วคราว ' +
         'เช็ค response จาก apiUrl ว่ามี field role/roles อยู่หรือไม่ (ดูค่าดิบได้ที่ window.RSTAuth.debugLastLoginResponse())', data);
     }
+    const isMock = !!(raw.mock || data.mock);
     const sess = {
+      mock: isMock,
+      expiresAt: Date.now() + SESSION_TTL_MS,
       token: raw.token || data.token || '',
       id: raw.id || raw.userId || data.id || '',
       username: raw.username || raw.email || data.username || '',
@@ -318,6 +347,10 @@
       role: normalized || 'sales',
       branch: raw.branch || raw.office || data.branch || ''
     };
+    // (2026-11-13) backend ต้องส่ง username และ token กลับมาจริง ไม่งั้นถือว่า login ไม่ผ่าน
+    if (!sess.username || (!isMock && !sess.token)) {
+      throw new Error('เข้าสู่ระบบไม่สำเร็จ: เซิร์ฟเวอร์ไม่ได้ส่งข้อมูลบัญชีกลับมา กรุณาลองใหม่หรือติดต่อแอดมิน');
+    }
     writeSession(sess);
     return sess;
   }
@@ -326,7 +359,8 @@
     return apiRequest(ACTIONS.login, { username: username, password: password })
       .then(normalizeSessionResponse)
       .catch(function (err) {
-        if (err.networkError) return mockLogin(username, password).then(normalizeSessionResponse);
+        if (err.networkError && ALLOW_MOCK) return mockLogin(username, password).then(normalizeSessionResponse);
+        if (err.networkError) throw new Error('เชื่อมต่อระบบสมาชิกไม่ได้ (' + err.message + ') — เช็คอินเทอร์เน็ตแล้วลองใหม่');
         throw err;
       });
   }
@@ -341,7 +375,9 @@
     const backendPayload = Object.assign({}, payload, { role: toBackendRole(payload.role) });
     return apiRequest(ACTIONS.register, backendPayload)
       .catch(function (err) {
-        if (err.networkError) return mockRegister(payload, session);
+        if (err.networkError && ALLOW_MOCK) return mockRegister(payload, session);
+        // ไม่บันทึกลงเครื่องแทนแล้ว — แจ้ง error จริง เพื่อไม่ให้เกิดบัญชีที่ไม่มีใน CRM-TRACKER
+        if (err.networkError) throw new Error('เพิ่มสมาชิกไม่สำเร็จ — ' + err.message + ' (ยังไม่ได้บันทึกบัญชีนี้ กรุณาลองใหม่)');
         throw err;
       });
   }
@@ -349,17 +385,17 @@
   function listMembers() {
     if (!session || session.role !== 'admin') return Promise.reject(new Error('เฉพาะแอดมินเท่านั้น'));
     return apiRequest(ACTIONS.listUsers, {})
-      .catch(function (err) { if (err.networkError) return mockListUsers(); throw err; });
+      .catch(function (err) { if (err.networkError && ALLOW_MOCK) return mockListUsers(); throw err; });
   }
   function updateMember(userId, changes) {
     if (!session || session.role !== 'admin') return Promise.reject(new Error('เฉพาะแอดมินเท่านั้น'));
     return apiRequest(ACTIONS.updateUser, Object.assign({ userId: userId }, changes))
-      .catch(function (err) { if (err.networkError) return mockUpdateUser(Object.assign({ userId: userId }, changes)); throw err; });
+      .catch(function (err) { if (err.networkError && ALLOW_MOCK) return mockUpdateUser(Object.assign({ userId: userId }, changes)); throw err; });
   }
   function deleteMember(userId) {
     if (!session || session.role !== 'admin') return Promise.reject(new Error('เฉพาะแอดมินเท่านั้น'));
     return apiRequest(ACTIONS.deleteUser, { userId: userId })
-      .catch(function (err) { if (err.networkError) return mockDeleteUser({ userId: userId }); throw err; });
+      .catch(function (err) { if (err.networkError && ALLOW_MOCK) return mockDeleteUser({ userId: userId }); throw err; });
   }
 
   function logout() {
@@ -744,8 +780,24 @@
   }
 
   /* ===================== boot ===================== */
+  // (2026-11-13) ตรวจ session หมดอายุระหว่างเปิดหน้าค้างไว้ — หมดอายุแล้วบังคับ login ใหม่
+  function checkSessionExpiry() {
+    if (session && !readSession()) {
+      clearSession();
+      location.reload();
+    }
+  }
+
   function boot() {
     injectStyles();
+    // ล้างบัญชีทดสอบ/บัญชีที่เคยบันทึกไว้แค่ในเครื่อง เมื่อเชื่อม backend จริงแล้ว (ใช้ไม่ได้อยู่แล้ว)
+    if (!ALLOW_MOCK) { try { localStorage.removeItem(MOCK_DB_KEY); } catch (e) {} }
+    // session เดิมที่ไม่ผ่านเงื่อนไขใหม่ (ไม่มีวันหมดอายุ/เป็น mock) ลบทิ้งให้ login ใหม่
+    if (!session) { try { localStorage.removeItem(SESSION_KEY); } catch (e) {} }
+    if (config.enabled) {
+      setInterval(checkSessionExpiry, 60 * 1000);
+      document.addEventListener('visibilitychange', function () { if (!document.hidden) checkSessionExpiry(); });
+    }
     if (!config.enabled) { afterAuthUIRefresh(); return; }
     if (!session) {
       renderLogin();
