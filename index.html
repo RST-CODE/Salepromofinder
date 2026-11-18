@@ -5862,7 +5862,9 @@ const USED_RATES = {
 const USED_DOWN_SUPPORT = {
   // 'YM351R': 30000,
 };
-const USED_MINOR_DEFAULT = { semi: 1000, annual: 2000 };
+const USED_MINOR_DEFAULT = { semi: 1000, annual: 1000 };
+// (18/11/2569) งวดย่อยรถมือสอง: เดือนละ 1,000 บาทตายตัว หรือไม่มี (เซลล์เลือกได้ — ไม่ให้พิมพ์ยอดเอง)
+const USED_MINOR_FIXED = 1000;
 const USED_PAY_LABELS = { monthly: 'รายเดือน', semi: 'ราย 6 เดือน', annual: 'รายปี', cash: '💵 เงินสด' };
 // อุปกรณ์มือสองของรุ่นเก่า (ไม่มีในหน้ารถใหม่) ใช้เฉพาะหน้ารถมือสอง — ราคา "มือสองปรับสภาพ (ซ่อม+ทำสี)"
 // ตามใบ "อุปกรณ์ต่อพ่วงมือสอง" แก้ไขข้อมูล ณ 2 เม.ย. 2568 (ไม่ใส่ราคาไม่ปรับสภาพ / MOTTO เพราะไม่ได้ขาย)
@@ -5887,7 +5889,7 @@ const USED_PAGE_EQUIPMENT = { yanmar: {
 const USED_MODE_KEY = 'rst_sale_mode';
 
 var saleMode = 'new'; // var (ไม่ใช่ let) เพราะ collectExportData อาจถูกเรียกก่อนบรรทัดนี้ทำงานตอนโหลดหน้า
-var usedCalc = { price: '', priceStock: 0, discount: '', custDown: '', years: 5, payment: 'annual', minorOpt: 'normal', minor: 2000, carKey: '', rateRaw: '', supportRaw: null };
+var usedCalc = { price: '', priceStock: 0, discount: '', custDown: '', years: 5, payment: 'annual', minorOpt: 'normal', minor: USED_MINOR_FIXED, carKey: '', rateRaw: '', supportRaw: null };
 
 function usedNum(v){ const n = Number(String(v == null ? '' : v).replace(/[^0-9.]/g, '')); return isFinite(n) ? n : 0; }
 // (14/11/2569) ช่วยดาวน์อัตโนมัติ — เฉพาะ "รถแทรกเตอร์ยันม่าร์" (ไม่รวมรถเกี่ยว/รถขุด/ยี่ห้ออื่น)
@@ -5964,7 +5966,7 @@ function usedCompute(){
   const rate = usedRateFor(car, payment);
   const periodsMinor = isCash ? 0 : getPeriodsMinor(payment);        // รายปี 11, ราย 6 เดือน 10, รายเดือน 0
   const hasMinor = !isCash && payment !== 'monthly' && usedCalc.minorOpt !== 'none';
-  const minorBase = hasMinor ? Math.max(0, usedNum(usedCalc.minor)) : 0;
+  const minorBase = hasMinor ? USED_MINOR_FIXED : 0;
   const minorMode = (hasMinor && usedCalc.minorOpt === 'with_down') ? 'with_down' : 'normal';
   const minorTotal = minorBase * periodsMinor;
   const annualFull = (rate == null || isCash) ? 0 : finTotal * (1 / years + rate);
@@ -6027,7 +6029,7 @@ function usedRestoreFromRecord(d){
     custDown: (u.payment === 'cash') ? '' : (u.custDown != null ? u.custDown : ''),
     years: (y => (y >= 1 && y <= USED_YEARS_MAX) ? y : 5)(Number(u.yearsChosen || u.years) || 0), payment: USED_PAYMENTS.includes(u.payment) ? u.payment : 'annual',
     rateRaw: u.rateRaw ? String(u.rateRaw) : (u.rateCustom && u.rate != null ? String(+(u.rate*100).toFixed(4)) : ''),
-    minorOpt: u.minorOpt || 'normal', minor: u.minor || USED_MINOR_DEFAULT[u.payment] || 2000, carKey: (d.usedCar && d.usedCar.key) || '',
+    minorOpt: (u.minorOpt === 'none' || u.minorOpt === 'with_down') ? u.minorOpt : 'normal', minor: USED_MINOR_FIXED, carKey: (d.usedCar && d.usedCar.key) || '',
     // เคสเก่า (ก่อน 14/11/2569) ไม่มี supportCustom: ถ้าช่วยดาวน์ที่บันทึกไว้ต่างจากค่าอัตโนมัติตอนนี้ → คงค่าเดิมไว้ (นับเป็นแก้เอง)
     supportRaw: u.supportCustom ? (u.support != null ? u.support : 0)
       : (u.supportCustom === false || u.payment === 'cash' || u.support == null || Number(u.support) === usedSupportFor(d.usedCar)) ? null : Number(u.support)
@@ -6073,7 +6075,7 @@ function setSaleMode(mode){
 function usedSet(field, value){
   usedCalc[field] = value;
   if(field === 'payment'){
-    usedCalc.minor = USED_MINOR_DEFAULT[value] || usedCalc.minor;
+    usedCalc.minor = USED_MINOR_FIXED;
     usedRenderForm();
   } else if(field === 'years' || field === 'minorOpt'){
     usedRenderForm();
@@ -6222,10 +6224,8 @@ function usedRenderForm(){
     ${hasMinor ? `
       <label class="us-label">งวดย่อยรายเดือน (${periods} เดือน ก่อนงวดใหญ่)</label>
       <label class="us-radio"><input type="radio" name="usMinorOpt" ${usedCalc.minorOpt==='none'?'checked':''} onchange="usedSet('minorOpt','none')"><span><b>ไม่มีงวดย่อย</b> — จ่ายเฉพาะงวดใหญ่</span></label>
-      <label class="us-radio"><input type="radio" name="usMinorOpt" ${usedCalc.minorOpt==='normal'?'checked':''} onchange="usedSet('minorOpt','normal')"><span><b>จ่ายงวดย่อยทุกเดือน</b> — งวดใหญ่ลดลงตาม</span></label>
-      <label class="us-radio"><input type="radio" name="usMinorOpt" ${usedCalc.minorOpt==='with_down'?'checked':''} onchange="usedSet('minorOpt','with_down')"><span><b>รวบงวดย่อยมาพร้อมดาวน์</b> — จ่ายวันรับรถ</span></label>
-      ${usedCalc.minorOpt !== 'none' ? `<div style="display:flex;align-items:center;gap:8px;margin-top:4px"><span style="font-size:12px;color:var(--ink-soft)">งวดย่อยเดือนละ</span>
-        <input class="us-input" style="width:120px;font-size:14px;padding:6px 8px" type="text" inputmode="numeric" value="${Number(usedCalc.minor||0).toLocaleString('th-TH')}" oninput="usedInput('minor', this)"><span style="font-size:12px;color:var(--ink-soft)">บาท</span></div>` : ''}
+      <label class="us-radio"><input type="radio" name="usMinorOpt" ${usedCalc.minorOpt==='normal'?'checked':''} onchange="usedSet('minorOpt','normal')"><span><b>เดือนละ ${fmt(USED_MINOR_FIXED)} บาท ทุกเดือน</b> — งวดใหญ่ลดลงตาม</span></label>
+      <label class="us-radio"><input type="radio" name="usMinorOpt" ${usedCalc.minorOpt==='with_down'?'checked':''} onchange="usedSet('minorOpt','with_down')"><span><b>เดือนละ ${fmt(USED_MINOR_FIXED)} บาท รวบมาพร้อมดาวน์</b> — ${fmt(USED_MINOR_FIXED)} × ${periods} = ${fmt(USED_MINOR_FIXED*periods)} บาท จ่ายวันรับรถ</span></label>
     ` : ''}
   `;
   usedRenderSupportLine();
